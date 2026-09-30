@@ -8,7 +8,8 @@
     "preview": "vite preview --outDir build/client",
     "typecheck": "react-router typegen && tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "start:railway": "serve --config serve.railway.json --no-clipboard --listen tcp://0.0.0.0:${PORT:-3000}"
   },
   "dependencies": {
     "@hcaptcha/react-hcaptcha": "^2.2.0",
@@ -17,7 +18,8 @@
     "isbot": "^5.2.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "react-router": "^8.4.0"
+    "react-router": "^8.4.0",
+    "serve": "^14.2.6"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
