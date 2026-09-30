@@ -90,6 +90,8 @@ Inside the web app, **only `apps/web/src/services/` knows about Supabase**:
 
 ### Video Testimonials (YouTube Unlisted)
 
+> **Update 30 Sep 2026 (Ajay):** videos of some students and their parents are available. Collect a **written parent consent form** for each (not just a WhatsApp message) before publishing. See Release 1 PRP A.11, T20.
+
 | Title | YouTube URL / ID | Person (display name + role) | Consent obtained (Y/N) |
 |---|---|---|---|
 | ‹TBD› | ‹TBD› | ‹TBD› | ‹TBD› |

@@ -9,7 +9,7 @@ export function Approach() {
   if (APPROACH.paragraphs.length === 0) return null;
 
   return (
-    <Section id={SECTION_IDS.approach} heading={APPROACH.heading} tone="subtle">
+    <Section id={SECTION_IDS.approach} heading={APPROACH.heading}>
       {APPROACH.paragraphs.map((paragraph) => (
         <p key={paragraph}>{paragraph}</p>
       ))}

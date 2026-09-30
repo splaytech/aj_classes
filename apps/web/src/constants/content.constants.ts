@@ -26,6 +26,7 @@ export const A11Y = {
 
 export const NAV = {
   links: [
+    { label: 'Programmes', sectionId: SECTION_IDS.programmes },
     { label: 'Our Approach', sectionId: SECTION_IDS.approach },
     { label: 'About', sectionId: SECTION_IDS.about },
     { label: 'FAQ', sectionId: SECTION_IDS.faq },
@@ -36,20 +37,20 @@ export const NAV = {
 
 export const ANNOUNCEMENT = {
   icon: '🔥',
-  text: '2027 classes start in October:',
+  text: 'Enrolling now for 2027:',
   cta: 'Register interest →',
 };
 
 export const HERO = {
   headline: 'AJ Classes: Selective Entry Exam & Interview Coaching',
   supporting:
-    'Small-group classes for Years 2–10 in Maths, Science and English, in person in Truganina or online anywhere in Australia.',
+    'Small-group coaching in Maths, Science and English for Years 5–10, plus NAPLAN preparation from Year 2. In person in Truganina or online anywhere in Australia.',
   primaryCta: 'Register Interest',
   secondaryCta: 'Ask a Question',
   proofPoints: [
-    'Selective exam + interview prep',
+    '7 selective school offers in 2026',
+    '20+ years of teaching experience',
     'Small groups, twice a week',
-    'Free places for families in need',
   ],
   imageAlt: 'Illustration of three rising gold lines, representing students moving forward',
 };
@@ -59,19 +60,97 @@ export const WHY_US = {
   cards: [
     {
       title: 'Exam and interview ready',
-      text: 'We prepare students for every part of selective entry, from test technique to confident interview answers.',
+      text: 'We cover every part of selective entry, from reading, writing, maths and reasoning to mock interviews with written feedback.',
     },
     {
       title: 'Small groups, real attention',
-      text: 'Two 1-hour classes a week in small groups, so every student is seen, heard and challenged.',
+      text: 'Two 1-hour classes a week in small groups (up to 10 students in person), so every student is seen, heard and challenged.',
     },
     {
-      title: 'Skilled, checked teachers',
-      text: 'A team of experienced teachers and subject specialists, each holding a Working With Children Check.',
+      title: 'Qualified, checked teachers',
+      text: 'Qualified teachers with more than 20 years of combined teaching experience, each holding a Working With Children Check.',
     },
     {
       title: 'Learning for everyone',
-      text: 'We believe every child deserves the chance to learn, so families facing financial hardship can study with us free.',
+      text: 'We believe every child should learn. Ask us about fee support.',
+    },
+  ],
+};
+
+export const RESULTS = {
+  heading: 'Our 2026 results',
+  items: [
+    {
+      value: '7',
+      label: 'Selective high school offers for Year 9',
+      detail: '2 Melbourne High · 3 Suzanne Cory · 1 Mac.Robertson · 1 Nossal',
+    },
+    {
+      value: '5',
+      label: 'John Monash Science School offers',
+      detail: '3 for Year 10 · 2 for Year 11',
+    },
+    {
+      value: '3',
+      label: 'Private school scholarships',
+      detail: '',
+    },
+  ],
+  note: 'Our students also exceeded expectations in NAPLAN and improved significantly in ICAS.',
+};
+
+export const PROGRAMMES = {
+  heading: 'Programmes',
+  intro: 'Small-group classes and coaching from Year 2 through to university entry.',
+  newBadge: 'New',
+  items: [
+    {
+      title: 'Selective entry exam preparation',
+      years: 'Years 6–10',
+      text: 'Reading comprehension, creative and persuasive writing, mathematics, and verbal and quantitative reasoning, with timed practice under exam conditions.',
+      isNew: false,
+    },
+    {
+      title: 'Selective school and scholarship interviews',
+      years: 'Years 8–10',
+      text: 'One-on-one and group mock interviews, coaching on common questions, help with applications and written feedback. For Melbourne High, Mac.Robertson, Nossal, Suzanne Cory, John Monash Science School and private school scholarships.',
+      isNew: false,
+    },
+    {
+      title: 'SEAL and scholarship preparation',
+      years: '',
+      text: 'Preparation for SEAL program entry and private school scholarship exams.',
+      isNew: false,
+    },
+    {
+      title: 'NAPLAN',
+      years: 'Years 2–9',
+      text: 'Preparation starts in Year 2, ahead of the first NAPLAN in Year 3.',
+      isNew: false,
+    },
+    {
+      title: 'ICAS',
+      years: 'Years 5–10',
+      text: 'Preparation for the ICAS academic competitions.',
+      isNew: false,
+    },
+    {
+      title: 'Maths, Science and English tutoring',
+      years: 'Years 5–10',
+      text: 'Regular term-by-term tutoring to build strong foundations and keep students ahead at school.',
+      isNew: false,
+    },
+    {
+      title: 'VCE subject-selection counselling',
+      years: '',
+      text: 'Sessions with students and parents together, with complete guidance on choosing VCE subjects.',
+      isNew: false,
+    },
+    {
+      title: 'UCAT and GAMSAT preparation',
+      years: '',
+      text: 'Preparation for medical and health-science entry tests. Enrolments are open now, and classes start in January 2027.',
+      isNew: true,
     },
   ],
 };
@@ -86,7 +165,7 @@ export const APPROACH = {
   steps: [
     {
       name: 'Assess',
-      text: 'We find out where your child is today: their strengths, gaps and goals.',
+      text: 'An initial assessment shows where your child is today: their strengths, gaps and goals.',
     },
     {
       name: 'Plan',
@@ -106,9 +185,9 @@ export const APPROACH = {
 export const ABOUT = {
   heading: 'About Us',
   story:
-    "AJ Classes started with a simple belief: every child can learn and rise, whatever their background. From our home-based classroom in Truganina, and online for families across Australia, we help students from Year 2 to Year 10 build strong skills in Maths, Science and English and prepare for Victoria's selective entry high schools, from the exam through to the interview. We keep our groups small and our standards high, and we make sure that financial hardship never stops a motivated student from learning with us.",
+    "AJ Classes started with a simple belief: every child can learn and rise, whatever their background. From our home-based classroom in Truganina, and online for families across Australia, we prepare students for Victoria's selective entry high schools, from the exam through to the interview, and support them from their first NAPLAN to choosing VCE subjects and beyond. We keep our groups small and our standards high, and we offer fee support so that more motivated students can learn with us.",
   teamHeading: 'Our team',
-  team: 'Our team of skilled teachers and subject specialists brings deep knowledge of Maths, Science and English, along with years of experience preparing students for selective entry exams and interviews.',
+  team: 'Our qualified teachers bring more than 20 years of combined teaching experience in Maths, Science and English, and in preparing students for selective entry exams and interviews.',
   badge: 'Working With Children Check held',
 };
 
@@ -118,12 +197,12 @@ export const FAQ = {
     {
       question: 'What is the Victorian selective entry exam?',
       answer:
-        "Victoria's selective entry high schools offer places for Year 9 through a statewide entrance exam that students sit in Year 8. The exam tests skills such as reading, writing, mathematics and reasoning. Places are highly competitive, so early, structured preparation makes a real difference.",
+        "Victoria's selective entry high schools offer places for Year 9 through a statewide entrance exam that students sit in Year 8. The exam tests skills such as reading, writing, mathematics and reasoning. We cover every section: reading comprehension, creative and persuasive writing, mathematics, and verbal and quantitative reasoning. Places are highly competitive, so early, structured preparation makes a real difference.",
     },
     {
       question: 'Which year levels does AJ Classes teach?',
       answer:
-        'Year 2 to Year 10. Our main focus is preparing students for Victorian Selective Entry High Schools, covering both the exam and the interview. We also prepare students for NAPLAN (starting in Year 2, ahead of the first NAPLAN in Year 3) and ICAS, teach Maths, Science and English, and offer VCE subject-selection counselling for students and parents.',
+        'NAPLAN preparation starts in Year 2, and Maths, Science and English tutoring runs from Year 5 to Year 10. Selective entry exam preparation runs from Year 6, and interview coaching from Year 8. We also offer SEAL and scholarship preparation, VCE subject-selection counselling, and UCAT and GAMSAT preparation (classes start January 2027).',
     },
     {
       question: 'Do you help with choosing VCE subjects?',
@@ -138,22 +217,22 @@ export const FAQ = {
     {
       question: 'How big are the groups?',
       answer:
-        'We teach in small groups so every student gets attention. Classes run for 1 hour, twice a week, both in person and online.',
+        'In-person groups have up to 10 students, so everyone gets attention; online group sizes vary. Classes are live and teacher-led, and run for 1 hour, twice a week.',
     },
     {
       question: 'How do I enrol?',
       answer:
-        "Register your interest using the form on this page and tell us whether you prefer a phone call or email. We'll get in touch to talk about your child's needs and the next steps. Classes start by term, and our 2027 batch begins in October.",
+        "Register your interest using the form on this page. We'll contact you by phone or email (your choice) within 3 business days to book an initial assessment, explain fees, and share term dates and the timetable. Our 2027 batch starts on 12 October 2026. Joining mid-term is considered case by case.",
     },
     {
       question: 'How much are the fees?',
       answer:
-        'Please get in touch to talk about fees. We believe every child should have the chance to learn, so we offer free places to families experiencing financial hardship.',
+        "We'll explain fees on our first call. We believe every child should learn, so please ask us about fee support.",
     },
     {
-      question: 'Are your tutors checked and qualified?',
+      question: 'Are your teachers checked and qualified?',
       answer:
-        'Yes. Our team of skilled teachers and subject specialists all hold a current Working With Children Check.',
+        'Yes. All our teachers are qualified, with more than 20 years of combined teaching experience, and each holds a current Working With Children Check.',
     },
   ],
 };
@@ -179,7 +258,7 @@ export const CONTACT_FORM = {
   heading: 'Register your interest',
   intro:
     "Tell us a little about your child and how you'd like us to contact you. There's no obligation.",
-  responsePromise: "We'll call or email you (your choice) within 2 business days.",
+  responsePromise: "We'll call or email you (your choice) within 3 business days.",
   labels: {
     name: 'Your name',
     email: 'Email',
@@ -193,6 +272,7 @@ export const CONTACT_FORM = {
   },
   yearLevelPlaceholder: 'Select a year level (optional)',
   yearLevelPrefix: 'Year',
+  yearLevelOther: 'University / graduate (UCAT, GAMSAT)',
   optional: '(optional)',
   privacyNoticeBefore: 'By submitting, you agree to our',
   privacyLinkText: 'Privacy Policy',
@@ -204,7 +284,7 @@ export const CONTACT_FORM = {
   yes: 'Yes',
   no: 'No',
   success: (contactMethod: ContactMethod) =>
-    `Thank you! We've received your details and will contact you by ${contactMethod === 'phone' ? 'phone' : 'email'} within 2 business days.`,
+    `Thank you! We've received your details and will contact you by ${contactMethod === 'phone' ? 'phone' : 'email'} within 3 business days.`,
 };
 
 export const SUBSCRIBE = {

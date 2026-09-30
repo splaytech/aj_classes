@@ -248,6 +248,7 @@ export function ContactForm() {
               {CONTACT_FORM.yearLevelPrefix} {year}
             </option>
           ))}
+          <option value={CONTACT_FORM.yearLevelOther}>{CONTACT_FORM.yearLevelOther}</option>
         </select>
       </FormField>
 

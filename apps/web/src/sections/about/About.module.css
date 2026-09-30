@@ -3,7 +3,7 @@
   padding: var(--space-6);
   border-left: 4px solid var(--color-primary);
   border-radius: var(--radius-md);
-  background: var(--color-bg-subtle);
+  background: var(--color-bg);
 }
 
 .badge {

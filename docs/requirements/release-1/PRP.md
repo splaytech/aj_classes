@@ -214,6 +214,8 @@ Each section answers one parent question. Copy for every section is in **[Append
 | 1 | **Header** | Where do I go? | Logo; links **Approach · About · FAQ · Contact**; primary button **"Register Interest"**; social icons (small, desktop only). Sticky, one row. Hamburger menu on mobile |
 | 2 | **Hero** | What is this? | **Announcement pill** above the headline (F2.11), then headline, one supporting sentence, primary CTA **"Register Interest"**, secondary CTA **"Ask a Question"**, hero image. A strip of 3 short proof points below it (e.g. "Selective-entry specialists · Qualified tutors · Small groups") |
 | 3 | **Why AJ Classes** | Why you, not someone else? | 3–4 value cards: icon, 4–6 word title, 1–2 sentence description |
+| 3a | **Our 2026 results** *(added 30 Sep 2026)* | Do you get results? | 3 stat cards: 7 selective high school offers (Year 9), 5 John Monash Science School offers, 3 private school scholarships, plus a one-line note on NAPLAN/ICAS. Aggregate numbers only, **no student names** |
+| 3b | **Programmes** *(added 30 Sep 2026)* | What exactly do you teach? | Card grid: each programme with its year levels (Selective exam prep, interviews, SEAL and scholarships, NAPLAN, ICAS, school tutoring, VCE counselling, UCAT/GAMSAT with a "New" badge). Also a nav link |
 | 4 | **Our Approach** | How do you teach? | Teaching philosophy in 2–3 short paragraphs, plus a 3–4 step visual (e.g. Assess → Plan → Practise → Review) |
 | 5 | **About Us / Our Team** | Who will teach my child? | Short story of AJ Classes, then a **team description (no individual names or photos in R1)**: "a team of skilled teachers and professors", subjects covered, and a **"Working With Children Check held"** trust badge. Individual tutor profiles come in a later release |
 | 6 | **FAQ** | What else do I need to know? | 5–8 questions in an accordion (also used for SEO, F6.2.6) |
@@ -664,6 +666,8 @@ These have more influence on branded ranking than any tag. Most are **owner acti
 ## Appendix A — Content Placeholders
 
 > **Status (27 Sep 2026):** all copy is drafted. Items that still need owner or Ajay input are marked *TBC* and listed in the **Remaining Inputs** table at the end of this appendix. Engineering copies this into the constants files in `src/constants/` (F8). Any section left completely empty is hidden (F2.1). Items marked **(required)** block launch.
+>
+> **Source of truth for copy (from 30 Sep 2026): `apps/web/src/constants/content.constants.ts`.** The drafts below record how the copy was decided; where they differ from the constants file, the constants file wins. Ajay's answers of 30 Sep 2026 (A.11) have been applied there.
 
 ### A.1 Brand & Contact (required)
 
@@ -796,6 +800,37 @@ These have more influence on branded ranking than any tag. Most are **owner acti
 | T14 | **Results and proof:** past results (e.g. number of selective school offers, which schools, which years), **the evidence behind each figure** (offer letters or records), combined years of teaching experience, and **written parental consent** before naming any student | Strongest proof point for the hero. Claims must be verifiable. Named students (like the competitor's honour board) need consent because they're minors. A results/honour board section is a candidate for R1.1 or R2 |
 | T15 | **VCE subject-selection counselling:** which year level (usually Year 10), how long a session is, whether it's one session or several, in person or online, and whether it is free or paid | New service from Ajay (30 Sep 2026); needed to describe it accurately and possibly give it its own section later |
 
+### A.11 Ajay's Answers (Google Form, 30 Sep 2026) and What Changed
+
+| # | Answer | Applied on the site |
+|---|---|---|
+| T1 | Reading comprehension, creative and persuasive writing, mathematics, verbal reasoning, quantitative/numerical reasoning | FAQ #1, Programmes, Why card 1 |
+| T2 | Science: Years 5–10 | Programmes (school tutoring) |
+| T3 | Selective exam prep Y6–10; interview prep Y8–10; NAPLAN Y5–9 (plus Year 2 per Ajay's message); ICAS, Maths, Science, English Y5–10 | Hero now says "Years 5–10, plus NAPLAN preparation from Year 2"; Programmes year tags; FAQ #2 |
+| T4 | Interviews: one-on-one and group mock interviews, common-question coaching, application help, written feedback. Schools: Melbourne High, Mac.Rob, Nossal, Suzanne Cory, JMSS, private school scholarships | Programmes, Why card 1 |
+| T5 | Also SEAL and private school scholarship preparation | New Programmes card; SEO topics |
+| T6 | Yes, regular term-by-term tutoring | Programmes card |
+| T7 | In person up to 10; online varies | FAQ #4, Why card 2 |
+| T8 | Platform: not to be mentioned. Classes live, mostly teacher-led | FAQ #4 ("live and teacher-led"); no platform named |
+| T9 | Paid assessment | Approach step 1, FAQ #5 (fee explained on the first call; no price on the site) |
+| T10 | 2027 batch starts 12 Oct 2026; Term 1 2027 starts 11 Jan 2027; mid-term joining case by case | FAQ #5. Announcement pill changed to "Enrolling now for 2027", which stays true across the 11–20 Oct launch window |
+| T11 | Parents contacted on a mobile number (to be provided); first call: book assessment/trial, explain fees, share term dates and timetable; reply within **3** business days | Response promise, success message and FAQ #5 now say 3 business days |
+| T12 | Wording: "We believe every child should learn. Ask us about fee support." Asked privately (first call or in person). Limited places per term | Why card 4, FAQ #6, Our story. **"Free places" removed** from the hero and all copy |
+| T13 | "Qualified teachers" (not "professors"); 20+ years combined experience | Team text, Why card 3, FAQ #7, hero proof point |
+| T14 | 2026: 7 Year 9 selective offers (2 MHS, 3 Suzanne Cory, 1 Mac.Rob, 1 Nossal); 3 Year 10 + 2 Year 11 JMSS offers; 3 private school scholarships; strong NAPLAN, improved ICAS. Evidence is confidential (not published). Student videos possible with parent consent | New **Our 2026 results** section and hero proof point. No names. Evidence kept on file privately (keep records in case a claim is questioned). Videos → R2 testimonials |
+| Other | **UCAT and GAMSAT preparation**: enrolments open, classes start Jan 2027 | New Programmes card with "New" badge; FAQ #2; year dropdown adds "University / graduate (UCAT, GAMSAT)" and Years 11–12; SEO topics |
+
+**Follow-ups for Ajay (still open):**
+
+| # | Question |
+|---|---|
+| T15 | VCE counselling: which year level, session length, number of sessions, online/in person, free/paid? |
+| T16 | ~~NAPLAN year range~~ **Decided 30 Sep 2026 (owner): Years 2–9.** Closed |
+| T17 | SEAL and scholarship preparation: which year levels? |
+| T18 | UCAT and GAMSAT: who it's for (Year 12 / graduates), in person or online, class format and start date in January |
+| T19 | "Most students attained superior in English": which test is this from? Not on the site until confirmed |
+| T20 | Consent for student videos and any named results: use a **written consent form** signed by a parent (a WhatsApp message isn't a reliable record). Needed before R2 testimonials |
+
 ### A.9 Privacy Page (required)
 
 **Draft privacy notice.** Plain English, based on the Australian Privacy Principles. **Not legal advice: the owner must review it before launch.** It lives in `content.constants.ts` (`PRIVACY`), with business details pulled from `business.constants.ts`.
@@ -840,7 +875,7 @@ Everything else in this PRP is decided or drafted. **The build can start now**; 
 
 ### B.2 From Ajay (see A.10)
 
-T1–T14. **Most important before launch:** T7 (group size), T10 (exact start date), T12 (free-places wording) and T13 ("professors" wording). All the rest can be added after launch.
+T1–T14 **answered 30 Sep 2026** (see A.11). **Still open:** T15, T17–T20 (T16 closed: NAPLAN Years 2–9). None of them blocks launch; the site avoids claims until each is confirmed.
 
 ### B.3 Suggested dates
 
