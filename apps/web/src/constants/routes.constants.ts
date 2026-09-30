@@ -11,6 +11,8 @@ export const ROUTES = {
 
 export const SECTION_IDS = {
   main: 'main-content',
+  results: 'results',
+  programmes: 'programmes',
   approach: 'approach',
   about: 'about',
   faq: 'faq',

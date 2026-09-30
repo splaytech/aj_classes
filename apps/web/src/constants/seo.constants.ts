@@ -4,7 +4,7 @@ export const SEO = {
   home: {
     title: 'AJ Classes | Selective Entry Exam Tutoring in Melbourne',
     description:
-      'AJ Classes offers expert coaching for the Victorian selective entry high school exam and interview. Small groups for Years 2–10, in Truganina or online. Register your interest today.',
+      'AJ Classes offers expert coaching for the Victorian selective entry exam and interview, plus NAPLAN, ICAS, scholarship, UCAT and GAMSAT preparation. Small groups in Truganina or online.',
   },
   privacy: {
     title: 'Privacy Policy | AJ Classes',
@@ -35,6 +35,11 @@ export const STRUCTURED_DATA = {
     'NAPLAN',
     'ICAS',
     'VCE subject selection counselling',
+    'SEAL program preparation',
+    'Private school scholarship preparation',
+    'John Monash Science School entry',
+    'UCAT preparation',
+    'GAMSAT preparation',
     'Mathematics',
     'Science',
     'English',

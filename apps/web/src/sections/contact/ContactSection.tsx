@@ -8,7 +8,7 @@ import styles from './ContactForm.module.css';
 
 export function ContactSection() {
   return (
-    <Section id={SECTION_IDS.contact} heading={CONTACT_FORM.heading}>
+    <Section id={SECTION_IDS.contact} heading={CONTACT_FORM.heading} tone="subtle">
       <p>{CONTACT_FORM.intro}</p>
       <p className={styles.privacy}>
         {CONTACT_FORM.responsePromise}

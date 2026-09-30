@@ -10,7 +10,7 @@ export function Faq() {
   if (FAQ.items.length === 0) return null;
 
   return (
-    <Section id={SECTION_IDS.faq} heading={FAQ.heading} tone="subtle">
+    <Section id={SECTION_IDS.faq} heading={FAQ.heading}>
       <div className={styles.list}>
         {FAQ.items.map((item) => (
           <details key={item.question} className={styles.item}>

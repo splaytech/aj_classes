@@ -5,4 +5,6 @@ export { Approach } from './approach/Approach';
 export { ContactSection } from './contact/ContactSection';
 export { Faq } from './faq/Faq';
 export { Hero } from './hero/Hero';
+export { Programmes } from './programmes/Programmes';
+export { Results } from './results/Results';
 export { WhyUs } from './why-us/WhyUs';

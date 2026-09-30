@@ -7,7 +7,7 @@ import styles from './About.module.css';
 
 export function About() {
   return (
-    <Section id={SECTION_IDS.about} heading={ABOUT.heading}>
+    <Section id={SECTION_IDS.about} heading={ABOUT.heading} tone="subtle">
       <p>{ABOUT.story}</p>
 
       <div className={styles.team}>
