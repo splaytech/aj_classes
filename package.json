@@ -1,0 +1,22 @@
+{
+  "name": "aj-classes",
+  "private": true,
+  "packageManager": "pnpm@11.1.2",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "preview": "pnpm --filter web preview",
+    "lint": "pnpm --filter web lint",
+    "typecheck": "pnpm --filter web typecheck",
+    "test": "pnpm --filter web test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.9"
+  }
+}
