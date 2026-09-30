@@ -1,0 +1,56 @@
+.footer {
+  padding: var(--space-14) 0 var(--space-8);
+  background: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+}
+
+.footer a {
+  color: var(--color-text-inverse);
+}
+
+.columns {
+  display: grid;
+  gap: var(--space-12);
+}
+
+@media (min-width: 900px) {
+  .columns {
+    grid-template-columns: 1fr 1.4fr 1fr;
+  }
+}
+
+.tagline {
+  margin-top: var(--space-4);
+  color: var(--color-secondary); /* gold on navy is allowed (F1.4) */
+  font-weight: var(--font-weight-medium);
+}
+
+.heading {
+  margin-bottom: var(--space-3);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-lg);
+}
+
+.text {
+  font-size: var(--font-size-sm);
+}
+
+.social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-12);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border-inverse);
+  font-size: var(--font-size-sm);
+}

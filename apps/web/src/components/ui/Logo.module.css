@@ -1,0 +1,20 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.mark {
+  width: 40px;
+  height: 40px;
+}
+
+.wordmark {
+  color: var(--color-text-emphasis);
+  font-family: var(--font-heading);
+  font-size: var(--font-size-lg);
+}
+
+.inverse {
+  color: var(--color-text-inverse);
+}

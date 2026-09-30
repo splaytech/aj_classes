@@ -1,0 +1,21 @@
+.section {
+  padding: var(--section-gap) 0;
+}
+
+.default {
+  background: var(--color-bg);
+}
+
+.subtle {
+  background: var(--color-bg-subtle);
+}
+
+.inverse {
+  background: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+}
+
+.inverse h2,
+.inverse h3 {
+  color: var(--color-text-inverse);
+}

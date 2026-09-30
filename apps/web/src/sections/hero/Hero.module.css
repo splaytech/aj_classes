@@ -1,0 +1,65 @@
+.hero {
+  padding: var(--space-12) 0 var(--section-gap);
+  background: var(--color-bg);
+}
+
+.layout {
+  display: grid;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: 1.2fr 1fr;
+  }
+}
+
+/* Gold pill with navy text: high contrast and within the gold rule (F1.4). */
+.announcement {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--color-secondary);
+  color: var(--color-text-emphasis);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.supporting {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: var(--space-6) 0;
+}
+
+.proofPoints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text-emphasis);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.proofPoints li::before {
+  content: '✓ ';
+  color: var(--color-primary);
+}
+
+.image {
+  justify-self: center;
+  width: 100%;
+  max-width: 420px;
+}
