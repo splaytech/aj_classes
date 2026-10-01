@@ -242,7 +242,7 @@ const QUESTIONS = [
   {
     id: 'T14a', type: 'paragraph',
     title: 'Past results: selective school offers',
-    help: 'e.g. "2025: 6 offers (3 Melbourne High, 2 Suzanne Cory, 1 Mac.Rob)". Rough numbers are fine.',
+    help: 'e.g. "2025: 6 offers (3 Melbourne High School, 2 Suzanne Cory High School, 1 Nossal High School)". Rough numbers are fine.',
   },
   {
     id: 'T14b', type: 'paragraph',

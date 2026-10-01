@@ -333,7 +333,7 @@ A plain Vite SPA serves an empty `<div id="root">`. Google can render JavaScript
 | F6.2.1 | **Title** (≤ 60 chars), brand first: `AJ Classes | Selective Entry Exam Tutoring in Melbourne`. |
 | F6.2.2 | **`h1`** contains the exact brand name, e.g. "AJ Classes: Selective Entry Exam Coaching for Australian Students" (matches the wireframes). Only one `h1` per page. |
 | F6.2.3 | The exact phrase **"AJ Classes"** appears naturally in the first paragraph, the About section, image alt text (`alt="AJ Classes logo"`), and the footer. Use one consistent spelling everywhere (no "AJ-Classes", "AJClasses" or "A.J. Classes" in copy). |
-| F6.2.4 | Secondary keywords in `h2`s and body copy: *selective entry exam*, *selective school tutoring*, *online selective exam tutoring Australia*, *Victoria*, *Melbourne*, *Year 8 entry*, *Melbourne High / Mac.Rob / Suzanne Cory / Nossal / John Monash / Balwyn / Glen Waverley selective schools* (only where relevant and accurate). |
+| F6.2.4 | Secondary keywords in `h2`s and body copy: *selective entry exam*, *selective school tutoring*, *online selective exam tutoring Australia*, *Victoria*, *Melbourne*, *Year 8 entry*, official school names: *Melbourne High School*, *The Mac.Robertson Girls' High School*, *Nossal High School*, *Suzanne Cory High School* (Victoria's four selective entry high schools) and *John Monash Science School* (specialist school with its own entry). Always use these official names and spellings (checked 1 Oct 2026). |
 | F6.2.5 | Footer shows **NAP** (Name, Address/Service area, Phone/Email) in exactly the same form used in the Google Business Profile and directory listings (F6.7). |
 | F6.2.6 | An **FAQ section** on the landing page (5–6 real questions, e.g. "What is the Victorian selective entry exam?", "Which year levels does AJ Classes teach?", "Are classes online or in person?"). This adds relevant text for search and answers what parents ask. |
 | F6.2.7 | Descriptive, keyword-relevant image file names (e.g. `aj-classes-selective-exam-tutoring.webp`, not `IMG_1234.webp`). |
@@ -808,7 +808,7 @@ These have more influence on branded ranking than any tag. Most are **owner acti
 | T1 | Reading comprehension, creative and persuasive writing, mathematics, verbal reasoning, quantitative/numerical reasoning | FAQ #1, Programmes, Why card 1 |
 | T2 | Science: Years 5–10 | Programmes (school tutoring) |
 | T3 | Selective exam prep Y6–10; interview prep Y8–10; NAPLAN Y5–9 (plus Year 2 per Ajay's message); ICAS, Maths, Science, English Y5–10 | Hero now says "Years 5–10, plus NAPLAN preparation from Year 2"; Programmes year tags; FAQ #2 |
-| T4 | Interviews: one-on-one and group mock interviews, common-question coaching, application help, written feedback. Schools: Melbourne High, Mac.Rob, Nossal, Suzanne Cory, JMSS, private school scholarships | Programmes, Why card 1 |
+| T4 | Interviews: one-on-one and group mock interviews, common-question coaching, application help, written feedback. Schools: Melbourne High School, The Mac.Robertson Girls' High School, Nossal High School, Suzanne Cory High School, John Monash Science School (JMSS), private school scholarships | Programmes, Why card 1 |
 | T5 | Also SEAL and private school scholarship preparation | New Programmes card; SEO topics |
 | T6 | Yes, regular term-by-term tutoring | Programmes card |
 | T7 | In person up to 10; online varies | FAQ #4, Why card 2 |
@@ -818,7 +818,7 @@ These have more influence on branded ranking than any tag. Most are **owner acti
 | T11 | Parents contacted on a mobile number (to be provided); first call: book assessment/trial, explain fees, share term dates and timetable; reply within **3** business days | Response promise, success message and FAQ #5 now say 3 business days |
 | T12 | Wording: "We believe every child should learn. Ask us about fee support." Asked privately (first call or in person). Limited places per term | Why card 4, FAQ #6, Our story. **"Free places" removed** from the hero and all copy |
 | T13 | "Qualified teachers" (not "professors"); 20+ years combined experience | Team text, Why card 3, FAQ #7, hero proof point |
-| T14 | 2026: 7 Year 9 selective offers (2 MHS, 3 Suzanne Cory, 1 Mac.Rob, 1 Nossal); 3 Year 10 + 2 Year 11 JMSS offers; 3 private school scholarships; strong NAPLAN, improved ICAS. Evidence is confidential (not published). Student videos possible with parent consent | New **Our 2026 results** section and hero proof point. No names. Evidence kept on file privately (keep records in case a claim is questioned). Videos → R2 testimonials |
+| T14 | 2026: 7 Year 9 selective offers (2 Melbourne High School, 3 Suzanne Cory High School, 1 The Mac.Robertson Girls' High School, 1 Nossal High School); 3 Year 10 + 2 Year 11 John Monash Science School offers; 3 private school scholarships; strong NAPLAN, improved ICAS. Evidence is confidential (not published). Student videos possible with parent consent | New **Our 2026 results** section and hero proof point. No names. Evidence kept on file privately (keep records in case a claim is questioned). Videos → R2 testimonials |
 | Other | **UCAT and GAMSAT preparation**: enrolments open, classes start Jan 2027 | New Programmes card with "New" badge; FAQ #2; year dropdown adds "University / graduate (UCAT, GAMSAT)" and Years 11–12; SEO topics |
 
 **Follow-ups for Ajay (still open):**

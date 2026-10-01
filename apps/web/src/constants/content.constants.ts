@@ -82,7 +82,8 @@ export const RESULTS = {
     {
       value: '7',
       label: 'Selective high school offers for Year 9',
-      detail: '2 Melbourne High · 3 Suzanne Cory · 1 Mac.Robertson · 1 Nossal',
+      detail:
+        "Melbourne High School (2) · Suzanne Cory High School (3) · The Mac.Robertson Girls' High School (1) · Nossal High School (1)",
     },
     {
       value: '5',
@@ -112,7 +113,7 @@ export const PROGRAMMES = {
     {
       title: 'Selective school and scholarship interviews',
       years: 'Years 8–10',
-      text: 'One-on-one and group mock interviews, coaching on common questions, help with applications and written feedback. For Melbourne High, Mac.Robertson, Nossal, Suzanne Cory, John Monash Science School and private school scholarships.',
+      text: "One-on-one and group mock interviews, coaching on common questions, help with applications and written feedback. For Melbourne High School, The Mac.Robertson Girls' High School, Nossal High School, Suzanne Cory High School, John Monash Science School and private school scholarships.",
       isNew: false,
     },
     {
