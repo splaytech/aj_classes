@@ -1,0 +1,41 @@
+.art {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+}
+
+.white {
+  fill: var(--color-bg);
+}
+
+.gold {
+  fill: var(--color-secondary);
+}
+
+.navy {
+  fill: var(--color-bg-inverse);
+}
+
+.lineDark {
+  fill: var(--color-border);
+}
+
+.lineBlue {
+  fill: var(--color-primary);
+}
+
+.goldStroke,
+.navyStroke {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.goldStroke {
+  stroke: var(--color-secondary);
+}
+
+.navyStroke {
+  stroke: var(--color-bg-inverse);
+}

@@ -5,7 +5,6 @@ import {
   ANALYTICS_EVENTS,
   ANNOUNCEMENT,
   APP_CONFIG,
-  ASSETS,
   CTA_LOCATIONS,
   HERO,
   SECTION_IDS,
@@ -14,6 +13,7 @@ import {
 import { trackEvent } from '@/lib/analytics';
 
 import styles from './Hero.module.css';
+import { HeroSlideshow } from './HeroSlideshow';
 
 function trackCta(location: string) {
   trackEvent(ANALYTICS_EVENTS.ctaClick, { location });
@@ -62,14 +62,7 @@ export function Hero() {
             </ul>
           </div>
 
-          <img
-            className={styles.image}
-            src={ASSETS.heroIllustration}
-            alt={HERO.imageAlt}
-            width={480}
-            height={400}
-            fetchPriority="high"
-          />
+          <HeroSlideshow />
         </div>
       </Container>
     </section>
