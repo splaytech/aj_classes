@@ -27,6 +27,11 @@ export const APP_CONFIG = {
     captchaSiteKey: '50b2fe65-b00b-4b9e-ad62-3ba471098be2',
     captchaLanguage: 'en',
   },
+
+  // Hero flyer slideshow: time each slide stays before moving on.
+  heroSlideshow: {
+    secondsPerSlide: 6,
+  },
 } as const;
 
 // Limits used by form validation.
@@ -52,6 +57,6 @@ export type ContactMethod = (typeof CONTACT_METHODS)[number];
 // Static files in /public.
 export const ASSETS = {
   logo: '/logo.svg',
-  heroIllustration: '/hero-illustration.svg',
   favicon: '/favicon.svg',
+  appleTouchIcon: '/apple-touch-icon.png', // icon when a parent adds the site to their phone's home screen
 } as const;

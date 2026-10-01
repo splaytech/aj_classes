@@ -57,9 +57,3 @@
   content: '✓ ';
   color: var(--color-primary);
 }
-
-.image {
-  justify-self: center;
-  width: 100%;
-  max-width: 420px;
-}

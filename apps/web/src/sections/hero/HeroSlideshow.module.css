@@ -1,0 +1,181 @@
+/* ---- Slideshow frame ---- */
+
+.slideshow {
+  width: 100%;
+  max-width: 440px;
+  justify-self: center;
+}
+
+.viewport {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.track {
+  display: flex;
+  transition: transform 500ms ease;
+}
+
+.slide {
+  display: flex; /* lets the flyer stretch to the height of the tallest slide */
+  flex: 0 0 100%;
+}
+
+/* ---- One flyer ---- */
+
+.flyer {
+  flex: 1; /* fill the whole slide, so shorter flyers have no gap underneath */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 30rem;
+  padding: var(--space-8) var(--space-6);
+  text-decoration: none;
+}
+
+.flyer:hover .cta {
+  text-decoration: underline;
+}
+
+/* Small gold-on-navy label at the top, readable on every tone. */
+.eyebrow {
+  align-self: flex-start;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-inverse);
+  color: var(--color-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+.art {
+  display: flex;
+  justify-content: center;
+  margin: var(--space-2) 0;
+}
+
+.points {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.points li::before {
+  content: '✓  ';
+  font-weight: var(--font-weight-bold);
+}
+
+/* The "button" inside the flyer (the whole flyer is the link). */
+.cta {
+  align-self: flex-start;
+  margin-top: auto;
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ---- Colour schemes (all pass WCAG AA contrast) ---- */
+
+.blue {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.navy {
+  background: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+}
+
+.navy .eyebrow {
+  background: var(--color-secondary);
+  color: var(--color-text-emphasis);
+}
+
+.gold {
+  background: var(--color-secondary);
+  color: var(--color-text-emphasis);
+}
+
+.gold .cta {
+  background: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+}
+
+/* ---- Controls under the flyer ---- */
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.controlButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-bg);
+  color: var(--color-text-emphasis);
+  font: inherit;
+  cursor: pointer;
+}
+
+.controlButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.dots {
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* Each dot is a 44px tap target with a small visible dot inside. */
+.dot {
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dot::after {
+  content: '';
+  display: block;
+  width: 0.625rem;
+  height: 0.625rem;
+  margin: auto;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+}
+
+.dot[aria-current='true']::after {
+  width: 1.5rem;
+  background: var(--color-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    transition: none;
+  }
+}

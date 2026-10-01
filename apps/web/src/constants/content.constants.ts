@@ -52,7 +52,6 @@ export const HERO = {
     '20+ years of teaching experience',
     'Small groups, twice a week',
   ],
-  imageAlt: 'Illustration of three rising gold lines, representing students moving forward',
 };
 
 export const WHY_US = {
@@ -350,3 +349,71 @@ export const PRIVACY = {
   ],
   backHome: '← Back to home',
 };
+
+// Flyer-style slides beside the hero headline. Each one links to the contact form.
+// `art` picks the illustration; `tone` picks the colour scheme (see HeroSlideshow.module.css).
+export const HERO_SLIDES = {
+  label: 'AJ Classes highlights',
+  previous: 'Previous slide',
+  next: 'Next slide',
+  pause: 'Pause slideshow',
+  play: 'Play slideshow',
+  previousIcon: '←',
+  nextIcon: '→',
+  pauseIcon: '❚❚',
+  playIcon: '▶',
+  goToSlide: (slideNumber: number) => `Go to slide ${slideNumber}`,
+  slideOf: (slideNumber: number, total: number) => `Slide ${slideNumber} of ${total}`,
+  slides: [
+    {
+      eyebrow: 'Our 2026 results',
+      title: '7 selective high school offers',
+      points: [
+        '5 John Monash Science School offers',
+        '3 private school scholarships',
+        '20+ years of teaching experience',
+      ],
+      cta: 'Join the 2027 batch →',
+      art: 'chart',
+      tone: 'navy',
+    },
+    {
+      eyebrow: 'Selective Entry 2027',
+      title: "Ready for next year's selective entry exam?",
+      points: [
+        'Reading, writing, maths and reasoning',
+        'Timed practice under exam conditions',
+        'Mock interviews with written feedback',
+      ],
+      cta: 'Register interest →',
+      art: 'books',
+      tone: 'blue',
+    },
+    {
+      eyebrow: 'Strong foundations',
+      title: 'Start early, stay ahead',
+      points: [
+        'NAPLAN preparation from Year 2',
+        'Maths, Science and English tutoring',
+        'Small groups, twice a week',
+      ],
+      cta: 'Book an assessment →',
+      art: 'openBook',
+      tone: 'gold',
+    },
+    {
+      eyebrow: 'New for 2027',
+      title: 'UCAT and GAMSAT preparation',
+      points: [
+        'Enrolments are open now',
+        'Classes start in January 2027',
+        'Register now to secure a place',
+      ],
+      cta: 'Register interest →',
+      art: 'target',
+      tone: 'blue',
+    },
+  ],
+} as const;
+
+export type HeroSlide = (typeof HERO_SLIDES.slides)[number];
