@@ -3,6 +3,10 @@
 
 const env = import.meta.env;
 
+// Kit (formerly ConvertKit) form that receives newsletter sign-ups. The form ID is public and
+// safe in the browser. Until it's set, the footer sign-up form is hidden.
+const kitFormId: string = env.VITE_KIT_FORM_ID || '';
+
 export const APP_CONFIG = {
   siteUrl: env.VITE_SITE_URL || 'https://ajclasses.com.au',
   language: 'en-AU',
@@ -12,7 +16,7 @@ export const APP_CONFIG = {
   // Turn whole features on or off without touching components.
   features: {
     announcement: true,
-    subscribe: true,
+    subscribe: kitFormId !== '', // footer newsletter sign-up (needs a Kit form ID)
     analytics: true,
   },
 
@@ -26,6 +30,12 @@ export const APP_CONFIG = {
     // shared public sitekey: https://docs.web3forms.com/getting-started/customizations/spam-protection/hcaptcha
     captchaSiteKey: '50b2fe65-b00b-4b9e-ad62-3ba471098be2',
     captchaLanguage: 'en',
+  },
+
+  // Newsletter sign-ups go to Kit, which emails a confirmation link (double opt-in).
+  newsletter: {
+    kitFormId,
+    kitFormUrl: 'https://app.convertkit.com/forms/{formId}/subscriptions',
   },
 
   // Hero flyer slideshow: time each slide stays before moving on.

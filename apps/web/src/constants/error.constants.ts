@@ -13,7 +13,6 @@ export const VALIDATION = {
   contactMethodRequired: 'Please choose how we should contact you.',
   messageRequired: 'Please add a short message so we know how to help.',
   messageTooLong: `Please keep your message under ${FORM_LIMITS.messageMax} characters.`,
-  consentRequired: 'Please tick the box to subscribe.',
   captchaRequired: 'Please complete the "I am human" check.',
 } as const;
 

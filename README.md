@@ -26,7 +26,7 @@ pnpm dev          # http://localhost:5173
 | `pnpm format`    | Formats every file with Prettier                        |
 | `pnpm check`     | Everything above in one go. Run before pushing          |
 
-Copy `apps/web/.env.example` to `apps/web/.env.local` and add the Web3Forms access key to make the forms send.
+Copy `apps/web/.env.example` to `apps/web/.env.local` and add the Web3Forms access key (enquiry form) and the Kit form ID (newsletter sign-up). Without the Kit form ID the newsletter form stays hidden.
 
 ## House rules
 
@@ -68,7 +68,8 @@ aj_classes/
 │       │   ├── services/            the ONLY code that talks to a backend (Web3Forms now, Supabase in R2)
 │       │   │   ├── enquiry.service.ts       submitEnquiry()
 │       │   │   ├── subscription.service.ts  subscribe()
-│       │   │   ├── web3forms.client.ts      the one file that calls Web3Forms
+│       │   │   ├── web3forms.client.ts      the one file that calls Web3Forms (enquiries)
+│       │   │   ├── kit.client.ts            the one file that calls Kit (newsletter)
 │       │   │   └── index.ts                 what components are allowed to import
 │       │   ├── lib/                 plain helpers: validation, seo, analytics, social
 │       │   ├── routes/              one file per URL: home, privacy, not-found, sitemap, robots

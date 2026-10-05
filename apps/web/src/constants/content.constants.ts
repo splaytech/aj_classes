@@ -3,6 +3,7 @@
 // A section with empty content is hidden automatically.
 
 import type { ContactMethod, EnquirerRole, EnquiryType } from './app.constants';
+import { BUSINESS } from './business.constants';
 import type { SocialPlatform } from './business.constants';
 import { SECTION_IDS } from './routes.constants';
 
@@ -349,13 +350,25 @@ export const MOBILE_CTA_BAR = {
 
 export const SUBSCRIBE = {
   heading: 'Stay in the loop',
-  blurb: 'News, events and enrolment updates from AJ Classes. No spam, unsubscribe any time.',
-  emailLabel: 'Email address',
-  consent: 'Send me AJ Classes news, events and enrolment updates. Unsubscribe any time.',
+  blurb: 'A weekly update for parents and guardians: news, events, enrolments and study tips.',
+  emailLabel: 'Parent or guardian email',
+  // Clear consent wording beside the button (Spam Act 2003). Kit's confirmation email
+  // (double opt-in) is the record that they asked to subscribe.
+  consentNotice:
+    "By subscribing, you agree to receive AJ Classes updates by email. We'll email you a link to confirm. Unsubscribe any time.",
   submit: 'Subscribe',
   submitting: 'Subscribing…',
-  success: "You're subscribed. Thanks for staying in touch!",
-  emailSubject: '[AJ Classes] New subscriber',
+  success: (email: string) =>
+    `Almost done! We've sent a confirmation link to ${email}. Please check your inbox, and your spam folder if it's not there.`,
+};
+
+// The page Kit sends people to after they click the confirmation link.
+// (Set this as the "redirect after confirming" URL in the Kit form settings.)
+export const SUBSCRIBED_PAGE = {
+  heading: "You're subscribed!",
+  text: "Thanks for joining the AJ Classes weekly update. You'll get news, events, enrolment updates and study tips once a week.",
+  tip: `So our emails reach your inbox, add ${BUSINESS.email} to your contacts.`,
+  backHome: 'Back to the home page',
 };
 
 export const SOCIAL_LABELS: Record<SocialPlatform, string> = {
@@ -385,11 +398,11 @@ export const PRIVACY = {
     },
     {
       heading: 'Why we collect it',
-      text: 'To respond to your enquiry, contact you in the way you prefer, and, if you ticked the box or subscribed, send you news and enrolment updates. You can unsubscribe at any time.',
+      text: 'To respond to your enquiry, contact you in the way you prefer, and, if you ticked the box or subscribed, send you news and enrolment updates. Every newsletter email has an unsubscribe link, and you can unsubscribe at any time.',
     },
     {
       heading: 'Who handles it',
-      text: "Form submissions are delivered to us by email through a form-processing service (Web3Forms), which may process data outside Australia. To block spam, our forms use hCaptcha, which checks that you are a person and may process your IP address and browser information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing.",
+      text: "Enquiry form submissions are delivered to us by email through a form-processing service (Web3Forms). Newsletter sign-ups are managed by Kit (kit.com), our email newsletter service, which stores your email address and sends our updates. Both may process data outside Australia (including the United States). To block spam, our forms use hCaptcha, which checks that you are a person and may process your IP address and browser information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing.",
     },
     {
       heading: 'How long we keep it',

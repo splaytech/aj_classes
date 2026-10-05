@@ -10,6 +10,10 @@ export const SEO = {
     title: 'Privacy Policy | AJ Classes',
     description: 'How AJ Classes collects, uses and protects your personal information.',
   },
+  subscribed: {
+    title: 'Subscribed | AJ Classes',
+    description: 'Thanks for subscribing to the AJ Classes weekly update.',
+  },
   notFound: {
     title: 'Page not found | AJ Classes',
     description: 'This page could not be found.',
