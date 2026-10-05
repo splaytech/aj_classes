@@ -213,13 +213,14 @@ Each section answers one parent question. Copy for every section is in **[Append
 |---|---|---|---|
 | 1 | **Header** | Where do I go? | Logo; links **Approach · About · FAQ · Contact**; primary button **"Register Interest"**; social icons (small, desktop only). Sticky, one row. Hamburger menu on mobile |
 | 2 | **Hero** | What is this? | **Announcement pill** above the headline (F2.11), then headline, one supporting sentence, primary CTA **"Register Interest"**, secondary CTA **"Ask a Question"**, hero image. A strip of 3 short proof points below it (e.g. "Selective-entry specialists · Qualified tutors · Small groups") |
-| 3 | **Why AJ Classes** | Why you, not someone else? | 3–4 value cards: icon, 4–6 word title, 1–2 sentence description |
+| 3 | **Why AJ Classes** | Why you, not someone else? | Value cards: 4–6 word title, 1–2 sentence description. **6 cards in a 3 × 2 grid** since 6 Oct 2026, adding "Aligned to the Victorian Curriculum" and "A plan for every student" (A.12) |
 | 3a | **Our 2026 results** *(added 30 Sep 2026)* | Do you get results? | 3 stat cards: 7 selective high school offers (Year 9), 5 John Monash Science School offers, 3 private school scholarships, plus a one-line note on NAPLAN/ICAS. Aggregate numbers only, **no student names** |
-| 3b | **Programmes** *(added 30 Sep 2026)* | What exactly do you teach? | Card grid: each programme with its year levels (Selective exam prep, interviews, SEAL and scholarships, NAPLAN, ICAS, school tutoring, VCE counselling, UCAT/GAMSAT with a "New" badge). Also a nav link |
+| 3b | **Programmes** *(added 30 Sep 2026)* | What exactly do you teach? | Card grid: each programme with its year levels (Selective exam prep, interviews, SEAL and scholarships, NAPLAN, ICAS, school tutoring, VCE counselling, UCAT/GAMSAT with a "New" badge). Each card lists **2–3 short ✓ points**, not a paragraph (6 Oct 2026, A.12). Also a nav link |
 | 4 | **Our Approach** | How do you teach? | Teaching philosophy in 2–3 short paragraphs, plus a 3–4 step visual (e.g. Assess → Plan → Practise → Review) |
 | 5 | **About Us / Our Team** | Who will teach my child? | Short story of AJ Classes, then a **team description (no individual names or photos in R1)**: "a team of skilled teachers and professors", subjects covered, and a **"Working With Children Check held"** trust badge. Individual tutor profiles come in a later release |
+| 5a | **CTA banner** *(added 6 Oct 2026)* | Ready to start? | Full-width navy band: "Ready to see what your child can achieve?", one line about the no-obligation initial assessment, and the same **"Register Interest"** button (F2.2). Sits between About and FAQ (A.12) |
 | 6 | **FAQ** | What else do I need to know? | 5–8 questions in an accordion (also used for SEO, F6.2.6) |
-| 7 | **Register Interest / Contact** | How do I start? | Form (F3), business email, response-time promise |
+| 7 | **Register Interest / Contact** | How do I start? | Form (F3) with a **Contact details card** beside it (stacked below on phones): email, phone, location, class hours, response time. Phone and class hours are hidden until confirmed (`BUSINESS.phone`, `BUSINESS.classHours`) (A.12) |
 | 8 | **Footer** | — | **Subscribe** (email-only sign-up, F3.6); **Follow us** (social icons + handles); quick links; email; Privacy; © line |
 
 **Readability & usability rules (the ways we beat the competitor)**
@@ -231,7 +232,7 @@ Each section answers one parent question. Copy for every section is in **[Append
 | F2.3 | **Typography:** body 18px (min 16px on mobile), line-height 1.6, max line length ~70ch, headings clearly larger with a consistent scale. Paragraphs ≤ 3 sentences. |
 | F2.4 | **Layout:** generous white space between sections (≥ 80px desktop / 56px mobile). Alternating background bands (`--color-bg` / `--color-bg-subtle`) so sections are easy to tell apart. |
 | F2.5 | **Navigation:** at most 6 links + 1 CTA. Active section highlighted while scrolling. Smooth scrolling (turned off under `prefers-reduced-motion`). |
-| F2.6 | **Mobile:** a sticky bottom bar with **"Register Interest"** appears once the hero is scrolled past. Tap targets ≥ 48px. No horizontal carousels for key content. |
+| F2.6 | **Mobile:** a sticky bottom bar with **"Register Interest"** appears once the hero is scrolled past (below 900px, where the header button folds into the menu). It hides again once the form comes into view, so it never covers the form or footer. Built 6 Oct 2026 (`MobileCtaBar`). Tap targets ≥ 48px. No horizontal carousels for key content. |
 | F2.7 | **Page length:** about 5–6 screen heights on desktop. If a section grows too long, it moves to its own page in a later release instead of lengthening the homepage. |
 | F2.8 | Images are compressed WebP with explicit `width` and `height` (no layout shift). Images below the fold are lazy-loaded. |
 | F2.9 | Accessibility: one `h1`, logical heading order, alt text on every image, visible focus styles, a skip link, contrast ≥ 4.5:1 for body text, and the FAQ accordion uses `<details>`/`<summary>` or proper ARIA. |
@@ -831,6 +832,27 @@ These have more influence on branded ranking than any tag. Most are **owner acti
 | T18 | UCAT and GAMSAT: who it's for (Year 12 / graduates), in person or online, class format and start date in January |
 | T19 | "Most students attained superior in English": which test is this from? Not on the site until confirmed |
 | T20 | Consent for student videos and any named results: use a **written consent form** signed by a parent (a WhatsApp message isn't a reliable record). Needed before R2 testimonials |
+
+### A.12 Client Draft Review (6 Oct 2026)
+
+The client sent a one-page design draft (`aj-classes-review-standalone_1.html`, kept locally in `docs/requirements/raw_user_inputs/`, not in git). It is a generic tutoring template with placeholder figures. Its Prep–VCE, VCE Maths and Olympiad/AMC scope, colour scheme and multiple CTA labels were **not** adopted. These ideas were:
+
+| Idea from the draft | Change on the site |
+|---|---|
+| Contact info card beside the form | **Contact details card** (email, location, response time; phone and class hours appear once confirmed) |
+| CTA banner halfway down the page | **CTA banner** between About and FAQ, same "Register Interest" label. The **mobile sticky bar** (F2.6) was built at the same time |
+| Programme cards with ✓ bullet lists | Programme cards now use 2–3 short points each (same facts, easier to scan) |
+| "Victorian curriculum aligned", "Personalised study plans" | Two new Why AJ Classes cards; Approach "Plan" step now says "personalised targets" |
+
+**Held for the client (not on the site yet):**
+
+| # | Question |
+|---|---|
+| D1 | The draft shows **0426 371 339**. Is this the business number to publish? (Set `BUSINESS.phone` to show it in the footer, contact card and JSON-LD) |
+| D2 | Is the first class or assessment **free**? If so, is it a "trial class" or an "assessment"? |
+| D3 | Are **VCE subject tutoring** and **Maths Olympiad/AMC** new offerings, or template text? |
+| D4 | Class **days and hours** (set `BUSINESS.classHours`; also needed for the Google Business Profile) |
+| D5 | Total **students taught** (only if there is a real figure) |
 
 ### A.9 Privacy Page (required)
 

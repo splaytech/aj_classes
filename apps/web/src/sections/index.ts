@@ -3,6 +3,7 @@
 export { About } from './about/About';
 export { Approach } from './approach/Approach';
 export { ContactSection } from './contact/ContactSection';
+export { CtaBanner } from './cta-banner/CtaBanner';
 export { Faq } from './faq/Faq';
 export { Hero } from './hero/Hero';
 export { Programmes } from './programmes/Programmes';

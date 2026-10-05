@@ -1,0 +1,13 @@
+/* Form on the left, contact details card on the right (stacked on phones). */
+.layout {
+  display: grid;
+  gap: var(--space-8);
+  align-items: start;
+  margin-top: var(--space-6);
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 40rem) minmax(0, 1fr);
+  }
+}

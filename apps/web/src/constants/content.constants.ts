@@ -24,6 +24,9 @@ export const A11Y = {
   captcha: 'Spam protection check',
 };
 
+// Where classes run. Shown in the footer and the contact details card.
+const LOCATION = 'Truganina VIC · Online across Australia';
+
 export const NAV = {
   links: [
     { label: 'Programmes', sectionId: SECTION_IDS.programmes },
@@ -64,6 +67,14 @@ export const WHY_US = {
     {
       title: 'Small groups, real attention',
       text: 'Two 1-hour classes a week in small groups (up to 10 students in person), so every student is seen, heard and challenged.',
+    },
+    {
+      title: 'Aligned to the Victorian Curriculum',
+      text: 'Our Maths, Science and English lessons follow what is taught in Victorian schools, so classes support schoolwork as well as exams.',
+    },
+    {
+      title: 'A plan for every student',
+      text: 'An initial assessment shows where your child stands, then we set personalised targets for the term.',
     },
     {
       title: 'Qualified, checked teachers',
@@ -107,49 +118,74 @@ export const PROGRAMMES = {
     {
       title: 'Selective entry exam preparation',
       years: 'Years 6–10',
-      text: 'Reading comprehension, creative and persuasive writing, mathematics, and verbal and quantitative reasoning, with timed practice under exam conditions.',
+      points: [
+        'Reading comprehension and creative and persuasive writing',
+        'Mathematics, plus verbal and quantitative reasoning',
+        'Timed practice under exam conditions',
+      ],
       isNew: false,
     },
     {
       title: 'Selective school and scholarship interviews',
       years: 'Years 8–10',
-      text: "One-on-one and group mock interviews, coaching on common questions, help with applications and written feedback. For Melbourne High School, The Mac.Robertson Girls' High School, Nossal High School, Suzanne Cory High School, John Monash Science School and private school scholarships.",
+      points: [
+        'One-on-one and group mock interviews with written feedback',
+        'Coaching on common questions and help with applications',
+        "For Melbourne High School, The Mac.Robertson Girls' High School, Nossal High School, Suzanne Cory High School, John Monash Science School and private school scholarships",
+      ],
       isNew: false,
     },
     {
       title: 'SEAL and scholarship preparation',
       years: '',
-      text: 'Preparation for SEAL program entry and private school scholarship exams.',
+      points: ['Preparation for SEAL program entry', 'Private school scholarship exams'],
       isNew: false,
     },
     {
       title: 'NAPLAN',
       years: 'Years 2–9',
-      text: 'Preparation starts in Year 2, ahead of the first NAPLAN in Year 3.',
+      points: [
+        'Starts in Year 2, ahead of the first NAPLAN in Year 3',
+        'Continues through to Year 9',
+      ],
       isNew: false,
     },
     {
       title: 'ICAS',
       years: 'Years 5–10',
-      text: 'Preparation for the ICAS academic competitions.',
+      points: [
+        'Preparation for the ICAS academic competitions',
+        'Our students improved significantly in ICAS in 2026',
+      ],
       isNew: false,
     },
     {
       title: 'Maths, Science and English tutoring',
       years: 'Years 5–10',
-      text: 'Regular term-by-term tutoring to build strong foundations and keep students ahead at school.',
+      points: [
+        'Regular term-by-term tutoring',
+        'Builds strong foundations',
+        'Keeps students ahead at school',
+      ],
       isNew: false,
     },
     {
       title: 'VCE subject-selection counselling',
       years: '',
-      text: 'Sessions with students and parents together, with complete guidance on choosing VCE subjects.',
+      points: [
+        'Sessions with students and parents together',
+        'Complete guidance on choosing VCE subjects',
+      ],
       isNew: false,
     },
     {
       title: 'UCAT and GAMSAT preparation',
       years: '',
-      text: 'Preparation for medical and health-science entry tests. Enrolments are open now, and classes start in January 2027.',
+      points: [
+        'For medical and health-science entry tests',
+        'Enrolments are open now',
+        'Classes start in January 2027',
+      ],
       isNew: true,
     },
   ],
@@ -169,7 +205,7 @@ export const APPROACH = {
     },
     {
       name: 'Plan',
-      text: 'We place them in the right small group and set clear targets for the term.',
+      text: 'We place them in the right small group and set personalised targets for the term.',
     },
     {
       name: 'Practise',
@@ -258,7 +294,6 @@ export const CONTACT_FORM = {
   heading: 'Register your interest',
   intro:
     "Tell us a little about your child and how you'd like us to contact you. There's no obligation.",
-  responsePromise: "We'll call or email you (your choice) within 3 business days.",
   labels: {
     name: 'Your name',
     email: 'Email',
@@ -287,6 +322,31 @@ export const CONTACT_FORM = {
     `Thank you! We've received your details and will contact you by ${contactMethod === 'phone' ? 'phone' : 'email'} within 3 business days.`,
 };
 
+// The card beside the form. A row with no value (e.g. phone or hours still TBC) is hidden.
+export const CONTACT_DETAILS = {
+  heading: 'Contact details',
+  emailLabel: 'Email',
+  phoneLabel: 'Phone',
+  locationLabel: 'Location',
+  location: LOCATION,
+  hoursLabel: 'Class hours',
+  responseLabel: 'Response time',
+  response: 'Within 3 business days, by phone or email (your choice)',
+};
+
+// Navy band halfway down the page, with the same single CTA label as everywhere else (F2.2).
+export const CTA_BANNER = {
+  heading: 'Ready to see what your child can achieve?',
+  text: "Register your interest and we'll contact you to book an initial assessment. No obligation, just a clear picture of where your child stands today.",
+  cta: 'Register Interest',
+};
+
+// Sticky bar at the bottom of the screen on phones (F2.6).
+export const MOBILE_CTA_BAR = {
+  label: 'Register interest',
+  cta: 'Register Interest',
+};
+
 export const SUBSCRIBE = {
   heading: 'Stay in the loop',
   blurb: 'News, events and enrolment updates from AJ Classes. No spam, unsubscribe any time.',
@@ -308,7 +368,7 @@ export const SOCIAL_LABELS: Record<SocialPlatform, string> = {
 export const FOOTER = {
   followHeading: 'Follow AJ Classes',
   contactHeading: 'Contact',
-  location: 'Truganina VIC · Online across Australia',
+  location: LOCATION,
   privacyLink: 'Privacy Policy',
   copyright: (year: number) => `© ${year} AJ Classes. All rights reserved.`,
 };

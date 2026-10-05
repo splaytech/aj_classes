@@ -1,8 +1,19 @@
 // Home page: all Release 1 sections, top to bottom (PRP F2).
 
+import { MobileCtaBar } from '@/components/layout/MobileCtaBar';
 import { SiteLayout } from '@/components/layout/SiteLayout';
 import { ROUTES, SEO } from '@/constants';
-import { About, Approach, ContactSection, Faq, Hero, Programmes, Results, WhyUs } from '@/sections';
+import {
+  About,
+  Approach,
+  ContactSection,
+  CtaBanner,
+  Faq,
+  Hero,
+  Programmes,
+  Results,
+  WhyUs,
+} from '@/sections';
 import { buildHomeJsonLd, buildPageMeta } from '@/lib/seo';
 
 export function meta() {
@@ -18,8 +29,10 @@ export default function HomePage() {
       <Programmes />
       <Approach />
       <About />
+      <CtaBanner />
       <Faq />
       <ContactSection />
+      <MobileCtaBar />
     </SiteLayout>
   );
 }

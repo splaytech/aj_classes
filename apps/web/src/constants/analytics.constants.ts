@@ -13,4 +13,6 @@ export const CTA_LOCATIONS = {
   announcement: 'announcement',
   heroPrimary: 'hero_primary',
   heroSecondary: 'hero_secondary',
+  ctaBanner: 'cta_banner',
+  mobileBar: 'mobile_bar',
 } as const;

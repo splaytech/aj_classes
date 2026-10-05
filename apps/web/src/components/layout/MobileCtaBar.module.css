@@ -1,0 +1,20 @@
+.bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40; /* below the header (50), so the open mobile menu stays on top */
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3) var(--container-gutter);
+  padding-bottom: max(var(--space-3), env(safe-area-inset-bottom)); /* clear the iPhone home bar */
+  background: var(--color-bg);
+  box-shadow: var(--shadow-md);
+}
+
+/* Phones and small tablets only: on wider screens the header button is always visible. */
+@media (min-width: 900px) {
+  .bar {
+    display: none;
+  }
+}
