@@ -6,6 +6,7 @@ export const BUSINESS = {
   name: 'AJ Classes',
   email: 'hello@ajclasses.com.au',
   phone: null as string | null, // TBC (PRP Appendix B, O3)
+  classHours: null as string | null, // TBC, e.g. 'Mon–Fri 4–8pm, Sat 9am–1pm'
 
   suburb: 'Truganina',
   postcode: '3029',

@@ -6,6 +6,7 @@ import {
   ANNOUNCEMENT,
   APP_CONFIG,
   CTA_LOCATIONS,
+  ELEMENT_IDS,
   HERO,
   SECTION_IDS,
   sectionLink,
@@ -23,7 +24,7 @@ export function Hero() {
   const contactLink = sectionLink(SECTION_IDS.contact);
 
   return (
-    <section className={styles.hero}>
+    <section id={ELEMENT_IDS.hero} className={styles.hero}>
       <Container>
         <div className={styles.layout}>
           <div>

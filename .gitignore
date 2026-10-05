@@ -11,3 +11,5 @@ coverage/
 *.log
 .claude
 .editorconfig
+# Ad-hoc raw requirement inputs from the client (kept local only)
+docs/requirements/raw_user_inputs/

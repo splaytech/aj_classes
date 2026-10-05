@@ -20,7 +20,11 @@ export function Programmes() {
               {programme.isNew && <span className={styles.newBadge}>{PROGRAMMES.newBadge}</span>}
             </div>
             <h3>{programme.title}</h3>
-            <p>{programme.text}</p>
+            <ul className={styles.points}>
+              {programme.points.map((point) => (
+                <li key={point}>{point}</li>
+              ))}
+            </ul>
           </li>
         ))}
       </ul>

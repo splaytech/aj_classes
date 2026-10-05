@@ -1,0 +1,30 @@
+.card {
+  padding: var(--space-6);
+  border-top: 4px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.card h3 {
+  font-size: var(--font-size-lg);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.rows dt {
+  color: var(--color-text-emphasis);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.rows dd {
+  margin: 0;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere; /* long email addresses wrap instead of overflowing */
+}

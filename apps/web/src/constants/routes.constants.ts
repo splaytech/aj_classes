@@ -7,6 +7,7 @@ export const ROUTES = {
   notFound: '/404',
   sitemap: '/sitemap.xml',
   robots: '/robots.txt',
+  subscribed: '/subscribed', // Kit sends people here after they confirm their subscription
 } as const;
 
 export const SECTION_IDS = {
@@ -15,6 +16,7 @@ export const SECTION_IDS = {
   programmes: 'programmes',
   approach: 'approach',
   about: 'about',
+  ctaBanner: 'get-started',
   faq: 'faq',
   contact: 'contact',
   askQuestion: 'ask-a-question', // same form, with "General question" preselected
@@ -28,6 +30,8 @@ export function sectionLink(sectionId: string): string {
 // Other element ids that need to be shared between components (e.g. aria-controls).
 export const ELEMENT_IDS = {
   mainNavigation: 'main-navigation',
+  hero: 'hero', // the mobile CTA bar appears once this has scrolled out of view
   subscribeEmail: 'subscribe-email',
   contactFieldPrefix: 'contact-',
+  contactDetailsHeading: 'contact-details-heading',
 } as const;

@@ -1,0 +1,12 @@
+.body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.text {
+  max-width: var(--measure);
+  margin: 0;
+}

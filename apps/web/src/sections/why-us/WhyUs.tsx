@@ -1,4 +1,4 @@
-// "Why AJ Classes": 3–4 short value cards on the navy band.
+// "Why AJ Classes": short value cards on the navy band.
 
 import { Section } from '@/components/ui';
 import { WHY_US } from '@/constants';
