@@ -7,5 +7,12 @@ import { ROUTES } from './src/constants/routes.constants';
 export default {
   appDirectory: 'src',
   ssr: false,
-  prerender: [ROUTES.home, ROUTES.privacy, ROUTES.notFound, ROUTES.sitemap, ROUTES.robots],
+  prerender: [
+    ROUTES.home,
+    ROUTES.privacy,
+    ROUTES.subscribed,
+    ROUTES.notFound,
+    ROUTES.sitemap,
+    ROUTES.robots,
+  ],
 } satisfies Config;

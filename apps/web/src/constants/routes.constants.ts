@@ -7,6 +7,7 @@ export const ROUTES = {
   notFound: '/404',
   sitemap: '/sitemap.xml',
   robots: '/robots.txt',
+  subscribed: '/subscribed', // Kit sends people here after they confirm their subscription
 } as const;
 
 export const SECTION_IDS = {
