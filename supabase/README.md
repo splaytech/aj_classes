@@ -25,6 +25,8 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 
 **Local accounts** are created by [`seed.sql`](seed.sql) (`admin@`, `tutor@`, `inactive@local.test`; the local-only password is in that file). The seed never runs on staging or prod.
 
+**Staff portal locally:** with the stack running, `pnpm dev` and open http://localhost:5173/portal/login. `apps/web/.env.local` needs `VITE_SUPABASE_URL=http://127.0.0.1:55321`, the publishable key from `pnpm db:status`, and `VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA` (see `apps/web/.env.example`). Use `pnpm dev`, not a production build: the production security policy only allows `*.supabase.co`, so a local build can't reach the local stack.
+
 **Captcha locally** uses Cloudflare Turnstile's always-pass test keys. API calls need `"gotrue_meta_security": {"captcha_token": "XXXX.DUMMY.TOKEN.XXXX"}`.
 
 ## Rules

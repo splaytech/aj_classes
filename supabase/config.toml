@@ -244,16 +244,37 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# R2a branded emails (design §9). Links go to /portal/auth/confirm, which needs a click on
+# Continue, so mail scanners can't use up the link.
+[auth.email.template.invite]
+subject = "You're invited to the AJ Classes staff portal"
+content_path = "./supabase/templates/invite.html"
 
-# Uncomment to customize notification email template
-# [auth.email.notification.password_changed]
-# enabled = true
-# subject = "Your password has been changed"
-# content_path = "./templates/password_changed_notification.html"
+[auth.email.template.recovery]
+subject = "Reset your AJ Classes password"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.reauthentication]
+subject = "Your AJ Classes code"
+content_path = "./supabase/templates/reauthentication.html"
+
+# Staff never sign in with email links; this email carries no token on purpose.
+[auth.email.template.magic_link]
+subject = "Signing in to AJ Classes"
+content_path = "./supabase/templates/magic_link.html"
+
+# Security notifications (R2a G19): tell the account owner when something important changes.
+[auth.email.notification.password_changed]
+enabled = true
+
+[auth.email.notification.email_changed]
+enabled = true
+
+[auth.email.notification.mfa_factor_enrolled]
+enabled = true
+
+[auth.email.notification.mfa_factor_unenrolled]
+enabled = true
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.

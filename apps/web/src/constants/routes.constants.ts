@@ -9,6 +9,35 @@ export const ROUTES = {
   robots: '/robots.txt',
 } as const;
 
+// Staff portal (R2a). Everything private lives under /portal, so each host needs one
+// rewrite rule and search engines one Disallow line (design §11.1).
+export const PORTAL_ROUTES = {
+  root: '/portal',
+  login: '/portal/login',
+  loginVerify: '/portal/login/verify',
+  forgotPassword: '/portal/forgot-password',
+  authConfirm: '/portal/auth/confirm',
+  setPassword: '/portal/set-password',
+  account: '/portal/account',
+  twoStepSetup: '/portal/account/two-step/setup',
+  tutor: '/portal/tutor',
+  admin: '/portal/admin',
+} as const;
+
+// Query-string names used by portal pages and email links.
+export const PORTAL_QUERY = {
+  next: 'next', // where to go after signing in
+  reason: 'reason', // why the person was sent to the sign-in page
+  tokenHash: 'token_hash', // from invite and reset emails (supabase/templates)
+  linkType: 'type',
+} as const;
+
+// Values of PORTAL_QUERY.reason.
+export const SIGN_IN_REASONS = {
+  inactive: 'inactive',
+  passwordChanged: 'password-changed',
+} as const;
+
 export const SECTION_IDS = {
   main: 'main-content',
   results: 'results',

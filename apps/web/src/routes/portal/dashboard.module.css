@@ -1,0 +1,50 @@
+/* Shared by the tutor and admin dashboards. */
+
+.intro {
+  color: var(--color-text-muted);
+}
+
+.cards {
+  display: grid;
+  gap: var(--space-6);
+  margin: var(--space-8) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 720px) {
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+.cardText {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.soon {
+  align-self: flex-start;
+  margin-top: auto;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-emphasis);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}

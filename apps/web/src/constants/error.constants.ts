@@ -1,7 +1,7 @@
 // Every error and validation message shown to users.
 
 import { BUSINESS } from './business.constants';
-import { FORM_LIMITS } from './app.constants';
+import { AUTH_LIMITS, FORM_LIMITS } from './app.constants';
 
 export const VALIDATION = {
   nameRequired: 'Please enter your name.',
@@ -27,4 +27,41 @@ export const NOT_FOUND = {
   heading: 'Page not found',
   text: "Sorry, we couldn't find that page. It may have moved, or the link may be wrong.",
   backHome: 'Go to the home page',
+} as const;
+
+// Staff portal (R2a). Keys match the ErrorKey type in src/services/types.ts.
+export const AUTH_ERRORS = {
+  // Same message for a wrong email, wrong password or a deactivated account (design §11.4).
+  invalidCredentials: 'Email or password is incorrect.',
+  notActive: `Your account is not active. Please contact ${BUSINESS.email}.`,
+  tooManyAttempts: 'Too many attempts. Please wait a few minutes and try again.',
+  captchaFailed: 'Please complete the "I am human" check and try again.',
+  weakPassword: `Please use at least ${AUTH_LIMITS.passwordMin} characters, and avoid common passwords.`,
+  samePassword: 'Your new password must be different from your current one.',
+  linkExpired: 'This link has expired or has already been used.',
+  wrongCode: "That code didn't work. Check your device's time is correct and try again.",
+  wrongEmailCode: "That code didn't work or has expired. Try again, or ask for a new code.",
+  reauthNeeded: 'Please enter the code we emailed you.',
+  needsTwoStep: 'Please enter a code from your authenticator app first.',
+  lastAuthenticator: 'You need at least one authenticator.',
+  authenticatorNameTaken: 'You already have an authenticator with that name. Choose another.',
+  network: "We couldn't reach the server. Check your connection and try again.",
+  notConfigured: "Staff sign-in isn't available right now.",
+  unknown: 'Something went wrong. Please try again.',
+} as const;
+
+export const PORTAL_VALIDATION = {
+  emailRequired: 'Please enter your email address.',
+  emailInvalid: 'Please enter a valid email address, like name@example.com.',
+  passwordRequired: 'Please enter your password.',
+  passwordTooShort: `Please use at least ${AUTH_LIMITS.passwordMin} characters.`,
+  passwordsDiffer: "The two passwords don't match.",
+  codeInvalid: `Please enter the ${AUTH_LIMITS.codeLength}-digit code.`,
+  nameRequired: 'Please enter a name.',
+  captchaRequired: 'Please complete the "I am human" check.',
+} as const;
+
+export const AUTH_LINK_ERRORS = {
+  invite: 'Please ask AJ Classes to send you a new invite.',
+  recovery: 'Request a new link below.',
 } as const;

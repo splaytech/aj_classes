@@ -85,7 +85,7 @@
 ### US6 — Change password while signed in
 **As a** tutor or admin **I want to** change my password from my account page **so that** I can replace a weak or shared one. (G35)
 
-- AC1. `/portal/account` → **Change password**: **Email me a code**, then enter the 6-digit code from the email and the new password twice. (Supabase doesn't check a "current password", so the emailed code proves it's really me, V19.)
+- AC1. `/portal/account` → **Change password**: new password twice. If I signed in more than a day ago, a 6-digit code is emailed to me and I must enter it too (with **Email me a new code** if needed). Within a day of signing in, the sign-in itself counts as proof (Supabase's rule, V21).
 - AC2. Same rules and messages as US2 AC3. A new password equal to the old one is refused.
 - AC3. On success: "Password changed", other sessions signed out, notification email sent. (G25, G19)
 - Design: §11.4 `changePassword`, §19 SP2 · Tests: UNIT, E2E

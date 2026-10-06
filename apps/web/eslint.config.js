@@ -30,6 +30,9 @@ export default tseslint.config(
       // Rule 1: no hard-coded text in JSX.
       'react/jsx-no-literals': ['error', { noStrings: true, ignoreProps: true }],
 
+      // Never render raw HTML: staff bios and qualifications are shown as text (R2a G16).
+      'react/no-danger': 'error',
+
       // Rule 3: only the service layer talks to a backend. Everyone else imports from '@/services'.
       'no-restricted-imports': [
         'error',

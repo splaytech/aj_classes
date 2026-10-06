@@ -1,0 +1,159 @@
+// Staff sign-in: passwords, email links, sessions (R2a design §11.4).
+// Pages call these plain functions and get back a Result; they never see Supabase.
+
+import { getSupabase, isPortalConfigured } from './supabase.client';
+import { attempt, fail, succeed } from './result';
+import { toErrorKey } from './auth-errors';
+import type { AccessState, EmailLinkType, Result } from './types';
+
+const SIGNED_OUT: AccessState = {
+  signedIn: false,
+  email: '',
+  profile: null,
+  aal: 'aal1',
+  hasVerifiedFactor: false,
+};
+
+export async function signIn(
+  email: string,
+  password: string,
+  captchaToken: string,
+): Promise<Result> {
+  if (!isPortalConfigured()) return fail('notConfigured');
+
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+      options: { captchaToken },
+    });
+    return error ? fail(toErrorKey(error)) : succeed();
+  });
+}
+
+/** Signs out on this device only. */
+export async function signOut(): Promise<void> {
+  if (!isPortalConfigured()) return;
+  const supabase = await getSupabase();
+  await supabase.auth.signOut({ scope: 'local' });
+}
+
+/**
+ * Sends a reset link. Succeeds whether or not the email has an account, so the page can't
+ * reveal who has one (design §11.4, G17).
+ */
+export async function requestPasswordReset(email: string, captchaToken: string): Promise<Result> {
+  if (!isPortalConfigured()) return fail('notConfigured');
+
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { captchaToken });
+    return error ? fail(toErrorKey(error)) : succeed();
+  });
+}
+
+/** Uses the token from an invite or reset email to sign the person in (design §9.1). */
+export async function confirmEmailLink(tokenHash: string, type: EmailLinkType): Promise<Result> {
+  if (!isPortalConfigured()) return fail('notConfigured');
+
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+    return error ? fail(toErrorKey(error)) : succeed();
+  });
+}
+
+/** Sets a new password after an invite or reset link, then signs out every other device. */
+export async function setNewPassword(password: string): Promise<Result> {
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) return fail(toErrorKey(error));
+
+    await supabase.auth.signOut({ scope: 'others' });
+    return succeed();
+  });
+}
+
+/**
+ * Emails a 6-digit code that proves it's really the account owner changing the password.
+ * Supabase asks for it when the session is more than a day old (R2a review V19, V21).
+ */
+export async function sendReauthCode(): Promise<Result> {
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { error } = await supabase.auth.reauthenticate();
+    return error ? fail(toErrorKey(error)) : succeed();
+  });
+}
+
+/**
+ * Changes the password, then signs out every other device.
+ * Fails with 'reauthNeeded' when Supabase wants an emailed code first (session over a day old):
+ * call `sendReauthCode()` and try again with the code.
+ */
+export async function changePassword(newPassword: string, emailedCode?: string): Promise<Result> {
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+      nonce: emailedCode?.trim() || undefined,
+    });
+    if (error) return fail(toErrorKey(error));
+
+    await supabase.auth.signOut({ scope: 'others' });
+    return succeed();
+  });
+}
+
+/**
+ * Who is signed in, their role, and how strongly (password only, or password + code).
+ * Read fresh on every private page, so a role change or deactivation applies straight away.
+ * Throws if the server can't be reached, so a network blip shows an error rather than
+ * signing the person out.
+ */
+export async function getAccessState(): Promise<AccessState> {
+  if (!isPortalConfigured()) return SIGNED_OUT;
+
+  const supabase = await getSupabase();
+  const { data: sessionData } = await supabase.auth.getSession();
+  const session = sessionData.session;
+  if (!session) return SIGNED_OUT;
+
+  const [profileResult, levelResult] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('full_name, role, is_active')
+      .eq('id', session.user.id)
+      .maybeSingle(),
+    supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+  ]);
+  if (profileResult.error) throw profileResult.error;
+
+  // A deactivated person can't read their own row (RLS), so `data` is null for them.
+  const row = profileResult.data;
+  const profile = row?.is_active ? { fullName: row.full_name, role: row.role } : null;
+
+  return {
+    signedIn: true,
+    email: session.user.email ?? '',
+    profile,
+    aal: levelResult.data?.currentLevel === 'aal2' ? 'aal2' : 'aal1',
+    hasVerifiedFactor: levelResult.data?.nextLevel === 'aal2',
+  };
+}
+
+/**
+ * Calls `onSignedOut` when the session ends: signing out in another tab, or a refresh that
+ * fails because the account was deactivated (design §11.3). Returns a function to stop listening.
+ */
+export async function watchForSignOut(onSignedOut: () => void): Promise<() => void> {
+  if (!isPortalConfigured()) return () => {};
+
+  const supabase = await getSupabase();
+  const { data } = supabase.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT') onSignedOut();
+  });
+  return () => data.subscription.unsubscribe();
+}

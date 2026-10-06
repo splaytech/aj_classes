@@ -14,6 +14,22 @@ export const APP_CONFIG = {
     announcement: true,
     subscribe: true,
     analytics: true,
+    // Staff portal (R2a): on only when Supabase and the Turnstile check are configured.
+    portal: Boolean(
+      env.VITE_SUPABASE_URL && env.VITE_SUPABASE_PUBLISHABLE_KEY && env.VITE_TURNSTILE_SITE_KEY,
+    ),
+  },
+
+  // Supabase: database and sign-in for the staff portal. Both values are public by design;
+  // the database's access rules (RLS) protect the data. Secret keys never go here.
+  supabase: {
+    url: env.VITE_SUPABASE_URL || '',
+    publishableKey: env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
+  },
+
+  // Cloudflare Turnstile "I am human" check on staff sign-in and password reset.
+  turnstile: {
+    siteKey: env.VITE_TURNSTILE_SITE_KEY || '',
   },
 
   // Hosted form service (Web3Forms). The access key is public by design.
@@ -33,6 +49,19 @@ export const APP_CONFIG = {
     secondsPerSlide: 6,
   },
 } as const;
+
+// Staff sign-in rules (R2a design §8). Must match supabase/config.toml.
+export const AUTH_LIMITS = {
+  passwordMin: 12,
+  codeLength: 6, // authenticator and emailed codes
+  linkExpiryHours: 1, // invite and password-reset links
+  maxAuthenticators: 2, // per admin: phone app + one backup
+  authenticatorNameMax: 30,
+} as const;
+
+// Staff roles, as stored in the database (profiles.role).
+export const STAFF_ROLES = ['tutor', 'admin'] as const;
+export type StaffRole = (typeof STAFF_ROLES)[number];
 
 // Limits used by form validation.
 export const FORM_LIMITS = {

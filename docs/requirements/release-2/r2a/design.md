@@ -313,6 +313,8 @@ So the invite and recovery templates link to **our** page:
 
 `supabase/templates/*.html`: simple, inline-styled, logo, one button, plain wording, "This link expires in 1 hour", "If you didn't expect this email, you can ignore it." Brand colours are copied from `theme.css` with a comment (emails can't read CSS variables). Subjects are set in `config.toml`.
 
+The **magic-link email carries no token on purpose**: it points to `/portal/login`. Staff always sign in with a password (plus a code for admins), so an email-only way in must not exist (V22).
+
 ## 10. Edge Function `staff-admin`
 
 One function, small handler files: `supabase/functions/staff-admin/`.
@@ -425,7 +427,7 @@ decidePortalAccess(state: AccessState, area: 'auth' | 'staff' | 'admin', path: s
 
 **`next` handling (G7):** `safeNextPath(next)` accepts only same-origin paths that start with `/portal/`, are not `//…` or `/\…`, and have no scheme. Anything else falls back to the role's home.
 
-**Freshness:** the session's profile and two-step state are cached in the auth service and cleared on any auth event (`SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, `USER_UPDATED`, `MFA_CHALLENGE_VERIFIED`) and after profile saves. A `SIGNED_OUT` event (sign-out in another tab, or a failed refresh after a ban) sends the user to `/portal/login` (G29). A signed-in user whose own profile can no longer be read (deactivated while the page was open) is treated as inactive: signed out and sent to `/portal/login?reason=inactive` (V7, G11).
+**Freshness:** there is no cache. Every guarded page reads the session, profile and two-step level fresh (`getAccessState()`, two small requests), so a role change or deactivation applies on the next click. This is simpler and never stale (changed while building, 7 Oct). A `SIGNED_OUT` event (sign-out in another tab, or a failed refresh after a ban) sends the user to `/portal/login` (G29). A signed-in user whose own profile can no longer be read (deactivated while the page was open) is treated as inactive: signed out and sent to `/portal/login?reason=inactive` (V7, G11).
 
 Every guarded route exports a `HydrateFallback` (small loading state) because loaders run before the first render in SPA mode.
 
@@ -437,7 +439,7 @@ Every guarded route exports a `HydrateFallback` (small loading state) because lo
 
 | File | Functions (all return `Result<T>` = `{ ok: true, data } \| { ok: false, error: ErrorKey }`) |
 |---|---|
-| `auth.service.ts` | `signIn(email, password, captchaToken)`, `signOut()`, `requestPasswordReset(email, captchaToken)`, `confirmEmailLink(tokenHash, type)`, `setNewPassword(password)`, `sendReauthCode()` + `changePassword(newPassword, emailedCode)` (V19), `getAccessState()`, `onSignedOut(callback)` |
+| `auth.service.ts` | `signIn(email, password, captchaToken)`, `signOut()` (this device), `requestPasswordReset(email, captchaToken)`, `confirmEmailLink(tokenHash, type)`, `setNewPassword(password)`, `changePassword(newPassword, emailedCode?)` + `sendReauthCode()` (V21: the code is asked for only when Supabase requires it), `getAccessState()`, `watchForSignOut(callback)` |
 | `two-step.service.ts` | `startTwoStepSetup(label)` → `{ factorId, qrSvg, secret }`, `confirmTwoStepSetup(factorId, code)`, `verifyTwoStep(factorId, code)` (the page asks which authenticator when there are two, V11), `listAuthenticators()`, `removeAuthenticator(factorId)` (refused for an admin's last verified authenticator, V12). Unverified leftover enrolments are removed before a new setup starts. |
 | `profile.service.ts` | `getMyProfile()`, `updateMyProfile(changes)`, `uploadMyPhoto(file)`, `photoUrl(path)` |
 | `staff.service.ts` | `listStaff()`, `getStaffMember(id)`, `updateStaffProfile(id, changes)`, `inviteStaff(email, fullName)`, `resendInvite(id)`, `cancelInvite(id)`, `setStaffRole(id, role)`, `setStaffActive(id, active)`, `resetStaffTwoStep(id)` |
@@ -569,7 +571,7 @@ sequenceDiagram
 | Host | File | Rule |
 |---|---|---|
 | Vercel | `apps/web/vercel.json` | `rewrites: [{ "source": "/portal/:path*", "destination": "/__spa-fallback.html" }]` (`:path*` also matches `/portal`) |
-| Railway | `apps/web/serve.railway.json` | `rewrites: [{ "source": "/portal", "destination": "/__spa-fallback.html" }, { "source": "/portal/**", "destination": "/__spa-fallback.html" }]` |
+| Railway | `apps/web/serve.railway.json` | `rewrites: [{ "source": "/portal", "destination": "/__spa-fallback.html" }, { "source": "/portal/**", "destination": "/__spa-fallback.html" }]`. `serve` matches header rules against the **rewritten file**, so the portal headers use `"source": "__spa-fallback.html"` (V23). |
 | Cloudflare Pages (if adopted, Q3) | `apps/web/public/_redirects` | `/portal/* /__spa-fallback.html 200` |
 
 Unknown public URLs still get the pre-rendered 404 page. Unknown `/portal/...` URLs get the in-app 404.
@@ -582,6 +584,8 @@ Unknown public URLs still get the pre-rendered 404 page. Unknown `/portal/...` U
 | `Cache-Control` | `no-store` (the fallback HTML; hashed assets keep long caching) |
 | `Content-Security-Policy` (G22) | `default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://{project}.supabase.co; connect-src 'self' https://{project}.supabase.co; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'` |
 | Existing | HSTS, `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin` (already on all paths) |
+
+Until the staging and prod projects exist, the CSP allows `https://*.supabase.co`; replace it with the exact project host once known. A production build served locally can't reach the **local** Supabase because of this CSP, so local testing uses `pnpm dev`.
 
 `'unsafe-inline'` for scripts is needed because React Router inlines its startup script. Replacing it with build-time hashes is an R2 hardening task. The strict `connect-src`, `img-src` and `frame-src` still stop a script from sending a stolen session to another site through those routes. The `{project}` host comes from the environment (§14).
 
@@ -706,11 +710,12 @@ These are behaviours of Supabase or React Router that the design relies on and t
 
 | ID | Result | Effect |
 |---|---|---|
-| SP2 | Supabase **ignores** `current_password`: a wrong one still changed the password. | Change password always uses `reauthenticate()` + emailed code (V19). |
+| SP2 | Supabase **ignores** `current_password`. It also ignores the emailed `nonce` unless the session is **over 24 hours old**; then a wrong code is refused (`reauthentication_not_valid`). | Change password asks for the code only when Supabase replies `reauthentication_needed` (V21). |
 | SP3 | A banned user gets `user_banned` **before** the password is checked. A ban blocks token refresh (`Invalid Refresh Token: User Banned`). The old access token keeps working until it expires, but RLS already denies a deactivated profile. | Banned shows the generic sign-in message (V18). Deactivation flow confirmed. |
 | SP4 | Delete works with the single `for all` storage policy. | No change. |
 | SP7 | Turnstile test secret + dummy token passes; a missing token fails with `500 unexpected_failure` ("captcha verification process failed"). | Map that case to "Please complete the I am human check". |
 | SP8 | Recovery session is `aal1`; for an account with two-step, updating the password returns `401 insufficient_aal`. | `/portal/set-password` asks for the authenticator code first (V19). |
+| SP6 | Yes. With `serve` + `serve.railway.json`, every `/portal/...` deep link returns the app (200), unknown public URLs still return the 404 page, and the portal renders under the CSP with Turnstile working. Vercel is checked by hand after deploy. | Header rule fix (V23). |
 | SP10 | Locally, 45 wrong codes in a row are all accepted as attempts (no limit). Hosted: 15/min per IP, not configurable. The lockout hook is Team/Enterprise only. | Accepted risk, see review §5 (V20). |
 | — | `banned_until = 'infinity'` breaks sign-in with a database error. | Seed and function use a 100-year ban (`876000h`). |
 

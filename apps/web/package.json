@@ -13,7 +13,9 @@
   },
   "dependencies": {
     "@hcaptcha/react-hcaptcha": "^2.2.0",
+    "@marsidev/react-turnstile": "^1.6.1",
     "@react-router/node": "^8.4.0",
+    "@supabase/supabase-js": "^2.117.2",
     "@vercel/analytics": "^2.0.1",
     "isbot": "^5.2.2",
     "react": "^19.3.0",

@@ -28,6 +28,8 @@ pnpm dev          # http://localhost:5173
 
 Copy `apps/web/.env.example` to `apps/web/.env.local` and add the Web3Forms access key to make the forms send.
 
+**Staff portal (Release 2a):** needs Docker and the Supabase CLI. Run `pnpm db:start`, add the three portal settings to `.env.local` (see `.env.example`), then `pnpm dev` and open http://localhost:5173/portal/login. Local accounts and commands: [supabase/README.md](supabase/README.md). Without the portal settings, the portal is switched off.
+
 ## House rules
 
 1. **Readable first.** Small, plain functions and components. Prefer obvious code over clever or "fast" code.

@@ -2,7 +2,15 @@
 
 import type { MetaDescriptor } from 'react-router';
 
-import { APP_CONFIG, BUSINESS, FAQ, ROUTES, SOCIAL_PREVIEW, STRUCTURED_DATA } from '@/constants';
+import {
+  APP_CONFIG,
+  BUSINESS,
+  FAQ,
+  PORTAL_SEO,
+  ROUTES,
+  SOCIAL_PREVIEW,
+  STRUCTURED_DATA,
+} from '@/constants';
 import { getVisibleSocialLinks } from './social';
 
 type PageSeo = {
@@ -43,9 +51,14 @@ export function buildPageMeta(page: PageSeo, path: string): MetaDescriptor[] {
   ];
 }
 
-/** Tag that keeps a page out of search results (used for the 404 page). */
+/** Tag that keeps a page out of search results (404 page, staff portal). */
 export function noIndexMeta(): MetaDescriptor {
   return { name: 'robots', content: 'noindex' };
+}
+
+/** Head tags for a staff portal page: a title, and never indexed (R2a design §13). */
+export function buildPortalMeta(pageTitle: string): MetaDescriptor[] {
+  return [{ title: pageTitle + PORTAL_SEO.titleSuffix }, noIndexMeta()];
 }
 
 /** Structured data for the home page: the business, the website and the FAQ. */

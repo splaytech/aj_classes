@@ -47,5 +47,5 @@ export const STRUCTURED_DATA = {
 } as const;
 
 export const ROBOTS = {
-  allowAll: 'User-agent: *\nAllow: /',
+  rules: 'User-agent: *\nAllow: /\nDisallow: /portal', // staff pages stay out of search (R2a)
 } as const;

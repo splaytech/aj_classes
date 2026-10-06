@@ -103,6 +103,17 @@ The finished design and stories were checked again, story by story and section b
 | V19 | Supabase ignores `current_password` on a password change, and refuses a change from a password-only session when two-step is on. | Change password uses an emailed re-authentication code. Set-password asks for the authenticator code when two-step is on. |
 | V20 | Two-step codes: no attempt limit in the local stack; hosted is 15/min per IP; the lockout hook needs the Team plan. | Accepted risk (§5), with the reasoning recorded. |
 
+### 3.2 Found while building steps 2–5 (web sign-in, 7 Oct)
+
+Tested in the browser against the local stack: guards, tutor and admin sign-in, two-step setup and code step, forgot password with a scanner-style pre-fetch, used links, change password, sign-out across Back, production build served like Railway.
+
+| ID | Problem | Fix |
+|---|---|---|
+| V21 | Supabase checks the emailed re-authentication code **only for sessions over 24 hours old**. A wrong code was accepted on a fresh session, so asking for it every time proved nothing. | Ask for the code only when Supabase requires it. Accepted risk for fresh sessions (§5). Verified: an aged session refuses a wrong code and accepts the right one. |
+| V22 | The default magic-link email would give staff a password-free (and, for admins, code-free first step) way in, since Supabase still sends magic links to existing users. | Magic-link template carries no token; it points to the sign-in page. |
+| V23 | On Railway (`serve`), header rules match the rewritten file, so the `/portal` CSP and `no-store` weren't sent. | Header rule targets `__spa-fallback.html`. Verified with `curl`. |
+| V24 | A stored session for an account that no longer exists (e.g. a cancelled invite) has no readable profile. | Treated like deactivated: signed out, "account not active" shown. Checked after a local reset. |
+
 ## 4. Traceability (story → design → test)
 
 | Story | Design | Tests |
@@ -142,6 +153,7 @@ Every design section is used by at least one story. Every requirement in the fir
 | No inactivity timeout | Pro feature. Mitigated by sign-out and sign-out everywhere on password change. | Q5 |
 | Up to 1 hour before a deactivated user's open page notices | Their data access stops immediately (RLS). Only the page shell stays. | — |
 | No leaked-password check | Pro feature. Mitigated by the 12-character minimum, captcha and rate limits. | Q5 |
+| A fresh session (under 24 h) can change the password without an emailed code (V21) | Supabase's rule. Whoever holds a fresh session can already do everything the account can. The owner gets a "password changed" email, other sessions are signed out, and a reset by email takes the account back. Admins' sessions are also two-step. | If a shared-computer problem is ever reported |
 | Two-step codes can be guessed at up to 15 a minute per IP (V20) | Guessing needs the admin's password first (12+ chars, captcha, rate limited). Even then, about 3 in a million codes are valid per try. Admins are asked to use a password manager. The lockout hook needs the Team plan (≈ US$599/mo). | If an admin account is ever targeted, or on a plan change |
 | Free-tier pause and no backups | Cost goal. | Q5, before real family data |
 
