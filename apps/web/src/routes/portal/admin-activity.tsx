@@ -15,7 +15,7 @@ import {
   ACTIVITY_PAGE,
   PORTAL_COMMON,
   PORTAL_SEO,
-  STAFF_ROLE_LABELS,
+  ROLE_LABELS,
 } from '@/constants';
 import type { StaffRole } from '@/constants';
 import { formatDateTime } from '@/lib/format';
@@ -36,12 +36,16 @@ export async function clientLoader() {
 function describeDetails(entry: ActivityEntry): string {
   const { details } = entry;
   if (entry.action === 'role_changed') {
-    const from = STAFF_ROLE_LABELS[details.from as StaffRole] ?? String(details.from);
-    const to = STAFF_ROLE_LABELS[details.to as StaffRole] ?? String(details.to);
+    const from = ROLE_LABELS[details.from as StaffRole] ?? String(details.from);
+    const to = ROLE_LABELS[details.to as StaffRole] ?? String(details.to);
     return ACTIVITY_PAGE.roleChange(from, to);
   }
   if (entry.action === 'profile_edited_by_admin' && Array.isArray(details.fields)) {
     return ACTIVITY_PAGE.fields(details.fields.join(', '));
+  }
+  // Parent links and student invites name the student; consent's target already is the student.
+  if (typeof details.student_name === 'string' && entry.action !== 'consent_recorded') {
+    return ACTIVITY_PAGE.student(details.student_name);
   }
   return '';
 }

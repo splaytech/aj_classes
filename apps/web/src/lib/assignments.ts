@@ -1,7 +1,7 @@
-// Assignment rules (R3a stories TS3–TS5): due labels, marking progress and form checks.
-// The database enforces the same limits (design §3).
+// Assignment rules (R3a stories TS3–TS5, R3b FT3): due labels, marking progress, late work and
+// form checks. The database enforces the same limits (R3a design §3, R3b §3).
 
-import { ASSIGNMENT_LIMITS, ASSIGNMENT_VALIDATION } from '@/constants';
+import { APP_CONFIG, ASSIGNMENT_LIMITS, ASSIGNMENT_VALIDATION } from '@/constants';
 import type { AssignmentInput, AssignmentSummary, ResultInput } from '@/services';
 
 import { toIsoDate } from './timetable';
@@ -23,7 +23,14 @@ export function dueState(dueOn: string | null, today: Date): DueState {
   return daysAway <= ASSIGNMENT_LIMITS.dueSoonDays ? 'soon' : 'later';
 }
 
-export type MarkingProgress = { marked: number; submitted: number; total: number };
+export type MarkingProgress = {
+  marked: number; // marked or returned
+  submitted: number; // waiting for a mark
+  returned: number;
+  total: number;
+};
+
+const DONE_STATUSES = new Set(['marked', 'returned']);
 
 /** Counts only students still in the class (removed students' marks are kept but not counted). */
 export function markingProgress(
@@ -32,10 +39,29 @@ export function markingProgress(
   const enrolled = new Set(assignment.enrolledStudentIds);
   const current = assignment.statuses.filter((result) => enrolled.has(result.studentId));
   return {
-    marked: current.filter((result) => result.status === 'marked').length,
+    marked: current.filter((result) => DONE_STATUSES.has(result.status)).length,
     submitted: current.filter((result) => result.status === 'submitted').length,
+    returned: current.filter((result) => result.status === 'returned').length,
     total: enrolled.size,
   };
+}
+
+const MELBOURNE_DATE = new Intl.DateTimeFormat('en-CA', {
+  timeZone: APP_CONFIG.timeZone,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+/** "2026-10-08": the Melbourne calendar date of a moment in time. */
+export function melbourneDate(isoTimestamp: string): string {
+  return MELBOURNE_DATE.format(new Date(isoTimestamp));
+}
+
+/** Handed in after the due date, by the Melbourne calendar (R3b F14). Same rule as the database. */
+export function isLate(submittedAt: string | null, dueOn: string | null): boolean {
+  if (!submittedAt || !dueOn) return false;
+  return melbourneDate(submittedAt) > dueOn;
 }
 
 /** Soonest due first; no due date last; then by title. */

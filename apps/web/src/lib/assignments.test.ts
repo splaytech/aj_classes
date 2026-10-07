@@ -6,7 +6,9 @@ import type { AssignmentSummary } from '@/services';
 import {
   byDueDate,
   dueState,
+  isLate,
   markingProgress,
+  melbourneDate,
   summariseWork,
   validateAssignment,
   validateResult,
@@ -35,7 +37,33 @@ describe('markingProgress', () => {
           { studentId: 'gone', status: 'marked' },
         ],
       }),
-    ).toEqual({ marked: 1, submitted: 1, total: 3 });
+    ).toEqual({ marked: 1, submitted: 1, returned: 0, total: 3 });
+  });
+
+  it('counts returned work as done (R3b)', () => {
+    expect(
+      markingProgress({
+        enrolledStudentIds: ['a', 'b', 'c'],
+        statuses: [
+          { studentId: 'a', status: 'returned' },
+          { studentId: 'b', status: 'in_progress' },
+        ],
+      }),
+    ).toEqual({ marked: 1, submitted: 0, returned: 1, total: 3 });
+  });
+});
+
+describe('late work (R3b F14)', () => {
+  it('uses the Melbourne calendar date', () => {
+    // 13:30 UTC on 7 Oct is 00:30 on 8 Oct in Melbourne (AEDT, UTC+11).
+    expect(melbourneDate('2026-10-07T13:30:00Z')).toBe('2026-10-08');
+    expect(isLate('2026-10-07T13:30:00Z', '2026-10-07')).toBe(true);
+    expect(isLate('2026-10-07T12:30:00Z', '2026-10-07')).toBe(false);
+  });
+
+  it('is never late without a hand-in time or a due date', () => {
+    expect(isLate(null, '2026-10-07')).toBe(false);
+    expect(isLate('2026-10-09T00:00:00Z', null)).toBe(false);
   });
 });
 
@@ -91,7 +119,17 @@ describe('validateResult', () => {
 });
 
 describe('summariseWork', () => {
-  const base = { id: 'x', classId: 'c', className: 'C', title: 'T', instructions: '', maxMark: 10 };
+  const base = {
+    id: 'x',
+    classId: 'c',
+    className: 'C',
+    title: 'T',
+    instructions: '',
+    maxMark: 10,
+    isPublished: true,
+    questionCount: 0,
+    totalMarks: 10,
+  };
 
   it('counts work to mark, due soon and overdue-with-unmarked', () => {
     const summary = summariseWork(

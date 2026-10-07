@@ -7,7 +7,7 @@ import { fail, succeed } from '../../_shared/responses.ts';
 import type { ActionResult } from '../../_shared/responses.ts';
 import { isUuid } from '../../_shared/validation.ts';
 
-import { audit, findStaff } from './staff.ts';
+import { audit, findAccount } from './accounts.ts';
 
 export async function resetTwoStep(
   input: Record<string, unknown>,
@@ -16,7 +16,7 @@ export async function resetTwoStep(
   if (!isUuid(input.userId)) return fail('invalid_request');
   if (input.userId === caller.id) return fail('cannot_reset_self');
 
-  const target = await findStaff(input.userId);
+  const target = await findAccount(input.userId);
   if (!target) return fail('not_found');
 
   const service = serviceClient();

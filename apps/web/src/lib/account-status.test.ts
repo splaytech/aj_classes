@@ -1,32 +1,32 @@
 import { describe, expect, it } from 'vitest';
 
-import { filterStaff, staffStatus } from './staff-status';
+import { filterStaff, accountStatus } from './account-status';
 import type { StaffMember } from '@/services';
 
 const NOW = new Date('2026-10-08T10:00:00Z');
 
-describe('staffStatus (R2a design §5)', () => {
+describe('accountStatus (R2a design §5)', () => {
   it('is active once the invite was accepted', () => {
     expect(
-      staffStatus({ isActive: true, joinedAt: '2026-10-01T00:00:00Z', invitedAt: null }, NOW),
+      accountStatus({ isActive: true, joinedAt: '2026-10-01T00:00:00Z', invitedAt: null }, NOW),
     ).toBe('active');
   });
 
   it('is deactivated whenever the account is inactive', () => {
     expect(
-      staffStatus({ isActive: false, joinedAt: '2026-10-01T00:00:00Z', invitedAt: null }, NOW),
+      accountStatus({ isActive: false, joinedAt: '2026-10-01T00:00:00Z', invitedAt: null }, NOW),
     ).toBe('deactivated');
   });
 
   it('is invited while the link is still valid (1 hour)', () => {
     expect(
-      staffStatus({ isActive: true, joinedAt: null, invitedAt: '2026-10-08T09:30:00Z' }, NOW),
+      accountStatus({ isActive: true, joinedAt: null, invitedAt: '2026-10-08T09:30:00Z' }, NOW),
     ).toBe('invited');
   });
 
   it('shows the invite as expired after an hour', () => {
     expect(
-      staffStatus({ isActive: true, joinedAt: null, invitedAt: '2026-10-08T08:59:00Z' }, NOW),
+      accountStatus({ isActive: true, joinedAt: null, invitedAt: '2026-10-08T08:59:00Z' }, NOW),
     ).toBe('inviteExpired');
   });
 });

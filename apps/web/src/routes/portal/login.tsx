@@ -21,6 +21,7 @@ import {
 import { safeNextPath } from '@/lib/portal-access';
 import { guardPortalPage } from '@/lib/portal-guard';
 import { checkEmail, checkPasswordEntered } from '@/lib/portal-validation';
+import { useAppearance } from '@/lib/appearance-context';
 import { buildPortalMeta } from '@/lib/seo';
 import { signIn } from '@/services';
 
@@ -45,6 +46,7 @@ function noticeFor(reason: string | null): { error: string; status: string } {
 }
 
 export default function LoginPage() {
+  const appearance = useAppearance();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const notice = noticeFor(searchParams.get(PORTAL_QUERY.reason));
@@ -110,6 +112,7 @@ export default function LoginPage() {
           error={fieldErrors.password}
         />
         <TurnstileField
+          theme={appearance.shown}
           turnstileRef={turnstileRef}
           onTokenChange={(token) => {
             setCaptchaToken(token);

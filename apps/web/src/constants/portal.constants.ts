@@ -1,11 +1,13 @@
-// Every word on the staff portal pages (R2a). Error messages live in error.constants.ts.
+// Every word on the portal pages (R2a staff; R3b shared parts). Student and parent pages are in
+// family.constants.ts, online assignments in online-assignments.constants.ts. Error messages live
+// in error.constants.ts.
 
 import { AUTH_LIMITS, PHOTO_LIMITS, PROFILE_LIMITS } from './app.constants';
-import type { StaffRole } from './app.constants';
+import type { AppRole, ThemeMode } from './app.constants';
 import { BUSINESS } from './business.constants';
 
 export const PORTAL_SEO = {
-  titleSuffix: ' | AJ Classes Staff',
+  titleSuffix: ' | AJ Classes Portal',
   login: 'Sign in',
   loginVerify: 'Enter your code',
   forgotPassword: 'Forgot password',
@@ -17,7 +19,7 @@ export const PORTAL_SEO = {
   classes: 'Classes',
   classDetail: 'Class',
   assignments: 'Assignments',
-  assignmentDetail: 'Marking',
+  assignmentDetail: 'Assignment',
   adminStaff: 'Staff',
   adminStaffMember: 'Staff member',
   adminStudents: 'Students',
@@ -26,11 +28,21 @@ export const PORTAL_SEO = {
   tutor: 'Dashboard',
   admin: 'Admin',
   notFound: 'Page not found',
+  submission: 'Submission',
+  adminStudent: 'Student',
+  student: 'My work',
+  studentAssignment: 'Assignment',
+  studentTimetable: 'My timetable',
+  parent: 'My children',
+  parentChild: 'Child',
+  parentChildAssignment: 'Assignment',
 } as const;
 
-export const STAFF_ROLE_LABELS: Record<StaffRole, string> = {
+export const ROLE_LABELS: Record<AppRole, string> = {
   tutor: 'Tutor',
   admin: 'Admin',
+  student: 'Student',
+  parent: 'Parent',
 };
 
 export const PORTAL_COMMON = {
@@ -53,8 +65,13 @@ export const PORTAL_COMMON = {
   signOut: 'Sign out',
   signingOut: 'Signing out…',
   backToSite: '← Back to the AJ Classes website',
-  staffArea: 'Staff',
-  navLabel: 'Staff portal',
+  areaBadge: {
+    tutor: 'Staff',
+    admin: 'Staff',
+    student: 'Student',
+    parent: 'Parent',
+  } satisfies Record<AppRole, string>,
+  navLabel: 'Portal',
   nav: {
     tutor: 'Dashboard',
     timetable: 'Timetable',
@@ -63,6 +80,13 @@ export const PORTAL_COMMON = {
     profile: 'My profile',
     admin: 'Admin',
     account: 'Account',
+    studentHome: 'My work',
+    studentTimetable: 'Timetable',
+    parentHome: 'My children',
+  },
+  themeToggle: {
+    toDark: 'Switch to dark mode',
+    toLight: 'Switch to light mode',
   },
   show: 'Show',
   hide: 'Hide',
@@ -72,25 +96,26 @@ export const PORTAL_COMMON = {
 } as const;
 
 export const PORTAL_UNAVAILABLE = {
-  heading: "Staff sign-in isn't available right now",
+  heading: "Sign-in isn't available right now",
   text: `Please try again later, or email ${BUSINESS.email}.`,
 } as const;
 
 export const PORTAL_FORBIDDEN = {
   heading: "You don't have access to this page",
-  text: 'This page is for admins only.',
-  backHome: 'Go to your dashboard',
+  text: "This page isn't part of your account.",
+  backHome: 'Go to your home page',
 } as const;
 
 export const PORTAL_NOT_FOUND = {
   heading: 'Page not found',
-  text: "This staff page doesn't exist.",
-  backHome: 'Go to your dashboard',
+  text: "This portal page doesn't exist.",
+  backHome: 'Go to your home page',
 } as const;
 
+// "Sign in", not "Staff sign in": students and parents use the same page (R3b F21).
 export const LOGIN_PAGE = {
-  heading: 'Staff sign in',
-  intro: 'For AJ Classes tutors and admins.',
+  heading: 'Sign in',
+  intro: 'For AJ Classes staff, students and parents.',
   labels: {
     email: 'Email',
     password: 'Password',
@@ -128,7 +153,7 @@ export const AUTH_CONFIRM_PAGE = {
     recovery: 'Reset your password',
   },
   intro: {
-    invite: "You've been invited to the AJ Classes staff portal. Continue to set your password.",
+    invite: "You've been invited to the AJ Classes portal. Continue to set your password.",
     recovery: 'Continue to choose a new password.',
   },
   continue: 'Continue',
@@ -169,6 +194,14 @@ export const ACCOUNT_PAGE = {
     submit: 'Change password',
     submitting: 'Saving…',
     done: 'Password changed. Other devices have been signed out.',
+  },
+  appearance: {
+    heading: 'Appearance',
+    intro: 'Dark mode is easier on the eyes at night. Saved on this device only.',
+    options: { system: 'Same as this device', light: 'Light', dark: 'Dark' } satisfies Record<
+      ThemeMode,
+      string
+    >,
   },
   twoStep: {
     heading: 'Two-step sign-in',
@@ -271,7 +304,7 @@ export const ADMIN_DASHBOARD = {
 } as const;
 
 export const FOOTER_PORTAL = {
-  staffSignIn: 'Staff sign in',
+  signIn: 'Sign in',
 } as const;
 
 export const PROFILE_PAGE = {
@@ -325,7 +358,8 @@ export const NOT_FOUND_PANEL = {
   text: "This page doesn't exist, or you don't have access to it.",
 } as const;
 
-export const STAFF_STATUS_LABELS = {
+export const ACCOUNT_STATUS_LABELS = {
+  none: 'No account',
   invited: 'Invited',
   inviteExpired: 'Invite expired',
   active: 'Active',
@@ -430,15 +464,21 @@ export const ACTIVITY_LABELS = {
   reactivated: 'Reactivated',
   two_step_reset: 'Reset two-step for',
   profile_edited_by_admin: 'Edited profile of',
+  student_invited: 'Invited student',
+  parent_invited: 'Invited parent',
+  parent_linked: 'Linked parent',
+  parent_unlinked: 'Removed parent',
+  consent_recorded: 'Recorded consent for',
 } as const;
 
 export const ACTIVITY_PAGE = {
   heading: 'Activity',
-  intro: 'Who changed staff access, and when. Newest first.',
-  columns: { when: 'When', who: 'Who', what: 'What', target: 'Staff member', details: 'Details' },
+  intro: 'Who changed access to the portal, and when. Newest first.',
+  columns: { when: 'When', who: 'Who', what: 'What', target: 'Account', details: 'Details' },
   empty: 'Nothing yet.',
   roleChange: (from: string, to: string) => `${from} → ${to}`,
   fields: (fields: string) => `Fields: ${fields}`,
+  student: (name: string) => `Student: ${name}`,
   someone: 'Someone',
 } as const;
 
@@ -604,11 +644,18 @@ export const TIMETABLE_PAGE = {
 
 export const STUDENTS_PAGE = {
   heading: 'Students',
-  intro: 'The student roster. Only names and year levels are kept.',
+  intro: 'The student roster. Open a student to manage their portal account and parents.',
   add: 'Add student',
   searchLabel: 'Search by name',
   showArchived: 'Show archived',
-  columns: { name: 'Name', year: 'Year', classes: 'Classes', status: 'Status' },
+  columns: {
+    name: 'Name',
+    year: 'Year',
+    classes: 'Classes',
+    account: 'Account',
+    parents: 'Parents',
+    status: 'Status',
+  },
   edit: 'Edit',
   archive: 'Archive',
   restore: 'Restore',
@@ -644,8 +691,10 @@ export const ASSIGNMENT_LIMITS = {
 
 export const RESULT_STATUS_LABELS = {
   not_submitted: 'Not submitted',
+  in_progress: 'In progress',
   submitted: 'Submitted',
   marked: 'Marked',
+  returned: 'Returned',
 } as const;
 
 export const DUE_LABELS = {
@@ -682,9 +731,11 @@ export const ASSIGNMENT_DIALOG = {
     maxMark: 'Out of (marks)',
   },
   hints: {
-    instructions: 'Plain text. Students will see this in Release 3.',
-    maxMark: 'Leave empty for feedback only.',
+    instructions: 'Plain text. Students and parents see this once it’s published.',
+    maxMark: 'For paper homework. Leave empty for feedback only.',
+    onlineMarks: 'Marks come from the questions.',
   },
+  newIsDraft: 'New assignments start as drafts: add questions if you like, then publish.',
   save: 'Save assignment',
   saving: 'Saving…',
 } as const;
@@ -724,6 +775,7 @@ export const MARKING_PAGE = {
   saved: 'Saved',
   markedBy: (name: string, date: string) =>
     name ? `Marked by ${name}, ${date}` : `Marked ${date}`,
+  returnedNote: 'Returned work and its mark show to the student and their parents.',
   noStudents: 'No students are in this class yet.',
   className: 'Class',
 } as const;

@@ -1,4 +1,5 @@
-// Student roster for admins (R3a stories AS3–AS4). Name and year level only (review H10).
+// Student roster for admins (R3a stories AS3–AS4). Name and year level only (review H10); since
+// R3b also each student's account status and number of parents (FA4).
 
 import { toErrorKey } from './auth-errors';
 import { toStudentSummary } from './classes.service';
@@ -9,15 +10,19 @@ import type { Result, RosterStudent, StudentInput } from './types';
 
 type RosterRow = StudentRow & {
   enrolments: { class: { id: string; name: string } | null }[];
+  account: { is_active: boolean; invited_at: string | null; joined_at: string | null } | null;
+  student_guardians: { count: number }[];
 };
+
+const ROSTER_COLUMNS = `id, full_name, year_level, is_active,
+  enrolments(class:classes(id, name)),
+  account:profiles!students_profile_id_fkey(is_active, invited_at, joined_at),
+  student_guardians(count)`;
 
 export async function listStudents(includeArchived: boolean): Promise<Result<RosterStudent[]>> {
   return attempt(async () => {
     const supabase = await getSupabase();
-    let query = supabase
-      .from('students')
-      .select('id, full_name, year_level, is_active, enrolments(class:classes(id, name))')
-      .order('full_name');
+    let query = supabase.from('students').select(ROSTER_COLUMNS).order('full_name');
     if (!includeArchived) query = query.eq('is_active', true);
 
     const { data, error } = await query;
@@ -29,6 +34,12 @@ export async function listStudents(includeArchived: boolean): Promise<Result<Ros
         classes: row.enrolments
           .map((enrolment) => enrolment.class)
           .filter((item): item is { id: string; name: string } => item !== null),
+        account: row.account && {
+          isActive: row.account.is_active,
+          invitedAt: row.account.invited_at,
+          joinedAt: row.account.joined_at,
+        },
+        parentCount: row.student_guardians[0]?.count ?? 0,
       })),
     );
   });

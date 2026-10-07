@@ -27,7 +27,25 @@ export {
   listAssignments,
   saveAssignment,
   saveResult,
+  setAssignmentPublished,
 } from './assignments.service';
+export { deleteQuestion, moveQuestion, saveQuestion } from './questions.service';
+export { getSubmission, saveSubmission } from './submissions.service';
+export {
+  getMyAssignment,
+  getMyTimetable,
+  listMyAssignments,
+  saveMyAnswer,
+  submitMyAssignment,
+} from './student.service';
+export type { AnswerChange } from './student.service';
+export {
+  getChildAssignment,
+  getChildTimetable,
+  giveConsent,
+  listChildAssignments,
+  listMyChildren,
+} from './parent.service';
 export {
   addSession,
   enrolStudent,
@@ -40,6 +58,13 @@ export {
   setClassActive,
 } from './classes.service';
 export { listStudents, saveStudent, setStudentActive } from './students.service';
+export {
+  getStudentFamily,
+  inviteParent,
+  inviteStudentAccount,
+  recordConsent,
+  unlinkParent,
+} from './families.service';
 export {
   getMyProfile,
   getProfile,
@@ -57,7 +82,7 @@ export {
   listStaff,
   resendInvite,
   resetStaffTwoStep,
-  setStaffActive,
+  setAccountActive,
   setStaffRole,
 } from './staff.service';
 export {
@@ -69,10 +94,13 @@ export {
 } from './two-step.service';
 export type {
   AccessState,
+  AnswerMark,
   AssignmentDetail,
   AssignmentInput,
   AssignmentResult,
   AssignmentSummary,
+  Child,
+  ChildAccountStatus,
   ResultInput,
   ResultStatus,
   ActivityAction,
@@ -91,10 +119,20 @@ export type {
   TimetableEntry,
   EmailLinkType,
   ErrorKey,
+  FamilyAccount,
+  FamilyAssignment,
+  FamilyAssignmentView,
+  FamilyQuestion,
+  ParentInviteOutcome,
   ProfileChanges,
+  Question,
+  QuestionInput,
   Result,
   StaffMember,
   StaffProfile,
+  StudentFamily,
+  Submission,
+  SubmissionAnswer,
   SubmitResult,
   TwoStepEnrolment,
 } from './types';

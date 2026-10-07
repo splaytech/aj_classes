@@ -32,5 +32,11 @@ export function usePortalAction() {
     setNotice('');
   }
 
-  return { busy, error, notice, run, clear };
+  /** Shows a success message for something that finished elsewhere (e.g. in a dialog). */
+  function announce(message: string) {
+    setError('');
+    setNotice(message);
+  }
+
+  return { busy, error, notice, run, clear, announce };
 }

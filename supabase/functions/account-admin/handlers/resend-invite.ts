@@ -1,4 +1,5 @@
-// Send a fresh invite link to someone who hasn't joined yet (R2a story US15).
+// Send a fresh invite link to someone who hasn't joined yet (R2a story US15; any role, R3b).
+// The e-mail keeps its staff / student / parent wording: it comes from the stored user metadata.
 
 import type { Caller } from '../../_shared/auth.ts';
 import { serviceClient } from '../../_shared/clients.ts';
@@ -6,7 +7,7 @@ import { fail, succeed } from '../../_shared/responses.ts';
 import type { ActionResult } from '../../_shared/responses.ts';
 import { isUuid } from '../../_shared/validation.ts';
 
-import { audit, findStaff } from './staff.ts';
+import { audit, findAccount } from './accounts.ts';
 
 export async function resendInvite(
   input: Record<string, unknown>,
@@ -14,7 +15,7 @@ export async function resendInvite(
 ): Promise<ActionResult> {
   if (!isUuid(input.userId)) return fail('invalid_request');
 
-  const target = await findStaff(input.userId);
+  const target = await findAccount(input.userId);
   if (!target) return fail('not_found');
   if (target.joined_at) return fail('already_joined');
 

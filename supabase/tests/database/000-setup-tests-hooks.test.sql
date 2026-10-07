@@ -52,6 +52,33 @@ begin
 end;
 $$;
 
+-- A student or parent account. The role is in server-only app_metadata, as the account-admin
+-- function sets it (R3b design D2); the trigger makes the profile.
+create or replace function tests.create_family_account(
+  p_id uuid,
+  p_email text,
+  p_role text,
+  p_joined boolean default true,
+  p_active boolean default true
+)
+returns uuid
+language plpgsql
+set search_path = ''
+as $$
+begin
+  insert into auth.users (id, aud, role, email, invited_at, email_confirmed_at, raw_app_meta_data, raw_user_meta_data)
+  values (
+    p_id, 'authenticated', 'authenticated', p_email, now(),
+    case when p_joined then now() end,
+    jsonb_build_object('provider', 'email', 'account_role', p_role),
+    jsonb_build_object('full_name', 'Test ' || split_part(p_email, '@', 1))
+  );
+
+  update public.profiles set is_active = p_active where id = p_id;
+  return p_id;
+end;
+$$;
+
 -- A confirmed authenticator app, as if the person finished two-step setup.
 create or replace function tests.add_verified_factor(p_user_id uuid)
 returns void

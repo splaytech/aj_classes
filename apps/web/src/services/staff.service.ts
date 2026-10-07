@@ -1,12 +1,12 @@
 // Staff management for admins (R2a stories US1, US10, US14–US17).
 // Reads and role changes go straight to the database (it checks the caller is an admin);
-// invites, deactivation and two-step resets go through the staff-admin edge function.
+// invites, deactivation and two-step resets go through the account-admin edge function.
 
 import type { StaffRole } from '@/constants';
 
 import { toErrorKey } from './auth-errors';
 import { attempt, fail, succeed } from './result';
-import { callStaffAdmin } from './staff-admin.client';
+import { callAccountAdmin } from './account-admin.client';
 import { getSupabase } from './supabase.client';
 import type { Result, StaffMember } from './types';
 
@@ -65,26 +65,27 @@ export async function setStaffRole(userId: string, role: StaffRole): Promise<Res
 
 /** Sends an invite e-mail; returns the new person's id. */
 export async function inviteStaff(email: string, fullName: string): Promise<Result<string>> {
-  const result = await callStaffAdmin('invite', { email, fullName });
+  const result = await callAccountAdmin('invite', { email, fullName });
   return result.ok ? succeed(String(result.data.userId)) : result;
 }
 
 export async function resendInvite(userId: string): Promise<Result> {
-  const result = await callStaffAdmin('resend-invite', { userId });
+  const result = await callAccountAdmin('resend-invite', { userId });
   return result.ok ? succeed() : result;
 }
 
 export async function cancelInvite(userId: string): Promise<Result> {
-  const result = await callStaffAdmin('cancel-invite', { userId });
+  const result = await callAccountAdmin('cancel-invite', { userId });
   return result.ok ? succeed() : result;
 }
 
-export async function setStaffActive(userId: string, active: boolean): Promise<Result> {
-  const result = await callStaffAdmin('set-active', { userId, active });
+/** Deactivates or reactivates any account: staff, students and parents (R3b FA3). */
+export async function setAccountActive(userId: string, active: boolean): Promise<Result> {
+  const result = await callAccountAdmin('set-active', { userId, active });
   return result.ok ? succeed() : result;
 }
 
 export async function resetStaffTwoStep(userId: string): Promise<Result> {
-  const result = await callStaffAdmin('reset-two-step', { userId });
+  const result = await callAccountAdmin('reset-two-step', { userId });
   return result.ok ? succeed() : result;
 }

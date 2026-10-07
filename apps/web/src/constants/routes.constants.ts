@@ -9,8 +9,8 @@ export const ROUTES = {
   robots: '/robots.txt',
 } as const;
 
-// Staff portal (R2a). Everything private lives under /portal, so each host needs one
-// rewrite rule and search engines one Disallow line (design §11.1).
+// Portal (R2a staff, R3b students and parents). Everything private lives under /portal, so each
+// host needs one rewrite rule and search engines one Disallow line (R2a design §11.1).
 export const PORTAL_ROUTES = {
   root: '/portal',
   login: '/portal/login',
@@ -29,6 +29,9 @@ export const PORTAL_ROUTES = {
   adminStaff: '/portal/admin/staff',
   adminStudents: '/portal/admin/students',
   adminActivity: '/portal/admin/activity',
+  student: '/portal/student',
+  studentTimetable: '/portal/student/timetable',
+  parent: '/portal/parent',
 } as const;
 
 // Portal pages with an id in the address (React Router patterns).
@@ -36,6 +39,11 @@ export const PORTAL_ROUTE_PATTERNS = {
   staffMember: '/portal/admin/staff/:userId',
   classDetail: '/portal/classes/:classId',
   assignmentDetail: '/portal/assignments/:assignmentId',
+  submission: '/portal/assignments/:assignmentId/students/:studentId',
+  adminStudent: '/portal/admin/students/:studentId',
+  studentAssignment: '/portal/student/assignments/:assignmentId',
+  parentChild: '/portal/parent/children/:studentId',
+  parentChildAssignment: '/portal/parent/children/:studentId/assignments/:assignmentId',
 } as const;
 
 export function staffMemberPath(userId: string): string {
@@ -48,6 +56,26 @@ export function classPath(classId: string): string {
 
 export function assignmentPath(assignmentId: string): string {
   return `${PORTAL_ROUTES.assignments}/${assignmentId}`;
+}
+
+export function submissionPath(assignmentId: string, studentId: string): string {
+  return `${assignmentPath(assignmentId)}/students/${studentId}`;
+}
+
+export function adminStudentPath(studentId: string): string {
+  return `${PORTAL_ROUTES.adminStudents}/${studentId}`;
+}
+
+export function studentAssignmentPath(assignmentId: string): string {
+  return `${PORTAL_ROUTES.student}/assignments/${assignmentId}`;
+}
+
+export function parentChildPath(studentId: string): string {
+  return `${PORTAL_ROUTES.parent}/children/${studentId}`;
+}
+
+export function parentChildAssignmentPath(studentId: string, assignmentId: string): string {
+  return `${parentChildPath(studentId)}/assignments/${assignmentId}`;
 }
 
 // Query-string names used by portal pages and email links.

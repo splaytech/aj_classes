@@ -1,5 +1,9 @@
-// Your account (stories US6, US9): change password, and two-step sign-in.
+// Your account (stories US6, US9; R3b FS4): change password, appearance, and two-step sign-in
+// for staff.
 
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useLoaderData, useRevalidator } from 'react-router';
@@ -13,9 +17,13 @@ import {
   PORTAL_ERRORS,
   PORTAL_ROUTES,
   PORTAL_SEO,
-  STAFF_ROLE_LABELS,
+  ROLE_LABELS,
+  THEME_MODES,
 } from '@/constants';
+import type { ThemeMode } from '@/constants';
+import { isStaffRole } from '@/lib/portal-access';
 import { checkCode, checkNewPassword, checkPasswordsMatch } from '@/lib/portal-validation';
+import { useAppearance } from '@/lib/appearance-context';
 import { buildPortalMeta } from '@/lib/seo';
 import {
   canAddAuthenticator,
@@ -26,22 +34,27 @@ import {
 } from '@/services';
 import type { Authenticator } from '@/services';
 
-import { useStaffAccess } from './staff-layout';
+import { usePortalAccess } from './member-layout';
 import styles from './account.module.css';
 
-const FIELD_IDS = { code: 'reauth-code', password: 'change-password', confirm: 'change-confirm' };
+const FIELD_IDS = {
+  code: 'reauth-code',
+  password: 'change-password',
+  confirm: 'change-confirm',
+  appearance: 'appearance-heading',
+};
 
 export function meta() {
   return buildPortalMeta(PORTAL_SEO.account);
 }
 
-// Access is checked by the staff layout; this only loads the authenticator list.
+// Access is checked by the member layout; this only loads the authenticator list.
 export async function clientLoader() {
   return listAuthenticators();
 }
 
 export default function AccountPage() {
-  const access = useStaffAccess();
+  const access = usePortalAccess();
   const role = access.profile?.role ?? 'tutor';
 
   return (
@@ -51,11 +64,38 @@ export default function AccountPage() {
         <dt>{ACCOUNT_PAGE.signedInAs}</dt>
         <dd>{access.email}</dd>
         <dt>{ACCOUNT_PAGE.role}</dt>
-        <dd>{STAFF_ROLE_LABELS[role]}</dd>
+        <dd>{ROLE_LABELS[role]}</dd>
       </dl>
       <ChangePasswordSection />
-      <TwoStepSection isAdmin={role === 'admin'} />
+      <AppearanceSection />
+      {isStaffRole(role) && <TwoStepSection isAdmin={role === 'admin'} />}
     </div>
+  );
+}
+
+/** System / Light / Dark, remembered on this device (R3b story FS4). */
+function AppearanceSection() {
+  const { mode, setMode } = useAppearance();
+
+  return (
+    <section className={styles.section} aria-labelledby={FIELD_IDS.appearance}>
+      <h2 id={FIELD_IDS.appearance}>{ACCOUNT_PAGE.appearance.heading}</h2>
+      <p className={formStyles.hint}>{ACCOUNT_PAGE.appearance.intro}</p>
+      <RadioGroup
+        aria-labelledby={FIELD_IDS.appearance}
+        value={mode}
+        onChange={(event) => setMode(event.target.value as ThemeMode)}
+      >
+        {THEME_MODES.map((option) => (
+          <FormControlLabel
+            key={option}
+            value={option}
+            control={<Radio />}
+            label={ACCOUNT_PAGE.appearance.options[option]}
+          />
+        ))}
+      </RadioGroup>
+    </section>
   );
 }
 

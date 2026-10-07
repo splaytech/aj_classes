@@ -1,43 +1,60 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { createPortalTheme } from './portal-theme';
 
-const VARIABLES: Record<string, string> = {
-  '--color-primary': 'rgb(37, 99, 235)',
-  '--color-primary-hover': 'rgb(29, 78, 216)',
-  '--color-on-primary': 'rgb(255, 255, 255)',
-  '--color-secondary': 'rgb(249, 198, 43)',
-  '--color-text-emphasis': 'rgb(23, 37, 84)',
-  '--color-error': 'rgb(185, 28, 28)',
-  '--color-success': 'rgb(21, 128, 61)',
-  '--color-warning': 'rgb(180, 83, 9)',
-  '--color-text': 'rgb(23, 32, 51)',
-  '--color-text-muted': 'rgb(75, 85, 99)',
-  '--color-bg': 'rgb(255, 255, 255)',
-  '--color-border': 'rgb(214, 222, 235)',
+const LIGHT: Record<string, string> = {
+  '--color-primary': '#2563eb',
+  '--color-primary-hover': '#1d4ed8',
+  '--color-on-primary': '#ffffff',
+  '--color-secondary': '#f9c62b',
+  '--color-text-emphasis': '#172554',
+  '--color-error': '#b91c1c',
+  '--color-success': '#15803d',
+  '--color-warning': '#b45309',
+  '--color-text': '#172033',
+  '--color-text-muted': '#4b5563',
+  '--color-bg': '#ffffff',
+  '--color-surface': '#ffffff',
+  '--color-border': '#d6deeb',
   '--font-body': 'Inter, system-ui, sans-serif',
   '--radius-md': '8px',
 };
 
+const DARK: Record<string, string> = {
+  ...LIGHT,
+  '--color-primary': '#60a5fa',
+  '--color-on-primary': '#0b1220',
+  '--color-bg': '#0b1220',
+  '--color-surface': '#131c31',
+  '--color-text': '#e2e8f0',
+};
+
+const reader = (variables: Record<string, string>) => (name: string) => variables[name] ?? '';
+
 describe('createPortalTheme', () => {
-  afterEach(() => {
-    Object.keys(VARIABLES).forEach((name) => document.documentElement.style.removeProperty(name));
-  });
-
   it('takes colours, font and radius from the theme.css variables', () => {
-    Object.entries(VARIABLES).forEach(([name, value]) =>
-      document.documentElement.style.setProperty(name, value),
-    );
-    const theme = createPortalTheme();
+    const theme = createPortalTheme('light', reader(LIGHT));
 
-    expect(theme.palette.primary.main).toBe('rgb(37, 99, 235)');
-    expect(theme.palette.warning.main).toBe('rgb(180, 83, 9)');
+    expect(theme.palette.mode).toBe('light');
+    expect(theme.palette.primary.main).toBe('#2563eb');
+    expect(theme.palette.warning.main).toBe('#b45309');
     expect(theme.typography.fontFamily).toBe('Inter, system-ui, sans-serif');
     expect(theme.shape.borderRadius).toBe(8);
     expect(theme.spacing(2)).toBe('8px');
   });
 
+  it('builds the dark theme from the dark variables (R3b FS4)', () => {
+    const theme = createPortalTheme('dark', reader(DARK));
+
+    expect(theme.palette.mode).toBe('dark');
+    expect(theme.palette.primary.main).toBe('#60a5fa');
+    expect(theme.palette.primary.contrastText).toBe('#0b1220');
+    expect(theme.palette.background.default).toBe('#0b1220');
+    expect(theme.palette.background.paper).toBe('#131c31');
+    expect(theme.palette.text.primary).toBe('#e2e8f0');
+  });
+
   it("falls back to MUI's defaults when theme.css isn't loaded", () => {
-    expect(() => createPortalTheme()).not.toThrow();
+    expect(createPortalTheme('dark', reader({})).palette.mode).toBe('dark');
   });
 });

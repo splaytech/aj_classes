@@ -12,8 +12,8 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { Link as RouterLink, useLoaderData } from 'react-router';
 
-import { DueChip, LoadError, PageHeader } from '@/components/portal';
-import { ASSIGNMENTS_PAGE, PORTAL_SEO, assignmentPath, classPath } from '@/constants';
+import { AssignmentTitleLink, DueChip, LoadError, PageHeader } from '@/components/portal';
+import { ASSIGNMENTS_PAGE, PORTAL_SEO, classPath } from '@/constants';
 import { byDueDate, markingProgress } from '@/lib/assignments';
 import { buildPortalMeta } from '@/lib/seo';
 import { listAssignments } from '@/services';
@@ -53,13 +53,7 @@ export default function AssignmentsPage() {
               return (
                 <TableRow key={assignment.id} hover>
                   <TableCell>
-                    <Link
-                      component={RouterLink}
-                      to={assignmentPath(assignment.id)}
-                      sx={{ fontWeight: 700 }}
-                    >
-                      {assignment.title}
-                    </Link>
+                    <AssignmentTitleLink assignment={assignment} />
                   </TableCell>
                   <TableCell>
                     <Link component={RouterLink} to={classPath(assignment.classId)}>

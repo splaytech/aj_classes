@@ -16,7 +16,7 @@
   max-width: 28rem;
   padding: var(--space-8) var(--space-6);
   border-radius: var(--radius-lg);
-  background: var(--color-bg);
+  background: var(--color-surface);
   box-shadow: var(--shadow-md);
 }
 

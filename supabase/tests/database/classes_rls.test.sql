@@ -33,10 +33,11 @@ insert into public.enrolments (class_id, student_id) values
   ('00000000-0000-0000-0000-00000000c002', '00000000-0000-0000-0000-00000000d002'),
   ('00000000-0000-0000-0000-00000000c003', '00000000-0000-0000-0000-00000000d003');
 
-insert into public.assignments (id, class_id, title, max_mark) values
-  ('00000000-0000-0000-0000-00000000e001', '00000000-0000-0000-0000-00000000c001', 'Homework one', 20),
-  ('00000000-0000-0000-0000-00000000e002', '00000000-0000-0000-0000-00000000c002', 'Homework two', 20),
-  ('00000000-0000-0000-0000-00000000e003', '00000000-0000-0000-0000-00000000c001', 'Feedback only', null);
+-- Published: results can only be recorded on published assignments (R3b).
+insert into public.assignments (id, class_id, title, max_mark, status) values
+  ('00000000-0000-0000-0000-00000000e001', '00000000-0000-0000-0000-00000000c001', 'Homework one', 20, 'published'),
+  ('00000000-0000-0000-0000-00000000e002', '00000000-0000-0000-0000-00000000c002', 'Homework two', 20, 'published'),
+  ('00000000-0000-0000-0000-00000000e003', '00000000-0000-0000-0000-00000000c001', 'Feedback only', null, 'published');
 
 
 -- Tutor 1 ----------------------------------------------------------------------

@@ -19,6 +19,7 @@ import { PageHeader } from '@/components/portal';
 import { DAY_NAMES, PORTAL_ROUTES, PORTAL_SEO, TUTOR_DASHBOARD, classPath } from '@/constants';
 import { summariseWork } from '@/lib/assignments';
 import { formatDate } from '@/lib/format';
+import { firstName } from '@/lib/labels';
 import { buildPortalMeta } from '@/lib/seo';
 import { formatTimeRange, isoDayOfWeek, relativeDay, upcomingSessions } from '@/lib/timetable';
 import type { UpcomingSession } from '@/lib/timetable';
@@ -63,10 +64,6 @@ export async function clientLoader() {
     upcoming: upcomingSessions(mySessions, now),
     work: summariseWork(myAssignments, now),
   };
-}
-
-function firstName(fullName: string): string {
-  return fullName.trim().split(/\s+/)[0] ?? '';
 }
 
 function whenText(session: UpcomingSession, now: Date): string {

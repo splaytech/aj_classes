@@ -51,7 +51,7 @@ const ERROR_KEYS_BY_DATABASE_CODE: Record<string, ErrorKey> = {
 };
 
 // Keys we raise ourselves: database functions ("raise exception 'last_admin'") and the
-// staff-admin edge function ({ ok: false, code: 'already_exists' }).
+// account-admin edge function ({ ok: false, code: 'already_exists' }).
 const ERROR_KEYS_BY_OWN_KEY: Record<string, ErrorKey> = {
   not_admin: 'notAllowed',
   not_allowed: 'notAllowed',
@@ -73,6 +73,29 @@ const ERROR_KEYS_BY_OWN_KEY: Record<string, ErrorKey> = {
   not_enrolled: 'notEnrolled',
   mark_too_high: 'markTooHigh',
   no_marks: 'noMarks',
+  // Family accounts (R3b)
+  not_staff: 'notStaff',
+  consent_needed: 'consentNeeded',
+  already_has_account: 'alreadyHasAccount',
+  already_linked: 'alreadyLinked',
+  not_a_student_account: 'serverProblem',
+  not_a_parent_account: 'serverProblem',
+  not_student: 'notStudent',
+  not_parent: 'notParent',
+  // Online assignments (R3b)
+  not_published: 'notPublished',
+  has_submissions: 'hasSubmissions',
+  assignment_published: 'assignmentPublished',
+  too_many_questions: 'tooManyQuestions',
+  invalid_status: 'invalidStatus',
+  unmarked_answers: 'unmarkedAnswers',
+  not_submitted: 'notSubmitted',
+  already_submitted: 'alreadySubmitted',
+  invalid_option: 'invalidInput',
+  invalid_question: 'notFound',
+  answer_too_long: 'answerTooLong',
+  not_online: 'notOnline',
+  invalid_input: 'invalidInput',
 };
 
 /** The portal error to show for anything a Supabase call returned or threw. */

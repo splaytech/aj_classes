@@ -23,6 +23,113 @@ export type Database = {
   };
   public: {
     Tables: {
+      assignment_answers: {
+        Row: {
+          assignment_id: string;
+          awarded_marks: number | null;
+          feedback: string;
+          question_id: string;
+          response: string;
+          selected_option: number | null;
+          student_id: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          assignment_id: string;
+          awarded_marks?: number | null;
+          feedback?: string;
+          question_id: string;
+          response?: string;
+          selected_option?: number | null;
+          student_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          assignment_id?: string;
+          awarded_marks?: number | null;
+          feedback?: string;
+          question_id?: string;
+          response?: string;
+          selected_option?: number | null;
+          student_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'assignment_answers_assignment_id_student_id_fkey';
+            columns: ['assignment_id', 'student_id'];
+            isOneToOne: false;
+            referencedRelation: 'assignment_results';
+            referencedColumns: ['assignment_id', 'student_id'];
+          },
+          {
+            foreignKeyName: 'assignment_answers_question_id_assignment_id_fkey';
+            columns: ['question_id', 'assignment_id'];
+            isOneToOne: false;
+            referencedRelation: 'assignment_questions';
+            referencedColumns: ['id', 'assignment_id'];
+          },
+          {
+            foreignKeyName: 'assignment_answers_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'students';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      assignment_questions: {
+        Row: {
+          assignment_id: string;
+          correct_option: number | null;
+          created_at: string;
+          explanation: string;
+          id: string;
+          kind: string;
+          marks: number;
+          options: string[];
+          position: number;
+          prompt: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          assignment_id: string;
+          correct_option?: number | null;
+          created_at?: string;
+          explanation?: string;
+          id?: string;
+          kind: string;
+          marks?: number;
+          options?: string[];
+          position?: number;
+          prompt: string;
+          updated_at?: string;
+        };
+        Update: {
+          assignment_id?: string;
+          correct_option?: number | null;
+          created_at?: string;
+          explanation?: string;
+          id?: string;
+          kind?: string;
+          marks?: number;
+          options?: string[];
+          position?: number;
+          prompt?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'assignment_questions_assignment_id_fkey';
+            columns: ['assignment_id'];
+            isOneToOne: false;
+            referencedRelation: 'assignments';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       assignment_results: {
         Row: {
           assignment_id: string;
@@ -30,8 +137,10 @@ export type Database = {
           mark: number | null;
           marked_at: string | null;
           marked_by: string | null;
+          returned_at: string | null;
           status: string;
           student_id: string;
+          submitted_at: string | null;
           updated_at: string;
         };
         ComputedFields: never;
@@ -41,8 +150,10 @@ export type Database = {
           mark?: number | null;
           marked_at?: string | null;
           marked_by?: string | null;
+          returned_at?: string | null;
           status?: string;
           student_id: string;
+          submitted_at?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -51,8 +162,10 @@ export type Database = {
           mark?: number | null;
           marked_at?: string | null;
           marked_by?: string | null;
+          returned_at?: string | null;
           status?: string;
           student_id?: string;
+          submitted_at?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -88,6 +201,8 @@ export type Database = {
           id: string;
           instructions: string;
           max_mark: number | null;
+          published_at: string | null;
+          status: string;
           title: string;
           updated_at: string;
         };
@@ -100,6 +215,8 @@ export type Database = {
           id?: string;
           instructions?: string;
           max_mark?: number | null;
+          published_at?: string | null;
+          status?: string;
           title: string;
           updated_at?: string;
         };
@@ -111,6 +228,8 @@ export type Database = {
           id?: string;
           instructions?: string;
           max_mark?: number | null;
+          published_at?: string | null;
+          status?: string;
           title?: string;
           updated_at?: string;
         };
@@ -335,33 +454,94 @@ export type Database = {
         };
         Relationships: [];
       };
+      student_guardians: {
+        Row: {
+          created_at: string;
+          parent_id: string;
+          student_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          parent_id: string;
+          student_id: string;
+        };
+        Update: {
+          created_at?: string;
+          parent_id?: string;
+          student_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'student_guardians_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'student_guardians_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'students';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       students: {
         Row: {
+          consent_recorded_at: string | null;
+          consent_recorded_by: string | null;
+          consent_source: string | null;
           created_at: string;
           full_name: string;
           id: string;
           is_active: boolean;
+          profile_id: string | null;
           updated_at: string;
           year_level: number | null;
         };
         ComputedFields: never;
         Insert: {
+          consent_recorded_at?: string | null;
+          consent_recorded_by?: string | null;
+          consent_source?: string | null;
           created_at?: string;
           full_name: string;
           id?: string;
           is_active?: boolean;
+          profile_id?: string | null;
           updated_at?: string;
           year_level?: number | null;
         };
         Update: {
+          consent_recorded_at?: string | null;
+          consent_recorded_by?: string | null;
+          consent_source?: string | null;
           created_at?: string;
           full_name?: string;
           id?: string;
           is_active?: boolean;
+          profile_id?: string | null;
           updated_at?: string;
           year_level?: number | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'students_consent_recorded_by_fkey';
+            columns: ['consent_recorded_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'students_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: true;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
     };
     Views: {
@@ -401,15 +581,122 @@ export type Database = {
         Args: { action: string; actor: string; details?: Json; target: string };
         Returns: undefined;
       };
+      admin_record_consent: { Args: { target_student: string }; Returns: undefined };
       admin_set_active: { Args: { active: boolean; target: string }; Returns: undefined };
       admin_set_role: {
         Args: { new_role: Database['public']['Enums']['app_role']; target: string };
         Returns: undefined;
       };
+      admin_unlink_parent: {
+        Args: { target_parent: string; target_student: string };
+        Returns: undefined;
+      };
       am_i_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
+      move_question: { Args: { step: number; target: string }; Returns: undefined };
+      parent_child_assignment: {
+        Args: { target_assignment: string; target_student: string };
+        Returns: Json;
+      };
+      parent_child_assignments: {
+        Args: { target_student: string };
+        Returns: {
+          answered_count: number;
+          assignment_id: string;
+          class_name: string;
+          comment: string;
+          due_on: string;
+          is_late: boolean;
+          mark: number;
+          published_at: string;
+          question_count: number;
+          returned_at: string;
+          status: string;
+          subject: string;
+          submitted_at: string;
+          title: string;
+          total_marks: number;
+        }[];
+      };
+      parent_child_timetable: {
+        Args: { target_student: string };
+        Returns: {
+          class_id: string;
+          class_name: string;
+          day_of_week: number;
+          delivery: string;
+          end_time: string;
+          ends_on: string;
+          location: string;
+          session_id: string;
+          start_time: string;
+          starts_on: string;
+          subject: string;
+          tutor_name: string;
+        }[];
+      };
+      parent_children: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          account_status: string;
+          class_names: string[];
+          consent_recorded_at: string;
+          full_name: string;
+          student_id: string;
+          year_level: number;
+        }[];
+      };
+      parent_give_consent: { Args: { target_student: string }; Returns: undefined };
+      student_assignment: { Args: { target: string }; Returns: Json };
+      student_assignments: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          answered_count: number;
+          assignment_id: string;
+          class_name: string;
+          comment: string;
+          due_on: string;
+          is_late: boolean;
+          mark: number;
+          published_at: string;
+          question_count: number;
+          returned_at: string;
+          status: string;
+          subject: string;
+          submitted_at: string;
+          title: string;
+          total_marks: number;
+        }[];
+      };
+      student_save_answer: {
+        Args: {
+          answer_text?: string;
+          chosen_option?: number;
+          target_assignment: string;
+          target_question: string;
+        };
+        Returns: undefined;
+      };
+      student_submit: { Args: { target_assignment: string }; Returns: string };
+      student_timetable: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          class_id: string;
+          class_name: string;
+          day_of_week: number;
+          delivery: string;
+          end_time: string;
+          ends_on: string;
+          location: string;
+          session_id: string;
+          start_time: string;
+          starts_on: string;
+          subject: string;
+          tutor_name: string;
+        }[];
+      };
     };
     Enums: {
-      app_role: 'tutor' | 'admin';
+      app_role: 'tutor' | 'admin' | 'student' | 'parent';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -524,7 +811,7 @@ export const Constants = {
   },
   public: {
     Enums: {
-      app_role: ['tutor', 'admin'],
+      app_role: ['tutor', 'admin', 'student', 'parent'],
     },
   },
 } as const;

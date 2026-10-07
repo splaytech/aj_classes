@@ -1,6 +1,13 @@
 // Result types shared by all services. Components only ever see these, never backend details.
 
-import type { PORTAL_ERRORS, StaffRole } from '@/constants';
+import type {
+  AppRole,
+  ConsentSource,
+  FamilyStatus,
+  PORTAL_ERRORS,
+  QuestionKind,
+  StaffRole,
+} from '@/constants';
 
 /** Outcome of sending something to the backend. */
 export type SubmitResult = 'success' | 'error' | 'not-configured';
@@ -19,7 +26,7 @@ export type AccessState = {
   userId: string;
   email: string;
   /** null when signed out, or when the profile can't be read (e.g. deactivated). */
-  profile: { fullName: string; role: StaffRole } | null;
+  profile: { fullName: string; role: AppRole } | null;
   /** aal2 = password and authenticator code; aal1 = password (or email link) only. */
   aal: 'aal1' | 'aal2';
   hasVerifiedFactor: boolean;
@@ -90,7 +97,12 @@ export type ActivityAction =
   | 'deactivated'
   | 'reactivated'
   | 'two_step_reset'
-  | 'profile_edited_by_admin';
+  | 'profile_edited_by_admin'
+  | 'student_invited'
+  | 'parent_invited'
+  | 'parent_linked'
+  | 'parent_unlinked'
+  | 'consent_recorded';
 
 // --- Classes, timetable, students, assignments (R3a) ------------------------------
 
@@ -132,9 +144,11 @@ export type StudentSummary = {
   isActive: boolean;
 };
 
-/** A student with the classes they're in (admin roster). */
+/** A student with the classes they're in (admin roster), their account and parents (R3b FA4). */
 export type RosterStudent = StudentSummary & {
   classes: { id: string; name: string }[];
+  account: Pick<FamilyAccount, 'isActive' | 'invitedAt' | 'joinedAt'> | null;
+  parentCount: number;
 };
 
 export type ClassDetail = ClassSummary & {
@@ -178,7 +192,11 @@ export type StudentInput = {
   yearLevel: number | null;
 };
 
-export type ResultStatus = 'not_submitted' | 'submitted' | 'marked';
+/**
+ * Paper homework: not_submitted → submitted → marked → returned (staff set each step).
+ * Online work (R3b): not_submitted → in_progress → submitted (the student) → returned (staff).
+ */
+export type ResultStatus = 'not_submitted' | 'in_progress' | 'submitted' | 'marked' | 'returned';
 
 export type AssignmentSummary = {
   id: string;
@@ -188,6 +206,12 @@ export type AssignmentSummary = {
   instructions: string;
   dueOn: string | null; // "YYYY-MM-DD"
   maxMark: number | null; // null: feedback only
+  /** Drafts are visible to staff only (R3b FT2). */
+  isPublished: boolean;
+  /** Online work has questions; paper homework has none (R3b D6). */
+  questionCount: number;
+  /** Sum of the question marks, or maxMark for paper homework; null: feedback only. */
+  totalMarks: number | null;
   /** Ids of students currently in the class. */
   enrolledStudentIds: string[];
   /** Status per student who has a result row. */
@@ -198,15 +222,56 @@ export type AssignmentResult = {
   studentId: string;
   status: ResultStatus;
   mark: number | null;
-  feedback: string;
+  feedback: string; // the overall comment
   markedAt: string | null;
   markedByName: string;
+  submittedAt: string | null;
+  returnedAt: string | null;
 };
 
 export type AssignmentDetail = AssignmentSummary & {
   students: StudentSummary[];
   results: AssignmentResult[];
+  questions: Question[];
 };
+
+/** One question of an online assignment (R3b FT1). Options are numbered from 0. */
+export type Question = {
+  id: string;
+  assignmentId: string;
+  position: number;
+  kind: QuestionKind;
+  prompt: string;
+  options: string[];
+  correctOption: number | null;
+  marks: number;
+  explanation: string;
+};
+
+export type QuestionInput = Omit<Question, 'id' | 'position'> & { id?: string };
+
+/** A student's answer to one question, with the marking. */
+export type SubmissionAnswer = {
+  questionId: string;
+  selectedOption: number | null;
+  response: string;
+  awardedMarks: number | null;
+  feedback: string;
+};
+
+/** One student's online work, as staff see it on the marking page (R3b FT3). */
+export type Submission = {
+  assignment: Pick<
+    AssignmentSummary,
+    'id' | 'title' | 'dueOn' | 'classId' | 'className' | 'totalMarks'
+  > & { questions: Question[] };
+  student: StudentSummary;
+  result: AssignmentResult | null;
+  answers: SubmissionAnswer[];
+};
+
+/** The marks and feedback a tutor gives one answer. */
+export type AnswerMark = { questionId: string; awardedMarks: number | null; feedback: string };
 
 export type AssignmentInput = {
   id?: string;
@@ -223,4 +288,96 @@ export type ResultInput = {
   status: ResultStatus;
   mark: number | null;
   feedback: string;
+};
+
+// --- Family accounts (R3b) ---------------------------------------------------------
+
+/** A student's or parent's sign-in account, as admins see it. */
+export type FamilyAccount = {
+  id: string;
+  email: string;
+  fullName: string;
+  isActive: boolean;
+  invitedAt: string | null;
+  joinedAt: string | null;
+  lastSignInAt: string | null;
+};
+
+/** Everything on an admin's student page (R3b stories FA1–FA3). */
+export type StudentFamily = StudentSummary & {
+  consentRecordedAt: string | null;
+  consentSource: ConsentSource | null;
+  account: FamilyAccount | null;
+  parents: FamilyAccount[];
+  classes: { id: string; name: string }[];
+};
+
+/** What happened when a parent was invited: a new account, or an existing one linked. */
+export type ParentInviteOutcome = { userId: string; linked: boolean };
+
+// --- Student and parent portals (R3b) -------------------------------------------------
+
+/** One assignment in a student's list (their own, or their child's for a parent). */
+export type FamilyAssignment = {
+  id: string;
+  title: string;
+  className: string;
+  subject: string;
+  dueOn: string | null;
+  publishedAt: string | null;
+  questionCount: number; // 0: paper homework
+  /** Questions answered so far; null for parents (draft work stays private, FP2). */
+  answeredCount: number | null;
+  totalMarks: number | null;
+  status: FamilyStatus;
+  submittedAt: string | null;
+  returnedAt: string | null;
+  isLate: boolean;
+  /** Only once returned (F12). */
+  mark: number | null;
+  comment: string;
+};
+
+/** A question as a student (or parent) sees it. Marking fields are empty until returned. */
+export type FamilyQuestion = {
+  id: string;
+  kind: QuestionKind;
+  prompt: string;
+  options: string[];
+  marks: number;
+  selectedOption: number | null;
+  response: string;
+  correctOption: number | null;
+  explanation: string;
+  awardedMarks: number | null;
+  feedback: string;
+};
+
+/** One assignment with its questions, for the solve and results pages. */
+export type FamilyAssignmentView = Pick<
+  FamilyAssignment,
+  | 'id'
+  | 'title'
+  | 'className'
+  | 'subject'
+  | 'dueOn'
+  | 'status'
+  | 'submittedAt'
+  | 'returnedAt'
+  | 'isLate'
+  | 'totalMarks'
+  | 'mark'
+  | 'comment'
+> & { instructions: string; questions: FamilyQuestion[] };
+
+export type ChildAccountStatus = 'none' | 'invited' | 'active' | 'deactivated';
+
+/** A parent's linked child (FP1). */
+export type Child = {
+  id: string;
+  fullName: string;
+  yearLevel: number | null;
+  consentRecordedAt: string | null;
+  accountStatus: ChildAccountStatus;
+  classNames: string[];
 };

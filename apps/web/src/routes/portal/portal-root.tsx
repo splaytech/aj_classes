@@ -1,9 +1,15 @@
 // Wraps every /portal page: switches the portal off when it isn't configured, shows a
 // loading card while access is checked, and a friendly error if the server can't be reached.
+// The appearance (light / dark) applies from here, sign-in pages included (R3b design §6.5).
 
 import { Outlet } from 'react-router';
 
-import { AuthCard, PortalLoading, PortalUnavailable } from '@/components/portal';
+import {
+  AuthCard,
+  PortalLoading,
+  PortalThemeProvider,
+  PortalUnavailable,
+} from '@/components/portal';
 import { ButtonLink } from '@/components/ui';
 import { APP_CONFIG, PORTAL_ERRORS, PORTAL_COMMON, PORTAL_ROUTES, PORTAL_SEO } from '@/constants';
 import { buildPortalMeta } from '@/lib/seo';
@@ -25,5 +31,10 @@ export function ErrorBoundary() {
 }
 
 export default function PortalRoot() {
-  return APP_CONFIG.features.portal ? <Outlet /> : <PortalUnavailable />;
+  if (!APP_CONFIG.features.portal) return <PortalUnavailable />;
+  return (
+    <PortalThemeProvider>
+      <Outlet />
+    </PortalThemeProvider>
+  );
 }

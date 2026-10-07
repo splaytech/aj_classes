@@ -247,7 +247,7 @@ otp_expiry = 3600
 # R2a branded emails (design §9). Links go to /portal/auth/confirm, which needs a click on
 # Continue, so mail scanners can't use up the link.
 [auth.email.template.invite]
-subject = "You're invited to the AJ Classes staff portal"
+subject = "You're invited to the AJ Classes portal"
 content_path = "./supabase/templates/invite.html"
 
 [auth.email.template.recovery]
@@ -435,7 +435,7 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
 
-# R2a staff-admin: the gateway checks the caller's token, and the function checks they are an
-# active admin with two-step (design §10).
-[functions.staff-admin]
+# account-admin (R2a design §10, renamed in R3b): the gateway checks the caller's token, and the
+# function checks they are an active admin with two-step.
+[functions.account-admin]
 verify_jwt = true

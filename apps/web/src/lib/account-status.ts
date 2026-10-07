@@ -1,16 +1,17 @@
-// A staff member's status, worked out from their dates (R2a design §5). Not stored anywhere.
+// An account's status, worked out from its dates (R2a design §5): staff, and since R3b students
+// and parents. Not stored anywhere.
 
 import { AUTH_LIMITS } from '@/constants';
 import type { StaffMember } from '@/services';
 
-export type StaffStatus = 'invited' | 'inviteExpired' | 'active' | 'deactivated';
+export type AccountStatus = 'invited' | 'inviteExpired' | 'active' | 'deactivated';
 
 const HOUR_MS = 60 * 60 * 1000;
 
-export function staffStatus(
+export function accountStatus(
   member: Pick<StaffMember, 'isActive' | 'joinedAt' | 'invitedAt'>,
   now: Date,
-): StaffStatus {
+): AccountStatus {
   if (!member.isActive) return 'deactivated';
   if (member.joinedAt) return 'active';
 
@@ -39,7 +40,7 @@ export function filterStaff(
       !needle ||
       member.fullName.toLowerCase().includes(needle) ||
       member.email.toLowerCase().includes(needle);
-    const status = staffStatus(member, now);
+    const status = accountStatus(member, now);
     const matchesFilter =
       filter === 'all' || status === filter || (filter === 'invited' && status === 'inviteExpired');
     return matchesSearch && matchesFilter;

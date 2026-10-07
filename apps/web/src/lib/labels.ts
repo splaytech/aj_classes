@@ -1,4 +1,4 @@
-// Display labels for stored keys (subjects, year levels, delivery).
+// Display labels for stored keys (subjects, year levels, delivery) and names.
 
 import { DELIVERY_LABELS, SUBJECTS, YEAR_LEVEL_TEXT } from '@/constants';
 import type { Delivery } from '@/services';
@@ -20,4 +20,9 @@ export function classYearLabel(year: number | null): string {
 
 export function deliveryLabel(delivery: Delivery): string {
   return DELIVERY_LABELS[delivery];
+}
+
+/** "Aarav" from "Aarav Demo", for greetings. */
+export function firstName(fullName: string): string {
+  return fullName.trim().split(/\s+/)[0] ?? '';
 }

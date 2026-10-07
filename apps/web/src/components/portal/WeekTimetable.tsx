@@ -1,5 +1,5 @@
-// Week view of timetable slots (R3a story TS1, AS5). Seven columns on wide screens; day tabs on
-// phones, opening on today (review H23). Each slot links to its class.
+// Week view of timetable slots (R3a story TS1, AS5; R3b FS5). Seven columns on wide screens;
+// day tabs on phones, opening on today (review H23). For staff each slot links to its class.
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -29,9 +29,19 @@ type WeekTimetableProps = {
   entries: TimetableEntry[];
   today: DayOfWeek;
   showTutor: boolean;
+  /** Staff open the class page from a slot; students and parents can't (R3b). */
+  linkToClass?: boolean;
 };
 
-export function WeekTimetable({ entries, today, showTutor }: WeekTimetableProps) {
+type SlotOptions = Pick<WeekTimetableProps, 'showTutor' | 'linkToClass'>;
+
+export function WeekTimetable({
+  entries,
+  today,
+  showTutor,
+  linkToClass = true,
+}: WeekTimetableProps) {
+  const options = { showTutor, linkToClass };
   const theme = useTheme();
   const isNarrow = useMediaQuery(theme.breakpoints.down('md'));
   const [shownDay, setShownDay] = useState<DayOfWeek>(today);
@@ -52,7 +62,7 @@ export function WeekTimetable({ entries, today, showTutor }: WeekTimetableProps)
             <Tab key={day} value={day} label={DAY_NAMES.short[day]} />
           ))}
         </Tabs>
-        <DayColumn entries={days[shownDay]} showTutor={showTutor} />
+        <DayColumn entries={days[shownDay]} {...options} />
       </Box>
     );
   }
@@ -77,14 +87,14 @@ export function WeekTimetable({ entries, today, showTutor }: WeekTimetableProps)
               ? TIMETABLE_PAGE.todayHeading(DAY_NAMES.short[day])
               : DAY_NAMES.short[day]}
           </Typography>
-          <DayColumn entries={days[day]} showTutor={showTutor} />
+          <DayColumn entries={days[day]} {...options} />
         </Box>
       ))}
     </Box>
   );
 }
 
-function DayColumn({ entries, showTutor }: { entries: TimetableEntry[]; showTutor: boolean }) {
+function DayColumn({ entries, ...options }: SlotOptions & { entries: TimetableEntry[] }) {
   if (entries.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary">
@@ -96,40 +106,48 @@ function DayColumn({ entries, showTutor }: { entries: TimetableEntry[]; showTuto
   return (
     <Stack spacing={2}>
       {entries.map((entry) => (
-        <SessionCard key={entry.id} entry={entry} showTutor={showTutor} />
+        <SessionCard key={entry.id} entry={entry} {...options} />
       ))}
     </Stack>
   );
 }
 
-function SessionCard({ entry, showTutor }: { entry: TimetableEntry; showTutor: boolean }) {
+function SessionCard({ entry, showTutor, linkToClass }: SlotOptions & { entry: TimetableEntry }) {
   const where = entry.location
     ? DELIVERY_WITH_LOCATION(deliveryLabel(entry.delivery), entry.location)
     : deliveryLabel(entry.delivery);
 
+  const details = (
+    <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
+      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+        {formatTimeRange(entry.startTime, entry.endTime)}
+      </Typography>
+      <Typography variant="body2" sx={{ mt: 1 }}>
+        {entry.className}
+      </Typography>
+      <Typography variant="caption" color="text.secondary" component="p">
+        {subjectLabel(entry.subject)}
+      </Typography>
+      <Typography variant="caption" color="text.secondary" component="p">
+        {where}
+      </Typography>
+      {showTutor && entry.tutorName && (
+        <Typography variant="caption" color="text.secondary" component="p">
+          {entry.tutorName}
+        </Typography>
+      )}
+    </CardContent>
+  );
+
   return (
     <Card variant="outlined" sx={{ borderLeft: 4, borderLeftColor: 'primary.main' }}>
-      <CardActionArea component={RouterLink} to={classPath(entry.classId)}>
-        <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>
-            {formatTimeRange(entry.startTime, entry.endTime)}
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            {entry.className}
-          </Typography>
-          <Typography variant="caption" color="text.secondary" component="p">
-            {subjectLabel(entry.subject)}
-          </Typography>
-          <Typography variant="caption" color="text.secondary" component="p">
-            {where}
-          </Typography>
-          {showTutor && entry.tutorName && (
-            <Typography variant="caption" color="text.secondary" component="p">
-              {entry.tutorName}
-            </Typography>
-          )}
-        </CardContent>
-      </CardActionArea>
+      {linkToClass ? (
+        <CardActionArea component={RouterLink} to={classPath(entry.classId)}>
+          {details}
+        </CardActionArea>
+      ) : (
+        details
+      )}
     </Card>
   );
 }

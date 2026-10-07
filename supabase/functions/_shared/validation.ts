@@ -1,4 +1,4 @@
-// Input checks shared by staff-admin actions. Same rules as the web app (lib/validation.ts).
+// Input checks shared by account-admin actions. Same rules as the web app (lib/validation.ts).
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

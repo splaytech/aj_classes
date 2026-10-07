@@ -19,19 +19,19 @@ import {
   ProfileForm,
   RoleChip,
   SectionCard,
-  StaffStatusChip,
+  AccountStatusChip,
 } from '@/components/portal';
 import {
   PORTAL_ROUTES,
   PORTAL_SEO,
   STAFF_MEMBER_PAGE,
-  STAFF_ROLE_LABELS,
+  ROLE_LABELS,
   STAFF_ROLES,
 } from '@/constants';
 import type { StaffRole } from '@/constants';
 import { formatDate, formatDateTime } from '@/lib/format';
 import { buildPortalMeta } from '@/lib/seo';
-import { hasJoined, staffStatus } from '@/lib/staff-status';
+import { hasJoined, accountStatus } from '@/lib/account-status';
 import { usePortalAction } from '@/lib/use-portal-action';
 import {
   cancelInvite,
@@ -40,7 +40,7 @@ import {
   removePhoto,
   resendInvite,
   resetStaffTwoStep,
-  setStaffActive,
+  setAccountActive,
   setStaffRole,
   updateProfile,
   uploadPhoto,
@@ -81,7 +81,7 @@ export default function AdminStaffMemberPage() {
         meta={
           <>
             <RoleChip role={person.role} />
-            <StaffStatusChip status={staffStatus(person, new Date())} />
+            <AccountStatusChip status={accountStatus(person, new Date())} />
             {person.joinedAt && (
               <Typography variant="body2" color="text.secondary">
                 {STAFF_MEMBER_PAGE.joined(formatDate(person.joinedAt))}
@@ -115,7 +115,7 @@ function InviteSection({ person }: { person: StaffMember }) {
   const navigate = useNavigate();
   const action = usePortalAction();
   const [confirming, setConfirming] = useState(false);
-  const expired = staffStatus(person, new Date()) === 'inviteExpired';
+  const expired = accountStatus(person, new Date()) === 'inviteExpired';
 
   async function handleCancel() {
     const cancelled = await action.run(() => cancelInvite(person.id));
@@ -178,7 +178,7 @@ function AccessSection({ person, isYou, onChanged }: SectionProps) {
   async function changeActive() {
     const nextActive = !person.isActive;
     const changed = await activeAction.run(
-      () => setStaffActive(person.id, nextActive),
+      () => setAccountActive(person.id, nextActive),
       nextActive ? texts.reactivated : texts.deactivated,
     );
     setConfirming(null);
@@ -203,7 +203,7 @@ function AccessSection({ person, isYou, onChanged }: SectionProps) {
           >
             {STAFF_ROLES.map((option) => (
               <MenuItem key={option} value={option}>
-                {STAFF_ROLE_LABELS[option]}
+                {ROLE_LABELS[option]}
               </MenuItem>
             ))}
           </TextField>

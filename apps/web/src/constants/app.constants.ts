@@ -7,6 +7,7 @@ export const APP_CONFIG = {
   siteUrl: env.VITE_SITE_URL || 'https://ajclasses.com.au',
   language: 'en-AU',
   dateLocale: 'en-au', // dayjs locale for the staff portal's date and time pickers
+  timeZone: 'Australia/Melbourne', // due dates and "late" use the Melbourne calendar (R3b F14)
   ogLocale: 'en_AU',
   themeColor: '#2563eb', // browser toolbar colour on mobile (matches --color-primary)
 
@@ -87,9 +88,28 @@ export const PHOTO_LIMITS = {
   outputQuality: 0.85,
 } as const;
 
-// Staff roles, as stored in the database (profiles.role).
+// Account roles, as stored in the database (profiles.role). Staff manage classes; families
+// (R3b) use the student and parent pages.
 export const STAFF_ROLES = ['tutor', 'admin'] as const;
 export type StaffRole = (typeof STAFF_ROLES)[number];
+export const FAMILY_ROLES = ['student', 'parent'] as const;
+export type FamilyRole = (typeof FAMILY_ROLES)[number];
+export type AppRole = StaffRole | FamilyRole;
+
+// Who recorded parental consent for a student's account (R3b D5): an admin (e.g. a paper
+// enrolment form) or a linked parent in the portal.
+export const CONSENT_SOURCES = ['admin', 'parent'] as const;
+export type ConsentSource = (typeof CONSENT_SOURCES)[number];
+
+// Portal appearance (R3b design §6.5). Kept in this browser only.
+export const THEME_MODES = ['system', 'light', 'dark'] as const;
+export type ThemeMode = (typeof THEME_MODES)[number];
+export type ResolvedTheme = Exclude<ThemeMode, 'system'>;
+
+// Keys for the few things the portal keeps in the browser.
+export const STORAGE_KEYS = {
+  themeMode: 'aj-classes-portal-theme',
+} as const;
 
 // Limits used by form validation.
 export const FORM_LIMITS = {

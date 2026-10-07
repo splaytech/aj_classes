@@ -2,9 +2,17 @@
  * Brand theme (PRP F1). The ONLY place colours, fonts, sizes and spacing are defined.
  * Components use these variables and never hard-code values.
  * Colours come from the final logo ("Lines · 45° · blue").
+ *
+ * Colours are light everywhere. The portal can switch to dark by setting
+ * data-portal-theme="dark" on <html> (R3b design D10); the public site never does. Every text
+ * colour meets WCAG AA (4.5:1) on the backgrounds it's used on, in both themes (checked by
+ * theme-contrast.test.ts).
  */
 
-:root {
+:root,
+[data-portal-theme='light'] {
+  color-scheme: light;
+
   /* Brand */
   --color-primary: #2563eb; /* logo blue */
   --color-primary-hover: #1d4ed8;
@@ -14,6 +22,7 @@
   /* Surfaces */
   --color-bg: #ffffff;
   --color-bg-subtle: #f5f9ff;
+  --color-surface: #ffffff; /* cards and dialogs on the page background */
   --color-bg-inverse: #172554; /* navy: feature band, footer */
   --color-surface-inverse: rgb(255 255 255 / 0.06); /* cards on the navy band */
 
@@ -31,6 +40,40 @@
   --color-success: #15803d;
   --color-warning: #b45309; /* amber: "due soon", "invite expired" (5:1 on white, WCAG AA) */
 
+  /* Depth */
+  --shadow-sm: 0 1px 3px rgb(23 37 84 / 0.08);
+  --shadow-md: 0 4px 12px rgb(23 37 84 / 0.1);
+}
+
+/* Portal dark mode (R3b story FS4). Lighter tints of the brand blue keep links and buttons readable. */
+[data-portal-theme='dark'] {
+  color-scheme: dark;
+
+  --color-primary: #60a5fa;
+  --color-primary-hover: #93c5fd;
+  --color-on-primary: #0b1220;
+
+  --color-bg: #0b1220;
+  --color-bg-subtle: #18233b;
+  --color-surface: #131c31;
+  --color-bg-inverse: #1e3a8a;
+
+  --color-text: #e2e8f0;
+  --color-text-muted: #a6b3c7;
+  --color-text-emphasis: #f1f5f9;
+  --color-text-inverse: #f8fafc;
+
+  --color-border: #2b3a55;
+  --color-focus: #93c5fd;
+  --color-error: #f87171;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.5);
+}
+
+:root {
   /* Typography */
   --font-heading: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -65,13 +108,11 @@
   --header-height: 4.5rem;
   --tap-target: 48px;
 
-  /* Shape and depth */
+  /* Shape */
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 16px;
   --radius-full: 999px;
-  --shadow-sm: 0 1px 3px rgb(23 37 84 / 0.08);
-  --shadow-md: 0 4px 12px rgb(23 37 84 / 0.1);
 
   /* Motion */
   --duration-fast: 150ms;

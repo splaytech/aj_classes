@@ -7,7 +7,7 @@ import { homeForRole } from '@/lib/portal-access';
 import { guardPortalPage } from '@/lib/portal-guard';
 
 export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
-  const page = await guardPortalPage(request, 'staff');
+  const page = await guardPortalPage(request, 'member');
   if (page?.access.profile) throw redirect(homeForRole(page.access.profile.role));
   return null;
 }

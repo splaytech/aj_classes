@@ -1,5 +1,6 @@
-// Cancel an invite sent to the wrong address (R2a story US15). Only for people who never joined
-// and never signed in, so nobody with history can be deleted (R2a G24).
+// Cancel an invite sent to the wrong address (R2a story US15; students and parents too, R3b FA3).
+// Only for people who never joined and never signed in, so nobody with history can be deleted
+// (R2a G24). A student's roster row and a parent's links stay; only the account goes.
 
 import type { Caller } from '../../_shared/auth.ts';
 import { serviceClient } from '../../_shared/clients.ts';
@@ -7,7 +8,7 @@ import { fail, succeed } from '../../_shared/responses.ts';
 import type { ActionResult } from '../../_shared/responses.ts';
 import { isUuid } from '../../_shared/validation.ts';
 
-import { audit, findStaff } from './staff.ts';
+import { audit, findAccount } from './accounts.ts';
 
 export async function cancelInvite(
   input: Record<string, unknown>,
@@ -15,7 +16,7 @@ export async function cancelInvite(
 ): Promise<ActionResult> {
   if (!isUuid(input.userId)) return fail('invalid_request');
 
-  const target = await findStaff(input.userId);
+  const target = await findAccount(input.userId);
   if (!target) return fail('not_found');
   if (target.joined_at || target.last_sign_in_at) return fail('already_joined');
 

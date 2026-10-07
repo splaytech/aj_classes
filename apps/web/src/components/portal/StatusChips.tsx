@@ -2,24 +2,26 @@
 
 import Chip from '@mui/material/Chip';
 
-import { STAFF_ROLE_LABELS, STAFF_STATUS_LABELS } from '@/constants';
+import { ROLE_LABELS, ACCOUNT_STATUS_LABELS } from '@/constants';
 import type { StaffRole } from '@/constants';
-import type { StaffStatus } from '@/lib/staff-status';
+import type { AccountStatus } from '@/lib/account-status';
 
-const STAFF_STATUS_COLOURS = {
+const ACCOUNT_STATUS_COLOURS = {
+  none: 'default',
   active: 'success',
   invited: 'info',
   inviteExpired: 'warning',
   deactivated: 'default',
 } as const;
 
-export function StaffStatusChip({ status }: { status: StaffStatus }) {
+/** An account's status; "none" for a student who has no account yet (R3b FA3). */
+export function AccountStatusChip({ status }: { status: AccountStatus | 'none' }) {
   return (
     <Chip
       size="small"
       variant="outlined"
-      color={STAFF_STATUS_COLOURS[status]}
-      label={STAFF_STATUS_LABELS[status]}
+      color={ACCOUNT_STATUS_COLOURS[status]}
+      label={ACCOUNT_STATUS_LABELS[status]}
     />
   );
 }
@@ -30,7 +32,7 @@ export function RoleChip({ role }: { role: StaffRole }) {
       size="small"
       color={role === 'admin' ? 'primary' : 'default'}
       variant={role === 'admin' ? 'filled' : 'outlined'}
-      label={STAFF_ROLE_LABELS[role]}
+      label={ROLE_LABELS[role]}
     />
   );
 }

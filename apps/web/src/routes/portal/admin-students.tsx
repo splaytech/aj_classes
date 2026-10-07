@@ -1,4 +1,5 @@
-// Admin → Students (R3a story AS3): the roster. Name and year level only (review H10).
+// Admin → Students (R3a story AS3): the roster. Name and year level only (review H10), plus each
+// student's account status and number of parents, linking to the student's page (R3b FA4).
 
 import AddIcon from '@mui/icons-material/Add';
 import Alert from '@mui/material/Alert';
@@ -20,8 +21,15 @@ import { useState } from 'react';
 import { Link as RouterLink, useLoaderData, useRevalidator, useSearchParams } from 'react-router';
 import type { ClientLoaderFunctionArgs } from 'react-router';
 
-import { ConfirmDialog, LoadError, PageHeader, StudentDialog } from '@/components/portal';
-import { PORTAL_SEO, STUDENTS_PAGE, classPath } from '@/constants';
+import {
+  AccountStatusChip,
+  ConfirmDialog,
+  LoadError,
+  PageHeader,
+  StudentDialog,
+} from '@/components/portal';
+import { PORTAL_SEO, STUDENTS_PAGE, adminStudentPath, classPath } from '@/constants';
+import { accountStatus } from '@/lib/account-status';
 import { studentYearLabel } from '@/lib/labels';
 import { buildPortalMeta } from '@/lib/seo';
 import { usePortalAction } from '@/lib/use-portal-action';
@@ -54,6 +62,7 @@ export default function AdminStudentsPage() {
 
   const needle = search.trim().toLowerCase();
   const rows = loaded.data.filter((student) => student.fullName.toLowerCase().includes(needle));
+  const now = new Date();
   const refresh = () => revalidator.revalidate();
 
   async function confirmArchive() {
@@ -116,6 +125,8 @@ export default function AdminStudentsPage() {
               <TableCell>{STUDENTS_PAGE.columns.name}</TableCell>
               <TableCell>{STUDENTS_PAGE.columns.year}</TableCell>
               <TableCell>{STUDENTS_PAGE.columns.classes}</TableCell>
+              <TableCell>{STUDENTS_PAGE.columns.account}</TableCell>
+              <TableCell align="right">{STUDENTS_PAGE.columns.parents}</TableCell>
               <TableCell>{STUDENTS_PAGE.columns.status}</TableCell>
               <TableCell />
             </TableRow>
@@ -123,7 +134,11 @@ export default function AdminStudentsPage() {
           <TableBody>
             {rows.map((student) => (
               <TableRow key={student.id} hover>
-                <TableCell sx={{ fontWeight: 700 }}>{student.fullName}</TableCell>
+                <TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
+                  <Link component={RouterLink} to={adminStudentPath(student.id)}>
+                    {student.fullName}
+                  </Link>
+                </TableCell>
                 <TableCell>{studentYearLabel(student.yearLevel)}</TableCell>
                 <TableCell>
                   {student.classes.length === 0 ? (
@@ -143,6 +158,12 @@ export default function AdminStudentsPage() {
                     </Stack>
                   )}
                 </TableCell>
+                <TableCell>
+                  <AccountStatusChip
+                    status={student.account ? accountStatus(student.account, now) : 'none'}
+                  />
+                </TableCell>
+                <TableCell align="right">{student.parentCount}</TableCell>
                 <TableCell>
                   <Chip
                     size="small"
@@ -169,7 +190,7 @@ export default function AdminStudentsPage() {
             ))}
             {rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5}>{STUDENTS_PAGE.empty}</TableCell>
+                <TableCell colSpan={7}>{STUDENTS_PAGE.empty}</TableCell>
               </TableRow>
             )}
           </TableBody>

@@ -1,4 +1,6 @@
-// Marking page (R3a stories TS3, TS4, AS7): the assignment, then one card per enrolled student.
+// Assignment page (R3a stories TS3, TS4, AS7; R3b FT1–FT3): the assignment and its questions,
+// publishing, then the students' work: online submissions, or one card per student for paper
+// homework.
 
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -17,14 +19,31 @@ import {
   LoadError,
   NotFoundPanel,
   PageHeader,
+  QuestionList,
   SectionCard,
+  SubmissionsTable,
 } from '@/components/portal';
 import { ResultCard } from '@/components/portal/ResultCard';
-import { MARKING_PAGE, PORTAL_COMMON, PORTAL_ROUTES, PORTAL_SEO, classPath } from '@/constants';
+import {
+  ASSIGNMENT_STATE_LABELS,
+  MARKING_PAGE,
+  PORTAL_COMMON,
+  PORTAL_ROUTES,
+  PORTAL_SEO,
+  PUBLISHING,
+  SUBMISSIONS,
+  classPath,
+} from '@/constants';
 import { markingProgress } from '@/lib/assignments';
 import { buildPortalMeta } from '@/lib/seo';
 import { usePortalAction } from '@/lib/use-portal-action';
-import { deleteAssignment, getAssignment, saveAssignment } from '@/services';
+import {
+  deleteAssignment,
+  getAssignment,
+  saveAssignment,
+  setAssignmentPublished,
+} from '@/services';
+import type { AssignmentDetail } from '@/services';
 
 const ASSIGNMENTS_TAB = '?tab=assignments';
 
@@ -44,14 +63,27 @@ export default function AssignmentDetailPage() {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmingPublish, setConfirmingPublish] = useState(false);
   const deleteAction = usePortalAction();
+  const publishAction = usePortalAction();
 
   if (!loaded.ok)
     return loaded.error === 'notFound' ? <NotFoundPanel /> : <LoadError error={loaded.error} />;
 
   const assignment = loaded.data;
   const progress = markingProgress(assignment);
+  const isOnline = assignment.questionCount > 0;
   const refresh = () => revalidator.revalidate();
+
+  async function confirmPublishChange() {
+    const publish = !assignment.isPublished;
+    const changed = await publishAction.run(
+      () => setAssignmentPublished(assignment.id, publish),
+      publish ? PUBLISHING.published : PUBLISHING.unpublished,
+    );
+    setConfirmingPublish(false);
+    if (changed) refresh();
+  }
 
   async function confirmDelete() {
     const deleted = await deleteAction.run(() => deleteAssignment(assignment.id));
@@ -66,23 +98,39 @@ export default function AssignmentDetailPage() {
         back={{ to: PORTAL_ROUTES.assignments, label: MARKING_PAGE.back }}
         meta={
           <>
+            <Chip
+              size="small"
+              color={assignment.isPublished ? 'success' : 'default'}
+              variant={assignment.isPublished ? 'outlined' : 'filled'}
+              label={ASSIGNMENT_STATE_LABELS[assignment.isPublished ? 'published' : 'draft']}
+            />
             <DueChip dueOn={assignment.dueOn} />
             <Chip
               size="small"
               variant="outlined"
               label={
-                assignment.maxMark === null
+                assignment.totalMarks === null
                   ? MARKING_PAGE.feedbackOnly
-                  : MARKING_PAGE.outOf(assignment.maxMark)
+                  : MARKING_PAGE.outOf(assignment.totalMarks)
               }
             />
-            <Typography variant="body2" color="text.secondary">
-              {MARKING_PAGE.progress(progress.marked, progress.total)}
-            </Typography>
+            {assignment.isPublished && (
+              <Typography variant="body2" color="text.secondary">
+                {isOnline
+                  ? SUBMISSIONS.progress(progress.returned, progress.total)
+                  : MARKING_PAGE.progress(progress.marked, progress.total)}
+              </Typography>
+            )}
           </>
         }
         actions={
           <>
+            <Button
+              variant={assignment.isPublished ? 'outlined' : 'contained'}
+              onClick={() => setConfirmingPublish(true)}
+            >
+              {assignment.isPublished ? PUBLISHING.unpublish : PUBLISHING.publish}
+            </Button>
             <Button variant="outlined" onClick={() => setEditing(true)}>
               {MARKING_PAGE.edit}
             </Button>
@@ -95,6 +143,21 @@ export default function AssignmentDetailPage() {
       {deleteAction.error && (
         <Alert severity="error" sx={{ mb: 4 }}>
           {deleteAction.error}
+        </Alert>
+      )}
+      {publishAction.error && (
+        <Alert severity="error" sx={{ mb: 4 }}>
+          {publishAction.error}
+        </Alert>
+      )}
+      {publishAction.notice && (
+        <Alert severity="success" sx={{ mb: 4 }}>
+          {publishAction.notice}
+        </Alert>
+      )}
+      {!assignment.isPublished && (
+        <Alert severity="info" sx={{ mb: 4 }}>
+          {PUBLISHING.draftNote}
         </Alert>
       )}
 
@@ -113,20 +176,16 @@ export default function AssignmentDetailPage() {
           </Typography>
         </SectionCard>
 
-        {assignment.students.length === 0 ? (
-          <Typography color="text.secondary">{MARKING_PAGE.noStudents}</Typography>
-        ) : (
-          assignment.students.map((student) => (
-            <ResultCard
-              key={student.id}
-              assignmentId={assignment.id}
-              maxMark={assignment.maxMark}
-              student={student}
-              result={assignment.results.find((result) => result.studentId === student.id) ?? null}
-              onSaved={refresh}
-            />
-          ))
+        {(isOnline || !assignment.isPublished) && (
+          <QuestionList
+            assignmentId={assignment.id}
+            questions={assignment.questions}
+            editable={!assignment.isPublished}
+            onChanged={refresh}
+          />
         )}
+
+        <StudentWork assignment={assignment} isOnline={isOnline} onChanged={refresh} />
       </Stack>
 
       {editing && (
@@ -143,6 +202,21 @@ export default function AssignmentDetailPage() {
         />
       )}
       <ConfirmDialog
+        open={confirmingPublish}
+        title={
+          assignment.isPublished ? PUBLISHING.confirmUnpublishTitle : PUBLISHING.confirmPublishTitle
+        }
+        text={
+          assignment.isPublished
+            ? PUBLISHING.confirmUnpublishText
+            : PUBLISHING.confirmPublishText(assignment.className, isOnline)
+        }
+        confirmLabel={assignment.isPublished ? PUBLISHING.unpublish : PUBLISHING.publish}
+        busy={publishAction.busy}
+        onConfirm={confirmPublishChange}
+        onClose={() => setConfirmingPublish(false)}
+      />
+      <ConfirmDialog
         open={confirmingDelete}
         title={MARKING_PAGE.confirmDeleteTitle}
         text={MARKING_PAGE.confirmDeleteText}
@@ -152,6 +226,36 @@ export default function AssignmentDetailPage() {
         onConfirm={confirmDelete}
         onClose={() => setConfirmingDelete(false)}
       />
+    </>
+  );
+}
+
+type StudentWorkProps = { assignment: AssignmentDetail; isOnline: boolean; onChanged: () => void };
+
+/** Drafts collect nothing yet; online work is marked per submission; paper homework per card. */
+function StudentWork({ assignment, isOnline, onChanged }: StudentWorkProps) {
+  if (!assignment.isPublished) {
+    return <Typography color="text.secondary">{SUBMISSIONS.draftNote}</Typography>;
+  }
+  if (isOnline) return <SubmissionsTable assignment={assignment} />;
+  if (assignment.students.length === 0) {
+    return <Typography color="text.secondary">{MARKING_PAGE.noStudents}</Typography>;
+  }
+  return (
+    <>
+      <Typography variant="body2" color="text.secondary">
+        {MARKING_PAGE.returnedNote}
+      </Typography>
+      {assignment.students.map((student) => (
+        <ResultCard
+          key={student.id}
+          assignmentId={assignment.id}
+          maxMark={assignment.maxMark}
+          student={student}
+          result={assignment.results.find((result) => result.studentId === student.id) ?? null}
+          onSaved={onChanged}
+        />
+      ))}
     </>
   );
 }

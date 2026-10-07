@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { AccessState } from '@/services';
 
-import { decidePortalAccess, safeNextPath } from './portal-access';
+import { decidePortalAccess, homeForRole, isStaffRole, safeNextPath } from './portal-access';
 
 const signedOut: AccessState = {
   signedIn: false,
@@ -29,6 +29,8 @@ const adminWithoutTwoStep: AccessState = {
 const adminNeedsCode: AccessState = { ...adminWithoutTwoStep, hasVerifiedFactor: true };
 const adminFull: AccessState = { ...adminNeedsCode, aal: 'aal2' };
 const deactivated: AccessState = { ...tutor, profile: null };
+const student: AccessState = { ...tutor, profile: { fullName: 'Student', role: 'student' } };
+const parent: AccessState = { ...tutor, profile: { fullName: 'Parent', role: 'parent' } };
 
 describe('decidePortalAccess (design §11.3)', () => {
   it('1. sends signed-out people to sign in, remembering where they were going', () => {
@@ -108,6 +110,63 @@ describe('decidePortalAccess (design §11.3)', () => {
       kind: 'redirect',
       to: '/portal/admin',
     });
+  });
+});
+
+describe('decidePortalAccess for students and parents (R3b design §6.1)', () => {
+  it('sends signed-out people to sign in from family pages too', () => {
+    expect(decidePortalAccess(signedOut, 'student', '/portal/student')).toEqual({
+      kind: 'redirect',
+      to: '/portal/login?next=%2Fportal%2Fstudent',
+    });
+    expect(decidePortalAccess(signedOut, 'member', '/portal/account')).toEqual({
+      kind: 'redirect',
+      to: '/portal/login?next=%2Fportal%2Faccount',
+    });
+  });
+
+  it('lets each family role into its own pages and shared pages', () => {
+    expect(decidePortalAccess(student, 'student', '/portal/student')).toEqual({ kind: 'allow' });
+    expect(decidePortalAccess(parent, 'parent', '/portal/parent')).toEqual({ kind: 'allow' });
+    expect(decidePortalAccess(student, 'member', '/portal/account')).toEqual({ kind: 'allow' });
+    expect(decidePortalAccess(parent, 'member', '/portal/account')).toEqual({ kind: 'allow' });
+  });
+
+  it("keeps families out of staff pages and out of each other's pages (F2)", () => {
+    expect(decidePortalAccess(student, 'staff', '/portal/classes')).toEqual({ kind: 'forbidden' });
+    expect(decidePortalAccess(parent, 'admin', '/portal/admin')).toEqual({ kind: 'forbidden' });
+    expect(decidePortalAccess(student, 'parent', '/portal/parent')).toEqual({ kind: 'forbidden' });
+    expect(decidePortalAccess(parent, 'student', '/portal/student')).toEqual({ kind: 'forbidden' });
+  });
+
+  it('keeps staff out of family pages', () => {
+    expect(decidePortalAccess(tutor, 'student', '/portal/student')).toEqual({ kind: 'forbidden' });
+    expect(decidePortalAccess(adminFull, 'parent', '/portal/parent')).toEqual({
+      kind: 'forbidden',
+    });
+  });
+
+  it('sends families home from the sign-in page and keeps them out of two-step setup', () => {
+    expect(decidePortalAccess(student, 'signedOutOnly', '/portal/login')).toEqual({
+      kind: 'redirect',
+      to: '/portal/student',
+    });
+    expect(decidePortalAccess(parent, 'twoStepSetup', '/portal/account/two-step/setup')).toEqual({
+      kind: 'redirect',
+      to: '/portal/parent',
+    });
+  });
+});
+
+describe('homeForRole and isStaffRole', () => {
+  it.each([
+    ['tutor', '/portal/tutor', true],
+    ['admin', '/portal/admin', true],
+    ['student', '/portal/student', false],
+    ['parent', '/portal/parent', false],
+  ] as const)('%s → %s', (role, home, staff) => {
+    expect(homeForRole(role)).toBe(home);
+    expect(isStaffRole(role)).toBe(staff);
   });
 });
 

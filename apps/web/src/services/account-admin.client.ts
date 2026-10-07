@@ -1,16 +1,17 @@
-// Calls the staff-admin edge function (R2a design §10). The signed-in admin's session token is
-// sent automatically; the function checks they are an active admin with two-step.
+// Calls the account-admin edge function (R2a design §10, R3b §5; was staff-admin). The signed-in
+// admin's session token is sent automatically; the function checks they are an active admin with
+// two-step.
 
 import { toErrorKey } from './auth-errors';
 import { attempt, fail, succeed } from './result';
 import { getSupabase } from './supabase.client';
 import type { Result } from './types';
 
-const FUNCTION_NAME = 'staff-admin';
+const FUNCTION_NAME = 'account-admin';
 
 type FunctionReply = { ok: true; data: Record<string, unknown> } | { ok: false; code: string };
 
-export async function callStaffAdmin(
+export async function callAccountAdmin(
   action: string,
   input: Record<string, unknown>,
 ): Promise<Result<Record<string, unknown>>> {

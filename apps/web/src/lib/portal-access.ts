@@ -1,8 +1,9 @@
-// Who may see which portal page (R2a design §11.3). Pure functions, so every rule is unit tested.
-// The database enforces the same rules (RLS); this only decides what the browser shows.
+// Who may see which portal page (R2a design §11.3, R3b §6.1). Pure functions, so every rule is
+// unit tested. The database enforces the same rules (RLS and the family functions); this only
+// decides what the browser shows.
 
 import { PORTAL_QUERY, PORTAL_ROUTES, SIGN_IN_REASONS } from '@/constants';
-import type { StaffRole } from '@/constants';
+import type { AppRole } from '@/constants';
 import type { AccessState } from '@/services';
 
 /** The kinds of portal page, each with its own entry rule. */
@@ -11,8 +12,11 @@ export type PortalArea =
   | 'twoStepVerify' // code step after the password
   | 'setPassword' // after an invite or reset link
   | 'twoStepSetup' // linking an authenticator (admins)
-  | 'staff' // any signed-in tutor or admin
-  | 'admin'; // admins only
+  | 'member' // anyone signed in with an active account (home, account)
+  | 'staff' // tutors and admins
+  | 'admin' // admins only
+  | 'student' // students only
+  | 'parent'; // parents only
 
 export type AccessDecision =
   | { kind: 'allow' }
@@ -22,8 +26,29 @@ export type AccessDecision =
 
 const ALLOW: AccessDecision = { kind: 'allow' };
 
-export function homeForRole(role: StaffRole): string {
-  return role === 'admin' ? PORTAL_ROUTES.admin : PORTAL_ROUTES.tutor;
+// Signed-in pages, and the roles allowed on each (any role for 'member').
+const PAGE_AREAS: Partial<Record<PortalArea, readonly AppRole[]>> = {
+  member: ['tutor', 'admin', 'student', 'parent'],
+  staff: ['tutor', 'admin'],
+  admin: ['admin'],
+  student: ['student'],
+  parent: ['parent'],
+};
+
+const HOME_BY_ROLE: Record<AppRole, string> = {
+  tutor: PORTAL_ROUTES.tutor,
+  admin: PORTAL_ROUTES.admin,
+  student: PORTAL_ROUTES.student,
+  parent: PORTAL_ROUTES.parent,
+};
+
+export function homeForRole(role: AppRole): string {
+  return HOME_BY_ROLE[role];
+}
+
+/** Tutors and admins: they get the staff pages and navigation. */
+export function isStaffRole(role: AppRole): boolean {
+  return role === 'tutor' || role === 'admin';
 }
 
 /** A portal URL with ?next= set, so the person comes back after the extra step. */
@@ -36,10 +61,12 @@ export function decidePortalAccess(
   area: PortalArea,
   currentPath: string,
 ): AccessDecision {
+  const allowedRoles = PAGE_AREAS[area];
+
   // 1. Signed out
   if (!state.signedIn) {
     if (area === 'signedOutOnly') return ALLOW;
-    if (area === 'staff' || area === 'admin') {
+    if (allowedRoles) {
       return { kind: 'redirect', to: withNext(PORTAL_ROUTES.login, currentPath) };
     }
     return { kind: 'redirect', to: PORTAL_ROUTES.login };
@@ -79,8 +106,8 @@ export function decidePortalAccess(
   // 6. Already signed in: skip the sign-in page
   if (area === 'signedOutOnly') return { kind: 'redirect', to: home };
 
-  // 7. Admin pages
-  if (area === 'admin' && role !== 'admin') return { kind: 'forbidden' };
+  // 7. Pages for some roles only (e.g. admin pages for a tutor, staff pages for a student)
+  if (allowedRoles && !allowedRoles.includes(role)) return { kind: 'forbidden' };
 
   return ALLOW;
 }

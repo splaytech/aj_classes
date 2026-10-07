@@ -1,12 +1,13 @@
-// Signed-in staff pages: checks access, then shows the staff header around the page.
+// Staff pages (tutors and admins). Students and parents see "You don't have access" (R3b F2).
 // Pages read the current person with `useStaffAccess()`.
 
-import { Outlet, useLoaderData, useOutletContext } from 'react-router';
+import { useLoaderData, useOutletContext } from 'react-router';
 import type { ClientLoaderFunctionArgs } from 'react-router';
 
-import { PortalLayout, PortalThemeProvider } from '@/components/portal';
 import { guardPortalPage } from '@/lib/portal-guard';
 import type { AccessState } from '@/services';
+
+import { AreaOutlet } from './member-layout';
 
 export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
   return guardPortalPage(request, 'staff');
@@ -14,19 +15,10 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
 
 export default function StaffLayout() {
   const page = useLoaderData<typeof clientLoader>();
-  if (!page?.access.profile) return null;
-
-  const { fullName, role } = page.access.profile;
-  return (
-    <PortalThemeProvider>
-      <PortalLayout fullName={fullName} role={role}>
-        <Outlet context={page.access} />
-      </PortalLayout>
-    </PortalThemeProvider>
-  );
+  return <AreaOutlet forbidden={page?.forbidden} />;
 }
 
-/** The signed-in person, for pages inside the staff layout. */
+/** The signed-in person, for pages inside the staff area. */
 export function useStaffAccess(): AccessState {
   return useOutletContext<AccessState>();
 }

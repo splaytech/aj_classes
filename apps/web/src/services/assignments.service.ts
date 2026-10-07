@@ -1,11 +1,15 @@
-// Assignments and marking (R3a stories TS3–TS5, AS7). The class tutor or an admin may set
-// homework and record marks; the database checks enrolment and mark limits (design §3–§4).
+// Assignments and marking (R3a stories TS3–TS5, AS7; R3b FT1–FT3). The class tutor or an admin
+// may set homework, publish it and record marks; the database checks enrolment, publishing and
+// mark limits (R3a design §3–§4, R3b §3). Questions and online submissions are in
+// questions.service.ts and submissions.service.ts.
 
 import { toErrorKey } from './auth-errors';
 import { toStudentSummary } from './classes.service';
 import type { StudentRow } from './classes.service';
 import { attempt, fail, succeed } from './result';
 import { getSupabase } from './supabase.client';
+import { QUESTION_COLUMNS, toQuestion } from './questions.service';
+import type { QuestionRow } from './questions.service';
 import type {
   AssignmentDetail,
   AssignmentInput,
@@ -17,10 +21,14 @@ import type {
 } from './types';
 
 const ASSIGNMENT_COLUMNS = `
-  id, class_id, title, instructions, due_on, max_mark,
+  id, class_id, title, instructions, due_on, max_mark, status,
   class:classes!inner(name, is_active, enrolments(student_id)),
+  assignment_questions(marks),
   assignment_results(student_id, status)
 `;
+
+export const RESULT_COLUMNS =
+  'student_id, status, mark, feedback, marked_at, submitted_at, returned_at, marker:profiles(full_name)';
 
 type AssignmentRow = {
   id: string;
@@ -29,20 +37,25 @@ type AssignmentRow = {
   instructions: string;
   due_on: string | null;
   max_mark: number | null;
+  status: 'draft' | 'published';
   class: { name: string; is_active: boolean; enrolments: { student_id: string }[] };
+  assignment_questions: { marks: number }[];
   assignment_results: { student_id: string; status: ResultStatus }[];
 };
 
-type ResultRow = {
+export type ResultRow = {
   student_id: string;
   status: ResultStatus;
   mark: number | null;
   feedback: string;
   marked_at: string | null;
+  submitted_at: string | null;
+  returned_at: string | null;
   marker: { full_name: string } | null;
 };
 
 function toAssignmentSummary(row: AssignmentRow): AssignmentSummary {
+  const questionMarks = row.assignment_questions.map((question) => question.marks);
   return {
     id: row.id,
     classId: row.class_id,
@@ -51,6 +64,12 @@ function toAssignmentSummary(row: AssignmentRow): AssignmentSummary {
     instructions: row.instructions,
     dueOn: row.due_on,
     maxMark: row.max_mark,
+    isPublished: row.status === 'published',
+    questionCount: questionMarks.length,
+    totalMarks:
+      questionMarks.length > 0
+        ? questionMarks.reduce((sum, marks) => sum + marks, 0)
+        : row.max_mark,
     enrolledStudentIds: row.class.enrolments.map((enrolment) => enrolment.student_id),
     statuses: row.assignment_results.map((result) => ({
       studentId: result.student_id,
@@ -59,7 +78,7 @@ function toAssignmentSummary(row: AssignmentRow): AssignmentSummary {
   };
 }
 
-function toResult(row: ResultRow): AssignmentResult {
+export function toResult(row: ResultRow): AssignmentResult {
   return {
     studentId: row.student_id,
     status: row.status,
@@ -67,6 +86,8 @@ function toResult(row: ResultRow): AssignmentResult {
     feedback: row.feedback,
     markedAt: row.marked_at,
     markedByName: row.marker?.full_name ?? '',
+    submittedAt: row.submitted_at,
+    returnedAt: row.returned_at,
   };
 }
 
@@ -99,18 +120,21 @@ export async function getAssignment(assignmentId: string): Promise<Result<Assign
     if (!data) return fail('notFound');
 
     const assignment = toAssignmentSummary(data as unknown as AssignmentRow);
-    const [students, results] = await Promise.all([
+    const [students, results, questions] = await Promise.all([
       supabase
         .from('enrolments')
         .select('student:students(id, full_name, year_level, is_active)')
         .eq('class_id', assignment.classId),
+      supabase.from('assignment_results').select(RESULT_COLUMNS).eq('assignment_id', assignmentId),
       supabase
-        .from('assignment_results')
-        .select('student_id, status, mark, feedback, marked_at, marker:profiles(full_name)')
-        .eq('assignment_id', assignmentId),
+        .from('assignment_questions')
+        .select(QUESTION_COLUMNS)
+        .eq('assignment_id', assignmentId)
+        .order('position'),
     ]);
     if (students.error) return fail(toErrorKey(students.error));
     if (results.error) return fail(toErrorKey(results.error));
+    if (questions.error) return fail(toErrorKey(questions.error));
 
     return succeed({
       ...assignment,
@@ -120,6 +144,7 @@ export async function getAssignment(assignmentId: string): Promise<Result<Assign
         .map(toStudentSummary)
         .sort((a, b) => a.fullName.localeCompare(b.fullName)),
       results: (results.data as unknown as ResultRow[]).map(toResult),
+      questions: (questions.data as unknown as QuestionRow[]).map(toQuestion),
     });
   });
 }
@@ -150,6 +175,24 @@ export async function saveAssignment(input: AssignmentInput): Promise<Result<str
   });
 }
 
+/** Publishes an assignment to its class, or moves it back to draft (R3b FT2). */
+export async function setAssignmentPublished(
+  assignmentId: string,
+  published: boolean,
+): Promise<Result> {
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { data, error } = await supabase
+      .from('assignments')
+      .update({ status: published ? 'published' : 'draft' })
+      .eq('id', assignmentId)
+      .select('id')
+      .maybeSingle();
+    if (error) return fail(toErrorKey(error));
+    return data ? succeed() : fail('notAllowed');
+  });
+}
+
 /** Deletes an assignment and all its marks (R3a review H16). */
 export async function deleteAssignment(assignmentId: string): Promise<Result> {
   return attempt(async () => {
@@ -171,7 +214,7 @@ export async function deleteAssignment(assignmentId: string): Promise<Result> {
  */
 export async function saveResult(input: ResultInput): Promise<Result<AssignmentResult>> {
   const columns = { status: input.status, mark: input.mark, feedback: input.feedback.trim() };
-  const resultColumns = 'student_id, status, mark, feedback, marked_at, marker:profiles(full_name)';
+  const resultColumns = RESULT_COLUMNS;
 
   return attempt(async () => {
     const supabase = await getSupabase();

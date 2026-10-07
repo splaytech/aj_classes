@@ -16,7 +16,7 @@ import { PageHeader, SectionCard } from '@/components/portal';
 import { ACTIVITY_LABELS, ADMIN_DASHBOARD, PORTAL_ROUTES, PORTAL_SEO } from '@/constants';
 import { formatDateTime } from '@/lib/format';
 import { buildPortalMeta } from '@/lib/seo';
-import { staffStatus } from '@/lib/staff-status';
+import { accountStatus } from '@/lib/account-status';
 import { listActivity, listClasses, listStaff, listStudents } from '@/services';
 
 const RECENT_ACTIVITY_ROWS = 5;
@@ -34,7 +34,7 @@ export async function clientLoader() {
     listActivity(RECENT_ACTIVITY_ROWS),
   ]);
   const now = new Date();
-  const statuses = staff.ok ? staff.data.map((member) => staffStatus(member, now)) : [];
+  const statuses = staff.ok ? staff.data.map((member) => accountStatus(member, now)) : [];
 
   return {
     counts: {

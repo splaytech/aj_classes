@@ -1,4 +1,4 @@
-// Deactivate or reactivate a staff member (R2a story US17).
+// Deactivate or reactivate an account: staff (R2a story US17), students and parents (R3b FA3).
 // The database function makes the decision (guards + audit) as the caller; the ban stops their
 // sessions refreshing. The order means a half-finished action always leaves NO access (R2a G26).
 

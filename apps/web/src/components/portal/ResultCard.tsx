@@ -1,4 +1,5 @@
-// One student's result on the marking page (R3a story TS4): status, mark, feedback, Save.
+// One student's result for paper homework (R3a story TS4): status, mark, feedback, Save.
+// "Returned" shows the mark and feedback to the student and their parents (R3b D8).
 // Keeps its own unsaved edits, so saving one student never clears another's.
 
 import Alert from '@mui/material/Alert';
@@ -18,7 +19,7 @@ import { usePortalAction } from '@/lib/use-portal-action';
 import { saveResult } from '@/services';
 import type { AssignmentResult, ResultStatus, StudentSummary } from '@/services';
 
-const STATUSES: ResultStatus[] = ['not_submitted', 'submitted', 'marked'];
+const STATUSES: ResultStatus[] = ['not_submitted', 'submitted', 'marked', 'returned'];
 
 type ResultCardProps = {
   assignmentId: string;
@@ -138,7 +139,7 @@ export function ResultCard({ assignmentId, maxMark, student, result, onSaved }: 
               {action.notice}
             </Typography>
           )}
-          {saved?.status === 'marked' && saved.markedAt && (
+          {(saved?.status === 'marked' || saved?.status === 'returned') && saved.markedAt && (
             <Typography variant="body2" color="text.secondary">
               {MARKING_PAGE.markedBy(saved.markedByName, formatDateTime(saved.markedAt))}
             </Typography>

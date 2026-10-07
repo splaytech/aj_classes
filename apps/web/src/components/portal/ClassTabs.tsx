@@ -6,7 +6,6 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
-import Link from '@mui/material/Link';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
@@ -20,7 +19,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 
 import {
   ASSIGNMENTS_PAGE,
@@ -43,6 +42,7 @@ import {
 import type { AssignmentSummary, ClassDetail, ClassSession, StudentSummary } from '@/services';
 
 import { AssignmentDialog } from './AssignmentDialog';
+import { AssignmentTitleLink } from './AssignmentTitleLink';
 import { ConfirmDialog } from './ConfirmDialog';
 import { DueChip } from './DueChip';
 import { EnrolDialog } from './EnrolDialog';
@@ -255,13 +255,7 @@ export function AssignmentsTab({
                 return (
                   <TableRow key={assignment.id} hover>
                     <TableCell>
-                      <Link
-                        component={RouterLink}
-                        to={assignmentPath(assignment.id)}
-                        sx={{ fontWeight: 700 }}
-                      >
-                        {assignment.title}
-                      </Link>
+                      <AssignmentTitleLink assignment={assignment} />
                     </TableCell>
                     <TableCell>
                       <DueChip dueOn={assignment.dueOn} />

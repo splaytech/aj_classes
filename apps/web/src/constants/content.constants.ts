@@ -392,12 +392,17 @@ export const PRIVACY = {
       text: "Form submissions are delivered to us by email through a form-processing service (Web3Forms), which may process data outside Australia. To block spam, our forms use hCaptcha, which checks that you are a person and may process your IP address and browser information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing.",
     },
     {
+      // R3b review F19: family accounts. Wording for the owner to review.
+      heading: 'Student and parent portal accounts',
+      text: "Portal accounts are created only by invitation from AJ Classes. For each account we keep your name, email address and sign-in times. For students we also keep their classes and timetable, their assignment answers, marks, and tutor feedback and comments. A student's account is only created after a parent or guardian agrees, in the portal or on our enrolment form. Parents linked to a student can see that student's assignments, answers once handed in, marks, progress and tutor comments; they never see other students. Portal data is stored with Supabase (database and sign-in), and our sign-in pages use Cloudflare Turnstile to check that you are a person; both may process data outside Australia. We never use portal information for marketing.",
+    },
+    {
       heading: 'How long we keep it',
       text: 'Only as long as we need it to respond to you and provide our services, then we delete it.',
     },
     {
       heading: 'Children',
-      text: 'Our students are school-aged. We ask parents or guardians to make enquiries on behalf of children where possible.',
+      text: "Our students are school-aged. We ask parents or guardians to make enquiries on behalf of children where possible, and a child's portal account is only set up with a parent's or guardian's permission.",
     },
     {
       heading: 'Access and correction',

@@ -16,6 +16,7 @@ import {
   PORTAL_VALIDATION,
 } from '@/constants';
 import { checkEmail } from '@/lib/portal-validation';
+import { useAppearance } from '@/lib/appearance-context';
 import { buildPortalMeta } from '@/lib/seo';
 import { requestPasswordReset } from '@/services';
 
@@ -26,6 +27,7 @@ export function meta() {
 }
 
 export default function ForgotPasswordPage() {
+  const appearance = useAppearance();
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [formError, setFormError] = useState('');
@@ -76,6 +78,7 @@ export default function ForgotPasswordPage() {
             error={emailError}
           />
           <TurnstileField
+            theme={appearance.shown}
             turnstileRef={turnstileRef}
             onTokenChange={(token) => {
               setCaptchaToken(token);

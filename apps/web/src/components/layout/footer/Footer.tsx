@@ -72,9 +72,7 @@ export function Footer() {
           <span>{FOOTER.copyright(currentYear)}</span>
           <span className={styles.legal}>
             <a href={ROUTES.privacy}>{FOOTER.privacyLink}</a>
-            {APP_CONFIG.features.portal && (
-              <a href={PORTAL_ROUTES.login}>{FOOTER_PORTAL.staffSignIn}</a>
-            )}
+            {APP_CONFIG.features.portal && <a href={PORTAL_ROUTES.login}>{FOOTER_PORTAL.signIn}</a>}
           </span>
         </div>
       </Container>

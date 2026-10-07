@@ -1,4 +1,5 @@
-// staff-admin: the staff actions that need the secret key (R2a design §10).
+// account-admin: the account actions that need the secret key (R2a design §10, R3b design §5).
+// Renamed from staff-admin when student and parent invites were added.
 // POST { action, ...input } with the admin's own session token.
 //
 // Every request: CORS for the site's origins only → POST only → caller must be an active admin
@@ -12,6 +13,8 @@ import type { ActionResult } from '../_shared/responses.ts';
 
 import { cancelInvite } from './handlers/cancel-invite.ts';
 import { invite } from './handlers/invite.ts';
+import { inviteParent } from './handlers/invite-parent.ts';
+import { inviteStudent } from './handlers/invite-student.ts';
 import { resendInvite } from './handlers/resend-invite.ts';
 import { resetTwoStep } from './handlers/reset-two-step.ts';
 import { setActive } from './handlers/set-active.ts';
@@ -24,6 +27,8 @@ const ACTIONS: Record<string, Action> = {
   'cancel-invite': cancelInvite,
   'set-active': setActive,
   'reset-two-step': resetTwoStep,
+  'invite-student': inviteStudent,
+  'invite-parent': inviteParent,
 };
 
 Deno.serve(async (request) => {
@@ -51,7 +56,7 @@ Deno.serve(async (request) => {
     return respond(await action(input, caller), origin);
   } catch (error) {
     console.error(
-      'staff-admin failed',
+      'account-admin failed',
       input.action,
       error instanceof Error ? error.name : 'unknown',
     );

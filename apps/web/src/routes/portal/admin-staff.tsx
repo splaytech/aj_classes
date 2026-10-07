@@ -22,13 +22,13 @@ import {
   LoadError,
   PageHeader,
   RoleChip,
-  StaffStatusChip,
+  AccountStatusChip,
 } from '@/components/portal';
 import { PORTAL_COMMON, PORTAL_SEO, STAFF_PAGE, staffMemberPath } from '@/constants';
 import { formatDateTime } from '@/lib/format';
 import { buildPortalMeta } from '@/lib/seo';
-import { filterStaff, staffStatus } from '@/lib/staff-status';
-import type { StaffFilter } from '@/lib/staff-status';
+import { filterStaff, accountStatus } from '@/lib/account-status';
+import type { StaffFilter } from '@/lib/account-status';
 import { inviteStaff, listStaff } from '@/services';
 
 const FILTERS: StaffFilter[] = ['all', 'active', 'invited', 'deactivated'];
@@ -136,7 +136,7 @@ export default function AdminStaffPage() {
                   <RoleChip role={member.role} />
                 </TableCell>
                 <TableCell>
-                  <StaffStatusChip status={staffStatus(member, now)} />
+                  <AccountStatusChip status={accountStatus(member, now)} />
                 </TableCell>
                 <TableCell>
                   {member.role === 'admin'
