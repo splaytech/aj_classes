@@ -2,11 +2,16 @@
 -- `supabase db push` never runs this file, so these accounts never reach staging or prod.
 --
 -- Accounts (all use the password below):
---   admin@local.test     admin, sets up two-step on first sign-in
+--   admin@local.test     admin; two-step is entered automatically by the dev server (design §16.1)
+--   newadmin@local.test  admin with no authenticator yet: shows the two-step setup screen
 --   tutor@local.test     tutor
 --   inactive@local.test  deactivated tutor
 --
 -- Local-only password: local-password-123
+--
+-- Local-only authenticator key for admin@local.test (also in apps/web/.env.development.local as
+-- VITE_LOCAL_ADMIN_TWO_STEP_KEY). It exists only in local databases; never use it anywhere else.
+--   LOCALDEVADMINKEYLOCALDEVADMINKEY
 
 do $$
 declare
@@ -16,6 +21,7 @@ begin
   for account in
     select * from (values
       ('admin@local.test', 'Local Admin'),
+      ('newadmin@local.test', 'New Admin'),
       ('tutor@local.test', 'Local Tutor'),
       ('inactive@local.test', 'Inactive Tutor')
     ) as accounts (email, full_name)
@@ -45,7 +51,14 @@ begin
 end;
 $$;
 
-update public.profiles set role = 'admin' where email = 'admin@local.test';
+update public.profiles set role = 'admin' where email in ('admin@local.test', 'newadmin@local.test');
+
+-- A confirmed authenticator for admin@local.test, so the dev server can enter its code.
+insert into auth.mfa_factors (id, user_id, friendly_name, factor_type, status, created_at, updated_at, secret)
+select gen_random_uuid(), id, 'Local dev (automatic)', 'totp', 'verified', now(), now(),
+       'LOCALDEVADMINKEYLOCALDEVADMINKEY'
+from auth.users
+where email = 'admin@local.test';
 
 -- Deactivated the same way the app does it: profile inactive + auth ban.
 update public.profiles set is_active = false where email = 'inactive@local.test';

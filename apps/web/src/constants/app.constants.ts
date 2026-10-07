@@ -32,6 +32,14 @@ export const APP_CONFIG = {
     siteKey: env.VITE_TURNSTILE_SITE_KEY || '',
   },
 
+  // LOCAL DEVELOPMENT ONLY (R2a design §16.1): the dev server enters the local admin's two-step
+  // code. `import.meta.env.DEV` is replaced with `false` in production builds, so there the key is
+  // never read and the shortcut can't run (checked: no key or variable name in build/).
+  localDev: {
+    isDevServer: import.meta.env.DEV,
+    adminTwoStepKey: import.meta.env.DEV ? env.VITE_LOCAL_ADMIN_TWO_STEP_KEY || '' : '',
+  },
+
   // Hosted form service (Web3Forms). The access key is public by design.
   form: {
     endpoint: 'https://api.web3forms.com/submit',

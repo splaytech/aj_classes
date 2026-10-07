@@ -645,6 +645,18 @@ Kept in `supabase/README.md`.
 5. **Deploy schema.** `supabase db push --linked` to staging, test, then prod. Never edit an applied migration; add a new one.
 6. **Free-tier pause.** A paused project means nobody can sign in. Resume it in the dashboard, and move to Pro before real use (Q5).
 
+### 16.1 Local development: two-step without typing codes (CR1, 7 Oct)
+
+Asked for by the owner: no two-step prompts when developing locally. **Production behaviour does not change.**
+
+- `supabase/seed.sql` gives `admin@local.test` a confirmed authenticator with a fixed, local-only key.
+- `apps/web/.env.development.local` (git-ignored, loaded **only** by the dev server, never by `pnpm build`) holds that key as `VITE_LOCAL_ADMIN_TWO_STEP_KEY`.
+- On the code step, the dev server works out the current 6-digit code from that key and submits it. The admin goes from password straight to the admin page, and still gets a real two-step (`aal2`) session, so local runs exercise the same rules as prod.
+- The shortcut only runs when `import.meta.env.DEV` is true, which a production build replaces with `false`: the key and its variable name are absent from the build (checked), and the small code generator that remains can never run. Database rules, RLS and the pgTAP tests are untouched.
+- `newadmin@local.test` is an admin **without** an authenticator, for testing the setup flow by hand.
+
+Rejected: a database switch that skips the `aal2` check (the same code would ship to prod, so one wrong setting would remove two-step there), and a weaker `is_admin()` in the seed (the local database tests would stop testing the real rule).
+
 ## 17. Complete Change List
 
 **New**

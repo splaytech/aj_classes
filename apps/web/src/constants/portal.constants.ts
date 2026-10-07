@@ -82,6 +82,7 @@ export const LOGIN_VERIFY_PAGE = {
   submit: 'Verify',
   submitting: 'Checking…',
   cancel: 'Cancel and sign out',
+  localDevAuto: 'Local development: entering your code automatically…',
 } as const;
 
 export const FORGOT_PASSWORD_PAGE = {

@@ -114,6 +114,19 @@ Tested in the browser against the local stack: guards, tutor and admin sign-in, 
 | V23 | On Railway (`serve`), header rules match the rewritten file, so the `/portal` CSP and `no-store` weren't sent. | Header rule targets `__spa-fallback.html`. Verified with `curl`. |
 | V24 | A stored session for an account that no longer exists (e.g. a cancelled invite) has no readable profile. | Treated like deactivated: signed out, "account not active" shown. Checked after a local reset. |
 
+### 3.3 Change request CR1: skip two-step when developing locally (7 Oct)
+
+Checked before building, as for every change:
+
+| Check | Result |
+|---|---|
+| Can it reach staging or prod? | No. The authenticator key exists only in `seed.sql` (never pushed) and `.env.development.local` (git-ignored, ignored by `pnpm build`). The code runs only under `import.meta.env.DEV`, which production builds set to `false`. Verified: the production build contains neither the key nor its variable name; the inert code generator remains. |
+| Does it weaken a rule anywhere? | No. The database still requires `aal2` for admin powers; the local admin really completes two-step, it is just typed for them. |
+| Does it hide bugs? | Partly: the setup screen is no longer seen with the default admin. Covered by `newadmin@local.test` (admin, no authenticator). |
+| Tests | Database tests unchanged (they remove the seed accounts first). New unit test of the code generator against the RFC 6238 test vector. |
+
+Design §16.1.
+
 ## 4. Traceability (story → design → test)
 
 | Story | Design | Tests |

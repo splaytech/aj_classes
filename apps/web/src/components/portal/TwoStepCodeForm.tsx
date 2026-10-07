@@ -1,7 +1,7 @@
 // Asks for a 6-digit authenticator code and upgrades the session to two-step (aal2).
 // Used after the password at sign-in, and before saving a new password (R2a review V19).
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 
 import { Button } from '@/components/ui';
@@ -12,6 +12,7 @@ import {
   PORTAL_COMMON,
   PORTAL_VALIDATION,
 } from '@/constants';
+import { hasLocalTwoStepKey, localTwoStepCode } from '@/lib/local-dev-two-step';
 import { listAuthenticators, verifyTwoStepCode } from '@/services';
 import type { Authenticator } from '@/services';
 
@@ -30,15 +31,27 @@ export function TwoStepCodeForm({ onVerified }: { onVerified: () => void }) {
   const [codeError, setCodeError] = useState('');
   const [formError, setFormError] = useState('');
   const [checking, setChecking] = useState(false);
+  const [autoEntering, setAutoEntering] = useState(hasLocalTwoStepKey());
+
+  // Callers pass a new function each render; keep the latest without re-running the load below.
+  const onVerifiedRef = useRef(onVerified);
+  useEffect(() => {
+    onVerifiedRef.current = onVerified;
+  }, [onVerified]);
 
   useEffect(() => {
-    listAuthenticators().then((result) => {
+    listAuthenticators().then(async (result) => {
       if (!result.ok) {
         setFormError(AUTH_ERRORS[result.error]);
         return;
       }
       setAuthenticators(result.data);
-      setFactorId(result.data[0]?.id ?? '');
+      const firstId = result.data[0]?.id ?? '';
+      setFactorId(firstId);
+
+      // Local development only: enter the code for the developer (design §16.1).
+      if (await enteredLocalCode(firstId)) onVerifiedRef.current();
+      else setAutoEntering(false);
     });
   }, []);
 
@@ -61,6 +74,14 @@ export function TwoStepCodeForm({ onVerified }: { onVerified: () => void }) {
     }
     setCode('');
     setFormError(AUTH_ERRORS[result.error]);
+  }
+
+  if (autoEntering) {
+    return (
+      <p className={styles.hint} role="status">
+        {LOGIN_VERIFY_PAGE.localDevAuto}
+      </p>
+    );
   }
 
   return (
@@ -98,4 +119,12 @@ export function TwoStepCodeForm({ onVerified }: { onVerified: () => void }) {
       {!factorId && !formError && <p className={styles.hint}>{PORTAL_COMMON.loading}</p>}
     </form>
   );
+}
+
+/** Local development only: true when the dev server entered the code itself. */
+async function enteredLocalCode(factorId: string): Promise<boolean> {
+  const code = await localTwoStepCode();
+  if (!code || !factorId) return false;
+  const result = await verifyTwoStepCode(factorId, code);
+  return result.ok;
 }

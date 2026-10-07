@@ -23,7 +23,9 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 | Mailpit (all local emails) | http://127.0.0.1:55324                                    |
 | Database                   | `postgresql://postgres:postgres@127.0.0.1:55322/postgres` |
 
-**Local accounts** are created by [`seed.sql`](seed.sql) (`admin@`, `tutor@`, `inactive@local.test`; the local-only password is in that file). The seed never runs on staging or prod.
+**Local accounts** are created by [`seed.sql`](seed.sql) (`admin@`, `newadmin@`, `tutor@`, `inactive@local.test`; the local-only password is in that file). The seed never runs on staging or prod.
+
+**Two-step locally:** `admin@local.test` has a local-only authenticator, and with `VITE_LOCAL_ADMIN_TWO_STEP_KEY` in `apps/web/.env.development.local` the dev server enters its code for you (design §16.1). Use `newadmin@local.test` to see the two-step setup screen.
 
 **Staff portal locally:** with the stack running, `pnpm dev` and open http://localhost:5173/portal/login. `apps/web/.env.local` needs `VITE_SUPABASE_URL=http://127.0.0.1:55321`, the publishable key from `pnpm db:status`, and `VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA` (see `apps/web/.env.example`). Use `pnpm dev`, not a production build: the production security policy only allows `*.supabase.co`, so a local build can't reach the local stack.
 
@@ -80,3 +82,4 @@ A free project pauses after a week without use, and nobody can sign in. Dashboar
 
 - **Postgres crash on a denied function call in `psql`.** In the local image (Postgres 17.6, CLI 2.99), calling a function you have no `EXECUTE` right on from a `psql` session crashes the server (signal 11). The same call through the API correctly returns `42501 permission denied`. Tests therefore check function rights with `has_function_privilege` instead of calling. If the local stack stops responding, run `pnpm db:stop && pnpm db:start`.
 - `banned_until = 'infinity'` breaks sign-in for that user. Use a finite ban (the app uses 100 years).
+- **`supabase` killed with exit 137 after a macOS update:** macOS reports the Homebrew binary's signature as invalid. Reinstall it: `brew reinstall supabase`. Running containers keep working meanwhile.
