@@ -1,6 +1,6 @@
 # R2a — Tutor & Admin Logins: Technical Design
 
-> **Status:** Reviewed, ready to build (6 Oct 2026). **No code has been changed yet.**
+> **Status:** Built and tested locally (steps 1–7, 8 Oct 2026). Staging and prod not yet created.
 > **Stories:** [stories.md](stories.md) · **Gap review:** [review.md](review.md) · **PRP:** [../PRP.md](../PRP.md#r2a--tutor--admin-logins) · **Architecture:** [arch.md](../../../architecture/arch.md)
 >
 > Tags like **(G12)** point to the gap in [review.md](review.md) that a design choice fixes.
@@ -47,7 +47,7 @@
 - Showing tutor profiles on the public site (data is ready for it; display is a later story).
 - Two-step sign-in for tutors (allowed by the platform, not offered in the UI).
 - Changing your own email address (done by the developer in the Supabase dashboard if ever needed; the profile copy stays in sync automatically).
-- An audit-log viewer page (data is captured now; viewed in the Supabase dashboard).
+- ~~An audit-log viewer page~~ **Now in scope (8 Oct):** `/portal/admin/activity`, built with R3a ([R3a design §4](../../release-3/r3a/design.md)).
 - Students and parents (R3), testimonials, lead backend, subscribers (rest of R2).
 - Session timeouts and the leaked-password check (Supabase Pro features, see [review.md](review.md) Q5).
 
@@ -466,7 +466,7 @@ Every guarded route exports a `HydrateFallback` (small loading state) because lo
 | `TextListEditor` | `components/portal/` | Add/remove lines (qualifications), max 10 × 150 chars |
 | `PhotoUpload` | `components/portal/` | Type check, resize to ≤ 512 px and re-encode as WebP (V16), preview, "may be shown on the public website" note |
 | `StatusBadge` | `components/portal/` | Invited / Invite expired / Active / Deactivated |
-| `ConfirmDialog` | `components/ui/` | Native `<dialog>`, focus-trapped, for role, deactivate, cancel invite, reset two-step |
+| `ConfirmDialog` | `components/portal/` | MUI `Dialog` (focus-trapped) for role, deactivate, cancel invite, reset two-step. Staff pages use Material UI from 8 Oct ([R3a D8](../../release-3/r3a/design.md)). |
 | `ForbiddenView`, `PortalUnavailable` | `components/portal/` | No access; portal not configured (G30) |
 
 Forms reuse the R1 pattern (`FormField`, inline errors with `aria-describedby`, error summary, focus moves to the first error). On route change, focus moves to the page `<h1>`.

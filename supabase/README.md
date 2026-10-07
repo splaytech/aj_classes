@@ -6,13 +6,14 @@ Backend for staff sign-in from Release 2 onwards. Design: [R2a design](../docs/r
 
 Needs Docker Desktop running and the Supabase CLI (`brew install supabase/tap/supabase`).
 
-| Command (from the repo root) | What it does                                                       |
-| ---------------------------- | ------------------------------------------------------------------ |
-| `pnpm db:start`              | Starts the local stack, applies migrations and `seed.sql`          |
-| `pnpm db:stop`               | Stops it                                                           |
-| `pnpm db:reset`              | Rebuilds the database from migrations + seed (wipes local data)    |
-| `pnpm db:test`               | Runs the pgTAP tests in `tests/database/`                          |
-| `pnpm db:status`             | Shows local URLs and the publishable key for `apps/web/.env.local` |
+| Command (from the repo root) | What it does                                                               |
+| ---------------------------- | -------------------------------------------------------------------------- |
+| `pnpm db:start`              | Starts the local stack, applies migrations and `seed.sql`                  |
+| `pnpm db:stop`               | Stops it                                                                   |
+| `pnpm db:reset`              | Rebuilds the database from migrations + seed (wipes local data)            |
+| `pnpm db:test`               | Runs the pgTAP tests in `tests/database/`                                  |
+| `pnpm db:status`             | Shows local URLs and the publishable key for `apps/web/.env.local`         |
+| `pnpm test:functions`        | End-to-end test of the `staff-admin` edge function (stack must be running) |
 
 Local addresses use the **553xx** ports, so this project can run next to other local Supabase projects:
 
@@ -28,6 +29,10 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 **Two-step locally:** `admin@local.test` has a local-only authenticator, and with `VITE_LOCAL_ADMIN_TWO_STEP_KEY` in `apps/web/.env.development.local` the dev server enters its code for you (design §16.1). Use `newadmin@local.test` to see the two-step setup screen.
 
 **Staff portal locally:** with the stack running, `pnpm dev` and open http://localhost:5173/portal/login. `apps/web/.env.local` needs `VITE_SUPABASE_URL=http://127.0.0.1:55321`, the publishable key from `pnpm db:status`, and `VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA` (see `apps/web/.env.example`). Use `pnpm dev`, not a production build: the production security policy only allows `*.supabase.co`, so a local build can't reach the local stack.
+
+**Edge functions** (`supabase/functions/`) are served by the local stack at http://127.0.0.1:55321/functions/v1/. `staff-admin` handles invites, deactivation and two-step resets; its allowed browser origins are set in `config.toml` (`[edge_runtime.secrets]`). Hosted: `supabase functions deploy staff-admin` and `supabase secrets set ALLOWED_ORIGINS=...`.
+
+**Demo data:** `seed.sql` also creates three classes with weekly times, six fictional students ("… Demo") and a few assignments, so every staff page has something to show.
 
 **Captcha locally** uses Cloudflare Turnstile's always-pass test keys. API calls need `"gotrue_meta_security": {"captcha_token": "XXXX.DUMMY.TOKEN.XXXX"}`.
 

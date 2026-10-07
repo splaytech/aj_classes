@@ -13,6 +13,15 @@ export const PORTAL_SEO = {
   setPassword: 'Set your password',
   account: 'Your account',
   profile: 'My profile',
+  timetable: 'Timetable',
+  classes: 'Classes',
+  classDetail: 'Class',
+  assignments: 'Assignments',
+  assignmentDetail: 'Marking',
+  adminStaff: 'Staff',
+  adminStaffMember: 'Staff member',
+  adminStudents: 'Students',
+  adminActivity: 'Activity',
   twoStepSetup: 'Set up two-step sign-in',
   tutor: 'Dashboard',
   admin: 'Admin',
@@ -26,6 +35,19 @@ export const STAFF_ROLE_LABELS: Record<StaffRole, string> = {
 
 export const PORTAL_COMMON = {
   loading: 'Loading…',
+  save: 'Save',
+  saving: 'Saving…',
+  cancel: 'Cancel',
+  close: 'Close',
+  edit: 'Edit',
+  remove: 'Remove',
+  delete: 'Delete',
+  back: 'Back',
+  search: 'Search',
+  none: '—',
+  never: 'Never',
+  yes: 'Yes',
+  no: 'No',
   errorHeading: 'Something went wrong',
   tryAgain: 'Try again',
   signOut: 'Sign out',
@@ -35,6 +57,9 @@ export const PORTAL_COMMON = {
   navLabel: 'Staff portal',
   nav: {
     tutor: 'Dashboard',
+    timetable: 'Timetable',
+    classes: 'Classes',
+    assignments: 'Assignments',
     profile: 'My profile',
     admin: 'Admin',
     account: 'Account',
@@ -185,29 +210,64 @@ export const TWO_STEP_SETUP_PAGE = {
 
 export const TUTOR_DASHBOARD = {
   welcome: (firstName: string) => `Welcome, ${firstName}`,
-  intro: 'This is your AJ Classes staff area.',
-  comingSoon: 'Coming soon',
+  intro: 'Your week at AJ Classes.',
   completeProfile: 'Your profile is missing a bio or subjects. Families will see it later.',
   completeProfileLink: 'Complete your profile',
+  nextSessions: {
+    heading: 'Next classes',
+    empty: 'No classes in the next 7 days.',
+    today: 'Today',
+    tomorrow: 'Tomorrow',
+    dayAndDate: (day: string, date: string) => `${day} ${date}`,
+    when: (day: string, time: string) => `${day} · ${time}`,
+    link: 'Timetable',
+  },
+  classes: {
+    heading: 'My classes',
+    count: (count: number) => (count === 1 ? '1 class' : `${count} classes`),
+    empty: 'You have no classes yet.',
+    link: 'All classes',
+  },
+  assignments: {
+    heading: 'Assignments',
+    toMark: (count: number) => (count === 1 ? '1 to mark' : `${count} to mark`),
+    dueSoon: (count: number) =>
+      count === 1 ? '1 due in the next 3 days' : `${count} due in the next 3 days`,
+    overdue: (count: number) => `${count} overdue`,
+    allClear: 'Nothing waiting.',
+    link: 'All assignments',
+  },
   profileCard: {
     title: 'My profile',
     text: 'Your name, subjects, bio, qualifications and photo.',
     link: 'Edit profile',
   },
-  cards: [
-    { title: 'Classes', text: 'Your classes and timetable.' },
-    { title: 'Assignments', text: 'Set and mark homework.' },
-  ],
 } as const;
 
 export const ADMIN_DASHBOARD = {
   heading: 'Admin',
-  intro: 'Manage AJ Classes staff and access.',
-  comingSoon: 'Coming soon',
-  cards: [
-    { title: 'Staff', text: 'Invite tutors, change roles and deactivate accounts.' },
-    { title: 'Activity', text: 'Who changed staff access, and when.' },
-  ],
+  intro: 'Manage AJ Classes staff, classes and students.',
+  stats: {
+    staff: 'Active staff',
+    invites: 'Pending invites',
+    classes: 'Active classes',
+    students: 'Active students',
+  },
+  statsLabel: 'Overview',
+  shortcuts: {
+    heading: 'Shortcuts',
+    staff: 'Staff',
+    classes: 'Classes',
+    students: 'Students',
+    timetable: 'Timetable',
+    activity: 'Activity',
+  },
+  recent: {
+    heading: 'Recent activity',
+    line: (actor: string, action: string, target: string) => `${actor} · ${action} ${target}`,
+    empty: 'Nothing yet.',
+    link: 'All activity',
+  },
 } as const;
 
 export const FOOTER_PORTAL = {
@@ -258,4 +318,412 @@ export const PROFILE_PAGE = {
     saved: 'Photo updated.',
     removed: 'Photo removed.',
   },
+} as const;
+
+export const NOT_FOUND_PANEL = {
+  heading: 'Not found',
+  text: "This page doesn't exist, or you don't have access to it.",
+} as const;
+
+export const STAFF_STATUS_LABELS = {
+  invited: 'Invited',
+  inviteExpired: 'Invite expired',
+  active: 'Active',
+  deactivated: 'Deactivated',
+} as const;
+
+export const STAFF_PAGE = {
+  heading: 'Staff',
+  intro: 'Everyone who can sign in to the staff portal.',
+  invite: 'Invite staff',
+  searchLabel: 'Search by name or e-mail',
+  statusFilterLabel: 'Status',
+  statusFilters: { all: 'All', active: 'Active', invited: 'Invited', deactivated: 'Deactivated' },
+  columns: {
+    name: 'Name',
+    email: 'E-mail',
+    role: 'Role',
+    status: 'Status',
+    twoStep: 'Two-step',
+    lastSignIn: 'Last sign-in',
+  },
+  twoStepOn: 'On',
+  twoStepOff: 'Not set up',
+  empty: 'No staff match.',
+  invited: (email: string) => `Invite sent to ${email}.`,
+} as const;
+
+export const INVITE_DIALOG = {
+  heading: 'Invite staff',
+  intro: `They'll get an e-mail to set their password. The link works for ${AUTH_LIMITS.linkExpiryHours} hour; you can resend it.`,
+  nameLabel: 'Full name',
+  emailLabel: 'E-mail',
+  emailRequired: 'Please enter their e-mail address.',
+  roleNote: 'New staff join as tutors. You can make them an admin after they join.',
+  send: 'Send invite',
+  sending: 'Sending…',
+} as const;
+
+export const STAFF_MEMBER_PAGE = {
+  back: '← Staff',
+  you: '(you)',
+  invite: {
+    heading: 'Invite',
+    sentOn: (date: string) => `Invited on ${date}. They haven't set a password yet.`,
+    expired: 'The link has expired. Send a new one.',
+    resend: 'Resend invite',
+    resending: 'Sending…',
+    resent: 'A new invite link has been sent.',
+    cancel: 'Cancel invite',
+    confirmCancelTitle: 'Cancel this invite?',
+    confirmCancelText: (email: string) =>
+      `The pending account for ${email} will be removed. You can invite them again later.`,
+  },
+  access: {
+    heading: 'Access',
+    roleLabel: 'Role',
+    saveRole: 'Change role',
+    confirmRoleTitle: 'Change role?',
+    toAdmin: (name: string) =>
+      `${name} will be able to manage staff, classes and students. They must set up two-step sign-in next time they sign in.`,
+    toTutor: (name: string) => `${name} will lose access to the admin pages.`,
+    roleChanged: 'Role changed.',
+    active: 'Can sign in.',
+    inactive: 'Deactivated: cannot sign in.',
+    deactivate: 'Deactivate',
+    reactivate: 'Reactivate',
+    confirmDeactivateTitle: 'Deactivate this account?',
+    confirmDeactivateText: (name: string) =>
+      `${name} will be signed out and lose access straight away. Their classes and history are kept.`,
+    confirmReactivateTitle: 'Reactivate this account?',
+    confirmReactivateText: (name: string) =>
+      `${name} will be able to sign in again with their password.`,
+    deactivated: 'Deactivated.',
+    reactivated: 'Reactivated.',
+    selfNote: "You can't deactivate your own account.",
+  },
+  twoStep: {
+    heading: 'Two-step sign-in',
+    on: 'On: they sign in with a password and an authenticator code.',
+    off: 'Not set up.',
+    reset: 'Reset two-step sign-in',
+    resetting: 'Resetting…',
+    confirmTitle: 'Reset two-step sign-in?',
+    confirmText: (name: string) =>
+      `All of ${name}'s authenticators will be removed. If they are an admin they will set up a new one at their next sign-in. They'll get an e-mail about it.`,
+    done: 'Two-step sign-in was reset.',
+    selfNote: 'To change your own authenticators, go to Account.',
+  },
+  profile: {
+    heading: 'Profile',
+  },
+  joined: (date: string) => `Joined ${date}`,
+  lastSignIn: (date: string) => `Last sign-in ${date}`,
+} as const;
+
+export const ACTIVITY_LABELS = {
+  invite_sent: 'Invited',
+  invite_resent: 'Resent invite to',
+  invite_cancelled: 'Cancelled invite for',
+  role_changed: 'Changed role of',
+  deactivated: 'Deactivated',
+  reactivated: 'Reactivated',
+  two_step_reset: 'Reset two-step for',
+  profile_edited_by_admin: 'Edited profile of',
+} as const;
+
+export const ACTIVITY_PAGE = {
+  heading: 'Activity',
+  intro: 'Who changed staff access, and when. Newest first.',
+  columns: { when: 'When', who: 'Who', what: 'What', target: 'Staff member', details: 'Details' },
+  empty: 'Nothing yet.',
+  roleChange: (from: string, to: string) => `${from} → ${to}`,
+  fields: (fields: string) => `Fields: ${fields}`,
+  someone: 'Someone',
+} as const;
+
+export const DAYS_OF_WEEK = [1, 2, 3, 4, 5, 6, 7] as const; // ISO: 1 = Monday
+
+export const DAY_NAMES = {
+  long: {
+    1: 'Monday',
+    2: 'Tuesday',
+    3: 'Wednesday',
+    4: 'Thursday',
+    5: 'Friday',
+    6: 'Saturday',
+    7: 'Sunday',
+  },
+  short: { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 7: 'Sun' },
+} as const;
+
+export const CLOCK = {
+  am: 'am',
+  pm: 'pm',
+  rangeSeparator: '–',
+  listSeparator: ' · ',
+} as const;
+
+export const YEAR_LEVEL_TEXT = {
+  label: (year: number) => `Year ${year}`,
+  other: 'Other (e.g. UCAT, GAMSAT)',
+  any: 'Any year',
+} as const;
+
+export const DELIVERY_LABELS = {
+  in_person: 'In person',
+  online: 'Online',
+} as const;
+
+export const DELIVERY_WITH_LOCATION = (delivery: string, location: string) =>
+  `${delivery} · ${location}`;
+
+export const CLASSES_PAGE = {
+  heading: 'Classes',
+  introTutor: 'The classes you teach.',
+  introAdmin: 'Every class. Archived classes are hidden from tutors and the timetable.',
+  newClass: 'New class',
+  showArchived: 'Show archived',
+  columns: {
+    name: 'Class',
+    subject: 'Subject',
+    year: 'Year',
+    tutor: 'Tutor',
+    schedule: 'Schedule',
+    students: 'Students',
+  },
+  noTutor: 'No tutor',
+  tutorInactive: 'Tutor inactive',
+  archived: 'Archived',
+  noSchedule: 'No times yet',
+  empty: 'No classes yet.',
+  saved: 'Class saved.',
+} as const;
+
+export const CLASS_DIALOG = {
+  newHeading: 'New class',
+  editHeading: 'Edit class',
+  labels: {
+    name: 'Class name',
+    subject: 'Subject',
+    yearLevel: 'Year level',
+    delivery: 'Delivery',
+    location: 'Location',
+    tutor: 'Tutor',
+    startsOn: 'Term starts',
+    endsOn: 'Term ends',
+  },
+  hints: {
+    location: 'Room, or the online meeting place (e.g. Zoom).',
+    term: 'Optional. Next sessions only appear between these dates.',
+  },
+  noTutor: 'No tutor yet',
+  save: 'Save class',
+  saving: 'Saving…',
+} as const;
+
+export const CLASS_VALIDATION = {
+  nameLength: 'Please enter a class name (2–100 characters).',
+  subjectRequired: 'Please choose a subject.',
+  locationLength: 'Please keep the location under 100 characters.',
+  termOrder: "The term can't end before it starts.",
+  timeOrder: 'The end time must be after the start time.',
+  timeRequired: 'Please choose a start and end time.',
+  studentNameLength: 'Please enter the student’s full name (2–100 characters).',
+  studentRequired: 'Please choose a student.',
+} as const;
+
+export const CLASS_PAGE = {
+  back: '← Classes',
+  tabs: { schedule: 'Schedule', students: 'Students', assignments: 'Assignments' },
+  tabsLabel: 'Class sections',
+  facts: {
+    tutor: 'Tutor',
+    term: 'Term',
+    delivery: 'Delivery',
+    noTerm: 'No term dates',
+    termRange: (from: string, to: string) => `${from} – ${to}`,
+    termFrom: (from: string) => `From ${from}`,
+    termUntil: (to: string) => `Until ${to}`,
+  },
+  edit: 'Edit class',
+  archive: 'Archive',
+  restore: 'Restore',
+  confirmArchiveTitle: 'Archive this class?',
+  confirmArchiveText:
+    'It disappears from the tutor’s pages and the timetable. You can restore it later.',
+  archived: 'This class is archived.',
+  schedule: {
+    empty: 'No weekly times yet.',
+    addTime: 'Add time',
+    remove: 'Remove time',
+    removeLabel: (slot: string) => `Remove time: ${slot}`,
+    confirmRemoveTitle: 'Remove this time?',
+    confirmRemoveText: (slot: string) => `${slot} will be removed from the timetable.`,
+  },
+  students: {
+    empty: 'No students in this class yet.',
+    add: 'Add student',
+    remove: 'Remove from class',
+    confirmRemoveTitle: 'Remove from class?',
+    confirmRemoveText: (name: string) =>
+      `${name} will be removed from this class. Their past marks are kept.`,
+    columns: { name: 'Name', year: 'Year' },
+  },
+} as const;
+
+export const SESSION_DIALOG = {
+  heading: 'Add a weekly time',
+  dayLabel: 'Day',
+  startLabel: 'Starts',
+  endLabel: 'Ends',
+  save: 'Add time',
+  saving: 'Adding…',
+} as const;
+
+export const ENROL_DIALOG = {
+  heading: 'Add a student',
+  studentLabel: 'Student',
+  noOptions: 'No matching students. Add them on the Students page first.',
+  optionLabel: (name: string, year: string) => `${name} · ${year}`,
+  save: 'Add to class',
+  saving: 'Adding…',
+} as const;
+
+export const TIMETABLE_PAGE = {
+  heading: 'Timetable',
+  introTutor: 'Your weekly classes. Times are Melbourne time.',
+  introAdmin: 'Every active class. Times are Melbourne time.',
+  tutorFilter: 'Tutor',
+  allTutors: 'All tutors',
+  noClasses: 'No classes',
+  empty: 'Nothing on the timetable yet.',
+  daysLabel: 'Days of the week',
+  todayHeading: (day: string) => `${day} · Today`,
+} as const;
+
+export const STUDENTS_PAGE = {
+  heading: 'Students',
+  intro: 'The student roster. Only names and year levels are kept.',
+  add: 'Add student',
+  searchLabel: 'Search by name',
+  showArchived: 'Show archived',
+  columns: { name: 'Name', year: 'Year', classes: 'Classes', status: 'Status' },
+  edit: 'Edit',
+  archive: 'Archive',
+  restore: 'Restore',
+  archived: 'Archived',
+  active: 'Active',
+  noClasses: 'Not in a class',
+  empty: 'No students match.',
+  confirmArchiveTitle: 'Archive this student?',
+  confirmArchiveText: (name: string) =>
+    `${name} will be hidden from the roster. Their classes and marks are kept.`,
+  saved: 'Student saved.',
+} as const;
+
+export const STUDENT_DIALOG = {
+  newHeading: 'Add student',
+  editHeading: 'Edit student',
+  nameLabel: 'Full name',
+  yearLabel: 'Year level',
+  privacyNote: 'Only the name and year level are kept. No contact details.',
+  save: 'Save student',
+  saving: 'Saving…',
+} as const;
+
+export const ASSIGNMENT_LIMITS = {
+  titleMin: 2,
+  titleMax: 150,
+  instructionsMax: 4000,
+  maxMarkMin: 1,
+  maxMarkMax: 1000,
+  feedbackMax: 2000,
+  dueSoonDays: 3,
+} as const;
+
+export const RESULT_STATUS_LABELS = {
+  not_submitted: 'Not submitted',
+  submitted: 'Submitted',
+  marked: 'Marked',
+} as const;
+
+export const DUE_LABELS = {
+  none: 'No due date',
+  overdue: 'Overdue',
+  today: 'Due today',
+  soon: 'Due soon',
+  later: 'Upcoming',
+  dueOn: (date: string) => `Due ${date}`,
+  dueOnWithState: (date: string, state: string) => `Due ${date} · ${state}`,
+} as const;
+
+export const ASSIGNMENTS_PAGE = {
+  heading: 'Assignments',
+  intro: 'Homework set for your classes, soonest due first.',
+  columns: {
+    title: 'Assignment',
+    class: 'Class',
+    due: 'Due',
+    progress: 'Marked',
+    toMark: 'To mark',
+  },
+  progress: (marked: number, total: number) => `${marked} of ${total}`,
+  empty: 'No assignments yet. Set one from a class page.',
+} as const;
+
+export const ASSIGNMENT_DIALOG = {
+  newHeading: 'New assignment',
+  editHeading: 'Edit assignment',
+  labels: {
+    title: 'Title',
+    instructions: 'Instructions',
+    dueOn: 'Due date',
+    maxMark: 'Out of (marks)',
+  },
+  hints: {
+    instructions: 'Plain text. Students will see this in Release 3.',
+    maxMark: 'Leave empty for feedback only.',
+  },
+  save: 'Save assignment',
+  saving: 'Saving…',
+} as const;
+
+export const ASSIGNMENT_VALIDATION = {
+  titleLength: `Please enter a title (${ASSIGNMENT_LIMITS.titleMin}–${ASSIGNMENT_LIMITS.titleMax} characters).`,
+  instructionsLength: `Please keep instructions under ${ASSIGNMENT_LIMITS.instructionsMax} characters.`,
+  maxMarkRange: `Marks must be a whole number from ${ASSIGNMENT_LIMITS.maxMarkMin} to ${ASSIGNMENT_LIMITS.maxMarkMax}.`,
+  markRange: (max: number) => `Enter a mark from 0 to ${max}.`,
+  markNotAllowed: 'This assignment is feedback only.',
+  feedbackLength: `Please keep feedback under ${ASSIGNMENT_LIMITS.feedbackMax} characters.`,
+} as const;
+
+export const CLASS_ASSIGNMENTS = {
+  newAssignment: 'New assignment',
+  empty: 'No assignments for this class yet.',
+  open: 'Open',
+} as const;
+
+export const MARKING_PAGE = {
+  back: '← Assignments',
+  edit: 'Edit',
+  delete: 'Delete',
+  confirmDeleteTitle: 'Delete this assignment?',
+  confirmDeleteText: 'It will be removed with all its marks and feedback. This cannot be undone.',
+  outOf: (max: number) => `Out of ${max}`,
+  feedbackOnly: 'Feedback only',
+  instructionsHeading: 'Instructions',
+  noInstructions: 'No instructions.',
+  progress: (marked: number, total: number) => `Marked ${marked} of ${total}`,
+  columns: { student: 'Student', status: 'Status', mark: 'Mark', feedback: 'Feedback', save: '' },
+  statusLabel: (name: string) => `Status for ${name}`,
+  markLabel: (name: string) => `Mark for ${name}`,
+  feedbackLabel: (name: string) => `Feedback for ${name}`,
+  save: 'Save',
+  saving: 'Saving…',
+  saved: 'Saved',
+  markedBy: (name: string, date: string) =>
+    name ? `Marked by ${name}, ${date}` : `Marked ${date}`,
+  noStudents: 'No students are in this class yet.',
+  className: 'Class',
 } as const;

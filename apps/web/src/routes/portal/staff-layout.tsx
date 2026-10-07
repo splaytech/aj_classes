@@ -4,7 +4,7 @@
 import { Outlet, useLoaderData, useOutletContext } from 'react-router';
 import type { ClientLoaderFunctionArgs } from 'react-router';
 
-import { PortalLayout } from '@/components/portal';
+import { PortalLayout, PortalThemeProvider } from '@/components/portal';
 import { guardPortalPage } from '@/lib/portal-guard';
 import type { AccessState } from '@/services';
 
@@ -18,9 +18,11 @@ export default function StaffLayout() {
 
   const { fullName, role } = page.access.profile;
   return (
-    <PortalLayout fullName={fullName} role={role}>
-      <Outlet context={page.access} />
-    </PortalLayout>
+    <PortalThemeProvider>
+      <PortalLayout fullName={fullName} role={role}>
+        <Outlet context={page.access} />
+      </PortalLayout>
+    </PortalThemeProvider>
   );
 }
 

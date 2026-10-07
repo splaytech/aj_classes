@@ -28,7 +28,7 @@ pnpm dev          # http://localhost:5173
 
 Copy `apps/web/.env.example` to `apps/web/.env.local` and add the Web3Forms access key to make the forms send.
 
-**Staff portal (Release 2a):** needs Docker and the Supabase CLI. Run `pnpm db:start`, add the three portal settings to `.env.local` (see `.env.example`), then `pnpm dev` and open http://localhost:5173/portal/login. Local accounts and commands: [supabase/README.md](supabase/README.md). Without the portal settings, the portal is switched off.
+**Staff portal (Release 2a, R3a):** sign-in with two-step for admins; staff management and activity; classes, weekly timetable, student roster, assignments and marking. Staff pages use Material UI, themed from `theme.css`. In development the first visit to a page using a new Material UI part reloads once while Vite prepares it. Needs Docker and the Supabase CLI. Run `pnpm db:start`, add the three portal settings to `.env.local` (see `.env.example`), then `pnpm dev` and open http://localhost:5173/portal/login. Local accounts and commands: [supabase/README.md](supabase/README.md). Without the portal settings, the portal is switched off.
 
 ## House rules
 

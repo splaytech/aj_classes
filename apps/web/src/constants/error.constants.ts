@@ -29,8 +29,8 @@ export const NOT_FOUND = {
   backHome: 'Go to the home page',
 } as const;
 
-// Staff portal (R2a). Keys match the ErrorKey type in src/services/types.ts.
-export const AUTH_ERRORS = {
+// Every problem the staff portal can show (R2a, R3a). Keys match ErrorKey in src/services/types.ts.
+export const PORTAL_ERRORS = {
   // Same message for a wrong email, wrong password or a deactivated account (design §11.4).
   invalidCredentials: 'Email or password is incorrect.',
   notActive: `Your account is not active. Please contact ${BUSINESS.email}.`,
@@ -48,6 +48,25 @@ export const AUTH_ERRORS = {
   notSaved: "Your changes weren't saved. Please try again.",
   photoNotSaved: "Your photo couldn't be saved. Please try again.",
   network: "We couldn't reach the server. Check your connection and try again.",
+  notFound: "We couldn't find that. It may have been removed, or you may not have access.",
+  notAllowed: "You don't have permission to do that.",
+  invalidInput: "Some details aren't valid. Please check them and try again.",
+  duplicate: "That's already there.",
+  serverProblem: 'Something went wrong on our side. Please try again.',
+  lastAdmin: 'There must be at least one active admin.',
+  cannotDeactivateSelf: "You can't deactivate your own account.",
+  cannotResetSelf: 'To change your own authenticators, use Account → Two-step sign-in.',
+  notJoined: "They haven't accepted their invite yet.",
+  alreadyJoined: 'They have already joined.',
+  alreadyExists: 'This e-mail already has an account.',
+  invalidEmail: 'Please enter a valid e-mail address, like name@example.com.',
+  invalidName: `Please enter their full name (${PROFILE_LIMITS.nameMin}–${PROFILE_LIMITS.nameMax} characters).`,
+  emailFailed: "The invite e-mail couldn't be sent. Please try again.",
+  banFailed:
+    "Their access was changed, but their current session couldn't be ended. Please try again.",
+  notEnrolled: "That student isn't in this class.",
+  markTooHigh: "The mark can't be more than the maximum.",
+  noMarks: 'This assignment is feedback only, so it has no marks.',
   notConfigured: "Staff sign-in isn't available right now.",
   unknown: 'Something went wrong. Please try again.',
 } as const;

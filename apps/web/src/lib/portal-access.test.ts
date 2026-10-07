@@ -6,6 +6,7 @@ import { decidePortalAccess, safeNextPath } from './portal-access';
 
 const signedOut: AccessState = {
   signedIn: false,
+  userId: '',
   email: '',
   profile: null,
   aal: 'aal1',
@@ -14,6 +15,7 @@ const signedOut: AccessState = {
 
 const tutor: AccessState = {
   signedIn: true,
+  userId: 'tutor-id',
   email: 'tutor@example.com',
   profile: { fullName: 'Tutor', role: 'tutor' },
   aal: 'aal1',

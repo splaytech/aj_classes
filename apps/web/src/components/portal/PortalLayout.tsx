@@ -1,9 +1,9 @@
 // The frame for signed-in staff pages: header with navigation and Sign out, then the page.
 // Not the marketing header and footer (R2a design §11.5).
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { NavLink, useNavigate } from 'react-router';
+import { NavLink, useLocation, useNavigate } from 'react-router';
 
 import { Container, Logo } from '@/components/ui';
 import { A11Y, PORTAL_COMMON, PORTAL_ROUTES, SECTION_IDS, STAFF_ROLE_LABELS } from '@/constants';
@@ -23,6 +23,7 @@ export function PortalLayout({ fullName, role, children }: PortalLayoutProps) {
   const [signingOut, setSigningOut] = useState(false);
 
   useSendToLoginWhenSignedOut();
+  const navRef = useActiveLinkInView();
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -54,8 +55,15 @@ export function PortalLayout({ fullName, role, children }: PortalLayoutProps) {
               </button>
             </div>
           </div>
-          <nav className={styles.nav} aria-label={PORTAL_COMMON.navLabel}>
+          <nav ref={navRef} className={styles.nav} aria-label={PORTAL_COMMON.navLabel}>
             <PortalNavLink to={PORTAL_ROUTES.tutor}>{PORTAL_COMMON.nav.tutor}</PortalNavLink>
+            <PortalNavLink to={PORTAL_ROUTES.timetable}>
+              {PORTAL_COMMON.nav.timetable}
+            </PortalNavLink>
+            <PortalNavLink to={PORTAL_ROUTES.classes}>{PORTAL_COMMON.nav.classes}</PortalNavLink>
+            <PortalNavLink to={PORTAL_ROUTES.assignments}>
+              {PORTAL_COMMON.nav.assignments}
+            </PortalNavLink>
             <PortalNavLink to={PORTAL_ROUTES.profile}>{PORTAL_COMMON.nav.profile}</PortalNavLink>
             {role === 'admin' && (
               <PortalNavLink to={PORTAL_ROUTES.admin}>{PORTAL_COMMON.nav.admin}</PortalNavLink>
@@ -102,4 +110,17 @@ function useSendToLoginWhenSignedOut() {
       stopWatching();
     };
   }, [navigate]);
+}
+
+/** On phones the nav scrolls sideways; keep the current page's link visible. */
+function useActiveLinkInView() {
+  const navRef = useRef<HTMLElement>(null);
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const active = navRef.current?.querySelector<HTMLElement>('[aria-current="page"]');
+    active?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [pathname]);
+
+  return navRef;
 }

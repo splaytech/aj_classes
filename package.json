@@ -21,7 +21,8 @@
     "db:reset": "supabase db reset",
     "db:test": "supabase test db",
     "db:status": "supabase status",
-    "db:types": "supabase gen types typescript --local > apps/web/src/services/database.types.ts && prettier --write apps/web/src/services/database.types.ts"
+    "db:types": "supabase gen types typescript --local > apps/web/src/services/database.types.ts && prettier --write apps/web/src/services/database.types.ts",
+    "test:functions": "node supabase/scripts/test-staff-admin.mjs"
   },
   "devDependencies": {
     "prettier": "^3.9.9"

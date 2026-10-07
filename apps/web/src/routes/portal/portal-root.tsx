@@ -5,7 +5,7 @@ import { Outlet } from 'react-router';
 
 import { AuthCard, PortalLoading, PortalUnavailable } from '@/components/portal';
 import { ButtonLink } from '@/components/ui';
-import { APP_CONFIG, AUTH_ERRORS, PORTAL_COMMON, PORTAL_ROUTES, PORTAL_SEO } from '@/constants';
+import { APP_CONFIG, PORTAL_ERRORS, PORTAL_COMMON, PORTAL_ROUTES, PORTAL_SEO } from '@/constants';
 import { buildPortalMeta } from '@/lib/seo';
 
 export function meta() {
@@ -18,7 +18,7 @@ export function HydrateFallback() {
 
 export function ErrorBoundary() {
   return (
-    <AuthCard heading={PORTAL_COMMON.errorHeading} intro={AUTH_ERRORS.network}>
+    <AuthCard heading={PORTAL_COMMON.errorHeading} intro={PORTAL_ERRORS.network}>
       <ButtonLink href={PORTAL_ROUTES.root}>{PORTAL_COMMON.tryAgain}</ButtonLink>
     </AuthCard>
   );

@@ -224,7 +224,7 @@
 
 - AC1. Every action in US1, US10, US15–US18 writes an audit entry: actor, action, target, details, time.
 - AC2. Only admins can read it. Nobody can change or delete entries through the API.
-- AC3. R2a has no viewer page. Admins (or the developer) read it in the Supabase dashboard.
+- AC3. Admins read it at `/portal/admin/activity`: time, who, what, to whom (added 8 Oct with R3a; the newest 100 entries).
 - Design: §5 `audit_log`, §6.3 · Tests: DB
 
 ---

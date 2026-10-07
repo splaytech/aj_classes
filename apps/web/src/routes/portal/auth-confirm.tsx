@@ -10,7 +10,7 @@ import formStyles from '@/components/portal/PortalForm.module.css';
 import { Button } from '@/components/ui';
 import {
   AUTH_CONFIRM_PAGE,
-  AUTH_ERRORS,
+  PORTAL_ERRORS,
   AUTH_LINK_ERRORS,
   PORTAL_QUERY,
   PORTAL_ROUTES,
@@ -38,7 +38,7 @@ export default function AuthConfirmPage() {
   const [error, setError] = useState('');
 
   if (!tokenHash || !linkType) {
-    return <AuthCard heading={AUTH_ERRORS.linkExpired} intro={AUTH_CONFIRM_PAGE.invalidLink} />;
+    return <AuthCard heading={PORTAL_ERRORS.linkExpired} intro={AUTH_CONFIRM_PAGE.invalidLink} />;
   }
   const type: EmailLinkType = linkType;
 
@@ -55,7 +55,7 @@ export default function AuthConfirmPage() {
       return;
     }
     setChecking(false);
-    setError(`${AUTH_ERRORS[result.error]} ${AUTH_LINK_ERRORS[type]}`);
+    setError(`${PORTAL_ERRORS[result.error]} ${AUTH_LINK_ERRORS[type]}`);
   }
 
   return (

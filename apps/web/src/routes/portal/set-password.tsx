@@ -10,7 +10,7 @@ import type { ClientLoaderFunctionArgs } from 'react-router';
 import { AuthCard, FormAlert, PasswordInput, TwoStepCodeForm } from '@/components/portal';
 import formStyles from '@/components/portal/PortalForm.module.css';
 import { Button } from '@/components/ui';
-import { AUTH_ERRORS, PORTAL_ROUTES, PORTAL_SEO, SET_PASSWORD_PAGE } from '@/constants';
+import { PORTAL_ERRORS, PORTAL_ROUTES, PORTAL_SEO, SET_PASSWORD_PAGE } from '@/constants';
 import { guardPortalPage } from '@/lib/portal-guard';
 import { checkNewPassword, checkPasswordsMatch } from '@/lib/portal-validation';
 import { buildPortalMeta } from '@/lib/seo';
@@ -74,7 +74,7 @@ function NewPasswordForm() {
       return;
     }
     setSaving(false);
-    setFormError(AUTH_ERRORS[result.error]);
+    setFormError(PORTAL_ERRORS[result.error]);
   }
 
   return (

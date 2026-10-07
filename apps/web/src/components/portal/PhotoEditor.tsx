@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 
 import { Button } from '@/components/ui';
-import { AUTH_ERRORS, PROFILE_PAGE, PROFILE_VALIDATION } from '@/constants';
+import { PORTAL_ERRORS, PROFILE_PAGE, PROFILE_VALIDATION } from '@/constants';
 import { checkPhotoFile, preparePhoto } from '@/lib/photo';
 import type { Result, StaffProfile } from '@/services';
 
@@ -61,7 +61,7 @@ export function PhotoEditor({ profile, onUpload, onRemove, onChanged }: PhotoEdi
     const result = await onUpload(pending.blob);
     setBusy('idle');
     if (!result.ok) {
-      setError(AUTH_ERRORS[result.error]);
+      setError(PORTAL_ERRORS[result.error]);
       return;
     }
     setPending(null);
@@ -75,7 +75,7 @@ export function PhotoEditor({ profile, onUpload, onRemove, onChanged }: PhotoEdi
     const result = await onRemove();
     setBusy('idle');
     if (!result.ok) {
-      setError(AUTH_ERRORS[result.error]);
+      setError(PORTAL_ERRORS[result.error]);
       return;
     }
     setStatus(PROFILE_PAGE.photo.removed);

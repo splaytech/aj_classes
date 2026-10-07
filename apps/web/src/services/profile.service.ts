@@ -24,31 +24,53 @@ type ProfileRow = Pick<
   'id' | 'email' | 'full_name' | 'bio' | 'qualifications' | 'subjects' | 'avatar_path'
 >;
 
+// --- Your own profile (R2a US12, US13) ------------------------------------------
+
 export async function getMyProfile(): Promise<Result<StaffProfile>> {
+  const userId = await signedInUserIdOrNull();
+  return userId ? getProfile(userId) : fail('notActive');
+}
+
+export async function updateMyProfile(changes: ProfileChanges): Promise<Result<StaffProfile>> {
+  const userId = await signedInUserIdOrNull();
+  return userId ? updateProfile(userId, changes) : fail('notActive');
+}
+
+export async function uploadMyPhoto(photo: Blob): Promise<Result<StaffProfile>> {
+  const userId = await signedInUserIdOrNull();
+  return userId ? uploadPhoto(userId, photo) : fail('notActive');
+}
+
+export async function removeMyPhoto(): Promise<Result<StaffProfile>> {
+  const userId = await signedInUserIdOrNull();
+  return userId ? removePhoto(userId) : fail('notActive');
+}
+
+// --- Any profile: yours, or someone else's if you are an admin (R2a US18) ---------
+// The database decides: staff may change only their own row; admins may change any row.
+
+export async function getProfile(userId: string): Promise<Result<StaffProfile>> {
   return attempt(async () => {
     const supabase = await getSupabase();
-    const userId = await signedInUserId(supabase);
-    if (!userId) return fail('notActive');
-
     const { data, error } = await supabase
       .from('profiles')
       .select(PROFILE_COLUMNS)
       .eq('id', userId)
       .maybeSingle();
     if (error) return fail(toErrorKey(error));
-    if (!data) return fail('notActive');
+    if (!data) return fail('notFound');
 
     return succeed(toStaffProfile(supabase, data));
   });
 }
 
 /** Saves name, subjects, bio and qualifications. Returns the profile as saved. */
-export async function updateMyProfile(changes: ProfileChanges): Promise<Result<StaffProfile>> {
+export async function updateProfile(
+  userId: string,
+  changes: ProfileChanges,
+): Promise<Result<StaffProfile>> {
   return attempt(async () => {
     const supabase = await getSupabase();
-    const userId = await signedInUserId(supabase);
-    if (!userId) return fail('notActive');
-
     return saveProfileColumns(supabase, userId, {
       full_name: changes.fullName.trim(),
       bio: changes.bio.trim(),
@@ -63,16 +85,16 @@ export async function updateMyProfile(changes: ProfileChanges): Promise<Result<S
  * Order: upload → update profile → delete the old file. If the update fails, the new
  * file is deleted again so nothing is left behind (R2a review V26).
  */
-export async function uploadMyPhoto(photo: Blob): Promise<Result<StaffProfile>> {
+export async function uploadPhoto(userId: string, photo: Blob): Promise<Result<StaffProfile>> {
   const extension = FILE_EXTENSIONS[photo.type];
   if (!extension) return fail('photoNotSaved');
 
   return attempt(async () => {
     const supabase = await getSupabase();
-    const current = await getMyProfile();
+    const current = await getProfile(userId);
     if (!current.ok) return current;
 
-    const { id: userId, photoPath: oldPath } = current.data;
+    const oldPath = current.data.photoPath;
     const newPath = `${userId}/${Date.now()}.${extension}`;
 
     const upload = await supabase.storage
@@ -91,13 +113,13 @@ export async function uploadMyPhoto(photo: Blob): Promise<Result<StaffProfile>> 
   });
 }
 
-export async function removeMyPhoto(): Promise<Result<StaffProfile>> {
+export async function removePhoto(userId: string): Promise<Result<StaffProfile>> {
   return attempt(async () => {
     const supabase = await getSupabase();
-    const current = await getMyProfile();
+    const current = await getProfile(userId);
     if (!current.ok) return current;
 
-    const saved = await saveProfileColumns(supabase, current.data.id, { avatar_path: null });
+    const saved = await saveProfileColumns(supabase, userId, { avatar_path: null });
     if (saved.ok && current.data.photoPath) {
       await supabase.storage.from(PHOTO_BUCKET).remove([current.data.photoPath]);
     }
@@ -126,7 +148,8 @@ async function saveProfileColumns(
   return succeed(toStaffProfile(supabase, data));
 }
 
-async function signedInUserId(supabase: Client): Promise<string | null> {
+async function signedInUserIdOrNull(): Promise<string | null> {
+  const supabase = await getSupabase();
   const { data } = await supabase.auth.getSession();
   return data.session?.user.id ?? null;
 }

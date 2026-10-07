@@ -10,7 +10,7 @@ import formStyles from '@/components/portal/PortalForm.module.css';
 import { Button, TurnstileField } from '@/components/ui';
 import type { TurnstileInstance } from '@/components/ui';
 import {
-  AUTH_ERRORS,
+  PORTAL_ERRORS,
   LOGIN_PAGE,
   PORTAL_QUERY,
   PORTAL_ROUTES,
@@ -37,7 +37,7 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
 
 /** A note at the top of the page, e.g. after being signed out because of deactivation. */
 function noticeFor(reason: string | null): { error: string; status: string } {
-  if (reason === SIGN_IN_REASONS.inactive) return { error: AUTH_ERRORS.notActive, status: '' };
+  if (reason === SIGN_IN_REASONS.inactive) return { error: PORTAL_ERRORS.notActive, status: '' };
   if (reason === SIGN_IN_REASONS.passwordChanged) {
     return { error: '', status: LOGIN_PAGE.passwordChanged };
   }
@@ -83,7 +83,7 @@ export default function LoginPage() {
     }
 
     setSubmitting(false);
-    setFormError(AUTH_ERRORS[result.error]);
+    setFormError(PORTAL_ERRORS[result.error]);
     setCaptchaToken(''); // a token works only once
     turnstileRef.current?.reset();
   }

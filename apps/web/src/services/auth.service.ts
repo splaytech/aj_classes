@@ -8,6 +8,7 @@ import type { AccessState, EmailLinkType, Result } from './types';
 
 const SIGNED_OUT: AccessState = {
   signedIn: false,
+  userId: '',
   email: '',
   profile: null,
   aal: 'aal1',
@@ -137,6 +138,7 @@ export async function getAccessState(): Promise<AccessState> {
 
   return {
     signedIn: true,
+    userId: session.user.id,
     email: session.user.email ?? '',
     profile,
     aal: levelResult.data?.currentLevel === 'aal2' ? 'aal2' : 'aal1',

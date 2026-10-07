@@ -9,7 +9,7 @@ import formStyles from '@/components/portal/PortalForm.module.css';
 import { Button, TurnstileField } from '@/components/ui';
 import type { TurnstileInstance } from '@/components/ui';
 import {
-  AUTH_ERRORS,
+  PORTAL_ERRORS,
   FORGOT_PASSWORD_PAGE,
   PORTAL_ROUTES,
   PORTAL_SEO,
@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
       return;
     }
     setStatus('idle');
-    setFormError(AUTH_ERRORS[result.error]);
+    setFormError(PORTAL_ERRORS[result.error]);
     setCaptchaToken('');
     turnstileRef.current?.reset();
   }

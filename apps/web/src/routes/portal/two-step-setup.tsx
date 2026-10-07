@@ -10,7 +10,7 @@ import { AuthCard, CodeInput, FormAlert, TextInput } from '@/components/portal';
 import formStyles from '@/components/portal/PortalForm.module.css';
 import { Button } from '@/components/ui';
 import {
-  AUTH_ERRORS,
+  PORTAL_ERRORS,
   AUTH_LIMITS,
   PORTAL_COMMON,
   PORTAL_QUERY,
@@ -71,7 +71,7 @@ function NameStep({ onStarted }: { onStarted: (enrolment: TwoStepEnrolment) => v
     setStarting(false);
 
     if (result.ok) onStarted(result.data);
-    else setFormError(AUTH_ERRORS[result.error]);
+    else setFormError(PORTAL_ERRORS[result.error]);
   }
 
   return (
@@ -118,7 +118,7 @@ function ConfirmStep({ enrolment }: { enrolment: TwoStepEnrolment }) {
     }
     setChecking(false);
     setCode('');
-    setFormError(AUTH_ERRORS[result.error]);
+    setFormError(PORTAL_ERRORS[result.error]);
   }
 
   return (

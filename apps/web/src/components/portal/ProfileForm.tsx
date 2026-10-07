@@ -5,7 +5,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 
 import { Button } from '@/components/ui';
-import { AUTH_ERRORS, PROFILE_LIMITS, PROFILE_PAGE, SUBJECTS } from '@/constants';
+import { PORTAL_ERRORS, PROFILE_LIMITS, PROFILE_PAGE, SUBJECTS } from '@/constants';
 import { cleanQualifications, subjectsToSave, validateProfile } from '@/lib/profile-validation';
 import type { ProfileErrors } from '@/lib/profile-validation';
 import type { ProfileChanges, Result, StaffProfile } from '@/services';
@@ -64,7 +64,7 @@ export function ProfileForm({ profile, onSave, onSaved }: ProfileFormProps) {
     setSaving(false);
 
     if (!result.ok) {
-      setFormError(AUTH_ERRORS[result.error]);
+      setFormError(PORTAL_ERRORS[result.error]);
       return;
     }
     setQualifications(result.data.qualifications);

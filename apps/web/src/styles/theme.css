@@ -29,6 +29,7 @@
   --color-focus: #2563eb;
   --color-error: #b91c1c;
   --color-success: #15803d;
+  --color-warning: #b45309; /* amber: "due soon", "invite expired" (5:1 on white, WCAG AA) */
 
   /* Typography */
   --font-heading: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;

@@ -6,6 +6,7 @@ const env = import.meta.env;
 export const APP_CONFIG = {
   siteUrl: env.VITE_SITE_URL || 'https://ajclasses.com.au',
   language: 'en-AU',
+  dateLocale: 'en-au', // dayjs locale for the staff portal's date and time pickers
   ogLocale: 'en_AU',
   themeColor: '#2563eb', // browser toolbar colour on mobile (matches --color-primary)
 

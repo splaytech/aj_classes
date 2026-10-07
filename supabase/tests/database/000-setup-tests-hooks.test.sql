@@ -6,13 +6,25 @@ create extension if not exists pgtap with schema extensions;
 create schema if not exists tests;
 grant usage on schema tests to anon, authenticated;
 
--- Start each test file with no accounts (the local seed adds some). Rolled back with the test.
+-- Start each test file with no accounts and no audit history (the local seed and manual testing
+-- add some). Rolled back with the test.
 create or replace function tests.remove_all_accounts()
 returns void
 language sql
 set search_path = ''
 as $$
-  delete from auth.users
+  delete from public.audit_log;
+  delete from auth.users;
+$$;
+
+-- Start with no classes or students either (the local seed adds demo ones). Rolled back too.
+create or replace function tests.remove_all_classes()
+returns void
+language sql
+set search_path = ''
+as $$
+  delete from public.classes;
+  delete from public.students;
 $$;
 
 -- A staff account with a fixed id, created the way Supabase Auth would (the trigger makes the profile).

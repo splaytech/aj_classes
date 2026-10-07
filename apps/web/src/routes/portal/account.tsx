@@ -10,7 +10,7 @@ import { Button } from '@/components/ui';
 import {
   ACCOUNT_PAGE,
   APP_CONFIG,
-  AUTH_ERRORS,
+  PORTAL_ERRORS,
   PORTAL_ROUTES,
   PORTAL_SEO,
   STAFF_ROLE_LABELS,
@@ -78,7 +78,7 @@ function ChangePasswordSection() {
     setFormError('');
     const sent = await sendReauthCode();
     if (sent.ok) setCodeMessage(ACCOUNT_PAGE.password.codeResent);
-    else setFormError(AUTH_ERRORS[sent.error]);
+    else setFormError(PORTAL_ERRORS[sent.error]);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -100,9 +100,9 @@ function ChangePasswordSection() {
     } else if (result.error === 'reauthNeeded') {
       const sent = await sendReauthCode();
       if (sent.ok) setNeedsCode(true);
-      else setFormError(AUTH_ERRORS[sent.error]);
+      else setFormError(PORTAL_ERRORS[sent.error]);
     } else {
-      setFormError(AUTH_ERRORS[result.error]);
+      setFormError(PORTAL_ERRORS[result.error]);
     }
     setSaving(false);
   }
@@ -173,7 +173,7 @@ function TwoStepSection({ isAdmin }: { isAdmin: boolean }) {
   const [error, setError] = useState('');
   const [removingId, setRemovingId] = useState('');
 
-  if (!loaded.ok) return <FormAlert message={AUTH_ERRORS[loaded.error]} />;
+  if (!loaded.ok) return <FormAlert message={PORTAL_ERRORS[loaded.error]} />;
   const authenticators = loaded.data;
 
   async function handleRemove(authenticator: Authenticator) {
@@ -184,7 +184,7 @@ function TwoStepSection({ isAdmin }: { isAdmin: boolean }) {
     const result = await removeAuthenticator(authenticator.id, isAdmin);
     setRemovingId('');
     if (result.ok) await revalidator.revalidate();
-    else setError(AUTH_ERRORS[result.error]);
+    else setError(PORTAL_ERRORS[result.error]);
   }
 
   const isOn = authenticators.length > 0;

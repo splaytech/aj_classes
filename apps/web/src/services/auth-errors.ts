@@ -1,5 +1,6 @@
 // Turns Supabase errors into the short list of problems the portal knows how to explain.
-// Matches on Supabase's error `code`, not its wording (design §11.4, G28).
+// Matches on error codes and on the keys we raise ourselves, never on Supabase's wording
+// (R2a design §11.4, G28) — except one captcha case noted below.
 
 import type { ErrorKey } from './types';
 
@@ -41,12 +42,52 @@ const ERROR_KEYS_BY_CODE: Record<string, ErrorKey> = {
   mfa_factor_name_conflict: 'authenticatorNameTaken',
 };
 
+// Postgres and PostgREST error codes.
+const ERROR_KEYS_BY_DATABASE_CODE: Record<string, ErrorKey> = {
+  '42501': 'notAllowed', // permission denied / row-level security
+  '23514': 'invalidInput', // check constraint
+  '23505': 'duplicate', // unique / primary key
+  PGRST116: 'notFound', // .single() found no row
+};
+
+// Keys we raise ourselves: database functions ("raise exception 'last_admin'") and the
+// staff-admin edge function ({ ok: false, code: 'already_exists' }).
+const ERROR_KEYS_BY_OWN_KEY: Record<string, ErrorKey> = {
+  not_admin: 'notAllowed',
+  not_allowed: 'notAllowed',
+  not_found: 'notFound',
+  last_admin: 'lastAdmin',
+  cannot_deactivate_self: 'cannotDeactivateSelf',
+  cannot_reset_self: 'cannotResetSelf',
+  not_joined: 'notJoined',
+  already_joined: 'alreadyJoined',
+  already_exists: 'alreadyExists',
+  invalid_email: 'invalidEmail',
+  invalid_name: 'invalidName',
+  invalid_request: 'invalidInput',
+  email_failed: 'emailFailed',
+  ban_failed: 'banFailed',
+  cancel_failed: 'serverProblem',
+  reset_failed: 'serverProblem',
+  server_error: 'serverProblem',
+  not_enrolled: 'notEnrolled',
+  mark_too_high: 'markTooHigh',
+  no_marks: 'noMarks',
+};
+
 /** The portal error to show for anything a Supabase call returned or threw. */
 export function toErrorKey(error: unknown): ErrorKey {
   const details = (error ?? {}) as SupabaseLikeError;
 
+  const ownKey =
+    ERROR_KEYS_BY_OWN_KEY[details.message ?? ''] ?? ERROR_KEYS_BY_OWN_KEY[details.code ?? ''];
+  if (ownKey) return ownKey;
+
   if (details.code && ERROR_KEYS_BY_CODE[details.code]) {
     return ERROR_KEYS_BY_CODE[details.code] as ErrorKey;
+  }
+  if (details.code && ERROR_KEYS_BY_DATABASE_CODE[details.code]) {
+    return ERROR_KEYS_BY_DATABASE_CODE[details.code] as ErrorKey;
   }
 
   // A missing captcha token comes back as a generic 500, so this one check uses the wording

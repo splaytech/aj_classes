@@ -6,7 +6,7 @@ import type { FormEvent } from 'react';
 
 import { Button } from '@/components/ui';
 import {
-  AUTH_ERRORS,
+  PORTAL_ERRORS,
   AUTH_LIMITS,
   LOGIN_VERIFY_PAGE,
   PORTAL_COMMON,
@@ -42,7 +42,7 @@ export function TwoStepCodeForm({ onVerified }: { onVerified: () => void }) {
   useEffect(() => {
     listAuthenticators().then(async (result) => {
       if (!result.ok) {
-        setFormError(AUTH_ERRORS[result.error]);
+        setFormError(PORTAL_ERRORS[result.error]);
         return;
       }
       setAuthenticators(result.data);
@@ -73,7 +73,7 @@ export function TwoStepCodeForm({ onVerified }: { onVerified: () => void }) {
       return;
     }
     setCode('');
-    setFormError(AUTH_ERRORS[result.error]);
+    setFormError(PORTAL_ERRORS[result.error]);
   }
 
   if (autoEntering) {

@@ -4,7 +4,7 @@ import { useLoaderData, useRevalidator } from 'react-router';
 
 import { FormAlert, PhotoEditor, ProfileForm } from '@/components/portal';
 import formStyles from '@/components/portal/PortalForm.module.css';
-import { AUTH_ERRORS, PORTAL_SEO, PROFILE_PAGE } from '@/constants';
+import { PORTAL_ERRORS, PORTAL_SEO, PROFILE_PAGE } from '@/constants';
 import { buildPortalMeta } from '@/lib/seo';
 import { getMyProfile, removeMyPhoto, updateMyProfile, uploadMyPhoto } from '@/services';
 
@@ -23,7 +23,7 @@ export default function ProfilePage() {
   const loaded = useLoaderData<typeof clientLoader>();
   const revalidator = useRevalidator();
 
-  if (!loaded.ok) return <FormAlert message={AUTH_ERRORS[loaded.error]} />;
+  if (!loaded.ok) return <FormAlert message={PORTAL_ERRORS[loaded.error]} />;
   const profile = loaded.data;
 
   // Reload the page data (and the header's name) after any save (review V30).

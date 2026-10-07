@@ -142,6 +142,14 @@ Re-read US12, US13 and design §5, §7.3, §11.5 against the database already bu
 | V31 | The design said "photo with preview" but not when it is stored. | Choosing a photo shows a preview; **Use this photo** uploads it straight away (separate from the text form), **Remove photo** clears it, each with its own message. |
 | V32 | Found while testing: after **Add a qualification** focus stayed on the button, so typing went nowhere (keyboard and screen-reader users included). | Focus moves into the new box. |
 
+### 3.5 Found while building step 7: staff-admin function (8 Oct)
+
+| ID | Finding | Fix |
+|---|---|---|
+| V33 | Locally, the Kong gateway answers CORS preflights itself and adds `Access-Control-Allow-Origin: *` to every function response, overriding the function's origin allowlist. | Accepted locally: the function requires the admin's bearer token, which other sites can't read, and no cookies are used, so there is no cross-site forgery path; the allowlist is extra protection. Hosted Supabase doesn't add the header, so check the allowlist on staging (staging checklist). |
+| V34 | With the new publishable keys, a request with no user token still reaches the function (the gateway's JWT check doesn't stop it locally). | The function's own check (`am_i_admin` as the caller) refuses it with 403; covered by `pnpm test:functions`. |
+| SP1 | Result: calling `inviteUserByEmail` again for an invited-but-not-joined person sends a fresh invite. | Resend uses it directly. |
+
 ## 4. Traceability (story → design → test)
 
 | Story | Design | Tests |

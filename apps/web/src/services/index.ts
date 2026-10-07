@@ -20,7 +20,46 @@ export {
   signOut,
   watchForSignOut,
 } from './auth.service';
-export { getMyProfile, removeMyPhoto, updateMyProfile, uploadMyPhoto } from './profile.service';
+export { listActivity } from './activity.service';
+export {
+  deleteAssignment,
+  getAssignment,
+  listAssignments,
+  saveAssignment,
+  saveResult,
+} from './assignments.service';
+export {
+  addSession,
+  enrolStudent,
+  getClass,
+  listClasses,
+  listTimetable,
+  removeEnrolment,
+  removeSession,
+  saveClass,
+  setClassActive,
+} from './classes.service';
+export { listStudents, saveStudent, setStudentActive } from './students.service';
+export {
+  getMyProfile,
+  getProfile,
+  removeMyPhoto,
+  removePhoto,
+  updateMyProfile,
+  updateProfile,
+  uploadMyPhoto,
+  uploadPhoto,
+} from './profile.service';
+export {
+  cancelInvite,
+  getStaffMember,
+  inviteStaff,
+  listStaff,
+  resendInvite,
+  resetStaffTwoStep,
+  setStaffActive,
+  setStaffRole,
+} from './staff.service';
 export {
   canAddAuthenticator,
   listAuthenticators,
@@ -30,11 +69,31 @@ export {
 } from './two-step.service';
 export type {
   AccessState,
+  AssignmentDetail,
+  AssignmentInput,
+  AssignmentResult,
+  AssignmentSummary,
+  ResultInput,
+  ResultStatus,
+  ActivityAction,
+  ActivityEntry,
   Authenticator,
+  ClassDetail,
+  ClassInput,
+  ClassSession,
+  ClassSummary,
+  DayOfWeek,
+  Delivery,
+  RosterStudent,
+  SessionInput,
+  StudentInput,
+  StudentSummary,
+  TimetableEntry,
   EmailLinkType,
   ErrorKey,
   ProfileChanges,
   Result,
+  StaffMember,
   StaffProfile,
   SubmitResult,
   TwoStepEnrolment,

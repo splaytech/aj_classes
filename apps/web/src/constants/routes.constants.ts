@@ -22,8 +22,33 @@ export const PORTAL_ROUTES = {
   profile: '/portal/profile',
   twoStepSetup: '/portal/account/two-step/setup',
   tutor: '/portal/tutor',
+  timetable: '/portal/timetable',
+  classes: '/portal/classes',
+  assignments: '/portal/assignments',
   admin: '/portal/admin',
+  adminStaff: '/portal/admin/staff',
+  adminStudents: '/portal/admin/students',
+  adminActivity: '/portal/admin/activity',
 } as const;
+
+// Portal pages with an id in the address (React Router patterns).
+export const PORTAL_ROUTE_PATTERNS = {
+  staffMember: '/portal/admin/staff/:userId',
+  classDetail: '/portal/classes/:classId',
+  assignmentDetail: '/portal/assignments/:assignmentId',
+} as const;
+
+export function staffMemberPath(userId: string): string {
+  return `${PORTAL_ROUTES.adminStaff}/${userId}`;
+}
+
+export function classPath(classId: string): string {
+  return `${PORTAL_ROUTES.classes}/${classId}`;
+}
+
+export function assignmentPath(assignmentId: string): string {
+  return `${PORTAL_ROUTES.assignments}/${assignmentId}`;
+}
 
 // Query-string names used by portal pages and email links.
 export const PORTAL_QUERY = {
