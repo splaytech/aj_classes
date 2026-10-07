@@ -48,3 +48,16 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
 }
+
+.cardLink {
+  align-self: flex-start;
+  margin-top: auto;
+  font-weight: var(--font-weight-bold);
+}
+
+.prompt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+}

@@ -56,6 +56,7 @@ export function PortalLayout({ fullName, role, children }: PortalLayoutProps) {
           </div>
           <nav className={styles.nav} aria-label={PORTAL_COMMON.navLabel}>
             <PortalNavLink to={PORTAL_ROUTES.tutor}>{PORTAL_COMMON.nav.tutor}</PortalNavLink>
+            <PortalNavLink to={PORTAL_ROUTES.profile}>{PORTAL_COMMON.nav.profile}</PortalNavLink>
             {role === 'admin' && (
               <PortalNavLink to={PORTAL_ROUTES.admin}>{PORTAL_COMMON.nav.admin}</PortalNavLink>
             )}

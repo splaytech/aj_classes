@@ -8,3 +8,4 @@ export * from './error.constants';
 export * from './portal.constants';
 export * from './routes.constants';
 export * from './seo.constants';
+export * from './subjects.constants';

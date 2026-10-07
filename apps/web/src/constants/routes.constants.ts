@@ -19,6 +19,7 @@ export const PORTAL_ROUTES = {
   authConfirm: '/portal/auth/confirm',
   setPassword: '/portal/set-password',
   account: '/portal/account',
+  profile: '/portal/profile',
   twoStepSetup: '/portal/account/two-step/setup',
   tutor: '/portal/tutor',
   admin: '/portal/admin',

@@ -24,6 +24,7 @@ export default [
     layout('routes/portal/staff-layout.tsx', [
       route(PORTAL_ROUTES.root, 'routes/portal/home.tsx'),
       route(PORTAL_ROUTES.tutor, 'routes/portal/tutor-dashboard.tsx'),
+      route(PORTAL_ROUTES.profile, 'routes/portal/profile.tsx'),
       route(PORTAL_ROUTES.account, 'routes/portal/account.tsx'),
       layout('routes/portal/admin-layout.tsx', [
         route(PORTAL_ROUTES.admin, 'routes/portal/admin-dashboard.tsx'),

@@ -1,6 +1,6 @@
 // Every word on the staff portal pages (R2a). Error messages live in error.constants.ts.
 
-import { AUTH_LIMITS } from './app.constants';
+import { AUTH_LIMITS, PHOTO_LIMITS, PROFILE_LIMITS } from './app.constants';
 import type { StaffRole } from './app.constants';
 import { BUSINESS } from './business.constants';
 
@@ -12,6 +12,7 @@ export const PORTAL_SEO = {
   authConfirm: 'Continue',
   setPassword: 'Set your password',
   account: 'Your account',
+  profile: 'My profile',
   twoStepSetup: 'Set up two-step sign-in',
   tutor: 'Dashboard',
   admin: 'Admin',
@@ -34,6 +35,7 @@ export const PORTAL_COMMON = {
   navLabel: 'Staff portal',
   nav: {
     tutor: 'Dashboard',
+    profile: 'My profile',
     admin: 'Admin',
     account: 'Account',
   },
@@ -185,8 +187,14 @@ export const TUTOR_DASHBOARD = {
   welcome: (firstName: string) => `Welcome, ${firstName}`,
   intro: 'This is your AJ Classes staff area.',
   comingSoon: 'Coming soon',
+  completeProfile: 'Your profile is missing a bio or subjects. Families will see it later.',
+  completeProfileLink: 'Complete your profile',
+  profileCard: {
+    title: 'My profile',
+    text: 'Your name, subjects, bio, qualifications and photo.',
+    link: 'Edit profile',
+  },
   cards: [
-    { title: 'My profile', text: 'Your name, subjects, bio, qualifications and photo.' },
     { title: 'Classes', text: 'Your classes and timetable.' },
     { title: 'Assignments', text: 'Set and mark homework.' },
   ],
@@ -204,4 +212,50 @@ export const ADMIN_DASHBOARD = {
 
 export const FOOTER_PORTAL = {
   staffSignIn: 'Staff sign in',
+} as const;
+
+export const PROFILE_PAGE = {
+  heading: 'My profile',
+  intro: 'This is how you appear to AJ Classes, and later on the website.',
+  email: 'Email',
+  emailHint: 'To change your email, contact an admin.',
+  labels: {
+    fullName: 'Full name',
+    subjects: 'Subjects I teach',
+    bio: 'Bio',
+    qualifications: 'Qualifications',
+  },
+  hints: {
+    subjects: 'Tick all that apply.',
+    bio: 'A few sentences about your teaching. Plain text only.',
+    qualifications: 'One per line, for example "B.Ed (Secondary Maths), Monash University".',
+  },
+  bioCount: (used: number) => `${used} / ${PROFILE_LIMITS.bioMax} characters`,
+  qualificationLabel: (position: number) => `Qualification ${position}`,
+  addQualification: 'Add a qualification',
+  removeQualification: (position: number) => `Remove qualification ${position}`,
+  remove: 'Remove',
+  maxQualifications: `You can list up to ${PROFILE_LIMITS.qualificationsMax} qualifications.`,
+  save: 'Save profile',
+  saving: 'Saving…',
+  saved: 'Profile saved.',
+  photo: {
+    heading: 'Photo',
+    note: 'Your photo may be shown on the AJ Classes website.',
+    alt: (fullName: string) => `Photo of ${fullName}`,
+    noPhoto: 'No photo yet',
+    choose: 'Choose a photo',
+    change: 'Change photo',
+    accept: PHOTO_LIMITS.acceptedTypes.join(','),
+    hint: 'JPEG, PNG or WebP. It will be cropped to a square.',
+    previewAlt: 'Preview of your new photo',
+    use: 'Use this photo',
+    uploading: 'Uploading…',
+    cancel: 'Cancel',
+    remove: 'Remove photo',
+    removing: 'Removing…',
+    confirmRemove: 'Remove your photo?',
+    saved: 'Photo updated.',
+    removed: 'Photo removed.',
+  },
 } as const;

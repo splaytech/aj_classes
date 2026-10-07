@@ -1,7 +1,7 @@
 // Every error and validation message shown to users.
 
 import { BUSINESS } from './business.constants';
-import { AUTH_LIMITS, FORM_LIMITS } from './app.constants';
+import { AUTH_LIMITS, FORM_LIMITS, PHOTO_LIMITS, PROFILE_LIMITS } from './app.constants';
 
 export const VALIDATION = {
   nameRequired: 'Please enter your name.',
@@ -45,6 +45,8 @@ export const AUTH_ERRORS = {
   needsTwoStep: 'Please enter a code from your authenticator app first.',
   lastAuthenticator: 'You need at least one authenticator.',
   authenticatorNameTaken: 'You already have an authenticator with that name. Choose another.',
+  notSaved: "Your changes weren't saved. Please try again.",
+  photoNotSaved: "Your photo couldn't be saved. Please try again.",
   network: "We couldn't reach the server. Check your connection and try again.",
   notConfigured: "Staff sign-in isn't available right now.",
   unknown: 'Something went wrong. Please try again.',
@@ -64,4 +66,14 @@ export const PORTAL_VALIDATION = {
 export const AUTH_LINK_ERRORS = {
   invite: 'Please ask AJ Classes to send you a new invite.',
   recovery: 'Request a new link below.',
+} as const;
+
+export const PROFILE_VALIDATION = {
+  nameLength: `Please enter your full name (${PROFILE_LIMITS.nameMin}–${PROFILE_LIMITS.nameMax} characters).`,
+  bioTooLong: `Please keep your bio under ${PROFILE_LIMITS.bioMax} characters.`,
+  qualificationTooLong: `Please keep each qualification under ${PROFILE_LIMITS.qualificationMax} characters.`,
+  tooManyQualifications: `Please list at most ${PROFILE_LIMITS.qualificationsMax} qualifications.`,
+  photoType: 'Please choose a JPEG, PNG or WebP image.',
+  photoTooLarge: `That file is too large. Please choose one under ${PHOTO_LIMITS.maxInputBytes / 1024 / 1024} MB.`,
+  photoUnreadable: "That image couldn't be opened. Please try another one.",
 } as const;

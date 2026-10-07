@@ -93,6 +93,50 @@ export function TextInput({
   );
 }
 
+type TextAreaInputProps = {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  maxLength?: number;
+  rows?: number;
+  error?: string;
+  hint?: string;
+  /** Shown under the box, e.g. "120 / 1000 characters". */
+  counter?: string;
+};
+
+export function TextAreaInput({
+  id,
+  label,
+  value,
+  onChange,
+  maxLength,
+  rows = 6,
+  error,
+  hint,
+  counter,
+}: TextAreaInputProps) {
+  return (
+    <PortalField id={id} label={label} error={error} hint={hint}>
+      <textarea
+        id={id}
+        className={styles.input}
+        rows={rows}
+        maxLength={maxLength}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        {...describedBy(id, error, hint)}
+      />
+      {counter && (
+        <p className={styles.hint} aria-live="polite">
+          {counter}
+        </p>
+      )}
+    </PortalField>
+  );
+}
+
 type PasswordInputProps = {
   id: string;
   label: string;

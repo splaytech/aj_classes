@@ -127,6 +127,21 @@ Checked before building, as for every change:
 
 Design §16.1.
 
+### 3.4 Step 6 check before building, and testing: profile and photo (8 Oct)
+
+Re-read US12, US13 and design §5, §7.3, §11.5 against the database already built.
+
+| ID | Gap | Fix |
+|---|---|---|
+| V25 | Phone photos can be 10–30 MB, and iPhones take HEIC, which most browsers can't decode. | The file picker accepts JPEG, PNG and WebP only (iPhones then hand over a JPEG). Files over 15 MB are refused before resizing, so the browser doesn't run out of memory. |
+| V26 | A new photo is uploaded first and the profile updated second; if the update fails, the new file is left behind. | Upload → update profile → delete the old file. If the update fails, delete the file just uploaded. |
+| V27 | The database refuses blank qualification lines (`items_within_length` needs 1+ characters). | Lines are trimmed and empty ones dropped before saving. |
+| V28 | Saving the subject checkboxes would silently drop saved subjects that are no longer in the list (G9 said they're kept). | Unknown keys from the loaded profile are kept on save. |
+| V29 | An update that RLS filters out returns no error, just zero rows, so "Profile saved" could show when nothing was saved. | The update asks for the saved row back; no row means failure. |
+| V30 | The header shows the old name after saving (US12 AC3). | After a save, the page reloads the staff layout's data. |
+| V31 | The design said "photo with preview" but not when it is stored. | Choosing a photo shows a preview; **Use this photo** uploads it straight away (separate from the text form), **Remove photo** clears it, each with its own message. |
+| V32 | Found while testing: after **Add a qualification** focus stayed on the button, so typing went nowhere (keyboard and screen-reader users included). | Focus moves into the new box. |
+
 ## 4. Traceability (story → design → test)
 
 | Story | Design | Tests |

@@ -20,6 +20,7 @@ export {
   signOut,
   watchForSignOut,
 } from './auth.service';
+export { getMyProfile, removeMyPhoto, updateMyProfile, uploadMyPhoto } from './profile.service';
 export {
   canAddAuthenticator,
   listAuthenticators,
@@ -32,7 +33,9 @@ export type {
   Authenticator,
   EmailLinkType,
   ErrorKey,
+  ProfileChanges,
   Result,
+  StaffProfile,
   SubmitResult,
   TwoStepEnrolment,
 } from './types';

@@ -40,3 +40,18 @@ export type TwoStepEnrolment = {
 
 /** Which email link was opened: an invite or a password reset. */
 export type EmailLinkType = 'invite' | 'recovery';
+
+/** A staff member's profile, as shown and edited on the profile page. */
+export type StaffProfile = {
+  id: string;
+  email: string;
+  fullName: string;
+  bio: string;
+  qualifications: string[];
+  subjects: string[]; // keys, see SUBJECTS
+  photoPath: string | null;
+  photoUrl: string | null;
+};
+
+/** The text parts of a profile a person can change themselves. */
+export type ProfileChanges = Pick<StaffProfile, 'fullName' | 'bio' | 'qualifications' | 'subjects'>;

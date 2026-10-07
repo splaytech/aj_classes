@@ -67,6 +67,25 @@ export const AUTH_LIMITS = {
   authenticatorNameMax: 30,
 } as const;
 
+// Staff profile rules (R2a design §5). Must match the checks in the staff_accounts migration.
+export const PROFILE_LIMITS = {
+  nameMin: 2,
+  nameMax: 100,
+  bioMax: 1000,
+  qualificationsMax: 10,
+  qualificationMax: 150,
+} as const;
+
+// Profile photos (design §7.3). The browser crops, resizes and re-encodes before upload, which
+// also removes location data from phone photos (review V16, V25).
+export const PHOTO_LIMITS = {
+  acceptedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+  maxInputBytes: 15 * 1024 * 1024, // bigger files are refused before resizing
+  maxDimension: 512, // pixels, square
+  outputTypes: ['image/webp', 'image/jpeg'], // first one the browser can encode
+  outputQuality: 0.85,
+} as const;
+
 // Staff roles, as stored in the database (profiles.role).
 export const STAFF_ROLES = ['tutor', 'admin'] as const;
 export type StaffRole = (typeof STAFF_ROLES)[number];
