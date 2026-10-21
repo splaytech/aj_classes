@@ -54,3 +54,10 @@
   border-top: 1px solid var(--color-border-inverse);
   font-size: var(--font-size-sm);
 }
+
+.disclaimer {
+  margin: var(--space-4) 0 0;
+  max-width: none;
+  font-size: var(--font-size-sm);
+  opacity: 0.85;
+}

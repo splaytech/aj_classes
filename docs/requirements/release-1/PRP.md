@@ -72,7 +72,7 @@ This is the site we need to beat for **usability and readability**. Reviewed 24 
 | F1 | Theme via CSS variables | Brand colours and fonts in one file, so the brand can be swapped later without touching components |
 | F2 | Landing page (single page) | Header, Hero, Why AJ Classes, Our Approach, About / Our Team, FAQ, Register Interest / Contact, Footer (Subscribe + Follow us) |
 | F3 | Register Interest / Contact form + Subscribe | Both sent to the owner's email through a hosted form service. No backend code |
-| F4 | Privacy page | Short privacy notice, needed because the form collects names and emails |
+| F4 | Privacy page | Short privacy notice, needed because the form collects names and emails. Includes an "Accuracy of information" disclaimer (added Oct 2026), shown in short form in the footer |
 | F5 | Hosting & domain | GitHub → Vercel auto-deploy, custom domain, HTTPS |
 | F6 | SEO: rank #1 for "AJ Classes" in Australia | Pre-rendered HTML, full head tags, JSON-LD structured data, technical SEO, Search Console, Google Business Profile |
 | F7 | Analytics | Vercel Web Analytics + Search Console |
@@ -214,7 +214,7 @@ Each section answers one parent question. Copy for every section is in **[Append
 | 1 | **Header** | Where do I go? | Logo; links **Approach · About · FAQ · Contact**; primary button **"Register Interest"**; social icons (small, desktop only). Sticky, one row. Hamburger menu on mobile |
 | 2 | **Hero** | What is this? | **Announcement pill** above the headline (F2.11), then headline, one supporting sentence, primary CTA **"Register Interest"**, secondary CTA **"Ask a Question"**, hero image. A strip of 3 short proof points below it (e.g. "Selective-entry specialists · Qualified tutors · Small groups") |
 | 3 | **Why AJ Classes** | Why you, not someone else? | Value cards: 4–6 word title, 1–2 sentence description. **6 cards in a 3 × 2 grid** since 6 Oct 2026, adding "Aligned to the Victorian Curriculum" and "A plan for every student" (A.12) |
-| 3a | **Our 2026 results** *(added 30 Sep 2026)* | Do you get results? | 3 stat cards: 7 selective high school offers (Year 9), 5 John Monash Science School offers, 3 private school scholarships, plus a one-line note on NAPLAN/ICAS. Aggregate numbers only, **no student names** |
+| 3a | **Our 2026 results** *(added 30 Sep 2026)* | Do you get results? | 3 stat cards: 10 selective high school offers (Year 9; updated Oct 2026 from 7: Melbourne High 4, Suzanne Cory 4), 5 John Monash Science School offers, 3 private school scholarships, plus a one-line note on NAPLAN/ICAS. Aggregate numbers only, **no student names** |
 | 3b | **Programmes** *(added 30 Sep 2026)* | What exactly do you teach? | Card grid: each programme with its year levels (Selective exam prep, interviews, SEAL and scholarships, NAPLAN, ICAS, school tutoring, VCE counselling, UCAT/GAMSAT with a "New" badge). Each card lists **2–3 short ✓ points**, not a paragraph (6 Oct 2026, A.12). Also a nav link |
 | 4 | **Our Approach** | How do you teach? | Teaching philosophy in 2–3 short paragraphs, plus a 3–4 step visual (e.g. Assess → Plan → Practise → Review) |
 | 5 | **About Us / Our Team** | Who will teach my child? | Short story of AJ Classes, then a **team description (no individual names or photos in R1)**: "a team of skilled teachers and professors", subjects covered, and a **"Working With Children Check held"** trust badge. Individual tutor profiles come in a later release |
