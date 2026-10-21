@@ -92,7 +92,7 @@
   color: var(--color-text-emphasis);
 }
 
-/* A card with its own page (e.g. VCE tutoring) links to it at the bottom. */
+/* Each card links to its programme's page, at the bottom of the card. */
 .more {
   margin-top: auto;
   padding-top: var(--space-4);

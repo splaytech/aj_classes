@@ -4,7 +4,8 @@
 
 import { BUSINESS } from './business.constants';
 import type { SocialPlatform } from './business.constants';
-import { ROUTES, SECTION_IDS } from './routes.constants';
+import { PROGRAMMES } from './programmes.constants';
+import { SECTION_IDS, programmePath } from './routes.constants';
 
 export const TAGLINE = 'Every student can rise.';
 
@@ -33,7 +34,10 @@ export const NAV = {
     {
       label: 'Programmes',
       sectionId: SECTION_IDS.programmes,
-      subLinks: [{ label: 'VCE', href: ROUTES.vce }],
+      subLinks: PROGRAMMES.items.map((programme) => ({
+        label: programme.menuLabel,
+        href: programmePath(programme.slug),
+      })),
     },
     { label: 'Our Approach', sectionId: SECTION_IDS.approach },
     { label: 'About', sectionId: SECTION_IDS.about },
@@ -112,138 +116,6 @@ export const RESULTS = {
     },
   ],
   note: 'Our students also exceeded expectations in NAPLAN and improved significantly in ICAS.',
-};
-
-// VCE subjects we teach, by their official VCAA names (checked 21 Oct 2026, vce-page.md §1).
-// Used by the Programmes card on the home page and by the VCE page.
-export const VCE_SUBJECTS = [
-  {
-    name: 'Chemistry',
-    area: 'Science',
-    summary:
-      'From atomic structure, bonding and reactions to the design of chemical processes and carbon-based compounds, with strong practical and data-analysis skills.',
-  },
-  {
-    name: 'General Mathematics',
-    area: 'Mathematics',
-    summary:
-      'Data analysis, recursion and financial modelling, matrices, and networks and decision mathematics, applied to real-world problems.',
-  },
-  {
-    name: 'Mathematical Methods',
-    area: 'Mathematics',
-    summary:
-      'Functions, algebra, calculus, and probability and statistics, building the depth and fluency needed for both technology-active and technology-free exams.',
-  },
-  {
-    name: 'Psychology',
-    area: 'Science',
-    summary:
-      'How behaviour and mental processes are shaped, how we learn and remember, and how mental wellbeing is supported, with a focus on scientific research skills.',
-  },
-  {
-    name: 'Business Management',
-    area: 'Business and Economics',
-    summary:
-      'How businesses are planned, established, managed and transformed, using real case studies to apply key knowledge to new situations.',
-  },
-] as const;
-
-export const PROGRAMMES = {
-  heading: 'Programmes',
-  intro: 'Small-group classes and coaching from Year 2 through to university entry.',
-  newBadge: 'New',
-  items: [
-    {
-      title: 'Selective entry exam preparation',
-      years: 'Years 6–10',
-      points: [
-        'Reading comprehension and creative and persuasive writing',
-        'Mathematics, plus verbal and quantitative reasoning',
-        'Timed practice under exam conditions',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'Selective school and scholarship interviews',
-      years: 'Years 8–10',
-      points: [
-        'One-on-one and group mock interviews with written feedback',
-        'Coaching on common questions and help with applications',
-        "For Melbourne High School, The Mac.Robertson Girls' High School, Nossal High School, Suzanne Cory High School, John Monash Science School and private school scholarships",
-      ],
-      isNew: false,
-    },
-    {
-      title: 'SEAL and scholarship preparation',
-      years: 'Accelerated pathways',
-      points: [
-        'Preparation for SEAL program entry',
-        'Private school scholarship exams',
-        'Practice in the style and timing of the real tests',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'NAPLAN',
-      years: 'Years 2–9',
-      points: [
-        'Starts in Year 2, ahead of the first NAPLAN in Year 3',
-        'Continues through to Year 9',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'ICAS',
-      years: 'Years 5–10',
-      points: [
-        'Preparation for the ICAS academic competitions',
-        'Our students improved significantly in ICAS in 2026',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'Maths, Science and English tutoring',
-      years: 'Years 5–10',
-      points: [
-        'Regular term-by-term tutoring',
-        'Builds strong foundations',
-        'Keeps students ahead at school',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'VCE tutoring',
-      years: 'Years 11–12',
-      points: [
-        VCE_SUBJECTS.map((subject) => subject.name).join(', '),
-        'Units 1–4, taught by qualified teachers',
-        'SAC preparation and exam technique',
-      ],
-      isNew: false,
-      link: { href: ROUTES.vce, label: 'Learn more about VCE tutoring' },
-    },
-    {
-      title: 'VCE subject-selection counselling',
-      years: 'Students + parents',
-      points: [
-        'Sessions with students and parents together',
-        'Complete guidance on choosing VCE subjects',
-        'Clear advice on pathways and prerequisites',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'UCAT and GAMSAT preparation',
-      years: '',
-      points: [
-        'For medical and health-science entry tests',
-        'Enrolments are open now',
-        'Classes start in January 2027',
-      ],
-      isNew: true,
-    },
-  ],
 };
 
 export const APPROACH = {
@@ -528,37 +400,3 @@ export const HERO_SLIDES = {
 } as const;
 
 export type HeroSlide = (typeof HERO_SLIDES.slides)[number];
-
-// The VCE tutoring page (/vce). Describes what we do and who teaches; no score or ATAR promises
-// (vce-page.md G2). Teacher wording uses only confirmed facts (G3); owner to review.
-export const VCE_PAGE = {
-  heading: 'VCE Tutoring',
-  intro:
-    'Expert, small-group VCE tutoring for Units 1–4, led by qualified teachers who know what the VCAA study designs ask of students, and how to help them deliver it.',
-  subjectsHeading: 'Subjects we teach',
-  subjectsIntro:
-    'Each subject follows the current VCAA study design, from Unit 1 through to the Unit 3 and 4 exam.',
-  unitsLabel: 'Units 1–4',
-  teachersHeading: 'Taught by qualified teachers',
-  teachersText: [
-    'Every VCE class is led by a qualified teacher. Our teachers bring more than 20 years of combined teaching experience and each holds a Working With Children Check.',
-    'They teach to the VCAA study design, explain difficult ideas clearly, and give students the precise, exam-ready language that assessors look for.',
-  ],
-  approachHeading: 'How we prepare students',
-  approachPoints: [
-    'Small groups, so every student gets real attention and feedback',
-    'Clear explanations of key knowledge and key skills, unit by unit',
-    'Preparation for School-Assessed Coursework (SACs)',
-    'Exam technique, with practice questions under timed exam conditions',
-    'Regular progress updates for parents',
-  ],
-  counsellingHeading: 'Choosing VCE subjects?',
-  counsellingText:
-    'Our VCE subject-selection counselling sessions help students and parents choose subjects together, with a clear view of pathways and prerequisites.',
-  deliveryText: `In person in ${BUSINESS.suburbsText}, or online anywhere in Australia.`,
-  cta: 'Register interest',
-  studyDesignsLink: 'Read the VCAA study designs',
-  studyDesignsUrl:
-    'https://www.vcaa.vic.edu.au/curriculum/vce-curriculum/vce-study-designs/vce-study-designs',
-  backHome: '← Back to home',
-} as const;

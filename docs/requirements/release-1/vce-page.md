@@ -26,9 +26,9 @@ Sources: [VCE study designs](https://www.vcaa.vic.edu.au/curriculum/vce-curricul
 
 | Part | What |
 |---|---|
-| Page | `/vce`, pre-rendered like the Privacy page, in the sitemap, with its own title and description. |
+| Page | `/programmes/vce` (moved from `/vce` on 21 Oct 2026, see [programme-pages.md](programme-pages.md)), pre-rendered like the Privacy page, in the sitemap, with its own title and description. |
 | Page content | Heading and intro; one card per subject (official name, Units 1–4, what we cover in plain words); "Qualified VCE teachers"; "How we prepare students" (SACs, exam technique, practice under exam conditions, small groups); VCE subject-selection counselling; a Register Interest button to the home page form. |
-| Landing page | A "VCE tutoring" card in Programmes (Years 11–12) naming the five subjects, with a "Learn more about VCE tutoring" link to `/vce`. |
+| Landing page | A "VCE tutoring" card in Programmes (Years 11–12) naming the five subjects, with a "Learn more" link to its page. |
 | Text | All wording in `content.constants.ts` (`VCE_PAGE`) and `seo.constants.ts`; subject list defined once and reused by the card and the page. |
 
 ## 3. Stories

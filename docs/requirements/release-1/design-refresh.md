@@ -22,7 +22,7 @@ The notification email's subject is now "[AJ Classes] Website enquiry — {name}
 
 ## 1a. Navigation
 
-"Programmes" in the header has a sub-link **VCE** (to `/vce`): a small dropdown on hover or keyboard focus on desktop, indented under Programmes in the phone menu.
+"Programmes" in the header has a sub-link **VCE** (to `/vce`; since replaced by a link to every programme page, see [programme-pages.md](programme-pages.md)): a small dropdown on hover or keyboard focus on desktop, indented under Programmes in the phone menu.
 
 ## 2. Programmes
 

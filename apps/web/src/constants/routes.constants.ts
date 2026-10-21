@@ -4,7 +4,8 @@
 export const ROUTES = {
   home: '/',
   privacy: '/privacy',
-  vce: '/vce', // VCE tutoring page (Release 1, vce-page.md)
+  programmes: '/programmes', // one page per programme under here (programme-pages.md)
+  vce: '/programmes/vce', // VCE tutoring has its own page layout (vce-page.md)
   notFound: '/404',
   sitemap: '/sitemap.xml',
   robots: '/robots.txt',
@@ -22,6 +23,11 @@ export const SECTION_IDS = {
   contact: 'contact',
   askQuestion: 'ask-a-question', // the enquiry form itself ("Ask a Question" scrolls to it)
 } as const;
+
+/** Path of a programme's page, such as "/programmes/naplan". */
+export function programmePath(slug: string): string {
+  return `${ROUTES.programmes}/${slug}`;
+}
 
 /** Builds an in-page link such as "/#contact". */
 export function sectionLink(sectionId: string): string {

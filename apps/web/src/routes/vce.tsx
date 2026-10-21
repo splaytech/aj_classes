@@ -1,15 +1,25 @@
 // VCE tutoring page (Release 1, docs/requirements/release-1/vce-page.md). Wording lives in
-// content.constants.ts → VCE_PAGE and VCE_SUBJECTS.
+// programmes.constants.ts → VCE_PAGE and VCE_SUBJECTS.
 
 import { SiteLayout } from '@/components/layout/SiteLayout';
 import { ButtonLink, Section } from '@/components/ui';
-import { ROUTES, SECTION_IDS, SEO, VCE_PAGE, VCE_SUBJECTS, sectionLink } from '@/constants';
+import {
+  PROGRAMMES,
+  PROGRAMME_SLUGS,
+  ROUTES,
+  SECTION_IDS,
+  VCE_PAGE,
+  VCE_SUBJECTS,
+  programmePath,
+  sectionLink,
+} from '@/constants';
 import { buildPageMeta } from '@/lib/seo';
 
 import styles from './vce.module.css';
 
 export function meta() {
-  return buildPageMeta(SEO.vce, ROUTES.vce);
+  const vce = PROGRAMMES.items.find((programme) => programme.slug === PROGRAMME_SLUGS.vce);
+  return vce ? buildPageMeta(vce.seo, ROUTES.vce) : [];
 }
 
 export default function VcePage() {
@@ -57,6 +67,11 @@ export default function VcePage() {
 
       <Section heading={VCE_PAGE.counsellingHeading}>
         <p>{VCE_PAGE.counsellingText}</p>
+        <p>
+          <a href={programmePath(PROGRAMME_SLUGS.vceSubjectSelection)}>
+            {VCE_PAGE.counsellingLink}
+          </a>
+        </p>
         <ButtonLink href={sectionLink(SECTION_IDS.contact)}>{VCE_PAGE.cta}</ButtonLink>
         <p className={styles.back}>
           <a href={ROUTES.home}>{VCE_PAGE.backHome}</a>
