@@ -81,3 +81,11 @@
   background: var(--color-secondary);
   color: var(--color-text-emphasis);
 }
+
+/* A card with its own page (e.g. VCE tutoring) links to it at the bottom. */
+.more {
+  margin-top: auto;
+  padding-top: var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}

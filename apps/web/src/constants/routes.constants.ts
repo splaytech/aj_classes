@@ -4,6 +4,7 @@
 export const ROUTES = {
   home: '/',
   privacy: '/privacy',
+  vce: '/vce', // VCE tutoring page (Release 1, vce-page.md)
   notFound: '/404',
   sitemap: '/sitemap.xml',
   robots: '/robots.txt',

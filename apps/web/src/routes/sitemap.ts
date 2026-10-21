@@ -3,7 +3,7 @@
 import { ROUTES } from '@/constants';
 import { absoluteUrl } from '@/lib/seo';
 
-const PUBLIC_PAGES = [ROUTES.home, ROUTES.privacy];
+const PUBLIC_PAGES = [ROUTES.home, ROUTES.vce, ROUTES.privacy];
 
 function urlEntry(path: string, lastModified: string): string {
   return `  <url><loc>${absoluteUrl(path)}</loc><lastmod>${lastModified}</lastmod></url>`;
