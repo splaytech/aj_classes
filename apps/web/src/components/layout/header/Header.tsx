@@ -61,10 +61,21 @@ export function Header() {
           >
             <ul className={styles.links}>
               {NAV.links.map((link) => (
-                <li key={link.sectionId}>
+                <li key={link.sectionId} className={link.subLinks ? styles.hasSubLinks : undefined}>
                   <a href={sectionLink(link.sectionId)} onClick={closeMenu}>
                     {link.label}
                   </a>
+                  {link.subLinks && (
+                    <ul className={styles.subLinks}>
+                      {link.subLinks.map((subLink) => (
+                        <li key={subLink.href}>
+                          <a href={subLink.href} onClick={closeMenu}>
+                            {subLink.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </li>
               ))}
             </ul>

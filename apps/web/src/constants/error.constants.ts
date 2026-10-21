@@ -8,10 +8,7 @@ export const VALIDATION = {
   nameLength: `Your name should be ${FORM_LIMITS.nameMin}–${FORM_LIMITS.nameMax} characters.`,
   emailRequired: 'Please enter your email address.',
   emailInvalid: 'Please enter a valid email address, like name@example.com.',
-  phoneRequiredForCall: 'Please enter a phone number so we can call you, or choose email instead.',
   phoneInvalid: 'Please enter a valid Australian phone number.',
-  contactMethodRequired: 'Please choose how we should contact you.',
-  messageRequired: 'Please add a short message so we know how to help.',
   messageTooLong: `Please keep your message under ${FORM_LIMITS.messageMax} characters.`,
 } as const;
 

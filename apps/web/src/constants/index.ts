@@ -5,5 +5,6 @@ export * from './app.constants';
 export * from './business.constants';
 export * from './content.constants';
 export * from './error.constants';
+export * from './programmes.constants';
 export * from './routes.constants';
 export * from './seo.constants';

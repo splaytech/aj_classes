@@ -46,19 +46,6 @@ export const FORM_LIMITS = {
   messageMax: 2000,
 } as const;
 
-// Year levels offered in the enquiry form (Year 2 – Year 12). A "University / graduate" option
-// for UCAT and GAMSAT is added by the form itself (label in content.constants.ts).
-export const YEAR_LEVELS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
-
-// Option keys for form dropdowns and radios. Their labels live in content.constants.ts.
-export const ENQUIRY_TYPES = ['registerInterest', 'generalQuestion', 'other'] as const;
-export const ENQUIRER_ROLES = ['parent', 'student', 'other'] as const;
-export const CONTACT_METHODS = ['phone', 'email'] as const;
-
-export type EnquiryType = (typeof ENQUIRY_TYPES)[number];
-export type EnquirerRole = (typeof ENQUIRER_ROLES)[number];
-export type ContactMethod = (typeof CONTACT_METHODS)[number];
-
 // Static files in /public.
 export const ASSETS = {
   logo: '/logo.svg',

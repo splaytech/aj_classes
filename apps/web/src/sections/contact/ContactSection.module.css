@@ -1,4 +1,5 @@
-/* Form on the left, contact details card on the right (stacked on phones). */
+/* Form on the left, contact details card on the right (stacked on phones). The details card
+   stays in view while the form scrolls on wide screens. */
 .layout {
   display: grid;
   gap: var(--space-8);
@@ -8,6 +9,11 @@
 
 @media (min-width: 900px) {
   .layout {
-    grid-template-columns: minmax(0, 40rem) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
+  }
+
+  .layout > :last-child {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-6));
   }
 }

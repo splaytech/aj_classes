@@ -2,10 +2,10 @@
 // To change any wording, edit it here. Components never contain text of their own.
 // A section with empty content is hidden automatically.
 
-import type { ContactMethod, EnquirerRole, EnquiryType } from './app.constants';
 import { BUSINESS } from './business.constants';
 import type { SocialPlatform } from './business.constants';
-import { ROUTES, SECTION_IDS } from './routes.constants';
+import { PROGRAMMES } from './programmes.constants';
+import { SECTION_IDS, programmePath } from './routes.constants';
 
 export const TAGLINE = 'Every student can rise.';
 
@@ -27,9 +27,18 @@ export const A11Y = {
 // Where classes run. Shown in the footer and the contact details card.
 const LOCATION = `${BUSINESS.suburbsText} VIC · Online across Australia`;
 
+// Header links. A link can have sub-links (shown as a small dropdown on desktop, indented in
+// the phone menu).
 export const NAV = {
   links: [
-    { label: 'Programmes', sectionId: SECTION_IDS.programmes },
+    {
+      label: 'Programmes',
+      sectionId: SECTION_IDS.programmes,
+      subLinks: PROGRAMMES.items.map((programme) => ({
+        label: programme.menuLabel,
+        href: programmePath(programme.slug),
+      })),
+    },
     { label: 'Our Approach', sectionId: SECTION_IDS.approach },
     { label: 'About', sectionId: SECTION_IDS.about },
     { label: 'FAQ', sectionId: SECTION_IDS.faq },
@@ -109,133 +118,6 @@ export const RESULTS = {
   note: 'Our students also exceeded expectations in NAPLAN and improved significantly in ICAS.',
 };
 
-// VCE subjects we teach, by their official VCAA names (checked 21 Oct 2026, vce-page.md §1).
-// Used by the Programmes card on the home page and by the VCE page.
-export const VCE_SUBJECTS = [
-  {
-    name: 'Chemistry',
-    area: 'Science',
-    summary:
-      'From atomic structure, bonding and reactions to the design of chemical processes and carbon-based compounds, with strong practical and data-analysis skills.',
-  },
-  {
-    name: 'General Mathematics',
-    area: 'Mathematics',
-    summary:
-      'Data analysis, recursion and financial modelling, matrices, and networks and decision mathematics, applied to real-world problems.',
-  },
-  {
-    name: 'Mathematical Methods',
-    area: 'Mathematics',
-    summary:
-      'Functions, algebra, calculus, and probability and statistics, building the depth and fluency needed for both technology-active and technology-free exams.',
-  },
-  {
-    name: 'Psychology',
-    area: 'Science',
-    summary:
-      'How behaviour and mental processes are shaped, how we learn and remember, and how mental wellbeing is supported, with a focus on scientific research skills.',
-  },
-  {
-    name: 'Business Management',
-    area: 'Business and Economics',
-    summary:
-      'How businesses are planned, established, managed and transformed, using real case studies to apply key knowledge to new situations.',
-  },
-] as const;
-
-export const PROGRAMMES = {
-  heading: 'Programmes',
-  intro: 'Small-group classes and coaching from Year 2 through to university entry.',
-  newBadge: 'New',
-  items: [
-    {
-      title: 'Selective entry exam preparation',
-      years: 'Years 6–10',
-      points: [
-        'Reading comprehension and creative and persuasive writing',
-        'Mathematics, plus verbal and quantitative reasoning',
-        'Timed practice under exam conditions',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'Selective school and scholarship interviews',
-      years: 'Years 8–10',
-      points: [
-        'One-on-one and group mock interviews with written feedback',
-        'Coaching on common questions and help with applications',
-        "For Melbourne High School, The Mac.Robertson Girls' High School, Nossal High School, Suzanne Cory High School, John Monash Science School and private school scholarships",
-      ],
-      isNew: false,
-    },
-    {
-      title: 'SEAL and scholarship preparation',
-      years: '',
-      points: ['Preparation for SEAL program entry', 'Private school scholarship exams'],
-      isNew: false,
-    },
-    {
-      title: 'NAPLAN',
-      years: 'Years 2–9',
-      points: [
-        'Starts in Year 2, ahead of the first NAPLAN in Year 3',
-        'Continues through to Year 9',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'ICAS',
-      years: 'Years 5–10',
-      points: [
-        'Preparation for the ICAS academic competitions',
-        'Our students improved significantly in ICAS in 2026',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'Maths, Science and English tutoring',
-      years: 'Years 5–10',
-      points: [
-        'Regular term-by-term tutoring',
-        'Builds strong foundations',
-        'Keeps students ahead at school',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'VCE tutoring',
-      years: 'Years 11–12',
-      points: [
-        VCE_SUBJECTS.map((subject) => subject.name).join(', '),
-        'Units 1–4, taught by qualified teachers',
-        'SAC preparation and exam technique',
-      ],
-      isNew: false,
-      link: { href: ROUTES.vce, label: 'Learn more about VCE tutoring' },
-    },
-    {
-      title: 'VCE subject-selection counselling',
-      years: '',
-      points: [
-        'Sessions with students and parents together',
-        'Complete guidance on choosing VCE subjects',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'UCAT and GAMSAT preparation',
-      years: '',
-      points: [
-        'For medical and health-science entry tests',
-        'Enrolments are open now',
-        'Classes start in January 2027',
-      ],
-      isNew: true,
-    },
-  ],
-};
-
 export const APPROACH = {
   heading: 'Our Approach',
   paragraphs: [
@@ -301,7 +183,7 @@ export const FAQ = {
     {
       question: 'How do I enrol?',
       answer:
-        "Register your interest using the form on this page. We'll contact you by phone or email (your choice) within 3 business days to book an initial assessment, explain fees, and share term dates and the timetable. Our 2027 batch starts on 12 October 2026. Joining mid-term is considered case by case.",
+        "Register your interest using the form on this page. We'll get back to you within 3 business days to book an initial assessment, explain fees, and share term dates and the timetable. Our 2027 batch starts on 12 October 2026. Joining mid-term is considered case by case.",
     },
     {
       question: 'How much are the fees?',
@@ -316,41 +198,17 @@ export const FAQ = {
   ],
 };
 
-export const ENQUIRY_TYPE_LABELS: Record<EnquiryType, string> = {
-  registerInterest: 'Register interest for enrolment',
-  generalQuestion: 'General question',
-  other: 'Other',
-};
-
-export const ENQUIRER_ROLE_LABELS: Record<EnquirerRole, string> = {
-  parent: 'Parent',
-  student: 'Student',
-  other: 'Other',
-};
-
-export const CONTACT_METHOD_LABELS: Record<ContactMethod, string> = {
-  phone: 'Phone call',
-  email: 'Email',
-};
-
 export const CONTACT_FORM = {
   heading: 'Register your interest',
   intro:
-    "Tell us a little about your child and how you'd like us to contact you. There's no obligation.",
+    "Leave your name and email, and we'll be in touch within 3 business days. There's no obligation.",
   labels: {
     name: 'Your name',
     email: 'Email',
     phone: 'Phone',
-    contactMethod: 'How should we contact you?',
-    role: 'I am a…',
-    enquiryType: 'Enquiry type',
-    yearLevel: "Student's year level",
-    message: 'Message',
+    message: 'How can we help?',
     updatesConsent: 'Email me about AJ Classes updates and enrolment openings.',
   },
-  yearLevelPlaceholder: 'Select a year level (optional)',
-  yearLevelPrefix: 'Year',
-  yearLevelOther: 'University / graduate (UCAT, GAMSAT)',
   optional: '(optional)',
   privacyNoticeBefore: 'By submitting, you agree to our',
   privacyLinkText: 'Privacy Policy',
@@ -359,10 +217,11 @@ export const CONTACT_FORM = {
   submit: 'Register interest',
   submitting: 'Sending…',
   emailSubjectPrefix: '[AJ Classes]',
+  emailSubject: 'Website enquiry',
   yes: 'Yes',
   no: 'No',
-  success: (contactMethod: ContactMethod) =>
-    `Thank you! We've received your details and will contact you by ${contactMethod === 'phone' ? 'phone' : 'email'} within 3 business days.`,
+  successHeading: 'Message sent',
+  success: "Thank you! We've received your details and will be in touch within 3 business days.",
 };
 
 // The card beside the form. A row with no value (e.g. phone or hours still TBC) is hidden.
@@ -374,7 +233,7 @@ export const CONTACT_DETAILS = {
   location: LOCATION,
   hoursLabel: 'Class hours',
   responseLabel: 'Response time',
-  response: 'Within 3 business days, by phone or email (your choice)',
+  response: 'Within 3 business days',
 };
 
 // Navy band halfway down the page, with the same single CTA label as everywhere else (F2.2).
@@ -541,37 +400,3 @@ export const HERO_SLIDES = {
 } as const;
 
 export type HeroSlide = (typeof HERO_SLIDES.slides)[number];
-
-// The VCE tutoring page (/vce). Describes what we do and who teaches; no score or ATAR promises
-// (vce-page.md G2). Teacher wording uses only confirmed facts (G3); owner to review.
-export const VCE_PAGE = {
-  heading: 'VCE Tutoring',
-  intro:
-    'Expert, small-group VCE tutoring for Units 1–4, led by qualified teachers who know what the VCAA study designs ask of students, and how to help them deliver it.',
-  subjectsHeading: 'Subjects we teach',
-  subjectsIntro:
-    'Each subject follows the current VCAA study design, from Unit 1 through to the Unit 3 and 4 exam.',
-  unitsLabel: 'Units 1–4',
-  teachersHeading: 'Taught by qualified teachers',
-  teachersText: [
-    'Every VCE class is led by a qualified teacher. Our teachers bring more than 20 years of combined teaching experience and each holds a Working With Children Check.',
-    'They teach to the VCAA study design, explain difficult ideas clearly, and give students the precise, exam-ready language that assessors look for.',
-  ],
-  approachHeading: 'How we prepare students',
-  approachPoints: [
-    'Small groups, so every student gets real attention and feedback',
-    'Clear explanations of key knowledge and key skills, unit by unit',
-    'Preparation for School-Assessed Coursework (SACs)',
-    'Exam technique, with practice questions under timed exam conditions',
-    'Regular progress updates for parents',
-  ],
-  counsellingHeading: 'Choosing VCE subjects?',
-  counsellingText:
-    'Our VCE subject-selection counselling sessions help students and parents choose subjects together, with a clear view of pathways and prerequisites.',
-  deliveryText: `In person in ${BUSINESS.suburbsText}, or online anywhere in Australia.`,
-  cta: 'Register interest',
-  studyDesignsLink: 'Read the VCAA study designs',
-  studyDesignsUrl:
-    'https://www.vcaa.vic.edu.au/curriculum/vce-curriculum/vce-study-designs/vce-study-designs',
-  backHome: '← Back to home',
-} as const;

@@ -2,17 +2,12 @@
 // Every message comes from error.constants.ts.
 
 import { FORM_LIMITS, VALIDATION } from '@/constants';
-import type { ContactMethod } from '@/constants';
 
 export type ContactFormValues = {
   name: string;
   email: string;
-  phone: string;
-  contactMethod: ContactMethod | '';
-  role: string;
-  enquiryType: string;
-  yearLevel: string;
-  message: string;
+  phone: string; // optional
+  message: string; // optional
   updatesConsent: boolean;
 };
 
@@ -48,28 +43,23 @@ function validateEmail(email: string): string | undefined {
   return undefined;
 }
 
-function validatePhone(phone: string, contactMethod: string): string | undefined {
-  const isEmpty = phone.trim() === '';
-  if (isEmpty && contactMethod === 'phone') return VALIDATION.phoneRequiredForCall;
-  if (!isEmpty && !isValidAustralianPhone(phone)) return VALIDATION.phoneInvalid;
-  return undefined;
+/** Optional, but if given it must look like an Australian number. */
+function validatePhone(phone: string): string | undefined {
+  if (phone.trim() === '') return undefined;
+  return isValidAustralianPhone(phone) ? undefined : VALIDATION.phoneInvalid;
 }
 
-function validateMessage(message: string, enquiryType: string): string | undefined {
-  // A message is optional when registering interest, required for questions.
-  const isRequired = enquiryType !== 'registerInterest';
-  if (isRequired && message.trim() === '') return VALIDATION.messageRequired;
-  if (message.length > FORM_LIMITS.messageMax) return VALIDATION.messageTooLong;
-  return undefined;
+/** Optional, up to the maximum length. */
+function validateMessage(message: string): string | undefined {
+  return message.length > FORM_LIMITS.messageMax ? VALIDATION.messageTooLong : undefined;
 }
 
 export function validateContactForm(values: ContactFormValues): ContactFormErrors {
   const errors: ContactFormErrors = {
     name: validateName(values.name),
     email: validateEmail(values.email),
-    phone: validatePhone(values.phone, values.contactMethod),
-    contactMethod: values.contactMethod === '' ? VALIDATION.contactMethodRequired : undefined,
-    message: validateMessage(values.message, values.enquiryType),
+    phone: validatePhone(values.phone),
+    message: validateMessage(values.message),
   };
 
   return removeEmptyErrors(errors);

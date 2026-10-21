@@ -6,10 +6,6 @@ const values: ContactFormValues = {
   name: 'Priya Sharma',
   email: ' priya@example.com ',
   phone: '',
-  contactMethod: 'email',
-  role: 'parent',
-  enquiryType: 'registerInterest',
-  yearLevel: 'Year 6',
   message: '',
   updatesConsent: false,
 };
@@ -53,7 +49,7 @@ describe('submitEnquiry', () => {
 
     const body = sentBody(fetchMock);
     expect(body.access_key).toBe('test-key');
-    expect(body.subject).toBe('[AJ Classes] Register interest for enrolment — Priya Sharma');
+    expect(body.subject).toBe('[AJ Classes] Website enquiry — Priya Sharma');
     expect(body.from_name).toBe('AJ Classes Website');
   });
 

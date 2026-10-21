@@ -73,7 +73,8 @@ This is the site we need to beat for **usability and readability**. Reviewed 24 
 | F2 | Landing page (single page) | Header, Hero, Why AJ Classes, Our Approach, About / Our Team, FAQ, Register Interest / Contact, Footer (Subscribe + Follow us) |
 | F3 | Register Interest / Contact form + Subscribe | Both sent to the owner's email through a hosted form service. No backend code |
 | F4 | Privacy page | Short privacy notice, needed because the form collects names and emails. Includes an "Accuracy of information" disclaimer (added Oct 2026), shown in short form in the footer |
-| F7 | VCE tutoring page *(added 21 Oct 2026)* | `/vce`: Chemistry, General Mathematics, Mathematical Methods, Psychology and Business Management (official VCAA names), qualified teachers, how we prepare students; linked from a Programmes card. Design: [vce-page.md](vce-page.md) |
+| F4a | VCE tutoring page *(added 21 Oct 2026)* | `/programmes/vce`: Chemistry, General Mathematics, Mathematical Methods, Psychology and Business Management (official VCAA names), qualified teachers, how we prepare students; linked from a Programmes card. Design: [vce-page.md](vce-page.md) |
+| F4b | Programme pages *(added 21 Oct 2026)* | Every programme has its own page at `/programmes/<name>`, listed under Programmes in the menu and linked from its card; exam and pathway facts (selective entry, SEAL, NAPLAN, ICAS, UCAT, GAMSAT) sit on the matching page. Design: [programme-pages.md](programme-pages.md) |
 | F5 | Hosting & domain | GitHub → Vercel auto-deploy, custom domain, HTTPS |
 | F6 | SEO: rank #1 for "AJ Classes" in Australia | Pre-rendered HTML, full head tags, JSON-LD structured data, technical SEO, Search Console, Google Business Profile |
 | F7 | Analytics | Vercel Web Analytics + Search Console |
