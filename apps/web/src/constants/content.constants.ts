@@ -384,6 +384,9 @@ export const FOOTER = {
   location: LOCATION,
   privacyLink: 'Privacy Policy',
   copyright: (year: number) => `© ${year} AJ Classes. All rights reserved.`,
+  // Short form of the "Accuracy of information" section in PRIVACY.
+  disclaimer:
+    'We check the information on this website carefully, but mistakes can happen and details can change. Please confirm anything important with us before relying on it.',
 };
 
 export const PRIVACY = {
@@ -403,6 +406,11 @@ export const PRIVACY = {
     {
       heading: 'Who handles it',
       text: "Enquiry form submissions are delivered to us by email through a form-processing service (Web3Forms). Newsletter sign-ups are managed by Kit (kit.com), our email newsletter service, which stores your email address and sends our updates. Both may process data outside Australia (including the United States). To block spam, our forms use hCaptcha, which checks that you are a person and may process your IP address and browser information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing.",
+    },
+    {
+      // Owner request (Oct 2026). Wording for the owner to review; consumer law limits what can be excluded.
+      heading: 'Accuracy of information',
+      text: 'We work hard to make sure the information on this website is accurate and up to date, including our results, programmes, class times and fees. Even so, mistakes can happen and details can change without notice. To the extent permitted by law, AJ Classes is not responsible for any loss arising from errors or omissions on this website. Please contact us to confirm details before making decisions, and let us know if you spot something that is wrong.',
     },
     {
       heading: 'How long we keep it',

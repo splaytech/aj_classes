@@ -70,6 +70,7 @@ export function Footer() {
           <span>{FOOTER.copyright(currentYear)}</span>
           <a href={ROUTES.privacy}>{FOOTER.privacyLink}</a>
         </div>
+        <p className={styles.disclaimer}>{FOOTER.disclaimer}</p>
       </Container>
     </footer>
   );
