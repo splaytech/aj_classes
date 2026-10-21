@@ -13,9 +13,14 @@ describe('ContactDetails', () => {
     expect(screen.getByText(CONTACT_DETAILS.response)).toBeInTheDocument();
   });
 
-  it('hides the phone and class hours rows while they are not confirmed', () => {
+  it('shows the phone number as a link that dials it', () => {
     render(<ContactDetails />);
-    expect(screen.queryByText(CONTACT_DETAILS.phoneLabel)).toBeNull();
+    const phone = screen.getByRole('link', { name: BUSINESS.phone ?? '' });
+    expect(phone).toHaveAttribute('href', `tel:${BUSINESS.phoneDial}`);
+  });
+
+  it('hides the class hours row while the hours are not confirmed', () => {
+    render(<ContactDetails />);
     expect(screen.queryByText(CONTACT_DETAILS.hoursLabel)).toBeNull();
   });
 });
