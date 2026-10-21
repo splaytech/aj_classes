@@ -176,8 +176,12 @@ export const PROGRAMMES = {
     },
     {
       title: 'SEAL and scholarship preparation',
-      years: '',
-      points: ['Preparation for SEAL program entry', 'Private school scholarship exams'],
+      years: 'Accelerated pathways',
+      points: [
+        'Preparation for SEAL program entry',
+        'Private school scholarship exams',
+        'Practice in the style and timing of the real tests',
+      ],
       isNew: false,
     },
     {
@@ -221,10 +225,11 @@ export const PROGRAMMES = {
     },
     {
       title: 'VCE subject-selection counselling',
-      years: '',
+      years: 'Students + parents',
       points: [
         'Sessions with students and parents together',
         'Complete guidance on choosing VCE subjects',
+        'Clear advice on pathways and prerequisites',
       ],
       isNew: false,
     },
