@@ -25,7 +25,7 @@ export const A11Y = {
 };
 
 // Where classes run. Shown in the footer and the contact details card.
-const LOCATION = 'Truganina VIC · Online across Australia';
+const LOCATION = `${BUSINESS.suburbsText} VIC · Online across Australia`;
 
 export const NAV = {
   links: [
@@ -46,8 +46,7 @@ export const ANNOUNCEMENT = {
 
 export const HERO = {
   headline: 'AJ Classes: Selective Entry Exam & Interview Coaching',
-  supporting:
-    'Small-group coaching in Maths, Science and English for Years 5–10, plus NAPLAN preparation from Year 2. In person in Truganina or online anywhere in Australia.',
+  supporting: `Small-group coaching in Maths, Science and English for Years 5–10, plus NAPLAN preparation from Year 2. In person in ${BUSINESS.suburbsText}, or online anywhere in Australia.`,
   primaryCta: 'Register Interest',
   secondaryCta: 'Ask a Question',
   proofPoints: [
@@ -220,8 +219,7 @@ export const APPROACH = {
 
 export const ABOUT = {
   heading: 'About Us',
-  story:
-    "AJ Classes started with a simple belief: every child can learn and rise, whatever their background. From our home-based classroom in Truganina, and online for families across Australia, we prepare students for Victoria's selective entry high schools, from the exam through to the interview, and support them from their first NAPLAN to choosing VCE subjects and beyond. We keep our groups small and our standards high, and we offer fee support so that more motivated students can learn with us.",
+  story: `AJ Classes started with a simple belief: every child can learn and rise, whatever their background. From our classrooms in ${BUSINESS.suburbsText}, and online for families across Australia, we prepare students for Victoria's selective entry high schools, from the exam through to the interview, and support them from their first NAPLAN to choosing VCE subjects and beyond. We keep our groups small and our standards high, and we offer fee support so that more motivated students can learn with us.`,
   teamHeading: 'Our team',
   team: 'Our qualified teachers bring more than 20 years of combined teaching experience in Maths, Science and English, and in preparing students for selective entry exams and interviews.',
   badge: 'Working With Children Check held',
@@ -247,8 +245,7 @@ export const FAQ = {
     },
     {
       question: 'Are classes online or in person?',
-      answer:
-        'Both. We run small in-person classes from our home-based centre in Truganina, and live online classes for students anywhere in Australia.',
+      answer: `Both. We run small in-person classes in ${BUSINESS.suburbsText}, and live online classes for students anywhere in Australia.`,
     },
     {
       question: 'How big are the groups?',

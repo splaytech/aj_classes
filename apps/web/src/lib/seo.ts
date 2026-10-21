@@ -64,12 +64,14 @@ export function buildHomeJsonLd(): MetaDescriptor {
     ...(BUSINESS.phone ? { telephone: BUSINESS.phone } : {}),
     address: {
       '@type': 'PostalAddress',
-      addressLocality: BUSINESS.suburb,
-      postalCode: BUSINESS.postcode,
       addressRegion: BUSINESS.state,
       addressCountry: BUSINESS.country,
     },
     areaServed: [
+      ...BUSINESS.suburbs.map((suburb) => ({
+        '@type': 'Place',
+        name: `${suburb} ${BUSINESS.state}`,
+      })),
       { '@type': 'City', name: BUSINESS.city },
       { '@type': 'Country', name: BUSINESS.countryName },
     ],

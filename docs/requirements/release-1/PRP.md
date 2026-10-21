@@ -891,7 +891,7 @@ Everything else in this PRP is decided or drafted. **The build can start now**; 
 |---|---|---|---|
 | O1 | **ABN** (or ACN) for the `.com.au` registration | Buying the domain | ~3 Oct 2026 |
 | O2 | **Buy `ajclasses.com.au`** + set up email for `hello@` (hosting or forwarding) | DNS, Search Console, Google Business Profile, form delivery | ~3 Oct 2026 |
-| O3 | **Business phone number** (also used for the WhatsApp link) | Phone display, WhatsApp icon, JSON-LD `telephone` | Content freeze |
+| O3 | **Business phone number** (also used for the WhatsApp link). **Done (Oct 2026): +61 469 800 685.** Locations also updated to Williams Landing, Truganina and Craigieburn | Phone display, WhatsApp icon, JSON-LD `telephone` | Content freeze |
 | O4 | **Social links:** Instagram, Facebook, YouTube, WhatsApp (claim handle `ajclasses` now) | Follow us icons, JSON-LD `sameAs` | Content freeze (hidden until then) |
 | O5 | **Create Google Business Profile** (service-area business, Truganina, address hidden) | Google business panel for "AJ Classes" | Start now (verification takes 5–14 days) |
 | O6 | **Review the privacy notice** (A.9) | Launch | Content freeze |
