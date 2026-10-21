@@ -13,7 +13,9 @@ export function About() {
       <div className={styles.team}>
         <h3>{ABOUT.teamHeading}</h3>
         <p>{ABOUT.team}</p>
-        <CredentialBadge>{ABOUT.badge}</CredentialBadge>
+        <CredentialBadge href={ABOUT.badgeUrl} linkLabel={ABOUT.badgeLinkLabel}>
+          {ABOUT.badge}
+        </CredentialBadge>
       </div>
     </Section>
   );

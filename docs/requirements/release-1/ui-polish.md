@@ -34,6 +34,15 @@ Step tints are mixed in CSS from `--color-primary` at 3%, 6%, 9% and 12%, so the
 Menu names (Title Case): Selective Entry Exam, Interviews, SEAL and Scholarships, NAPLAN, ICAS,
 Maths, Science and English, VCE Tutoring, VCE Subject Selection, UCAT and GAMSAT.
 
+### Follow-up (22 Oct 2026)
+
+- **Results:** the John Monash and scholarship cards looked empty. Each card now ends with a link
+  to the programme that prepares for it (bottoms line up), and those two cards get one line of
+  general context (what John Monash Science School is; how scholarships are usually awarded).
+  No new figures or claims.
+- **Badge:** links to the Victorian Government's page,
+  https://www.vic.gov.au/working-with-children-check (new tab; screen readers hear where it goes).
+
 ## 4. Stories
 
 - **U1** As a parent, I can read each 2026 result (number and what it's for) at a glance.

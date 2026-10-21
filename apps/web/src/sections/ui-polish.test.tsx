@@ -24,6 +24,16 @@ describe('2026 results', () => {
       expect(icon).toHaveAttribute('aria-hidden', 'true');
     }
   });
+
+  it('every card links to the programme that prepares for it', () => {
+    render(<Results />);
+    for (const item of RESULTS.items) {
+      expect(screen.getByRole('link', { name: item.link.label })).toHaveAttribute(
+        'href',
+        item.link.href,
+      );
+    }
+  });
 });
 
 describe('approach steps', () => {
@@ -39,9 +49,12 @@ describe('approach steps', () => {
 });
 
 describe('credential badge', () => {
-  it('shows the Working With Children Check as a badge with a tick', () => {
+  it('shows the Working With Children Check as a badge linking to the government page', () => {
     render(<About />);
-    const badge = screen.getByText(ABOUT.badge);
-    expect(badge.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    const badge = screen.getByRole('link', { name: ABOUT.badgeLinkLabel });
+    expect(badge).toHaveTextContent(ABOUT.badge);
+    expect(badge).toHaveAttribute('href', 'https://www.vic.gov.au/working-with-children-check');
+    expect(badge).toHaveAttribute('target', '_blank');
+    expect(badge).toHaveAttribute('rel', 'noopener noreferrer');
   });
 });

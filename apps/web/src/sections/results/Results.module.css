@@ -59,13 +59,21 @@
   font-weight: var(--font-weight-bold);
 }
 
+/* Below a divider: the breakdown and/or a line of context. */
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
 /* School (or year) on the left, its count on the right, one per line. */
 .breakdown {
   display: flex;
   flex-direction: column;
   margin: 0;
-  padding: var(--space-3) 0 0;
-  border-top: 1px solid var(--color-border);
+  padding: 0;
   list-style: none;
 }
 
@@ -82,6 +90,33 @@
   color: var(--color-text-emphasis);
   font-weight: var(--font-weight-bold);
   font-variant-numeric: tabular-nums;
+}
+
+.about {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* Sits at the bottom of every card, so the cards' bottoms line up. */
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.link svg {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  transition: transform var(--duration-fast);
+}
+
+.link:hover svg {
+  transform: translateX(2px);
 }
 
 /* The NAPLAN and ICAS note, as a small callout. */

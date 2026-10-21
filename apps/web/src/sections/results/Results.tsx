@@ -2,7 +2,7 @@
 // an icon, the figure, what it's for and what it's made of, so it reads at a glance
 // (ui-polish.md §3, item 1).
 
-import { TrendingUp } from 'lucide-react';
+import { ArrowRight, TrendingUp } from 'lucide-react';
 
 import { RESULT_ICONS } from '@/components/icons/site-icons';
 import { Section } from '@/components/ui';
@@ -27,16 +27,23 @@ export function Results() {
                 <span className={styles.value}>{item.value}</span>
               </div>
               <span className={styles.label}>{item.label}</span>
-              {item.breakdown.length > 0 && (
-                <ul className={styles.breakdown}>
-                  {item.breakdown.map((part) => (
-                    <li key={part.label}>
-                      <span>{part.label}</span>
-                      <span className={styles.count}>{part.value}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <div className={styles.details}>
+                {item.breakdown.length > 0 && (
+                  <ul className={styles.breakdown}>
+                    {item.breakdown.map((part) => (
+                      <li key={part.label}>
+                        <span>{part.label}</span>
+                        <span className={styles.count}>{part.value}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {item.about && <p className={styles.about}>{item.about}</p>}
+              </div>
+              <a className={styles.link} href={item.link.href}>
+                {item.link.label}
+                <ArrowRight aria-hidden="true" />
+              </a>
             </li>
           );
         })}
