@@ -60,3 +60,10 @@
   flex-wrap: wrap;
   gap: var(--space-6);
 }
+
+.disclaimer {
+  margin: var(--space-4) 0 0;
+  max-width: none;
+  font-size: var(--font-size-sm);
+  opacity: 0.85;
+}

@@ -75,6 +75,7 @@ export function Footer() {
             {APP_CONFIG.features.portal && <a href={PORTAL_ROUTES.login}>{FOOTER_PORTAL.signIn}</a>}
           </span>
         </div>
+        <p className={styles.disclaimer}>{FOOTER.disclaimer}</p>
       </Container>
     </footer>
   );

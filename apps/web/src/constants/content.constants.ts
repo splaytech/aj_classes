@@ -371,6 +371,9 @@ export const FOOTER = {
   location: LOCATION,
   privacyLink: 'Privacy Policy',
   copyright: (year: number) => `© ${year} AJ Classes. All rights reserved.`,
+  // Short form of the "Accuracy of information" section in PRIVACY.
+  disclaimer:
+    'We check the information on this website carefully, but mistakes can happen and details can change. Please confirm anything important with us before relying on it.',
 };
 
 export const PRIVACY = {
@@ -395,6 +398,11 @@ export const PRIVACY = {
       // R3b review F19: family accounts. Wording for the owner to review.
       heading: 'Student and parent portal accounts',
       text: "Portal accounts are created only by invitation from AJ Classes. For each account we keep your name, email address and sign-in times. For students we also keep their classes and timetable, their assignment answers, marks, and tutor feedback and comments. A student's account is only created after a parent or guardian agrees, in the portal or on our enrolment form. Parents linked to a student can see that student's assignments, answers once handed in, marks, progress and tutor comments; they never see other students. Portal data is stored with Supabase (database and sign-in), and our sign-in pages use Cloudflare Turnstile to check that you are a person; both may process data outside Australia. We never use portal information for marketing.",
+    },
+    {
+      // Owner request (Oct 2026). Wording for the owner to review; consumer law limits what can be excluded.
+      heading: 'Accuracy of information',
+      text: 'We work hard to make sure the information on this website is accurate and up to date, including our results, programmes, class times and fees. Even so, mistakes can happen and details can change without notice. To the extent permitted by law, AJ Classes is not responsible for any loss arising from errors or omissions on this website. Please contact us to confirm details before making decisions, and let us know if you spot something that is wrong.',
     },
     {
       heading: 'How long we keep it',
