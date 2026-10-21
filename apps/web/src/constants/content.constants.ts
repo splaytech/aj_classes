@@ -373,7 +373,7 @@ export const FOOTER = {
   copyright: (year: number) => `© ${year} AJ Classes. All rights reserved.`,
   // Short form of the "Accuracy of information" section in PRIVACY.
   disclaimer:
-    'We check the information on this website carefully, but mistakes can happen and details can change. Please confirm anything important with us before relying on it.',
+    'Every effort has been made to verify the information on this website. However, AJ Classes is not liable for any action taken based on it, to the extent permitted by law.',
 };
 
 export const PRIVACY = {
@@ -402,7 +402,7 @@ export const PRIVACY = {
     {
       // Owner request (Oct 2026). Wording for the owner to review; consumer law limits what can be excluded.
       heading: 'Accuracy of information',
-      text: 'We work hard to make sure the information on this website is accurate and up to date, including our results, programmes, class times and fees. Even so, mistakes can happen and details can change without notice. To the extent permitted by law, AJ Classes is not responsible for any loss arising from errors or omissions on this website. Please contact us to confirm details before making decisions, and let us know if you spot something that is wrong.',
+      text: 'Every effort has been made to verify the information on this website, including our results, programmes, class times and fees. However, details can change and mistakes can happen, and AJ Classes is not liable for any action taken based on this information, to the extent permitted by law. Please contact us to confirm details before making decisions, and let us know if you spot something that is wrong.',
     },
     {
       heading: 'How long we keep it',
