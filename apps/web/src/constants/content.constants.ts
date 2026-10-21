@@ -52,7 +52,7 @@ export const HERO = {
   primaryCta: 'Register Interest',
   secondaryCta: 'Ask a Question',
   proofPoints: [
-    '7 selective school offers in 2026',
+    '10 selective school offers in 2026',
     '20+ years of teaching experience',
     'Small groups, twice a week',
   ],
@@ -92,10 +92,10 @@ export const RESULTS = {
   heading: 'Our 2026 results',
   items: [
     {
-      value: '7',
+      value: '10',
       label: 'Selective high school offers for Year 9',
       detail:
-        "Melbourne High School (2) · Suzanne Cory High School (3) · The Mac.Robertson Girls' High School (1) · Nossal High School (1)",
+        "Melbourne High School (4) · Suzanne Cory High School (4) · The Mac.Robertson Girls' High School (1) · Nossal High School (1)",
     },
     {
       value: '5',
@@ -449,7 +449,7 @@ export const HERO_SLIDES = {
   slides: [
     {
       eyebrow: 'Our 2026 results',
-      title: '7 selective high school offers',
+      title: '10 selective high school offers',
       points: [
         '5 John Monash Science School offers',
         '3 private school scholarships',
