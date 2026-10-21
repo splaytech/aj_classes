@@ -42,14 +42,14 @@ describe('submitEnquiry', () => {
 
   it('sets Reply-To to the family, so replying from our inbox reaches them', async () => {
     const { submitEnquiry } = await loadService();
-    await submitEnquiry(values, 'captcha-token');
+    await submitEnquiry(values, false);
 
     expect(sentBody(fetchMock).replyto).toBe('priya@example.com');
   });
 
   it('sends the access key, subject and sender name', async () => {
     const { submitEnquiry } = await loadService();
-    await submitEnquiry(values, 'captcha-token');
+    await submitEnquiry(values, false);
 
     const body = sentBody(fetchMock);
     expect(body.access_key).toBe('test-key');
@@ -57,25 +57,25 @@ describe('submitEnquiry', () => {
     expect(body.from_name).toBe('AJ Classes Website');
   });
 
-  it('sends the hCaptcha token in the field Web3Forms expects', async () => {
+  it('sends the spam-trap field Web3Forms checks (botcheck), unticked for people', async () => {
     const { submitEnquiry } = await loadService();
-    await submitEnquiry(values, 'captcha-token');
+    await submitEnquiry(values, false);
 
-    expect(sentBody(fetchMock)['h-captcha-response']).toBe('captcha-token');
+    expect(sentBody(fetchMock).botcheck).toBe(false);
   });
 
   it('reports "error" when the form service is unreachable', async () => {
     fetchMock.mockRejectedValue(new Error('offline'));
     const { submitEnquiry } = await loadService();
 
-    expect(await submitEnquiry(values, 'captcha-token')).toBe('error');
+    expect(await submitEnquiry(values, false)).toBe('error');
   });
 
   it('reports "not-configured" when there is no access key', async () => {
     vi.stubEnv('VITE_FORM_ACCESS_KEY', '');
     const { submitEnquiry } = await loadService();
 
-    expect(await submitEnquiry(values, 'captcha-token')).toBe('not-configured');
+    expect(await submitEnquiry(values, false)).toBe('not-configured');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

@@ -22,7 +22,6 @@ export const A11Y = {
   closeMenu: 'Close menu',
   homeLink: 'AJ Classes home',
   socialLinks: 'AJ Classes on social media',
-  captcha: 'Spam protection check',
 };
 
 // Where classes run. Shown in the footer and the contact details card.
@@ -405,7 +404,7 @@ export const PRIVACY = {
     },
     {
       heading: 'Who handles it',
-      text: "Enquiry form submissions are delivered to us by email through a form-processing service (Web3Forms). Newsletter sign-ups are managed by Kit (kit.com), our email newsletter service, which stores your email address and sends our updates. Both may process data outside Australia (including the United States). To block spam, our forms use hCaptcha, which checks that you are a person and may process your IP address and browser information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing.",
+      text: "Enquiry form submissions are delivered to us by email through a form-processing service (Web3Forms). Newsletter sign-ups are managed by Kit (kit.com), our email newsletter service, which stores your email address and sends our updates. Both may process data outside Australia (including the United States). To block spam, our enquiry form uses a hidden check that doesn't collect any extra information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing.",
     },
     {
       // Owner request (Oct 2026). Wording for the owner to review; consumer law limits what can be excluded.

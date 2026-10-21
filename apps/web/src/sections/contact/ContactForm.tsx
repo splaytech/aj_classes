@@ -1,11 +1,10 @@
 // "Register your interest" form (PRP F3). Validates, sends to the form service,
 // and shows one of four states: idle, submitting, success or error.
 
-import type HCaptcha from '@hcaptcha/react-hcaptcha';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 
-import { Button, CaptchaField } from '@/components/ui';
+import { Button } from '@/components/ui';
 import {
   ANALYTICS_EVENTS,
   CONTACT_FORM,
@@ -20,7 +19,6 @@ import {
   FORM_LIMITS,
   ROUTES,
   SECTION_IDS,
-  VALIDATION,
   YEAR_LEVELS,
 } from '@/constants';
 import type { ContactMethod } from '@/constants';
@@ -65,22 +63,10 @@ export function ContactForm() {
   const [errors, setErrors] = useState<ContactFormErrors>({});
   const [status, setStatus] = useState<Status>('idle');
   const [submitError, setSubmitError] = useState('');
-  const [captchaToken, setCaptchaToken] = useState('');
-  const [captchaError, setCaptchaError] = useState('');
-  const captchaRef = useRef<HCaptcha>(null);
+  // Spam trap (Web3Forms "botcheck"): hidden from people, so only bots tick it.
+  const [botcheck, setBotcheck] = useState(false);
 
   usePreselectFromLink(setValues);
-
-  function handleCaptchaChange(token: string) {
-    setCaptchaToken(token);
-    if (token) setCaptchaError('');
-  }
-
-  /** A captcha token works only once, so ask for a fresh check after a failed send. */
-  function resetCaptcha() {
-    setCaptchaToken('');
-    captchaRef.current?.resetCaptcha();
-  }
 
   function updateValue(field: keyof ContactFormValues, value: string | boolean) {
     setValues({ ...values, [field]: value });
@@ -102,14 +88,9 @@ export function ContactForm() {
       return;
     }
 
-    if (!captchaToken) {
-      setCaptchaError(VALIDATION.captchaRequired);
-      return;
-    }
-
     setStatus('submitting');
     setSubmitError('');
-    const result = await submitEnquiry(values, captchaToken);
+    const result = await submitEnquiry(values, botcheck);
 
     if (result === 'success') {
       setStatus('success');
@@ -119,7 +100,6 @@ export function ContactForm() {
 
     setStatus('idle');
     setSubmitError(result === 'not-configured' ? FORM_ERRORS.notConfigured : FORM_ERRORS.network);
-    resetCaptcha();
     trackEvent(ANALYTICS_EVENTS.formSubmitError);
   }
 
@@ -286,10 +266,15 @@ export function ContactForm() {
         {CONTACT_FORM.privacyNoticeAfter}
       </p>
 
-      <CaptchaField
-        captchaRef={captchaRef}
-        onTokenChange={handleCaptchaChange}
-        error={captchaError}
+      <input
+        type="checkbox"
+        name="botcheck"
+        className={styles.trap}
+        checked={botcheck}
+        onChange={(event) => setBotcheck(event.target.checked)}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
       />
 
       {submitError && (
