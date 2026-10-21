@@ -25,11 +25,6 @@ export const APP_CONFIG = {
     endpoint: 'https://api.web3forms.com/submit',
     accessKey: env.VITE_FORM_ACCESS_KEY || '',
     senderName: 'AJ Classes Website', // shown as the "From" name on notification emails
-
-    // hCaptcha "I am human" check (turned on in the Web3Forms dashboard). This is Web3Forms'
-    // shared public sitekey: https://docs.web3forms.com/getting-started/customizations/spam-protection/hcaptcha
-    captchaSiteKey: '50b2fe65-b00b-4b9e-ad62-3ba471098be2',
-    captchaLanguage: 'en',
   },
 
   // Newsletter sign-ups go to Kit, which emails a confirmation link (double opt-in).

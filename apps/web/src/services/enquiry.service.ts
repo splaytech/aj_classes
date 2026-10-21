@@ -13,12 +13,12 @@ import { sendToWeb3Forms } from './web3forms.client';
 
 export async function submitEnquiry(
   values: ContactFormValues,
-  captchaToken: string,
+  botcheck: boolean,
 ): Promise<SubmitResult> {
   return sendToWeb3Forms({
     subject: buildEmailSubject(values),
     replyTo: values.email.trim(),
-    captchaToken,
+    botcheck,
     fields: buildEmailFields(values),
   });
 }

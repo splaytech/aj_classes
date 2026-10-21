@@ -8,7 +8,8 @@ import type { SubmitResult } from './types';
 type Web3FormsMessage = {
   subject: string;
   replyTo: string; // the family's email, so pressing "Reply" in our inbox answers them
-  captchaToken: string; // proof the hCaptcha "I am human" check was passed
+  /** The hidden spam-trap field: people never see it, so only bots tick it. Web3Forms drops those. */
+  botcheck: boolean;
   fields: Record<string, string>;
 };
 
@@ -23,7 +24,7 @@ export async function sendToWeb3Forms(message: Web3FormsMessage): Promise<Submit
     subject: message.subject,
     from_name: APP_CONFIG.form.senderName,
     replyto: message.replyTo,
-    'h-captcha-response': message.captchaToken,
+    botcheck: message.botcheck,
     ...message.fields,
   };
 

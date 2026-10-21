@@ -89,3 +89,8 @@
   color: var(--color-text-emphasis);
   font-weight: var(--font-weight-medium);
 }
+
+/* Spam trap: never shown to people (Web3Forms botcheck). */
+.trap {
+  display: none;
+}

@@ -14,9 +14,6 @@ importers:
 
   apps/web:
     dependencies:
-      '@hcaptcha/react-hcaptcha':
-        specifier: ^2.2.0
-        version: 2.2.0
       '@react-router/node':
         specifier: ^8.4.0
         version: 8.4.0(react-router@8.4.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(typescript@6.0.3)
@@ -271,9 +268,6 @@ packages:
     peerDependenciesMeta:
       '@noble/hashes':
         optional: true
-
-  '@hcaptcha/react-hcaptcha@2.2.0':
-    resolution: {integrity: sha512-/HrPgNLRrJziLrh2s+qFRO33ubBSuHn9sdNsQcP0wQElpORxlpR6wnq3X9j/bZGd+uQtYIvPl4QSU2la+Jl9Hg==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -2431,8 +2425,6 @@ snapshots:
       levn: 0.4.1
 
   '@exodus/bytes@1.16.0': {}
-
-  '@hcaptcha/react-hcaptcha@2.2.0': {}
 
   '@humanfs/core@0.19.2':
     dependencies:

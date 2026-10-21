@@ -12,7 +12,6 @@
     "start:railway": "serve --config serve.railway.json --no-clipboard --listen tcp://0.0.0.0:${PORT:-3000}"
   },
   "dependencies": {
-    "@hcaptcha/react-hcaptcha": "^2.2.0",
     "@react-router/node": "^8.4.0",
     "@vercel/analytics": "^2.0.1",
     "isbot": "^5.2.2",
