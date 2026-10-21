@@ -71,16 +71,72 @@
   color: var(--color-primary);
 }
 
-/* Sub-links (the programme pages under Programmes): indented in the phone menu. */
+/* Sub-links (the programme pages under Programmes): one row each, icon | name | chevron or tag.
+   The whole row is the link, with a soft pill on hover, focus and for the current page. */
 .subLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   margin: 0;
-  padding: 0 0 0 var(--space-4);
-  border-left: 2px solid var(--color-border);
+  padding: 0 0 0 var(--space-2);
   list-style: none;
 }
 
 .subLinks a {
+  display: grid;
+  grid-template-columns: var(--icon-size-md) 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
   font-weight: var(--font-weight-regular);
+  transition: background-color var(--duration-fast);
+}
+
+.subLinks a:hover,
+.subLinks a:focus-visible {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.subLinks a[aria-current='page'] {
+  background: var(--color-primary-selected);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.subIcon {
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+  color: var(--color-primary);
+}
+
+.chevron {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  transition:
+    opacity var(--duration-fast),
+    transform var(--duration-fast);
+}
+
+.subLinks a:hover .chevron,
+.subLinks a:focus-visible .chevron,
+.subLinks a[aria-current='page'] .chevron {
+  color: var(--color-primary);
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+/* Gold with navy text: allowed by the gold rule (F1.4). */
+.newTag {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-secondary);
+  color: var(--color-text-emphasis);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
 }
 
 /* Desktop: links sit in one row, no menu button. */
@@ -127,8 +183,8 @@
     position: absolute;
     top: 100%;
     left: calc(-1 * var(--space-4));
-    min-width: 13rem;
-    padding: var(--space-2) var(--space-4);
+    min-width: 17rem;
+    padding: var(--space-2);
     border: 0;
     border-radius: var(--radius-md);
     background: var(--color-bg);
@@ -139,7 +195,6 @@
   }
 
   .subLinks a {
-    padding: var(--space-1) 0;
     white-space: nowrap;
   }
 

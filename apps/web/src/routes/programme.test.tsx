@@ -1,5 +1,7 @@
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+
+import { renderAt } from '@/test/render';
 
 import { Header } from '@/components/layout/header/Header';
 import {
@@ -32,7 +34,7 @@ describe('programme pages', () => {
   it.each(TEMPLATE_PROGRAMMES.map((programme) => [programme.title, programme] as const))(
     '%s: one heading, how we help, enquiry link and links to the others',
     (_title, programme) => {
-      render(<ProgrammePage programme={programme} />);
+      renderAt(<ProgrammePage programme={programme} />, programmePath(programme.slug));
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(programme.title);
       expect(screen.getByRole('heading', { name: PROGRAMME_PAGE.helpHeading })).toBeInTheDocument();
       expect(programme.help.length).toBeGreaterThan(0);
@@ -48,17 +50,25 @@ describe('programme pages', () => {
 
 describe('links to programme pages', () => {
   it('every home page card links to its page', () => {
-    render(<Programmes />);
+    renderAt(<Programmes />);
     for (const programme of PROGRAMMES.items) {
       const link = screen.getByRole('link', { name: PROGRAMMES.moreLinkLabel(programme.title) });
       expect(link).toHaveAttribute('href', programmePath(programme.slug));
     }
   });
 
+  it('marks the current programme in the menu', () => {
+    renderAt(<Header />, '/programmes/naplan/');
+    expect(screen.getByRole('link', { name: 'NAPLAN' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'ICAS' })).not.toHaveAttribute('aria-current');
+  });
+
   it('the Programmes menu lists every programme page', () => {
-    render(<Header />);
+    renderAt(<Header />);
     for (const programme of PROGRAMMES.items) {
-      expect(screen.getByRole('link', { name: programme.menuLabel })).toHaveAttribute(
+      // A "New" tag follows the name (jsdom joins them without a space).
+      const name = programme.isNew ? new RegExp(`^${programme.menuLabel}`) : programme.menuLabel;
+      expect(screen.getByRole('link', { name })).toHaveAttribute(
         'href',
         programmePath(programme.slug),
       );

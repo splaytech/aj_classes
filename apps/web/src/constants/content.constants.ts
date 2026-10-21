@@ -28,15 +28,17 @@ export const A11Y = {
 const LOCATION = `${BUSINESS.suburbsText} VIC · Online across Australia`;
 
 // Header links. A link can have sub-links (shown as a small dropdown on desktop, indented in
-// the phone menu).
+// the phone menu). Programmes lists every programme page, with a "New" tag where it applies.
 export const NAV = {
   links: [
     {
       label: 'Programmes',
       sectionId: SECTION_IDS.programmes,
       subLinks: PROGRAMMES.items.map((programme) => ({
+        id: programme.slug,
         label: programme.menuLabel,
         href: programmePath(programme.slug),
+        isNew: programme.isNew,
       })),
     },
     { label: 'Our Approach', sectionId: SECTION_IDS.approach },
@@ -95,28 +97,52 @@ export const WHY_US = {
   ],
 };
 
+export type ResultId = 'selective' | 'jmss' | 'scholarships';
+
+type ResultItem = {
+  id: ResultId;
+  value: string;
+  label: string;
+  /** What the figure is made of, shown as a list (ui-polish.md §3, item 1). */
+  breakdown: readonly { label: string; value: string }[];
+};
+
 export const RESULTS = {
   heading: 'Our 2026 results',
   items: [
     {
+      id: 'selective',
       value: '10',
       label: 'Selective high school offers for Year 9',
-      detail:
-        "Melbourne High School (4) · Suzanne Cory High School (4) · The Mac.Robertson Girls' High School (1) · Nossal High School (1)",
+      breakdown: [
+        { label: 'Melbourne High School', value: '4' },
+        { label: 'Suzanne Cory High School', value: '4' },
+        { label: "The Mac.Robertson Girls' High School", value: '1' },
+        { label: 'Nossal High School', value: '1' },
+      ],
     },
     {
+      id: 'jmss',
       value: '5',
       label: 'John Monash Science School offers',
-      detail: '3 for Year 10 · 2 for Year 11',
+      breakdown: [
+        { label: 'Year 10', value: '3' },
+        { label: 'Year 11', value: '2' },
+      ],
     },
     {
+      id: 'scholarships',
       value: '3',
       label: 'Private school scholarships',
-      detail: '',
+      breakdown: [],
     },
-  ],
+  ] satisfies readonly ResultItem[],
   note: 'Our students also exceeded expectations in NAPLAN and improved significantly in ICAS.',
 };
+
+export type ApproachStepId = 'assess' | 'plan' | 'practise' | 'review';
+
+type ApproachStep = { id: ApproachStepId; name: string; text: string };
 
 export const APPROACH = {
   heading: 'Our Approach',
@@ -125,24 +151,29 @@ export const APPROACH = {
     "Selective entry isn't only about the exam. We build strong foundations in Maths, Science and English, sharpen exam technique under timed conditions, and prepare students to speak with confidence at interview.",
     "Parents are part of the journey too. We keep you informed about your child's progress and next steps.",
   ],
+  stepLabel: (step: number, total: number) => `Step ${step} of ${total}`,
   steps: [
     {
+      id: 'assess',
       name: 'Assess',
       text: 'An initial assessment shows where your child is today: their strengths, gaps and goals.',
     },
     {
+      id: 'plan',
       name: 'Plan',
       text: 'We place them in the right small group and set personalised targets for the term.',
     },
     {
+      id: 'practise',
       name: 'Practise',
       text: 'Twice-weekly classes build skills, then timed practice builds exam confidence.',
     },
     {
+      id: 'review',
       name: 'Review',
       text: 'Regular feedback and progress updates, then interview preparation when it counts.',
     },
-  ],
+  ] satisfies readonly ApproachStep[],
 };
 
 export const ABOUT = {

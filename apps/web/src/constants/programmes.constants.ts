@@ -53,12 +53,12 @@ export const PROGRAMME_SLUGS = {
   ucatAndGamsat: 'ucat-and-gamsat',
 } as const;
 
-type ProgrammeSlug = (typeof PROGRAMME_SLUGS)[keyof typeof PROGRAMME_SLUGS];
+export type ProgrammeSlug = (typeof PROGRAMME_SLUGS)[keyof typeof PROGRAMME_SLUGS];
 
 export type Programme = {
   slug: ProgrammeSlug;
   title: string;
-  /** Shorter name for the Programmes menu. */
+  /** Shorter name for the Programmes menu, in Title Case (ui-polish.md §3). */
   menuLabel: string;
   years: string;
   /** Three short points for the home page card. */
@@ -84,7 +84,7 @@ export const PROGRAMMES = {
     {
       slug: PROGRAMME_SLUGS.selectiveEntry,
       title: 'Selective entry exam preparation',
-      menuLabel: 'Selective entry exam',
+      menuLabel: 'Selective Entry Exam',
       years: 'Years 6–10',
       points: [
         'Reading comprehension and creative and persuasive writing',
@@ -153,7 +153,7 @@ export const PROGRAMMES = {
     {
       slug: PROGRAMME_SLUGS.sealAndScholarships,
       title: 'SEAL and scholarship preparation',
-      menuLabel: 'SEAL and scholarships',
+      menuLabel: 'SEAL and Scholarships',
       years: 'Accelerated pathways',
       points: [
         'Preparation for SEAL program entry',
@@ -276,7 +276,7 @@ export const PROGRAMMES = {
     {
       slug: PROGRAMME_SLUGS.vce,
       title: 'VCE tutoring',
-      menuLabel: 'VCE tutoring',
+      menuLabel: 'VCE Tutoring',
       years: 'Years 11–12',
       points: [
         VCE_SUBJECTS.map((subject) => subject.name).join(', '),
@@ -296,7 +296,7 @@ export const PROGRAMMES = {
     {
       slug: PROGRAMME_SLUGS.vceSubjectSelection,
       title: 'VCE subject-selection counselling',
-      menuLabel: 'VCE subject selection',
+      menuLabel: 'VCE Subject Selection',
       years: 'Students + parents',
       points: [
         'Sessions with students and parents together',
