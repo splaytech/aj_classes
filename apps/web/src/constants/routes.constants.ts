@@ -20,7 +20,7 @@ export const SECTION_IDS = {
   ctaBanner: 'get-started',
   faq: 'faq',
   contact: 'contact',
-  askQuestion: 'ask-a-question', // same form, with "General question" preselected
+  askQuestion: 'ask-a-question', // the enquiry form itself ("Ask a Question" scrolls to it)
 } as const;
 
 /** Builds an in-page link such as "/#contact". */

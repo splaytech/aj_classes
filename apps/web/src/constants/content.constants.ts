@@ -2,7 +2,6 @@
 // To change any wording, edit it here. Components never contain text of their own.
 // A section with empty content is hidden automatically.
 
-import type { ContactMethod, EnquirerRole, EnquiryType } from './app.constants';
 import { BUSINESS } from './business.constants';
 import type { SocialPlatform } from './business.constants';
 import { ROUTES, SECTION_IDS } from './routes.constants';
@@ -27,9 +26,15 @@ export const A11Y = {
 // Where classes run. Shown in the footer and the contact details card.
 const LOCATION = `${BUSINESS.suburbsText} VIC · Online across Australia`;
 
+// Header links. A link can have sub-links (shown as a small dropdown on desktop, indented in
+// the phone menu).
 export const NAV = {
   links: [
-    { label: 'Programmes', sectionId: SECTION_IDS.programmes },
+    {
+      label: 'Programmes',
+      sectionId: SECTION_IDS.programmes,
+      subLinks: [{ label: 'VCE', href: ROUTES.vce }],
+    },
     { label: 'Our Approach', sectionId: SECTION_IDS.approach },
     { label: 'About', sectionId: SECTION_IDS.about },
     { label: 'FAQ', sectionId: SECTION_IDS.faq },
@@ -301,7 +306,7 @@ export const FAQ = {
     {
       question: 'How do I enrol?',
       answer:
-        "Register your interest using the form on this page. We'll contact you by phone or email (your choice) within 3 business days to book an initial assessment, explain fees, and share term dates and the timetable. Our 2027 batch starts on 12 October 2026. Joining mid-term is considered case by case.",
+        "Register your interest using the form on this page. We'll get back to you within 3 business days to book an initial assessment, explain fees, and share term dates and the timetable. Our 2027 batch starts on 12 October 2026. Joining mid-term is considered case by case.",
     },
     {
       question: 'How much are the fees?',
@@ -316,41 +321,17 @@ export const FAQ = {
   ],
 };
 
-export const ENQUIRY_TYPE_LABELS: Record<EnquiryType, string> = {
-  registerInterest: 'Register interest for enrolment',
-  generalQuestion: 'General question',
-  other: 'Other',
-};
-
-export const ENQUIRER_ROLE_LABELS: Record<EnquirerRole, string> = {
-  parent: 'Parent',
-  student: 'Student',
-  other: 'Other',
-};
-
-export const CONTACT_METHOD_LABELS: Record<ContactMethod, string> = {
-  phone: 'Phone call',
-  email: 'Email',
-};
-
 export const CONTACT_FORM = {
   heading: 'Register your interest',
   intro:
-    "Tell us a little about your child and how you'd like us to contact you. There's no obligation.",
+    "Leave your name and email, and we'll be in touch within 3 business days. There's no obligation.",
   labels: {
     name: 'Your name',
     email: 'Email',
     phone: 'Phone',
-    contactMethod: 'How should we contact you?',
-    role: 'I am a…',
-    enquiryType: 'Enquiry type',
-    yearLevel: "Student's year level",
-    message: 'Message',
+    message: 'How can we help?',
     updatesConsent: 'Email me about AJ Classes updates and enrolment openings.',
   },
-  yearLevelPlaceholder: 'Select a year level (optional)',
-  yearLevelPrefix: 'Year',
-  yearLevelOther: 'University / graduate (UCAT, GAMSAT)',
   optional: '(optional)',
   privacyNoticeBefore: 'By submitting, you agree to our',
   privacyLinkText: 'Privacy Policy',
@@ -359,10 +340,11 @@ export const CONTACT_FORM = {
   submit: 'Register interest',
   submitting: 'Sending…',
   emailSubjectPrefix: '[AJ Classes]',
+  emailSubject: 'Website enquiry',
   yes: 'Yes',
   no: 'No',
-  success: (contactMethod: ContactMethod) =>
-    `Thank you! We've received your details and will contact you by ${contactMethod === 'phone' ? 'phone' : 'email'} within 3 business days.`,
+  successHeading: 'Message sent',
+  success: "Thank you! We've received your details and will be in touch within 3 business days.",
 };
 
 // The card beside the form. A row with no value (e.g. phone or hours still TBC) is hidden.
@@ -374,7 +356,7 @@ export const CONTACT_DETAILS = {
   location: LOCATION,
   hoursLabel: 'Class hours',
   responseLabel: 'Response time',
-  response: 'Within 3 business days, by phone or email (your choice)',
+  response: 'Within 3 business days',
 };
 
 // Navy band halfway down the page, with the same single CTA label as everywhere else (F2.2).
