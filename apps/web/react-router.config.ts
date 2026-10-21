@@ -10,6 +10,7 @@ export default {
   prerender: [
     ROUTES.home,
     ROUTES.privacy,
+    ROUTES.vce,
     ROUTES.subscribed,
     ROUTES.notFound,
     ROUTES.sitemap,

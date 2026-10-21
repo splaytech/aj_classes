@@ -25,6 +25,11 @@ export function Programmes() {
                 <li key={point}>{point}</li>
               ))}
             </ul>
+            {programme.link && (
+              <a className={styles.more} href={programme.link.href}>
+                {programme.link.label}
+              </a>
+            )}
           </li>
         ))}
       </ul>
