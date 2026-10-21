@@ -30,9 +30,16 @@
   --color-error: #b91c1c;
   --color-success: #15803d;
 
+  /* Staging and dev markers (environments.md). Never used on production. */
+  --color-env-staging: #f59e0b; /* amber */
+  --color-on-env-staging: #172554; /* navy on amber: well above 4.5:1 */
+  --color-env-dev: #dc2626; /* red */
+  --color-on-env-dev: #ffffff; /* white on red: 4.8:1 */
+
   /* Typography */
   --font-heading: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-size-xs: 0.75rem; /* 12px: small labels only */
   --font-size-sm: 0.9375rem; /* 15px */
   --font-size-body: 1.125rem; /* 18px */
   --font-size-lg: 1.25rem;

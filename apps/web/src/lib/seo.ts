@@ -2,7 +2,16 @@
 
 import type { MetaDescriptor } from 'react-router';
 
-import { APP_CONFIG, BUSINESS, FAQ, ROUTES, SOCIAL_PREVIEW, STRUCTURED_DATA } from '@/constants';
+import {
+  APP_CONFIG,
+  BUSINESS,
+  CURRENT_MARKER,
+  FAQ,
+  ROUTES,
+  SOCIAL_PREVIEW,
+  STRUCTURED_DATA,
+} from '@/constants';
+import type { EnvironmentMarker } from '@/constants';
 import { getVisibleSocialLinks } from './social';
 
 type PageSeo = {
@@ -15,20 +24,34 @@ export function absoluteUrl(path: string): string {
   return new URL(path, APP_CONFIG.siteUrl).toString();
 }
 
-/** Standard tags for a page: title, description, canonical URL and social previews. */
+/** Page title as shown in the tab: "[STAGING] …" or "[DEV] …" outside production. */
+export function environmentTitle(
+  title: string,
+  marker: EnvironmentMarker | null = CURRENT_MARKER,
+): string {
+  return marker ? `${marker.titlePrefix}${title}` : title;
+}
+
+/**
+ * Standard tags for a page: title, description, canonical URL and social previews.
+ * Outside production every page is also kept out of search results (environments.md G6).
+ */
 export function buildPageMeta(page: PageSeo, path: string): MetaDescriptor[] {
+  const title = environmentTitle(page.title);
   const url = absoluteUrl(path);
   const imageUrl = absoluteUrl(SOCIAL_PREVIEW.imagePath);
+  const searchTags = APP_CONFIG.isProduction ? [] : [noIndexMeta()];
 
   return [
-    { title: page.title },
+    ...searchTags,
+    { title },
     { name: 'description', content: page.description },
     { tagName: 'link', rel: 'canonical', href: url },
 
     { property: 'og:type', content: 'website' },
     { property: 'og:site_name', content: BUSINESS.name },
     { property: 'og:locale', content: APP_CONFIG.ogLocale },
-    { property: 'og:title', content: page.title },
+    { property: 'og:title', content: title },
     { property: 'og:description', content: SOCIAL_PREVIEW.shortDescription },
     { property: 'og:url', content: url },
     { property: 'og:image', content: imageUrl },
@@ -37,7 +60,7 @@ export function buildPageMeta(page: PageSeo, path: string): MetaDescriptor[] {
     { property: 'og:image:alt', content: SOCIAL_PREVIEW.imageAlt },
 
     { name: 'twitter:card', content: 'summary_large_image' },
-    { name: 'twitter:title', content: page.title },
+    { name: 'twitter:title', content: title },
     { name: 'twitter:description', content: SOCIAL_PREVIEW.shortDescription },
     { name: 'twitter:image', content: imageUrl },
   ];

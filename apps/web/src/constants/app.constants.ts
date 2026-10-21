@@ -1,13 +1,25 @@
 // Application configuration.
 // This is the ONLY file allowed to read environment variables (PRP F8.4).
 
+import { resolveAppEnvironment } from './app-environment.constants';
+
 const env = import.meta.env;
+
+const environment = resolveAppEnvironment(env.VITE_APP_ENV, env.DEV);
+const isProduction = environment === 'production';
 
 // Kit (formerly ConvertKit) form that receives newsletter sign-ups. The form ID is public and
 // safe in the browser. Until it's set, the footer sign-up form is hidden.
 const kitFormId: string = env.VITE_KIT_FORM_ID || '';
 
 export const APP_CONFIG = {
+  environment,
+  isProduction,
+  // Branch and commit of this build, shown on the staging and dev label (set in vite.config.ts).
+  build: {
+    branch: env.VITE_BUILD_BRANCH || '',
+    commit: env.VITE_BUILD_COMMIT || '',
+  },
   siteUrl: env.VITE_SITE_URL || 'https://ajclasses.com.au',
   language: 'en-AU',
   ogLocale: 'en_AU',
@@ -17,7 +29,7 @@ export const APP_CONFIG = {
   features: {
     announcement: true,
     subscribe: kitFormId !== '', // footer newsletter sign-up (needs a Kit form ID)
-    analytics: true,
+    analytics: isProduction, // staging and dev visits never count (environments.md E4)
   },
 
   // Hosted form service (Web3Forms). The access key is public by design.
