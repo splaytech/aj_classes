@@ -1,5 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+
+import { renderAt } from '@/test/render';
 
 import { VCE_PAGE } from '@/constants';
 
@@ -17,7 +19,7 @@ const OFFICIAL_NAMES = [
 
 describe('VCE page', () => {
   it('lists the five subjects by their official VCAA names', () => {
-    render(<VcePage />);
+    renderAt(<VcePage />, '/programmes/vce');
     const names = screen
       .getAllByRole('heading', { level: 3 })
       .map((heading) => heading.textContent);
@@ -25,13 +27,13 @@ describe('VCE page', () => {
   });
 
   it('has one main heading and says who teaches', () => {
-    render(<VcePage />);
+    renderAt(<VcePage />, '/programmes/vce');
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     expect(screen.getByRole('heading', { name: VCE_PAGE.teachersHeading })).toBeInTheDocument();
   });
 
   it('links to the enquiry form', () => {
-    render(<VcePage />);
+    renderAt(<VcePage />, '/programmes/vce');
     for (const link of screen.getAllByRole('link', { name: VCE_PAGE.cta })) {
       expect(link).toHaveAttribute('href', '/#contact');
     }

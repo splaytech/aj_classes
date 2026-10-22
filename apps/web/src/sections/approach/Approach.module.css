@@ -6,33 +6,76 @@
   list-style: none;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
+  .steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
   .steps {
     grid-template-columns: repeat(4, 1fr);
   }
 }
 
+/* --step (1–4) and --steps (4) are set by the component. */
 .step {
+  position: relative;
+  overflow: hidden;
   padding: var(--space-6);
+  border: 1px solid var(--color-primary-soft);
   border-radius: var(--radius-lg);
-  background: var(--color-bg);
+  /* The tint deepens 3% per step: 3%, 6%, 9%, 12%. */
+  background: color-mix(in srgb, var(--color-primary) calc(var(--step) * 3%), var(--color-bg));
   box-shadow: var(--shadow-sm);
+}
+
+/* Progress bar along the top: ¼, ½, ¾, full. */
+.step::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(100% * var(--step) / var(--steps));
+  height: 4px;
+  background: var(--color-primary);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.icon svg {
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
+}
+
+.stepLabel {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+}
+
+.step h3 {
+  margin-top: 0;
 }
 
 .step p {
   margin: 0;
   font-size: var(--font-size-sm);
-}
-
-.number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  margin-bottom: var(--space-3);
-  border-radius: var(--radius-full);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  font-weight: var(--font-weight-bold);
 }

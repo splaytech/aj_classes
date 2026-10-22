@@ -1,0 +1,35 @@
+/* The 5px strip across the top of the window. */
+.marker {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 100; /* above the sticky header (50) */
+  height: 5px;
+  background: var(--marker-color);
+  pointer-events: none;
+}
+
+/* The small label just below the header, top left. */
+.label {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  padding: var(--space-1) var(--space-2);
+  border-bottom-right-radius: var(--radius-sm);
+  background: var(--marker-color);
+  color: var(--marker-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+}
+
+.staging {
+  --marker-color: var(--color-env-staging);
+  --marker-text: var(--color-on-env-staging);
+}
+
+.development {
+  --marker-color: var(--color-env-dev);
+  --marker-text: var(--color-on-env-dev);
+}

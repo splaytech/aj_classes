@@ -26,9 +26,10 @@ export type SocialLink = {
 };
 
 // Links are TBC (PRP Appendix B, O4). A platform with no URL is not shown.
+// Facebook added 22 Oct 2026.
 export const SOCIAL_LINKS: SocialLink[] = [
   { platform: 'instagram', url: null },
-  { platform: 'facebook', url: null },
+  { platform: 'facebook', url: 'https://www.facebook.com/profile.php?id=61595519166933' },
   { platform: 'youtube', url: null },
   { platform: 'whatsapp', url: null },
 ];

@@ -4,7 +4,7 @@
 
 import { BUSINESS } from './business.constants';
 import type { SocialPlatform } from './business.constants';
-import { PROGRAMMES } from './programmes.constants';
+import { PROGRAMMES, PROGRAMME_SLUGS } from './programmes.constants';
 import { SECTION_IDS, programmePath } from './routes.constants';
 
 export const TAGLINE = 'Every student can rise.';
@@ -28,15 +28,17 @@ export const A11Y = {
 const LOCATION = `${BUSINESS.suburbsText} VIC · Online across Australia`;
 
 // Header links. A link can have sub-links (shown as a small dropdown on desktop, indented in
-// the phone menu).
+// the phone menu). Programmes lists every programme page, with a "New" tag where it applies.
 export const NAV = {
   links: [
     {
       label: 'Programmes',
       sectionId: SECTION_IDS.programmes,
       subLinks: PROGRAMMES.items.map((programme) => ({
+        id: programme.slug,
         label: programme.menuLabel,
         href: programmePath(programme.slug),
+        isNew: programme.isNew,
       })),
     },
     { label: 'Our Approach', sectionId: SECTION_IDS.approach },
@@ -95,28 +97,80 @@ export const WHY_US = {
   ],
 };
 
+export type ResultId = 'selective' | 'jmss' | 'scholarships';
+
+type ResultItem = {
+  id: ResultId;
+  value: string;
+  label: string;
+  /** What the figure is made of, shown as a list (ui-polish.md §3, item 1). */
+  breakdown: readonly { label: string; value: string }[];
+  /** One line of context, for cards with little or no breakdown (general facts only). */
+  about?: string;
+  /** Short ticked points about how we prepared these students (our own services only). */
+  highlights?: readonly string[];
+  /** The programme that prepares for it, at the bottom of the card. */
+  link: { href: string; label: string };
+};
+
 export const RESULTS = {
   heading: 'Our 2026 results',
+  /** Visible text of every card's link; screen readers hear the full `link.label`. */
+  linkText: 'How we prepare',
   items: [
     {
+      id: 'selective',
       value: '10',
       label: 'Selective high school offers for Year 9',
-      detail:
-        "Melbourne High School (4) · Suzanne Cory High School (4) · The Mac.Robertson Girls' High School (1) · Nossal High School (1)",
+      breakdown: [
+        { label: 'Melbourne High School', value: '4' },
+        { label: 'Suzanne Cory High School', value: '4' },
+        { label: "The Mac.Robertson Girls' High School", value: '1' },
+        { label: 'Nossal High School', value: '1' },
+      ],
+      link: {
+        href: programmePath(PROGRAMME_SLUGS.selectiveEntry),
+        label: 'How we prepare for the selective entry exam',
+      },
     },
     {
+      id: 'jmss',
       value: '5',
       label: 'John Monash Science School offers',
-      detail: '3 for Year 10 · 2 for Year 11',
+      breakdown: [
+        { label: 'Year 10', value: '3' },
+        { label: 'Year 11', value: '2' },
+      ],
+      about:
+        "Victoria's specialist senior secondary school for science, maths and technology, with entry from Year 10.",
+      link: {
+        href: programmePath(PROGRAMME_SLUGS.selectiveEntry),
+        label: 'How we prepare for entry exams',
+      },
     },
     {
+      id: 'scholarships',
       value: '3',
       label: 'Private school scholarships',
-      detail: '',
+      breakdown: [],
+      about:
+        "Scholarships are usually awarded after the school's own scholarship exam, often followed by an interview.",
+      highlights: [
+        'Practice in the style and timing of each school’s scholarship exam',
+        'Mock interviews with written feedback',
+      ],
+      link: {
+        href: programmePath(PROGRAMME_SLUGS.sealAndScholarships),
+        label: 'How we prepare for scholarships',
+      },
     },
-  ],
+  ] satisfies readonly ResultItem[],
   note: 'Our students also exceeded expectations in NAPLAN and improved significantly in ICAS.',
 };
+
+export type ApproachStepId = 'assess' | 'plan' | 'practise' | 'review';
+
+type ApproachStep = { id: ApproachStepId; name: string; text: string };
 
 export const APPROACH = {
   heading: 'Our Approach',
@@ -125,24 +179,29 @@ export const APPROACH = {
     "Selective entry isn't only about the exam. We build strong foundations in Maths, Science and English, sharpen exam technique under timed conditions, and prepare students to speak with confidence at interview.",
     "Parents are part of the journey too. We keep you informed about your child's progress and next steps.",
   ],
+  stepLabel: (step: number, total: number) => `Step ${step} of ${total}`,
   steps: [
     {
+      id: 'assess',
       name: 'Assess',
       text: 'An initial assessment shows where your child is today: their strengths, gaps and goals.',
     },
     {
+      id: 'plan',
       name: 'Plan',
       text: 'We place them in the right small group and set personalised targets for the term.',
     },
     {
+      id: 'practise',
       name: 'Practise',
       text: 'Twice-weekly classes build skills, then timed practice builds exam confidence.',
     },
     {
+      id: 'review',
       name: 'Review',
       text: 'Regular feedback and progress updates, then interview preparation when it counts.',
     },
-  ],
+  ] satisfies readonly ApproachStep[],
 };
 
 export const ABOUT = {
@@ -151,6 +210,10 @@ export const ABOUT = {
   teamHeading: 'Our team',
   team: 'Our qualified teachers bring more than 20 years of combined teaching experience in Maths, Science and English, and in preparing students for selective entry exams and interviews.',
   badge: 'Working With Children Check held',
+  // The badge links to the Victorian Government's WWC Check page (checked 22 Oct 2026).
+  badgeUrl: 'https://www.vic.gov.au/working-with-children-check',
+  badgeLinkLabel:
+    'Working With Children Check held: about the check on vic.gov.au (opens in a new tab)',
 };
 
 export const FAQ = {

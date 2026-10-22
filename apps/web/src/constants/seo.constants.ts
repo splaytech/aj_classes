@@ -53,4 +53,5 @@ export const STRUCTURED_DATA = {
 
 export const ROBOTS = {
   allowAll: 'User-agent: *\nAllow: /',
+  disallowAll: 'User-agent: *\nDisallow: /', // staging and dev (environments.md G6)
 } as const;

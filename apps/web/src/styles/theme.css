@@ -20,19 +20,38 @@
   /* Text */
   --color-text: #172033;
   --color-text-muted: #4b5563;
+  --color-text-slate: #334155; /* crisp dark slate for card titles: lighter than body text */
   --color-text-emphasis: #172554;
   --color-text-inverse: #f8fafc;
 
   /* Lines and states */
   --color-border: #d6deeb;
+  --color-border-soft: color-mix(
+    in srgb,
+    var(--color-border) 60%,
+    var(--color-bg)
+  ); /* card edges */
   --color-border-inverse: rgb(255 255 255 / 0.2); /* lines on the navy footer */
   --color-focus: #2563eb;
   --color-error: #b91c1c;
   --color-success: #15803d;
 
+  /* Soft tints mixed from the colours above (ui-polish.md §2) */
+  --color-primary-soft: color-mix(in srgb, var(--color-primary) 8%, var(--color-bg));
+  --color-primary-softer: color-mix(in srgb, var(--color-primary) 4%, var(--color-bg));
+  --color-primary-selected: color-mix(in srgb, var(--color-primary) 14%, var(--color-bg));
+  --color-success-soft: color-mix(in srgb, var(--color-success) 10%, var(--color-bg));
+
+  /* Staging and dev markers (environments.md). Never used on production. */
+  --color-env-staging: #f59e0b; /* amber */
+  --color-on-env-staging: #172554; /* navy on amber: well above 4.5:1 */
+  --color-env-dev: #dc2626; /* red */
+  --color-on-env-dev: #ffffff; /* white on red: 4.8:1 */
+
   /* Typography */
   --font-heading: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-size-xs: 0.75rem; /* 12px: small labels only */
   --font-size-sm: 0.9375rem; /* 15px */
   --font-size-body: 1.125rem; /* 18px */
   --font-size-lg: 1.25rem;
@@ -41,6 +60,7 @@
   --font-size-h1: clamp(2.125rem, 1.6rem + 2.4vw, 3.25rem);
   --font-weight-regular: 400;
   --font-weight-medium: 500;
+  --font-weight-semibold: 600;
   --font-weight-bold: 700;
   --line-height-tight: 1.2;
   --line-height-body: 1.6;
@@ -65,12 +85,21 @@
   --tap-target: 48px;
 
   /* Shape and depth */
+  /* Icons (Lucide outline set, ui-polish.md §1) */
+  --icon-size-sm: 1rem;
+  --icon-size-md: 1.25rem;
+  --icon-size-lg: 1.5rem;
+
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 16px;
   --radius-full: 999px;
   --shadow-sm: 0 1px 3px rgb(23 37 84 / 0.08);
   --shadow-md: 0 4px 12px rgb(23 37 84 / 0.1);
+  /* Soft, layered: a tight contact shadow plus a wide, faint one (ui-polish.md follow-up 2) */
+  --shadow-card:
+    0 1px 2px rgb(23 37 84 / 0.06), 0 4px 12px rgb(23 37 84 / 0.06),
+    0 16px 32px -12px rgb(23 37 84 / 0.12);
 
   /* Motion */
   --duration-fast: 150ms;
