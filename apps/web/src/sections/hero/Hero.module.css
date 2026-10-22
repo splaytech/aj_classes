@@ -5,13 +5,16 @@
 
 .layout {
   display: grid;
+  /* minmax(0, …) stops a column growing to fit its widest content (the slideshow is up to
+     440px), which made the whole page wider than a phone screen. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-8);
   align-items: center;
 }
 
 @media (min-width: 900px) {
   .layout {
-    grid-template-columns: 1.2fr 1fr;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   }
 }
 
