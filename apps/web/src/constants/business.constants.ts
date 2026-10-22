@@ -10,6 +10,9 @@ export const BUSINESS = {
   // WhatsApp Business chat (Release 2, whatsapp-button.md): digits only, international format.
   // Owner to confirm this is the WhatsApp Business number. null hides the button.
   whatsappNumber: '61469800685' as string | null,
+  // Zoho Invoice customer portal, where parents see and pay invoices (leads-and-crm.md §4.5).
+  // Zoho Invoice → Settings → Customer Portal → the portal URL. null hides the parent's card.
+  invoicePortalUrl: null as string | null,
   classHours: null as string | null, // TBC, e.g. 'Mon–Fri 4–8pm, Sat 9am–1pm'
 
   // Where in-person classes run (updated Oct 2026; was Truganina only).

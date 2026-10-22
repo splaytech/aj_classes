@@ -21,6 +21,7 @@ export {
   watchForSignOut,
 } from './auth.service';
 export { listActivity } from './activity.service';
+export { deleteEnquiry, listEnquiries, resyncEnquiry } from './enquiries.service';
 export {
   deleteAssignment,
   getAssignment,
@@ -105,6 +106,8 @@ export type {
   ResultStatus,
   ActivityAction,
   ActivityEntry,
+  Enquiry,
+  ResyncOutcome,
   Authenticator,
   ClassDetail,
   ClassInput,

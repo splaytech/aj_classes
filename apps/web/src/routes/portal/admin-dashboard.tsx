@@ -60,6 +60,7 @@ const SHORTCUTS = [
   { key: 'classes', to: PORTAL_ROUTES.classes },
   { key: 'students', to: PORTAL_ROUTES.adminStudents },
   { key: 'timetable', to: PORTAL_ROUTES.timetable },
+  { key: 'enquiries', to: PORTAL_ROUTES.adminEnquiries },
   { key: 'activity', to: PORTAL_ROUTES.adminActivity },
 ] as const;
 

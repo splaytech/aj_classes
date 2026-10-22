@@ -375,7 +375,7 @@ export const PRIVACY = {
     },
     {
       heading: 'Who handles it',
-      text: "Enquiry form submissions are delivered to us by email through a form-processing service (Web3Forms). Newsletter sign-ups are managed by Kit (kit.com), our email newsletter service, which stores your email address and sends our updates. Both may process data outside Australia (including the United States). To block spam, our enquiry form uses a hidden check that doesn't collect any extra information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing.",
+      text: "Enquiry form submissions are delivered to us by email through a form-processing service (Web3Forms). We also keep a copy of each enquiry in our database (Supabase) and in our customer records system (Zoho Bigin), so we can follow up; if you enrol, invoices are sent through Zoho Invoice. Newsletter sign-ups are managed by Kit (kit.com), our email newsletter service, which stores your email address and sends our updates. Both may process data outside Australia (including the United States). To block spam, our enquiry form uses a hidden check that doesn't collect any extra information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing.",
     },
     {
       // Owner request (Oct 2026). Wording for the owner to review; consumer law limits what can be excluded.
@@ -386,11 +386,6 @@ export const PRIVACY = {
       // R3b review F19: family accounts. Wording for the owner to review.
       heading: 'Student and parent portal accounts',
       text: "Portal accounts are created only by invitation from AJ Classes. For each account we keep your name, email address and sign-in times. For students we also keep their classes and timetable, their assignment answers, marks, and tutor feedback and comments. A student's account is only created after a parent or guardian agrees, in the portal or on our enrolment form. Parents linked to a student can see that student's assignments, answers once handed in, marks, progress and tutor comments; they never see other students. Portal data is stored with Supabase (database and sign-in), and our sign-in pages use Cloudflare Turnstile to check that you are a person; both may process data outside Australia. We never use portal information for marketing.",
-    },
-    {
-      // Owner request (Oct 2026). Wording for the owner to review; consumer law limits what can be excluded.
-      heading: 'Accuracy of information',
-      text: 'Every effort has been made to verify the information on this website, including our results, programmes, class times and fees. However, details can change and mistakes can happen, and AJ Classes is not liable for any action taken based on this information, to the extent permitted by law. Please contact us to confirm details before making decisions, and let us know if you spot something that is wrong.',
     },
     {
       heading: 'How long we keep it',

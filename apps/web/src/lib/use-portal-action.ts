@@ -38,5 +38,11 @@ export function usePortalAction() {
     setNotice(message);
   }
 
-  return { busy, error, notice, run, clear, announce };
+  /** Shows a problem found after an action that itself worked (e.g. Bigin still refusing). */
+  function showError(message: string) {
+    setNotice('');
+    setError(message);
+  }
+
+  return { busy, error, notice, run, clear, announce, showError };
 }

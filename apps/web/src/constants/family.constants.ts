@@ -189,6 +189,12 @@ export const STUDENT_TIMETABLE_PAGE = {
 } as const;
 
 export const PARENT_HOME = {
+  invoices: {
+    heading: 'Fees and invoices',
+    text: 'See and pay your invoices online, and download receipts, in our secure billing portal (Zoho Invoice).',
+    open: 'Open billing portal',
+    newTab: '(opens in a new tab)',
+  },
   greeting: (firstName: string) => `Hi ${firstName}`,
   intro: 'Follow your children’s work at AJ Classes.',
   empty: 'No children are linked to your account yet. Please contact AJ Classes.',

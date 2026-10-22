@@ -24,6 +24,7 @@ export const PORTAL_SEO = {
   adminStaffMember: 'Staff member',
   adminStudents: 'Students',
   adminActivity: 'Activity',
+  adminEnquiries: 'Enquiries',
   twoStepSetup: 'Set up two-step sign-in',
   tutor: 'Dashboard',
   admin: 'Admin',
@@ -293,6 +294,7 @@ export const ADMIN_DASHBOARD = {
     classes: 'Classes',
     students: 'Students',
     timetable: 'Timetable',
+    enquiries: 'Enquiries',
     activity: 'Activity',
   },
   recent: {
@@ -301,6 +303,45 @@ export const ADMIN_DASHBOARD = {
     empty: 'Nothing yet.',
     link: 'All activity',
   },
+} as const;
+
+// Admin → Enquiries (leads-and-crm.md §5).
+export const CRM_STATUSES = ['pending', 'synced', 'failed', 'off'] as const;
+export type CrmStatus = (typeof CRM_STATUSES)[number];
+
+export const CRM_STATUS_LABELS: Record<CrmStatus, string> = {
+  pending: 'Sending',
+  synced: 'In Bigin',
+  failed: 'Not sent',
+  off: 'Bigin not set up',
+};
+
+export const ENQUIRIES_PAGE = {
+  heading: 'Enquiries',
+  intro:
+    'Every enquiry from the website form, newest first, and whether it reached Zoho Bigin. Reply from your inbox or from Bigin.',
+  columns: {
+    received: 'Received',
+    from: 'From',
+    message: 'Message',
+    bigin: 'Bigin',
+    actions: '',
+  },
+  noMessage: 'No message',
+  wantsUpdates: 'Wants updates',
+  empty: 'No enquiries yet. They appear here once lead capture is switched on (go-live checklist).',
+  retry: 'Retry',
+  retrying: 'Sending…',
+  retried: 'Sent to Bigin.',
+  retryFailed: (reason: string) => `Still not sent to Bigin: ${reason}`,
+  stillOff: 'Bigin is not set up yet, so there is nothing to retry. See the go-live checklist.',
+  delete: 'Delete',
+  confirmDeleteTitle: 'Delete this enquiry?',
+  confirmDeleteText: (name: string) =>
+    `The enquiry from ${name} will be removed from the portal. It stays in your inbox and in Bigin.`,
+  deleted: 'Enquiry deleted.',
+  emailLink: (email: string) => `mailto:${email}`,
+  phoneLink: (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`,
 } as const;
 
 export const FOOTER_PORTAL = {

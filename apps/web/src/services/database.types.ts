@@ -368,6 +368,68 @@ export type Database = {
           },
         ];
       };
+      enquiries: {
+        Row: {
+          created_at: string;
+          crm_contact_id: string | null;
+          crm_deal_id: string | null;
+          crm_error: string | null;
+          crm_status: string;
+          crm_synced_at: string | null;
+          email: string;
+          id: string;
+          message: string | null;
+          name: string;
+          phone: string | null;
+          wants_updates: boolean;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          crm_contact_id?: string | null;
+          crm_deal_id?: string | null;
+          crm_error?: string | null;
+          crm_status?: string;
+          crm_synced_at?: string | null;
+          email: string;
+          id?: string;
+          message?: string | null;
+          name: string;
+          phone?: string | null;
+          wants_updates?: boolean;
+        };
+        Update: {
+          created_at?: string;
+          crm_contact_id?: string | null;
+          crm_deal_id?: string | null;
+          crm_error?: string | null;
+          crm_status?: string;
+          crm_synced_at?: string | null;
+          email?: string;
+          id?: string;
+          message?: string | null;
+          name?: string;
+          phone?: string | null;
+          wants_updates?: boolean;
+        };
+        Relationships: [];
+      };
+      enquiry_rate_limits: {
+        Row: {
+          created_at: string;
+          ip_hash: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          ip_hash: string;
+        };
+        Update: {
+          created_at?: string;
+          ip_hash?: string;
+        };
+        Relationships: [];
+      };
       enrolments: {
         Row: {
           class_id: string;

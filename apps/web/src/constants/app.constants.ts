@@ -36,6 +36,9 @@ export const APP_CONFIG = {
     portal: Boolean(
       env.VITE_SUPABASE_URL && env.VITE_SUPABASE_PUBLISHABLE_KEY && env.VITE_TURNSTILE_SITE_KEY,
     ),
+    // Enquiries also saved in Supabase and sent to Zoho Bigin (leads-and-crm.md). Switch on with
+    // VITE_LEAD_CAPTURE=on once the `leads` function is deployed.
+    leadCapture: Boolean(env.VITE_SUPABASE_URL && env.VITE_LEAD_CAPTURE === 'on'),
   },
 
   // Supabase: database and sign-in for the staff portal. Both values are public by design;
@@ -43,6 +46,7 @@ export const APP_CONFIG = {
   supabase: {
     url: env.VITE_SUPABASE_URL || '',
     publishableKey: env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
+    leadsFunctionPath: '/functions/v1/leads',
   },
 
   // Cloudflare Turnstile "I am human" check on staff sign-in and password reset.

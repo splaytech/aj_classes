@@ -2,8 +2,8 @@
 
 import Chip from '@mui/material/Chip';
 
-import { ROLE_LABELS, ACCOUNT_STATUS_LABELS } from '@/constants';
-import type { StaffRole } from '@/constants';
+import { ACCOUNT_STATUS_LABELS, CRM_STATUS_LABELS, ROLE_LABELS } from '@/constants';
+import type { CrmStatus, StaffRole } from '@/constants';
 import type { AccountStatus } from '@/lib/account-status';
 
 const ACCOUNT_STATUS_COLOURS = {
@@ -33,6 +33,25 @@ export function RoleChip({ role }: { role: StaffRole }) {
       color={role === 'admin' ? 'primary' : 'default'}
       variant={role === 'admin' ? 'filled' : 'outlined'}
       label={ROLE_LABELS[role]}
+    />
+  );
+}
+
+const CRM_STATUS_COLOURS = {
+  pending: 'info',
+  synced: 'success',
+  failed: 'warning',
+  off: 'default',
+} as const;
+
+/** Whether an enquiry reached Zoho Bigin (leads-and-crm.md §5). */
+export function CrmStatusChip({ status }: { status: CrmStatus }) {
+  return (
+    <Chip
+      size="small"
+      variant="outlined"
+      color={CRM_STATUS_COLOURS[status]}
+      label={CRM_STATUS_LABELS[status]}
     />
   );
 }

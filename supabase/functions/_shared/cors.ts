@@ -7,8 +7,12 @@ const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') ?? '')
   .map((origin) => origin.trim())
   .filter((origin) => origin !== '');
 
+export function isAllowedOrigin(origin: string | null): origin is string {
+  return origin !== null && ALLOWED_ORIGINS.includes(origin);
+}
+
 export function corsHeaders(origin: string | null): Record<string, string> {
-  if (!origin || !ALLOWED_ORIGINS.includes(origin)) return { Vary: 'Origin' };
+  if (!isAllowedOrigin(origin)) return { Vary: 'Origin' };
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',

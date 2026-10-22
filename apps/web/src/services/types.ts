@@ -3,6 +3,7 @@
 import type {
   AppRole,
   ConsentSource,
+  CrmStatus,
   FamilyStatus,
   PORTAL_ERRORS,
   QuestionKind,
@@ -88,6 +89,22 @@ export type ActivityEntry = {
   targetName: string;
   details: Record<string, unknown>;
 };
+
+/** A website enquiry, as admins see it (leads-and-crm.md §5). */
+export type Enquiry = {
+  id: string;
+  receivedAt: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  message: string | null;
+  wantsUpdates: boolean;
+  crmStatus: CrmStatus;
+  crmError: string | null;
+};
+
+/** What happened when an admin retried sending an enquiry to Bigin. */
+export type ResyncOutcome = { crmStatus: CrmStatus; crmError: string | null };
 
 export type ActivityAction =
   | 'invite_sent'

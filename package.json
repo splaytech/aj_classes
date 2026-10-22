@@ -22,7 +22,7 @@
     "db:test": "supabase test db",
     "db:status": "supabase status",
     "db:types": "supabase gen types typescript --local > apps/web/src/services/database.types.ts && prettier --write apps/web/src/services/database.types.ts",
-    "test:functions": "node supabase/scripts/test-account-admin.mjs"
+    "test:functions": "node supabase/scripts/test-account-admin.mjs && node supabase/scripts/test-leads.mjs"
   },
   "devDependencies": {
     "prettier": "^3.9.9"

@@ -11,7 +11,14 @@ import { useState } from 'react';
 import { Link as RouterLink, useLoaderData, useRevalidator } from 'react-router';
 
 import { ConfirmDialog, LoadError, PageHeader, SectionCard } from '@/components/portal';
-import { CLOCK, PARENT_HOME, PORTAL_SEO, PROGRESS_TEXT, parentChildPath } from '@/constants';
+import {
+  BUSINESS,
+  CLOCK,
+  PARENT_HOME,
+  PORTAL_SEO,
+  PROGRESS_TEXT,
+  parentChildPath,
+} from '@/constants';
 import { familyProgress } from '@/lib/family-progress';
 import { firstName, studentYearLabel } from '@/lib/labels';
 import { buildPortalMeta } from '@/lib/seo';
@@ -68,7 +75,31 @@ export default function ParentHomePage() {
           ))}
         </Stack>
       )}
+      {BUSINESS.invoicePortalUrl && <InvoicesCard url={BUSINESS.invoicePortalUrl} />}
     </>
+  );
+}
+
+/** Link to Zoho Invoice's customer portal (leads-and-crm.md §4.5); shown once it's set. */
+function InvoicesCard({ url }: { url: string }) {
+  const { invoices } = PARENT_HOME;
+  return (
+    <Stack sx={{ mt: 4 }}>
+      <SectionCard title={invoices.heading}>
+        <Stack spacing={2} sx={{ alignItems: 'flex-start' }}>
+          <Typography>{invoices.text}</Typography>
+          <Button
+            variant="outlined"
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${invoices.open} ${invoices.newTab}`}
+          >
+            {invoices.open}
+          </Button>
+        </Stack>
+      </SectionCard>
+    </Stack>
   );
 }
 

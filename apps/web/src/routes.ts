@@ -45,6 +45,7 @@ export default [
           route(PORTAL_ROUTES.adminStaff, 'routes/portal/admin-staff.tsx'),
           route(PORTAL_ROUTE_PATTERNS.staffMember, 'routes/portal/admin-staff-member.tsx'),
           route(PORTAL_ROUTES.adminActivity, 'routes/portal/admin-activity.tsx'),
+          route(PORTAL_ROUTES.adminEnquiries, 'routes/portal/admin-enquiries.tsx'),
           route(PORTAL_ROUTES.adminStudents, 'routes/portal/admin-students.tsx'),
           route(PORTAL_ROUTE_PATTERNS.adminStudent, 'routes/portal/admin-student.tsx'),
         ]),

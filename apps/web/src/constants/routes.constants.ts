@@ -32,6 +32,7 @@ export const PORTAL_ROUTES = {
   adminStaff: '/portal/admin/staff',
   adminStudents: '/portal/admin/students',
   adminActivity: '/portal/admin/activity',
+  adminEnquiries: '/portal/admin/enquiries', // website enquiries and Zoho Bigin status
   student: '/portal/student',
   studentTimetable: '/portal/student/timetable',
   parent: '/portal/parent',

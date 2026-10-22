@@ -1,79 +1,18 @@
 // End-to-end test of the account-admin edge function against the LOCAL stack (R2a design §10,
 // R3b design §5).
 // Run: pnpm db:start && pnpm test:functions
-// Uses only local seed accounts and the local-only authenticator key from supabase/seed.sql.
+// Uses only local seed accounts (helpers: local-test-helpers.mjs).
 
-import { createHmac } from 'node:crypto';
-import { execSync } from 'node:child_process';
-
-const API = 'http://127.0.0.1:55321';
-const MAILPIT = 'http://127.0.0.1:55324';
-const SITE_ORIGIN = 'http://localhost:5173';
-const LOCAL_PASSWORD = 'local-password-123'; // supabase/seed.sql, local only
-const LOCAL_ADMIN_KEY = 'LOCALDEVADMINKEYLOCALDEVADMINKEY'; // supabase/seed.sql, local only
-const CAPTCHA = { captcha_token: 'XXXX.DUMMY.TOKEN.XXXX' }; // Turnstile always-pass test secret
-
-const publishableKey = JSON.parse(
-  execSync('supabase status -o json', { encoding: 'utf8' }),
-).PUBLISHABLE_KEY;
-
-let failures = 0;
-function check(description, condition, detail = '') {
-  console.log(`${condition ? 'ok    ' : 'NOT OK'} ${description}${condition ? '' : `  ${detail}`}`);
-  if (!condition) failures += 1;
-}
-
-async function api(path, { method = 'POST', body, token, headers = {} } = {}) {
-  const response = await fetch(`${API}${path}`, {
-    method,
-    headers: {
-      apikey: publishableKey,
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...headers,
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  const text = await response.text();
-  return {
-    status: response.status,
-    headers: response.headers,
-    json: text ? JSON.parse(text) : null,
-  };
-}
-
-async function signIn(email) {
-  const { json } = await api('/auth/v1/token?grant_type=password', {
-    body: { email, password: LOCAL_PASSWORD, gotrue_meta_security: CAPTCHA },
-  });
-  return json;
-}
-
-function totp(base32Key) {
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  const bits = [...base32Key].map((c) => alphabet.indexOf(c).toString(2).padStart(5, '0')).join('');
-  const key = Buffer.from(bits.match(/.{8}/g).map((byte) => parseInt(byte, 2)));
-  const counter = Buffer.alloc(8);
-  counter.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 30000)));
-  const hash = createHmac('sha1', key).update(counter).digest();
-  const offset = hash[hash.length - 1] & 0x0f;
-  return String((hash.readUInt32BE(offset) & 0x7fffffff) % 1_000_000).padStart(6, '0');
-}
-
-async function adminTwoStepToken() {
-  const session = await signIn('admin@local.test');
-  const user = await api('/auth/v1/user', { method: 'GET', token: session.access_token });
-  const factorId = user.json.factors.find((factor) => factor.status === 'verified').id;
-  const challenge = await api(`/auth/v1/factors/${factorId}/challenge`, {
-    token: session.access_token,
-    body: {},
-  });
-  const verified = await api(`/auth/v1/factors/${factorId}/verify`, {
-    token: session.access_token,
-    body: { challenge_id: challenge.json.id, code: totp(LOCAL_ADMIN_KEY) },
-  });
-  return { aal1: session.access_token, aal2: verified.json.access_token, id: session.user.id };
-}
+import {
+  MAILPIT,
+  SITE_ORIGIN,
+  adminTwoStepToken,
+  api,
+  check,
+  finish,
+  signIn,
+  sql,
+} from './local-test-helpers.mjs';
 
 const accountAdmin = (token, body, headers) =>
   api('/functions/v1/account-admin', { token, body, headers });
@@ -82,10 +21,6 @@ const latestMail = async () =>
   (await (await fetch(`${MAILPIT}/api/v1/messages`)).json()).messages[0];
 const mailText = async (summary) =>
   (await (await fetch(`${MAILPIT}/api/v1/message/${summary.ID}`)).json()).Text;
-const sql = (query) =>
-  execSync(`docker exec supabase_db_aj_classes psql -U postgres -qtAc "${query}"`, {
-    encoding: 'utf8',
-  }).trim();
 
 // ---------------------------------------------------------------------------------------------
 console.log('account-admin edge function (local)\n');
@@ -357,5 +292,4 @@ check(
 );
 sql(`delete from public.students where id = '${studentId}'`);
 
-console.log(failures === 0 ? '\nAll checks passed.' : `\n${failures} check(s) failed.`);
-process.exit(failures === 0 ? 0 : 1);
+finish();
