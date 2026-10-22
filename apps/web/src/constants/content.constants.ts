@@ -361,7 +361,7 @@ export const PRIVACY = {
   sections: [
     {
       heading: 'What we collect',
-      text: "When you register interest, contact us or subscribe, we collect the details you give us: your name, email address, phone number (if provided), your preferred contact method, whether you are a parent or student, your child's year level and your message. We don't ask for sensitive information.",
+      text: "When you register interest, contact us or subscribe, we collect the details you give us: your name, email address, and, if you choose to give them, your phone number and message. We don't ask for sensitive information.",
     },
     {
       heading: 'Why we collect it',
