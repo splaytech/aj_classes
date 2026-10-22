@@ -187,6 +187,7 @@ export const JOIN_PAGE = {
     yearLevel: 'Year level',
     password: 'Create password',
     confirm: 'Confirm password',
+    code: 'Code from the email',
   },
   hints: {
     phone: 'So AJ Classes can reach you about your classes.',
@@ -201,6 +202,9 @@ export const JOIN_PAGE = {
   },
   submit: 'Finish setup',
   submitting: 'Setting up…',
+  codeSent:
+    "For your security, we've emailed you a code. Enter it below, then press Finish setup again.",
+  signOut: 'Not you? Sign out',
 } as const;
 
 export const ACCOUNT_PAGE = {

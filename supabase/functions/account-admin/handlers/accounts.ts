@@ -7,6 +7,7 @@ export type AccountRecord = {
   email: string;
   role: string;
   status: 'invited' | 'active';
+  is_active: boolean;
   joined_at: string | null;
   last_sign_in_at: string | null;
 };
@@ -21,7 +22,7 @@ export type StudentRecord = {
   consent_recorded_at: string | null;
 };
 
-const ACCOUNT_COLUMNS = 'id, email, role, status, joined_at, last_sign_in_at';
+const ACCOUNT_COLUMNS = 'id, email, role, status, is_active, joined_at, last_sign_in_at';
 
 /** Anyone's profile (read with the secret key), or null if there isn't one. */
 export async function findAccount(userId: string): Promise<AccountRecord | null> {

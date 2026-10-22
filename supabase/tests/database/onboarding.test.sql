@@ -89,7 +89,26 @@ select throws_ok(
   'No activation before the password is saved'
 );
 reset role;
+
+-- A password Auth stores when it creates the account (createUser may make up a random one) is not
+-- one the person chose, so it doesn't count.
+insert into auth.users (id, aud, role, email, invited_at, email_confirmed_at, encrypted_password, raw_app_meta_data)
+values ('00000000-0000-0000-0000-0000000006f2', 'authenticated', 'authenticated', 'made@test.local',
+        now(), now(), 'random-hash-from-auth', '{"account_role": "parent"}');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000006f2');
+select throws_ok(
+  $$ select public.complete_onboarding('Made Up', null, null, true) $$,
+  'password_not_set',
+  'A password stored at account creation does not count as chosen'
+);
+reset role;
+
 update auth.users set encrypted_password = 'bcrypt-hash' where id = '00000000-0000-0000-0000-0000000000f1';
+select isnt(
+  (select password_set_at from public.profiles where id = '00000000-0000-0000-0000-0000000000f1'),
+  null,
+  'Choosing a password while invited is recorded'
+);
 
 select tests.authenticate_as('00000000-0000-0000-0000-0000000000f1');
 select throws_ok(
@@ -99,6 +118,14 @@ select throws_ok(
 select throws_ok(
   $$ select public.complete_onboarding('N', '0412 345 678', null, true) $$,
   'invalid_name', 'The name must be 2–100 characters'
+);
+select throws_ok(
+  $$ select public.complete_onboarding(E'New\nTutor', '0412 345 678', null, true) $$,
+  'invalid_name', 'A name cannot contain line breaks'
+);
+select throws_ok(
+  $$ select public.complete_onboarding(E'Tutor \u202Eevil', '0412 345 678', null, true) $$,
+  'invalid_name', 'A name cannot contain text-direction overrides'
 );
 select throws_ok(
   $$ select public.complete_onboarding('New Tutor', null, null, true) $$,

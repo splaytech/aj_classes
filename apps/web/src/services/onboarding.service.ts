@@ -2,21 +2,27 @@
 //
 // Order matters:
 //   1. The person's own session saves their password. Supabase Auth hashes it; it never passes
-//      through our database functions or the secret key.
+//      through our database functions or the secret key. The database notes that they chose one.
 //   2. complete_onboarding() checks every field again on the server and only then makes the
-//      account active. It refuses an account with no password.
-// If step 2 fails after step 1, the account stays invited: signing in brings the person back to
-// the form, so nothing is left half-done.
+//      account active. It refuses an account whose person hasn't chosen a password.
+// If step 2 fails after step 1, the account stays invited and the form can simply be sent again:
+// the same password counts as already saved.
+//
+// A setup tab left open for more than a day needs an emailed code before Supabase changes the
+// password ('reauthNeeded'): the page sends the code (sendReauthCode) and calls this again with it.
 
-import { setNewPassword } from './auth.service';
+import { changePassword } from './auth.service';
 import { attempt, fail, succeed } from './result';
 import { toErrorKey } from './auth-errors';
 import { getSupabase } from './supabase.client';
 import type { OnboardingInput, Result } from './types';
 
-export async function completeOnboarding(input: OnboardingInput): Promise<Result> {
-  const saved = await setNewPassword(input.password);
-  if (!saved.ok) return saved;
+export async function completeOnboarding(
+  input: OnboardingInput,
+  emailedCode?: string,
+): Promise<Result> {
+  const saved = await changePassword(input.password, emailedCode);
+  if (!saved.ok && saved.error !== 'samePassword') return saved;
 
   return attempt(async () => {
     const supabase = await getSupabase();

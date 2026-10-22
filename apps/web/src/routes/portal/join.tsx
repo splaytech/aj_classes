@@ -10,7 +10,9 @@ import type { ClientLoaderFunctionArgs } from 'react-router';
 
 import {
   AuthCard,
+  CodeInput,
   FormAlert,
+  FormStatus,
   PasswordInput,
   PortalField,
   PortalUnavailable,
@@ -39,8 +41,9 @@ import {
 } from '@/lib/onboarding-validation';
 import type { OnboardingErrors, OnboardingValues } from '@/lib/onboarding-validation';
 import { guardPortalPage } from '@/lib/portal-guard';
+import { checkCode } from '@/lib/portal-validation';
 import { buildPortalMeta } from '@/lib/seo';
-import { completeOnboarding } from '@/services';
+import { completeOnboarding, sendReauthCode, signOut } from '@/services';
 import type { OnboardingInfo } from '@/services';
 
 const FIELD_IDS = {
@@ -50,6 +53,7 @@ const FIELD_IDS = {
   password: 'join-password',
   confirm: 'join-confirm-password',
   terms: 'join-terms',
+  code: 'join-code',
 } as const;
 
 export function meta() {
@@ -86,6 +90,10 @@ function JoinForm({ onboarding }: { onboarding: OnboardingInfo }) {
   const [errors, setErrors] = useState<OnboardingErrors>({});
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
+  // A tab left open for over a day: Supabase wants an emailed code before saving the password.
+  const [needsCode, setNeedsCode] = useState(false);
+  const [code, setCode] = useState('');
+  const [codeError, setCodeError] = useState('');
 
   function update<K extends keyof OnboardingValues>(field: K, value: OnboardingValues[K]) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -96,18 +104,35 @@ function JoinForm({ onboarding }: { onboarding: OnboardingInfo }) {
 
     const found = validateOnboarding(values, role);
     setErrors(found);
-    if (Object.keys(found).length > 0) return;
+    const badCode = needsCode ? checkCode(code) : '';
+    setCodeError(badCode);
+    if (Object.keys(found).length > 0 || badCode) return;
 
     setFormError('');
     setSaving(true);
-    const result = await completeOnboarding(toOnboardingInput(values, role));
+    const result = await completeOnboarding(
+      toOnboardingInput(values, role),
+      needsCode ? code : undefined,
+    );
 
     if (result.ok) {
       navigate(PORTAL_ROUTES.root, { replace: true });
       return;
     }
+    if (result.error === 'reauthNeeded' && !needsCode) {
+      const sent = await sendReauthCode();
+      setSaving(false);
+      if (sent.ok) setNeedsCode(true);
+      else setFormError(PORTAL_ERRORS[sent.error]);
+      return;
+    }
     setSaving(false);
     setFormError(PORTAL_ERRORS[result.error]);
+  }
+
+  async function handleSignOut() {
+    await signOut();
+    navigate(PORTAL_ROUTES.login, { replace: true });
   }
 
   return (
@@ -212,10 +237,26 @@ function JoinForm({ onboarding }: { onboarding: OnboardingInfo }) {
         )}
       </div>
 
+      {needsCode && (
+        <>
+          <FormStatus message={JOIN_PAGE.codeSent} />
+          <CodeInput
+            id={FIELD_IDS.code}
+            label={JOIN_PAGE.labels.code}
+            value={code}
+            onChange={setCode}
+            error={codeError}
+          />
+        </>
+      )}
+
       <FormAlert message={formError} />
       <Button type="submit" disabled={saving}>
         {saving ? JOIN_PAGE.submitting : JOIN_PAGE.submit}
       </Button>
+      <button type="button" className={formStyles.textButton} onClick={handleSignOut}>
+        {JOIN_PAGE.signOut}
+      </button>
     </form>
   );
 }

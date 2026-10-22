@@ -18,13 +18,17 @@ create type public.account_status as enum ('invited', 'active');
 alter table public.profiles
   add column status            public.account_status not null default 'invited',
   add column phone             text check (phone is null or phone ~ '^\+61[2-478][0-9]{8}$'),
-  add column terms_accepted_at timestamptz;
+  add column terms_accepted_at timestamptz,
+  add column password_set_at   timestamptz;
 
 comment on column public.profiles.status is
   'invited until the person completes /portal/join (complete_onboarding), then active. '
   'Deactivation is separate (is_active).';
 comment on column public.profiles.phone is
   'Staff only, collected at onboarding. Australian number stored as +61XXXXXXXXX.';
+comment on column public.profiles.password_set_at is
+  'When the person chose their own password while invited (set by a trigger on auth.users). '
+  'An account can only become active after this: a password Auth made up at creation does not count.';
 comment on column public.profiles.joined_at is
   'When the person completed onboarding (was: when they clicked the invite link).';
 
@@ -94,6 +98,31 @@ begin
   return new;
 end;
 $$;
+
+-- Records the person choosing a password while invited. Only an UPDATE counts: a hash Auth stores
+-- when it creates the account (createUser may store a random one) never does. Users change their
+-- own password only through Supabase Auth, so this marks a password they know.
+create function private.handle_auth_password_set()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  update public.profiles
+  set password_set_at = now()
+  where id = new.id
+    and status = 'invited';
+  return new;
+end;
+$$;
+
+create trigger on_auth_password_set
+  after update of encrypted_password on auth.users
+  for each row
+  when (coalesce(new.encrypted_password, '') <> ''
+        and new.encrypted_password is distinct from old.encrypted_password)
+  execute function private.handle_auth_password_set();
 
 -- ---------------------------------------------------------------------------
 -- Access: active accounts only
@@ -186,7 +215,8 @@ $$;
 --   new_year_level students: required, '2'…'12' or 'other' (not at school); anyone else: null
 --   accepts_terms  must be true
 -- The password is set first by the person's own session (supabase.auth.updateUser), which
--- Supabase Auth stores hashed; this refuses to activate an account without one.
+-- Supabase Auth stores hashed; this refuses to activate an account until they have chosen one
+-- (password_set_at, from the trigger above).
 create function public.complete_onboarding(
   new_full_name text,
   new_phone text default null,
@@ -216,8 +246,7 @@ begin
   end if;
 
   if not exists (
-    select 1 from auth.users u
-    where u.id = me and coalesce(u.encrypted_password, '') <> ''
+    select 1 from public.profiles p where p.id = me and p.password_set_at is not null
   ) then
     raise exception 'password_not_set';
   end if;
@@ -226,7 +255,10 @@ begin
     raise exception 'terms_required';
   end if;
 
-  if char_length(clean_name) not between 2 and 100 then
+  -- No control characters (newlines, tabs) and no text-direction overrides, which could make a
+  -- name display misleadingly on admin pages and in the audit log.
+  if char_length(clean_name) not between 2 and 100
+     or clean_name ~ '[[:cntrl:]\u202A-\u202E\u2066-\u2069]' then
     raise exception 'invalid_name';
   end if;
 
@@ -285,5 +317,5 @@ grant execute on function
   public.complete_onboarding(text, text, text, boolean)
 to authenticated;
 
--- status, phone and terms_accepted_at are not in the authenticated update grant, so nobody can
+-- status, phone, terms_accepted_at and password_set_at are not in the authenticated update grant, so nobody can
 -- change them directly; only complete_onboarding() writes them.
