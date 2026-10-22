@@ -124,7 +124,8 @@ export const PROGRAMMES = {
       points: [
         'One-on-one and group mock interviews with written feedback',
         'Coaching on common questions and help with applications',
-        "For Melbourne High School, The Mac.Robertson Girls' High School, Nossal High School, Suzanne Cory High School, John Monash Science School and private school scholarships",
+        // Short for the card; the page lists every school (see `help` below).
+        'For selective schools, John Monash and scholarships',
       ],
       isNew: false,
       seo: {
