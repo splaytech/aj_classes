@@ -1,6 +1,6 @@
-// leads: website enquiries → database → Zoho Bigin (leads-and-crm.md §3).
+// leads: website enquiries → database → Zoho CRM leads (leads-and-crm.md §3).
 //   submit  — the public enquiry form (no sign-in). Only the site's own pages may call it.
-//   resync  — an active admin with two-step retries Bigin for one enquiry.
+//   resync  — an active admin with two-step retries Zoho CRM for one enquiry.
 // The gateway doesn't check a token for this function (config.toml); resync checks it here.
 
 import { isAllowedOrigin, corsHeaders } from '../_shared/cors.ts';

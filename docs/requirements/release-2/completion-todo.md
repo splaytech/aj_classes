@@ -34,18 +34,19 @@
 
 - [x] T2.1 `supabase/scripts/deploy.sh`: checks, sign-ups off **before** schema, config, migrations, functions, secrets; prints what's left
 
-## 3. Leads → Zoho Bigin
+## 3. Leads → Zoho CRM (was Zoho Bigin until 23 Oct 2026)
 
 - [x] T3.1 Design note (`leads-and-crm.md`) with gap review
 - [x] T3.2 Migration: `enquiries` table (admins only), rate limit, sync status; database tests
-- [x] T3.3 Edge function `leads`: public `submit` (checks, honeypot, rate limit, save, push to Bigin) and admin `resync`; Zoho client; tests
+- [x] T3.3 Edge function `leads`: public `submit` (checks, honeypot, rate limit, save, send to Zoho) and admin `resync`; Zoho client; tests
+- [x] T3.6 Switched from Bigin to Zoho CRM Free (leads via `Leads/upsert`); columns renamed by a new migration; tests updated
 - [x] T3.4 Website: enquiry form also sends to `leads` when switched on (never blocks or changes the email)
 - [x] T3.5 Portal: Admin → Enquiries (list, Bigin status, retry); tests
 
 ## 4. Zoho Invoice
 
 - [x] T4.1 Parent home: "Fees and invoices" card linking to the Zoho Invoice customer portal (hidden until the address is set)
-- [x] T4.2 Setup guide: Bigin ↔ Zoho Invoice, payments
+- [x] T4.2 Setup guide: Zoho CRM ↔ Zoho Invoice (with a fallback if Free doesn't offer it), payments
 
 ## 5. SEO
 

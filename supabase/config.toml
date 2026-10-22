@@ -407,16 +407,15 @@ deno_version = 2
 # Local values for edge functions (not secret). Hosted: `supabase secrets set ALLOWED_ORIGINS=...`.
 [edge_runtime.secrets]
 ALLOWED_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000"
-# LOCAL ONLY: Zoho Bigin is a fake server run by `pnpm test:functions` (scripts/fake-zoho.mjs),
+# LOCAL ONLY: Zoho CRM is a fake server run by `pnpm test:functions` (scripts/fake-zoho.mjs),
 # reached from the Docker container through host.docker.internal. Without that test running,
-# local enquiries are saved with Bigin status "failed". Hosted: real values via deploy.sh.
+# local enquiries are saved with Zoho CRM status "failed". Hosted: real values via deploy.sh.
 ZOHO_ACCOUNTS_URL = "http://host.docker.internal:55398"
 ZOHO_API_URL = "http://host.docker.internal:55398"
 ZOHO_CLIENT_ID = "local-client"
 ZOHO_CLIENT_SECRET = "local-secret"
 ZOHO_REFRESH_TOKEN = "local-refresh"
-ZOHO_BIGIN_SUB_PIPELINE = "Sales Pipeline Standard"
-ZOHO_BIGIN_STAGE = "Qualification"
+ZOHO_LEAD_SOURCE = "Website"
 
 [analytics]
 enabled = true

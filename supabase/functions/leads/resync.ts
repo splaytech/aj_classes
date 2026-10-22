@@ -1,4 +1,4 @@
-// An admin retries Bigin for one enquiry (portal → Admin → Enquiries).
+// An admin retries Zoho CRM for one enquiry (portal → Admin → Enquiries).
 
 import { requireActiveAdmin } from '../_shared/auth.ts';
 import { serviceClient } from '../_shared/clients.ts';

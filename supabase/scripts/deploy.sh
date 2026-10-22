@@ -9,8 +9,9 @@
 #   SUPABASE_ACCESS_TOKEN=… SUPABASE_DB_PASSWORD=… TURNSTILE_SECRET=… RESEND_API_KEY=… \
 #     supabase/scripts/deploy.sh            # add --dry-run to print the steps only
 #
-# Optional, for Zoho Bigin (leads-and-crm.md §4): ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET,
-# ZOHO_REFRESH_TOKEN. Without them, enquiries are still saved; they just aren't sent to Bigin.
+# Optional, for Zoho CRM (leads-and-crm.md §4): ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET,
+# ZOHO_REFRESH_TOKEN, and optionally ZOHO_LEAD_SOURCE (an exact value from your Lead Source list).
+# Without them, enquiries are still saved; they just aren't sent to Zoho CRM.
 
 set -euo pipefail
 
@@ -80,12 +81,12 @@ done
 
 say "6/6 Function settings"
 secrets=("ALLOWED_ORIGINS=${SITE_ORIGINS}")
-for name in ZOHO_CLIENT_ID ZOHO_CLIENT_SECRET ZOHO_REFRESH_TOKEN; do
+for name in ZOHO_CLIENT_ID ZOHO_CLIENT_SECRET ZOHO_REFRESH_TOKEN ZOHO_LEAD_SOURCE; do
   [[ -n "${!name:-}" ]] && secrets+=("${name}=${!name}")
 done
 run supabase secrets set --project-ref "$PROJECT_REF" "${secrets[@]}"
 if [[ ${#secrets[@]} -lt 4 ]]; then
-  printf '  Zoho Bigin not configured: enquiries are saved but not sent to Bigin (leads-and-crm.md §4).\n'
+  printf '  Zoho CRM not configured: enquiries are saved but not sent to Zoho CRM (leads-and-crm.md §4).\n'
 fi
 
 cat <<'NEXT'
@@ -93,7 +94,7 @@ cat <<'NEXT'
 ✔ Supabase is set up. What's left (go-live.md):
   • Vercel → Settings → Environment Variables (Production and Preview):
       VITE_TURNSTILE_SITE_KEY = the Turnstile site key   → switches the portal on
-      VITE_LEAD_CAPTURE       = on                        → enquiries saved + sent to Bigin
+      VITE_LEAD_CAPTURE       = on                        → enquiries saved + sent to Zoho CRM
     then redeploy.
   • First admins: supabase/README.md → "First admin on a new environment" (do it twice).
   • Dashboard → Authentication → Users: should list only people you invited.

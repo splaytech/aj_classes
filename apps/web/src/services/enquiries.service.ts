@@ -1,4 +1,4 @@
-// Website enquiries for admins (leads-and-crm.md §5): list, delete, and retry sending to Bigin.
+// Website enquiries for admins (leads-and-crm.md §5): list, delete, and retry sending to Zoho CRM.
 // Reading and deleting go straight to the database (admins only, by RLS); retrying goes through
 // the leads edge function, which holds the Zoho credentials.
 

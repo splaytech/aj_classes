@@ -25,7 +25,7 @@ const leads = (body, { origin = SITE_ORIGIN, address = newAddress(), token } = {
   });
 const rowFor = (email) =>
   sql(
-    `select crm_status || '|' || coalesce(crm_contact_id,'') || '|' || coalesce(crm_deal_id,'') || '|' || coalesce(crm_error,'') from public.enquiries where email = '${email}' order by created_at desc limit 1`,
+    `select crm_status || '|' || coalesce(crm_lead_id,'') || '|' || coalesce(crm_error,'') from public.enquiries where email = '${email}' order by created_at desc limit 1`,
   );
 const countFor = (email) =>
   Number(sql(`select count(*) from public.enquiries where email = '${email}'`));
@@ -78,7 +78,7 @@ check(
   (await leads(enquiry(`ph-${run}@local.test`, { phone: 'call me' }))).status === 400,
 );
 
-// A real enquiry: saved, then sent to Bigin
+// A real enquiry: saved, then sent to Zoho CRM as a lead
 const parent = `priya-${run}@local.test`;
 const before = zoho.requests.length;
 const sent = await leads(enquiry(parent.toUpperCase()));
@@ -92,52 +92,53 @@ check(
   JSON.stringify(sent.json) === '{"ok":true,"data":{}}',
   JSON.stringify(sent.json),
 );
-const [status, contactId, dealId] = rowFor(parent).split('|');
+const [status, leadId] = rowFor(parent).split('|');
 check(
-  'Saved with Bigin status "synced", contact and pipeline ids',
-  status === 'synced' && contactId !== '' && dealId !== '',
+  'Saved with status "synced" and the Zoho lead id',
+  status === 'synced' && leadId !== '',
   rowFor(parent),
 );
-const contactCall = zoho.requests.slice(before).find((r) => r.url === '/bigin/v2/Contacts/upsert');
-const contact = contactCall?.json?.data?.[0] ?? {};
+const leadCall = zoho.requests.slice(before).find((r) => r.url === '/crm/v8/Leads/upsert');
+const lead = leadCall?.json?.data?.[0] ?? {};
 check(
-  'Bigin called with "Zoho-oauthtoken"',
-  contactCall?.headers.authorization === 'Zoho-oauthtoken fake-access-token',
+  'Zoho CRM called with "Zoho-oauthtoken"',
+  leadCall?.headers.authorization === 'Zoho-oauthtoken fake-access-token',
 );
 check(
-  'Contact: name split, e-mail lower-cased, phone in Mobile, message in Description, tag Website',
-  contact.First_Name === 'Priya Kumar' &&
-    contact.Last_Name === 'Sharma' &&
-    contact.Email === parent &&
-    contact.Mobile === '0400 123 456' &&
-    contact.Description?.startsWith('Year 7') &&
-    contact.Tag?.[0]?.name === 'Website',
-  JSON.stringify(contact),
+  'A non-Zoho api_domain from sign-in is ignored (calls stay on the configured Zoho host)',
+  leadCall !== undefined,
+);
+check(
+  'Lead: name split, Company = family name, e-mail lower-cased, phone in Mobile, message in Description, lead source',
+  lead.First_Name === 'Priya Kumar' &&
+    lead.Last_Name === 'Sharma' &&
+    lead.Company === 'Priya Kumar Sharma' &&
+    lead.Email === parent &&
+    lead.Mobile === '0400 123 456' &&
+    lead.Description?.startsWith('Year 7') &&
+    lead.Lead_Source === 'Website',
+  JSON.stringify(lead),
 );
 check(
   'Matched on Email (upsert)',
-  JSON.stringify(contactCall?.json?.duplicate_check_fields) === '["Email"]',
+  JSON.stringify(leadCall?.json?.duplicate_check_fields) === '["Email"]',
 );
-const deal =
-  zoho.requests.slice(before).find((r) => r.url === '/bigin/v2/Pipelines')?.json?.data?.[0] ?? {};
 check(
-  'Pipeline record linked to the contact, with the configured sub-pipeline and stage',
-  deal.Contact_Name?.id === contactId &&
-    deal.Sub_Pipeline === 'Sales Pipeline Standard' &&
-    deal.Stage === 'Qualification' &&
-    deal.Deal_Name === 'Website enquiry: Priya Kumar Sharma',
-  JSON.stringify(deal),
+  'One Zoho record per enquiry (no pipeline or contact calls)',
+  zoho.requests
+    .slice(before)
+    .every((r) => r.url === '/oauth/v2/token' || r.url === '/crm/v8/Leads/upsert'),
 );
 
-// Bigin fails: the enquiry is still saved, the parent still gets ok
+// Zoho CRM fails: the enquiry is still saved, the parent still gets ok
 const failing = `fails-${run}@local.test`;
-zoho.setFailContacts(true);
+zoho.setFailLeads(true);
 const failedReply = await leads(enquiry(failing, { phone: '', message: '' }));
-check('Bigin error → the parent still gets ok', failedReply.json?.ok === true);
+check('Zoho CRM error → the parent still gets ok', failedReply.json?.ok === true);
 const failedRow = rowFor(failing).split('|');
 check(
   'Saved with status "failed" and Zoho\'s reason',
-  failedRow[0] === 'failed' && failedRow[3].includes('INVALID_DATA'),
+  failedRow[0] === 'failed' && failedRow[2].includes('INVALID_DATA'),
   rowFor(failing),
 );
 check(
@@ -166,15 +167,15 @@ check(
 );
 const stillFailing = await leads({ action: 'resync', enquiryId: failedId }, { token: admin.aal2 });
 check(
-  'Retry while Bigin still fails → failed with reason',
+  'Retry while Zoho CRM still fails → failed with reason',
   stillFailing.json?.data?.crmStatus === 'failed' &&
     stillFailing.json.data.crmError.includes('INVALID_DATA'),
   JSON.stringify(stillFailing.json),
 );
-zoho.setFailContacts(false);
+zoho.setFailLeads(false);
 const retried = await leads({ action: 'resync', enquiryId: failedId }, { token: admin.aal2 });
 check(
-  'Retry after Bigin recovers → synced',
+  'Retry after Zoho CRM recovers → synced',
   retried.json?.data?.crmStatus === 'synced' && rowFor(failing).startsWith('synced|'),
   JSON.stringify(retried.json),
 );

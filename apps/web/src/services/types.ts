@@ -103,7 +103,7 @@ export type Enquiry = {
   crmError: string | null;
 };
 
-/** What happened when an admin retried sending an enquiry to Bigin. */
+/** What happened when an admin retried sending an enquiry to Zoho CRM. */
 export type ResyncOutcome = { crmStatus: CrmStatus; crmError: string | null };
 
 export type ActivityAction =

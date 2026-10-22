@@ -1,4 +1,4 @@
-// A stand-in for Zoho's Australian sign-in and Bigin APIs, for the local `leads` test only.
+// A stand-in for Zoho's Australian sign-in and Zoho CRM APIs, for the local `leads` test only.
 // The local edge runtime reaches it at host.docker.internal:55398 (supabase/config.toml).
 
 import { createServer } from 'node:http';
@@ -6,10 +6,10 @@ import { createServer } from 'node:http';
 export const FAKE_ZOHO_PORT = 55398;
 export const FAKE_ACCESS_TOKEN = 'fake-access-token';
 
-/** Starts the fake. `failContacts` makes the next contact writes fail the way Bigin reports it. */
+/** Starts the fake. `failLeads` makes lead writes fail the way Zoho CRM reports it (207). */
 export async function startFakeZoho() {
   const requests = [];
-  const state = { failContacts: false, nextId: 1 };
+  const state = { failLeads: false, nextId: 1 };
 
   const server = createServer(async (request, response) => {
     let raw = '';
@@ -42,20 +42,34 @@ export async function startFakeZoho() {
       ) {
         return send(200, { error: 'invalid_code' }); // Zoho answers this with 200
       }
-      return send(200, { access_token: FAKE_ACCESS_TOKEN, expires_in: 3600, token_type: 'Bearer' });
+      // A non-Zoho api_domain must be ignored by the function (it falls back to ZOHO_API_URL).
+      return send(200, {
+        access_token: FAKE_ACCESS_TOKEN,
+        api_domain: 'https://evil.example',
+        expires_in: 3600,
+        token_type: 'Bearer',
+      });
     }
     if (request.headers.authorization !== `Zoho-oauthtoken ${FAKE_ACCESS_TOKEN}`) {
       return send(401, { code: 'INVALID_TOKEN', status: 'error', message: 'invalid oauth token' });
     }
-    if (request.url === '/bigin/v2/Contacts/upsert' || request.url === '/bigin/v2/Pipelines') {
-      if (request.url.includes('Contacts') && state.failContacts) {
-        return send(202, {
+    if (request.url === '/crm/v8/Leads/upsert') {
+      if (state.failLeads) {
+        return send(207, {
           data: [{ code: 'INVALID_DATA', status: 'error', message: 'invalid data', details: {} }],
         });
       }
       const id = String(9000000000 + state.nextId++);
       return send(201, {
-        data: [{ code: 'SUCCESS', status: 'success', message: 'record added', details: { id } }],
+        data: [
+          {
+            code: 'SUCCESS',
+            status: 'success',
+            action: 'insert',
+            message: 'record added',
+            details: { id },
+          },
+        ],
       });
     }
     return send(404, { code: 'NOT_FOUND', status: 'error' });
@@ -64,8 +78,8 @@ export async function startFakeZoho() {
   await new Promise((resolve) => server.listen(FAKE_ZOHO_PORT, '0.0.0.0', resolve));
   return {
     requests,
-    setFailContacts: (value) => {
-      state.failContacts = value;
+    setFailLeads: (value) => {
+      state.failLeads = value;
     },
     close: () => new Promise((resolve) => server.close(resolve)),
   };

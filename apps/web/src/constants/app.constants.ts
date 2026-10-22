@@ -36,7 +36,7 @@ export const APP_CONFIG = {
     portal: Boolean(
       env.VITE_SUPABASE_URL && env.VITE_SUPABASE_PUBLISHABLE_KEY && env.VITE_TURNSTILE_SITE_KEY,
     ),
-    // Enquiries also saved in Supabase and sent to Zoho Bigin (leads-and-crm.md). Switch on with
+    // Enquiries also saved in Supabase and sent to Zoho CRM as a lead (leads-and-crm.md). Switch on with
     // VITE_LEAD_CAPTURE=on once the `leads` function is deployed.
     leadCapture: Boolean(env.VITE_SUPABASE_URL && env.VITE_LEAD_CAPTURE === 'on'),
   },

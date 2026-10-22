@@ -5,7 +5,7 @@ import { ENQUIRIES_PAGE } from '@/constants';
 import { canRetry, retryMessage } from './enquiry-actions';
 
 describe('enquiry actions', () => {
-  it('offers Retry only while Bigin has not got the enquiry', () => {
+  it('offers Retry only while Zoho CRM has not got the enquiry', () => {
     expect(canRetry('failed')).toBe(true);
     expect(canRetry('pending')).toBe(true);
     expect(canRetry('synced')).toBe(false);
@@ -24,7 +24,7 @@ describe('enquiry actions', () => {
     });
   });
 
-  it('explains when Bigin is not set up', () => {
+  it('explains when Zoho CRM is not set up', () => {
     expect(retryMessage({ crmStatus: 'off', crmError: null })).toEqual({
       error: ENQUIRIES_PAGE.stillOff,
     });

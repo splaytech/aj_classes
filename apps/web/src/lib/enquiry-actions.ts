@@ -4,7 +4,7 @@ import { ENQUIRIES_PAGE } from '@/constants';
 import type { CrmStatus } from '@/constants';
 import type { ResyncOutcome } from '@/services';
 
-/** Retry makes sense when Bigin hasn't got it yet; "off" means Bigin isn't set up at all. */
+/** Retry makes sense when Zoho CRM hasn't got it yet; "off" means it isn't set up at all. */
 export function canRetry(status: CrmStatus): boolean {
   return status === 'failed' || status === 'pending';
 }

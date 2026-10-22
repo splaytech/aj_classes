@@ -47,7 +47,7 @@ Release 1 shipped as a static site only, so these items move here:
 
 ### Completion (22 Oct 2026)
 
-Built on top of R2a and R3: lead capture to **Zoho Bigin** with an admin Enquiries page
+Built on top of R2a and R3: lead capture to **Zoho CRM** (as leads; Bigin was dropped on 23 Oct 2026 because it charges for backups) with an admin Enquiries page
 ([leads-and-crm.md](leads-and-crm.md)), parents' link to **Zoho Invoice**, a WhatsApp chat button
 ([whatsapp-button.md](whatsapp-button.md)), parent guides and course data for SEO, GitHub Actions
 CI, and a one-command Supabase setup ([go-live.md](go-live.md)). The planned `submit-lead`

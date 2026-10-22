@@ -10,7 +10,7 @@ describe('Privacy Policy content', () => {
 
   it('says where enquiries are kept and who invoices', () => {
     const text = PRIVACY.sections.map((section) => section.text).join(' ');
-    expect(text).toContain('Zoho Bigin');
+    expect(text).toContain('Zoho CRM');
     expect(text).toContain('Zoho Invoice');
   });
 });

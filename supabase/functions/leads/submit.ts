@@ -1,5 +1,5 @@
-// The website's enquiry form. Saved first, then sent to Bigin; the reply never reveals ids or
-// whether Bigin worked (the parent already saw "Message sent" from the email path).
+// The website's enquiry form. Saved first, then sent to Zoho CRM; the reply never reveals ids or
+// whether Zoho worked (the parent already saw "Message sent" from the email path).
 
 import { serviceClient } from '../_shared/clients.ts';
 import { fail, succeed } from '../_shared/responses.ts';

@@ -44,7 +44,7 @@ const CRM_STATUS_COLOURS = {
   off: 'default',
 } as const;
 
-/** Whether an enquiry reached Zoho Bigin (leads-and-crm.md §5). */
+/** Whether an enquiry reached Zoho CRM (leads-and-crm.md §5). */
 export function CrmStatusChip({ status }: { status: CrmStatus }) {
   return (
     <Chip

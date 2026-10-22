@@ -3,7 +3,7 @@
 // Components call `submitEnquiry()` and get back a simple result. They don't know
 // (or care) where the enquiry goes:
 //   Emailed to us through Web3Forms (the parent's "Message sent" depends only on this), and,
-//   when lead capture is on, also saved in Supabase and sent to Zoho Bigin (leads-and-crm.md).
+//   when lead capture is on, also saved in Supabase and sent to Zoho CRM (leads-and-crm.md).
 
 import { APP_CONFIG } from '@/constants';
 import type { ContactFormValues } from '@/lib/validation';

@@ -1,29 +1,32 @@
-# Release 2 — Leads, Zoho Bigin and Zoho Invoice
+# Release 2 — Leads, Zoho CRM and Zoho Invoice
 
-> **Status:** Built (22 Oct 2026). Owner decision: use Zoho Bigin for leads and Zoho Invoice for
-> invoices rather than building a CRM. Replaces the planned `submit-lead` function (R2 PRP,
-> "Contact form backend"). Part of [Release 2](PRP.md); todo: [completion-todo.md](completion-todo.md).
+> **Status:** Built (22 Oct 2026); moved from Zoho Bigin to **Zoho CRM Free edition** on 23 Oct 2026
+> (Bigin charges for backups even on its free plan; the owner created Zoho CRM Free and Zoho Invoice
+> accounts). Replaces the planned `submit-lead` function (R2 PRP, "Contact form backend").
+> Part of [Release 2](PRP.md); todo: [completion-todo.md](completion-todo.md).
 
 ## 1. Flow
 
 ```
 Enquiry form ──► Web3Forms ──► email to hello@ (unchanged: the parent sees "Message sent" from this)
       └────────► leads function ──► enquiries table (saved first)
-                                    └─► Zoho Bigin: contact (matched by email) + optional pipeline record
+                                    └─► Zoho CRM: a Lead (matched by email)
 ```
 
 - The email path is unchanged and stays the source of truth for the parent's "Message sent".
   The second call runs after it, in the background, and never shows an error to the parent.
-- The enquiry is saved even if Bigin is down or not set up; admins can **retry** from the portal.
+- The enquiry is saved even if Zoho is down or not set up; admins can **retry** from the portal.
 - Switched on by `VITE_LEAD_CAPTURE=on` (Vercel), after the function is deployed.
+- In Zoho CRM the owner works the lead as usual and **converts** it to a contact (and account,
+  named after the family) when the family enrols.
 
 ## 2. Database: `public.enquiries`
 
 | Column | Notes |
 |---|---|
 | `name`, `email`, `phone`, `message`, `wants_updates` | Same limits as the form (name 2–100, message ≤ 2000) |
-| `crm_status` | `pending` → `synced` / `failed` / `off` (Bigin not configured) |
-| `crm_contact_id`, `crm_deal_id`, `crm_error`, `crm_synced_at` | For the admin page and retries |
+| `crm_status` | `pending` → `synced` / `failed` / `off` (Zoho not configured) |
+| `crm_lead_id`, `crm_error`, `crm_synced_at` | For the admin page and retries (renamed from the Bigin columns) |
 
 - RLS: **admins with two-step only** can read and delete. Nobody can insert or update directly;
   only the function (secret key) writes.
@@ -34,55 +37,61 @@ Enquiry form ──► Web3Forms ──► email to hello@ (unchanged: the paren
 
 | Action | Who | What |
 |---|---|---|
-| `submit` | anyone (the website) | CORS for the site only; honeypot `botcheck` must be empty; same validation as the form; rate limit; insert; push to Bigin; returns `{ ok }` only (no ids) |
-| `resync` | active admin with two-step | Retries Bigin for one enquiry |
+| `submit` | anyone (the website) | CORS for the site only; honeypot `botcheck` must be empty; same validation as the form; rate limit; insert; send to Zoho CRM; returns `{ ok }` only (no ids) |
+| `resync` | active admin with two-step | Retries Zoho CRM for one enquiry |
 
-Bigin (Australian data centre): refresh the access token at `accounts.zoho.com.au` (cached ~55
-minutes), then `POST www.zohoapis.com.au/bigin/v2/Contacts/upsert` matched on `Email`
-(First/Last name, Email, Mobile, Description = message, tag "Website"). If
-`ZOHO_BIGIN_SUB_PIPELINE` and `ZOHO_BIGIN_STAGE` are set, also create a `Pipelines` record
-("Website enquiry: {name}") linked to the contact. Zoho reports per-record failures inside a
-202 response, so every record's `status` is checked.
+Zoho CRM API v8 (Australian accounts at `accounts.zoho.com.au`): refresh the access token
+(cached ~55 minutes) and use the `api_domain` Zoho returns (only a `https://…zohoapis…` host is
+accepted; otherwise `https://www.zohoapis.com.au`). Then
+`POST {api_domain}/crm/v8/Leads/upsert` with `duplicate_check_fields: ["Email"]` (Email is Zoho's
+own duplicate check for leads): First_Name / Last_Name (split from the name; Last_Name is the only
+required field), **Company = the family's name** (some orgs make Company mandatory, and it becomes
+the account name on conversion), Email, Mobile, Description = message, and `Lead_Source` only if
+`ZOHO_LEAD_SOURCE` is set. Zoho reports per-record results inside 2xx/207 responses, so each
+record's `status` is checked. No tags: tagging isn't in the Free edition.
 
 ## 4. Owner setup (Zoho, Australia)
 
-1. Sign up for **Bigin** and **Zoho Invoice** at the `.com.au` sites (data stays in Australia).
-2. In Bigin → Settings → Customization → Contacts → **Email** field → turn on
-   **"Do not allow duplicate values"** (needed to match repeat enquirers).
-3. **api-console.zoho.com.au → Self Client → Generate Code**: scope
-   `ZohoBigin.modules.ALL,ZohoBigin.settings.layouts.READ`, portal **Bigin**, your organisation.
-   Exchange the code for a refresh token within its time limit
-   (`POST https://accounts.zoho.com.au/oauth/v2/token` with `grant_type=authorization_code`).
-4. Set the function secrets (or pass them to `supabase/scripts/deploy.sh`):
-   `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`, `ZOHO_REFRESH_TOKEN`; optional
-   `ZOHO_BIGIN_SUB_PIPELINE` and `ZOHO_BIGIN_STAGE` (exact names from your Bigin pipeline, e.g.
-   "Sales Pipeline Standard" and "Qualification").
-5. **Zoho Invoice**: connect it to Bigin (Bigin → Marketplace → Zoho Invoice, two-way sync), add a
-   payment gateway (Stripe for cards), enable the **customer portal**, and send the portal address
-   to the developer. It goes in `BUSINESS.invoicePortalUrl`; parents then see a "Fees and invoices"
-   card on their portal home.
+1. **Zoho CRM API access** (Free edition: API included, 5,000 credits a day; one enquiry uses a
+   fraction of one): go to **api-console.zoho.com.au → Add Client → Self Client**, then
+   **Generate Code** with scope `ZohoCRM.modules.leads.ALL`, choose your CRM organisation, and
+   copy the code. Within its time limit, exchange it for a refresh token:
+   `POST https://accounts.zoho.com.au/oauth/v2/token` with `grant_type=authorization_code`,
+   `client_id`, `client_secret`, `code` (the developer can do this step with you).
+2. Optional: in Zoho CRM → Setup → Modules → Leads → Lead Source, note the exact value to use for
+   website enquiries (e.g. "Website"; add it if it's not there).
+3. Set the function secrets (or pass them to `supabase/scripts/deploy.sh`): `ZOHO_CLIENT_ID`,
+   `ZOHO_CLIENT_SECRET`, `ZOHO_REFRESH_TOKEN`, optional `ZOHO_LEAD_SOURCE`.
+4. **Zoho Invoice**: Settings → Zoho Apps → **Connect** Zoho CRM (two-way sync of accounts and
+   contacts; converted leads then appear as customers). Zoho's comparison table lists finance
+   integrations as not included in CRM Free, so if Connect isn't offered, add enrolled families as
+   customers in Zoho Invoice directly. Either way: add a payment gateway (Stripe for cards),
+   enable the **customer portal** (Settings → Customer Portal; then Enable Portal per customer),
+   and send the developer the portal address shown under "Portal Name". It goes in
+   `BUSINESS.invoicePortalUrl`; parents then see a "Fees and invoices" card on their portal home.
 
 ## 5. Portal: Admin → Enquiries
 
-Newest first: date, name, email, phone, message, Bigin status (Synced / Failed with reason /
-Not set up / Pending). **Retry** on failed or pending rows; **Delete** (with confirmation) for
-privacy requests. Admin-only, like the activity page.
+Newest first: date, name, email, phone, message, Zoho CRM status (In Zoho CRM / Not sent with
+reason / Zoho CRM not set up / Sending). **Retry** on failed or pending rows; **Delete** (with
+confirmation) for privacy requests. Admin-only, like the activity page.
 
 ## 6. Stories
 
-- **L1** As the owner, every website enquiry appears in Bigin as a contact (and pipeline record) without retyping.
-- **L2** As the owner, if Bigin is down or not set up, no enquiry is lost: I can see it in the portal and retry.
-- **L3** As a parent, sending an enquiry works exactly as before, whether or not Bigin is working.
-- **L4** As the owner, I invoice a family from Bigin/Zoho Invoice using the same contact; parents open their invoices from the portal.
+- **L1** As the owner, every website enquiry appears in Zoho CRM as a lead without retyping.
+- **L2** As the owner, if Zoho is down or not set up, no enquiry is lost: I can see it in the portal and retry.
+- **L3** As a parent, sending an enquiry works exactly as before, whether or not Zoho is working.
+- **L4** As the owner, I invoice an enrolled family in Zoho Invoice; parents open their invoices from the portal.
 
 ## 7. Gap review
 
 | # | Type | Gap | Fix |
 |---|---|---|---|
-| G1 | SEC | A public endpoint invites spam and junk leads. | Honeypot, validation, CORS, rate limit per IP (salted hash, 1 hour). Turnstile could be added later; not on the public form today (owner chose the low-friction form). |
+| G1 | SEC | A public endpoint invites spam and junk leads. | Honeypot, validation, CORS, rate limit per IP (salted hash, 1 hour). |
 | G2 | SEC | Zoho credentials must never reach the browser. | Function secrets only; the site sends no key; responses carry no ids. |
-| G3 | PRIV | Enquiries now stored in a database. | Admin-only RLS; delete for privacy requests; Privacy Policy updated (stored with Supabase in Sydney and Zoho in Australia). IPs kept only as salted hashes for 1 hour. |
-| G4 | REQ | The parent must never see a failure from Bigin. | Background call after the email succeeds; errors are only logged and shown to admins. |
-| G5 | REQ | Repeat enquirers would duplicate contacts. | Upsert on Email (owner turns on unique Email in Bigin, §4.2); the error is shown if not. |
-| G6 | OPS | Pipeline and stage names differ per account. | Optional secrets; without them only the contact is created. |
-| G7 | OPS | Zoho token limits. | Access token cached ~55 min per function instance. |
+| G3 | SEC | The API host comes from Zoho's sign-in reply. | Only `https://…zohoapis…` hosts are used; anything else falls back to the fixed Australian host (tested). |
+| G4 | PRIV | Enquiries now stored in a database and Zoho CRM. | Admin-only RLS; delete for privacy requests; Privacy Policy names Zoho CRM. |
+| G5 | REQ | The parent must never see a Zoho failure. | Background call after the email; errors only shown to admins. |
+| G6 | REQ | Repeat enquirers would duplicate leads. | Upsert on Email. |
+| G7 | OPS | Free edition limits (5,000 API credits a day, 5,000 records). | Far above a tutoring business's enquiry volume; token cached ~55 min. |
+| G8 | REQ | Lead Source values differ per org. | Optional setting; not sent unless set to an exact value. |

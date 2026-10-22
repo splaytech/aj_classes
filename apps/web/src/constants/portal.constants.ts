@@ -305,26 +305,26 @@ export const ADMIN_DASHBOARD = {
   },
 } as const;
 
-// Admin → Enquiries (leads-and-crm.md §5).
+// Admin → Enquiries (leads-and-crm.md §5). The status is whether the lead reached Zoho CRM.
 export const CRM_STATUSES = ['pending', 'synced', 'failed', 'off'] as const;
 export type CrmStatus = (typeof CRM_STATUSES)[number];
 
 export const CRM_STATUS_LABELS: Record<CrmStatus, string> = {
   pending: 'Sending',
-  synced: 'In Bigin',
+  synced: 'In Zoho CRM',
   failed: 'Not sent',
-  off: 'Bigin not set up',
+  off: 'Zoho CRM not set up',
 };
 
 export const ENQUIRIES_PAGE = {
   heading: 'Enquiries',
   intro:
-    'Every enquiry from the website form, newest first, and whether it reached Zoho Bigin. Reply from your inbox or from Bigin.',
+    'Every enquiry from the website form, newest first, and whether it reached Zoho CRM as a lead. Reply from your inbox or from Zoho CRM.',
   columns: {
     received: 'Received',
     from: 'From',
     message: 'Message',
-    bigin: 'Bigin',
+    crm: 'Zoho CRM',
     actions: '',
   },
   noMessage: 'No message',
@@ -332,13 +332,13 @@ export const ENQUIRIES_PAGE = {
   empty: 'No enquiries yet. They appear here once lead capture is switched on (go-live checklist).',
   retry: 'Retry',
   retrying: 'Sending…',
-  retried: 'Sent to Bigin.',
-  retryFailed: (reason: string) => `Still not sent to Bigin: ${reason}`,
-  stillOff: 'Bigin is not set up yet, so there is nothing to retry. See the go-live checklist.',
+  retried: 'Sent to Zoho CRM.',
+  retryFailed: (reason: string) => `Still not sent to Zoho CRM: ${reason}`,
+  stillOff: 'Zoho CRM is not set up yet, so there is nothing to retry. See the go-live checklist.',
   delete: 'Delete',
   confirmDeleteTitle: 'Delete this enquiry?',
   confirmDeleteText: (name: string) =>
-    `The enquiry from ${name} will be removed from the portal. It stays in your inbox and in Bigin.`,
+    `The enquiry from ${name} will be removed from the portal. It stays in your inbox and in Zoho CRM.`,
   deleted: 'Enquiry deleted.',
   emailLink: (email: string) => `mailto:${email}`,
   phoneLink: (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`,

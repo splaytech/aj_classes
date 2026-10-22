@@ -1,5 +1,5 @@
 // Admin → Enquiries (leads-and-crm.md §5): every website enquiry, newest first, and whether it
-// reached Zoho Bigin. Retry sends it again; Delete is for privacy requests.
+// reached Zoho CRM. Retry sends it again; Delete is for privacy requests.
 
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -82,7 +82,7 @@ export default function AdminEnquiriesPage() {
               <TableCell>{ENQUIRIES_PAGE.columns.received}</TableCell>
               <TableCell>{ENQUIRIES_PAGE.columns.from}</TableCell>
               <TableCell>{ENQUIRIES_PAGE.columns.message}</TableCell>
-              <TableCell>{ENQUIRIES_PAGE.columns.bigin}</TableCell>
+              <TableCell>{ENQUIRIES_PAGE.columns.crm}</TableCell>
               <TableCell>{ENQUIRIES_PAGE.columns.actions}</TableCell>
             </TableRow>
           </TableHead>

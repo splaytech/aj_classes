@@ -1,5 +1,5 @@
 // Sends a website enquiry to the `leads` edge function, which saves it and passes it to Zoho
-// Bigin (leads-and-crm.md §1). Plain fetch on purpose: public pages never load supabase-js (G23).
+// CRM (leads-and-crm.md §1). Plain fetch on purpose: public pages never load supabase-js (G23).
 // Fire and forget: the parent's result comes from the email path, so this never throws.
 
 import { APP_CONFIG } from '@/constants';
@@ -25,6 +25,6 @@ export async function sendToLeads(values: ContactFormValues, botcheck: boolean):
       }),
     });
   } catch {
-    // The email already reached us; admins can see the gap in Bigin. Nothing to tell the parent.
+    // The email already reached us; admins can see the gap in the portal. Nothing to tell the parent.
   }
 }

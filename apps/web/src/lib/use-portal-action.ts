@@ -38,7 +38,7 @@ export function usePortalAction() {
     setNotice(message);
   }
 
-  /** Shows a problem found after an action that itself worked (e.g. Bigin still refusing). */
+  /** Shows a problem found after an action that itself worked (e.g. Zoho CRM still refusing). */
   function showError(message: string) {
     setNotice('');
     setError(message);
