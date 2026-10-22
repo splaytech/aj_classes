@@ -63,6 +63,14 @@ Maths, Science and English, VCE Tutoring, VCE Subject Selection, UCAT and GAMSAT
 
 New tokens: `--color-text-slate`, `--font-weight-semibold` (600), `--color-border-soft`, `--shadow-card`.
 
+### Follow-up 4 (22 Oct 2026): short Programmes card points
+
+Owner: every card point at most 2 lines, 1 if possible, with the details on the "Learn more"
+pages. All 27 points are now short phrases (32 characters at most, enforced by a test), one line
+at every screen width; the cards went from 452px to 284px tall at 1024px. Each removed detail
+was checked against its programme page; the only one missing (ICAS: "improved significantly in
+2026") was added to the ICAS page intro.
+
 ## 4. Stories
 
 - **U1** As a parent, I can read each 2026 result (number and what it's for) at a glance.

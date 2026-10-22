@@ -61,7 +61,8 @@ export type Programme = {
   /** Shorter name for the Programmes menu, in Title Case (ui-polish.md §3). */
   menuLabel: string;
   years: string;
-  /** Three short points for the home page card. */
+  /** Three short points for the home page card: one line each where possible, never more
+   *  than two. Every detail is on the programme's own page (ui-polish.md, card points). */
   points: readonly string[];
   isNew: boolean;
   seo: { title: string; description: string };
@@ -86,11 +87,7 @@ export const PROGRAMMES = {
       title: 'Selective entry exam preparation',
       menuLabel: 'Selective Entry Exam',
       years: 'Years 6–10',
-      points: [
-        'Reading comprehension and creative and persuasive writing',
-        'Mathematics, plus verbal and quantitative reasoning',
-        'Timed practice under exam conditions',
-      ],
+      points: ['Reading and writing', 'Maths and reasoning', 'Timed practice tests'],
       isNew: false,
       seo: {
         title: 'Selective Entry Exam Preparation in Melbourne | AJ Classes',
@@ -122,10 +119,9 @@ export const PROGRAMMES = {
       menuLabel: 'Interviews',
       years: 'Years 8–10',
       points: [
-        'One-on-one and group mock interviews with written feedback',
-        'Coaching on common questions and help with applications',
-        // Short for the card; the page lists every school (see `help` below).
-        'For selective schools, John Monash and scholarships',
+        'Mock interviews with feedback',
+        'Help with applications',
+        'Selective and private schools',
       ],
       isNew: false,
       seo: {
@@ -156,11 +152,7 @@ export const PROGRAMMES = {
       title: 'SEAL and scholarship preparation',
       menuLabel: 'SEAL and Scholarships',
       years: 'Accelerated pathways',
-      points: [
-        'Preparation for SEAL program entry',
-        'Private school scholarship exams',
-        'Practice in the style and timing of the real tests',
-      ],
+      points: ['SEAL entry tests', 'Scholarship exams', 'Practice in real test style'],
       isNew: false,
       seo: {
         title: 'SEAL and Scholarship Exam Preparation | AJ Classes',
@@ -189,11 +181,7 @@ export const PROGRAMMES = {
       title: 'NAPLAN preparation',
       menuLabel: 'NAPLAN',
       years: 'Years 2–9',
-      points: [
-        'Starts in Year 2, ahead of the first NAPLAN in Year 3',
-        'Continues through to Year 9',
-        'Reading, writing, language conventions and numeracy',
-      ],
+      points: ['Starts in Year 2', 'All four tested areas', 'Online test practice'],
       isNew: false,
       seo: {
         title: 'NAPLAN Preparation from Year 2 | AJ Classes',
@@ -223,9 +211,9 @@ export const PROGRAMMES = {
       menuLabel: 'ICAS',
       years: 'Years 5–10',
       points: [
-        'Preparation for the ICAS academic competitions',
-        'Problem solving and higher-order thinking',
-        'Our students improved significantly in ICAS in 2026',
+        'ICAS competition preparation',
+        'Problem solving skills',
+        'Strong improvement in 2026',
       ],
       isNew: false,
       seo: {
@@ -234,7 +222,7 @@ export const PROGRAMMES = {
           'Small-group preparation for the ICAS academic competitions, building problem solving and higher-order thinking in Maths, Science and English.',
       },
       intro:
-        'ICAS rewards students who can think, not just recall. Our preparation stretches students with challenging problems and the reasoning behind them.',
+        'ICAS rewards students who can think, not just recall. Our preparation stretches students with challenging problems and the reasoning behind them, and our students improved significantly in ICAS in 2026.',
       about: {
         heading: 'About ICAS',
         paragraphs: [
@@ -253,11 +241,7 @@ export const PROGRAMMES = {
       title: 'Maths, Science and English tutoring',
       menuLabel: 'Maths, Science and English',
       years: 'Years 5–10',
-      points: [
-        'Regular term-by-term tutoring',
-        'Builds strong foundations',
-        'Keeps students ahead at school',
-      ],
+      points: ['Term-by-term tutoring', 'Strong foundations', 'Ahead at school'],
       isNew: false,
       seo: {
         title: 'Maths, Science and English Tutoring, Years 5–10 | AJ Classes',
@@ -280,9 +264,9 @@ export const PROGRAMMES = {
       menuLabel: 'VCE Tutoring',
       years: 'Years 11–12',
       points: [
-        VCE_SUBJECTS.map((subject) => subject.name).join(', '),
-        'Units 1–4, taught by qualified teachers',
-        'SAC preparation and exam technique',
+        'Maths, Science and Business',
+        'Units 1–4, qualified teachers',
+        'SACs and exam technique',
       ],
       isNew: false,
       seo: {
@@ -300,9 +284,9 @@ export const PROGRAMMES = {
       menuLabel: 'VCE Subject Selection',
       years: 'Students + parents',
       points: [
-        'Sessions with students and parents together',
-        'Complete guidance on choosing VCE subjects',
-        'Clear advice on pathways and prerequisites',
+        'Students and parents together',
+        'Choosing the right subjects',
+        'Pathways and prerequisites',
       ],
       isNew: false,
       seo: {
@@ -332,9 +316,9 @@ export const PROGRAMMES = {
       menuLabel: 'UCAT and GAMSAT',
       years: 'Medicine and health',
       points: [
-        'For medical and health-science entry tests',
-        'Enrolments are open now',
-        'Classes start in January 2027',
+        'Medicine and health entry tests',
+        'Enrolments open now',
+        'Classes start January 2027',
       ],
       isNew: true,
       seo: {

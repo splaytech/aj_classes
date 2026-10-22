@@ -48,6 +48,21 @@ describe('programme pages', () => {
   );
 });
 
+describe('home page cards', () => {
+  // Card points stay short (one line on desktop); the details live on each programme page.
+  const CARD_POINT_MAX = 32; // fits one line on the narrowest desktop card (1024px)
+
+  it.each(PROGRAMMES.items.map((programme) => [programme.title, programme] as const))(
+    '%s: three short points',
+    (_title, programme) => {
+      expect(programme.points).toHaveLength(3);
+      for (const point of programme.points) {
+        expect(point.length).toBeLessThanOrEqual(CARD_POINT_MAX);
+      }
+    },
+  );
+});
+
 describe('links to programme pages', () => {
   it('every home page card links to its page', () => {
     renderAt(<Programmes />);
