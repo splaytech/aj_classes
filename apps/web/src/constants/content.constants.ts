@@ -107,12 +107,16 @@ type ResultItem = {
   breakdown: readonly { label: string; value: string }[];
   /** One line of context, for cards with little or no breakdown (general facts only). */
   about?: string;
+  /** Short ticked points about how we prepared these students (our own services only). */
+  highlights?: readonly string[];
   /** The programme that prepares for it, at the bottom of the card. */
   link: { href: string; label: string };
 };
 
 export const RESULTS = {
   heading: 'Our 2026 results',
+  /** Visible text of every card's link; screen readers hear the full `link.label`. */
+  linkText: 'How we prepare',
   items: [
     {
       id: 'selective',
@@ -126,7 +130,7 @@ export const RESULTS = {
       ],
       link: {
         href: programmePath(PROGRAMME_SLUGS.selectiveEntry),
-        label: 'Selective entry preparation',
+        label: 'How we prepare for the selective entry exam',
       },
     },
     {
@@ -139,7 +143,10 @@ export const RESULTS = {
       ],
       about:
         "Victoria's specialist senior secondary school for science, maths and technology, with entry from Year 10.",
-      link: { href: programmePath(PROGRAMME_SLUGS.selectiveEntry), label: 'Exam preparation' },
+      link: {
+        href: programmePath(PROGRAMME_SLUGS.selectiveEntry),
+        label: 'How we prepare for entry exams',
+      },
     },
     {
       id: 'scholarships',
@@ -148,9 +155,13 @@ export const RESULTS = {
       breakdown: [],
       about:
         "Scholarships are usually awarded after the school's own scholarship exam, often followed by an interview.",
+      highlights: [
+        'Practice in the style and timing of each school’s scholarship exam',
+        'Mock interviews with written feedback',
+      ],
       link: {
         href: programmePath(PROGRAMME_SLUGS.sealAndScholarships),
-        label: 'Scholarship preparation',
+        label: 'How we prepare for scholarships',
       },
     },
   ] satisfies readonly ResultItem[],

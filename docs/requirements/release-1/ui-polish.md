@@ -43,6 +43,26 @@ Maths, Science and English, VCE Tutoring, VCE Subject Selection, UCAT and GAMSAT
 - **Badge:** links to the Victorian Government's page,
   https://www.vic.gov.au/working-with-children-check (new tab; screen readers hear where it goes).
 
+### Follow-up 2 (22 Oct 2026)
+
+- **Results cards:** white-to-tint gradient, a hairline border and a soft layered shadow
+  (`--shadow-card`), so they lift off the page. Cards were already equal height (grid stretch).
+- **Scholarships card:** two ticked points about how we prepared these students (exam practice
+  in each school's style and timing; mock interviews with written feedback), both services we
+  already describe. No scholarship values or school names until the owner confirms them.
+
+### Follow-up 3 (22 Oct 2026): results typography, icons, links and banner
+
+| Feedback | Change |
+|---|---|
+| Labels compete with the numbers | Card titles are semibold (was bold), tighter line height, in a new dark slate `--color-text-slate` (#334155) instead of navy. |
+| Breakdown rows too airy | Compact rows with hairline dashed dividers; counts right-aligned in tabular figures. |
+| Icons small and disconnected | Solid blue 52px circle with a white icon and a soft blue halo. |
+| Bottom links look standard | Soft blue pills reading "How we prepare →" that fill solid blue on hover/focus; screen readers hear the full destination (e.g. "How we prepare for scholarships"). Same short text on every card, so none wraps. |
+| NAPLAN/ICAS box looks like an alert | Full width of the cards (was capped at the reading width), green left border, green-to-blue soft gradient, card shadow, icon in a solid green circle. |
+
+New tokens: `--color-text-slate`, `--font-weight-semibold` (600), `--color-border-soft`, `--shadow-card`.
+
 ## 4. Stories
 
 - **U1** As a parent, I can read each 2026 result (number and what it's for) at a glance.

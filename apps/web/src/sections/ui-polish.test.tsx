@@ -25,6 +25,15 @@ describe('2026 results', () => {
     }
   });
 
+  it('the scholarships card lists its highlights', () => {
+    render(<Results />);
+    for (const item of RESULTS.items) {
+      for (const highlight of item.highlights ?? []) {
+        expect(screen.getByText(highlight)).toBeInTheDocument();
+      }
+    }
+  });
+
   it('every card links to the programme that prepares for it', () => {
     render(<Results />);
     for (const item of RESULTS.items) {

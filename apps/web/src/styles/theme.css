@@ -20,11 +20,17 @@
   /* Text */
   --color-text: #172033;
   --color-text-muted: #4b5563;
+  --color-text-slate: #334155; /* crisp dark slate for card titles: lighter than body text */
   --color-text-emphasis: #172554;
   --color-text-inverse: #f8fafc;
 
   /* Lines and states */
   --color-border: #d6deeb;
+  --color-border-soft: color-mix(
+    in srgb,
+    var(--color-border) 60%,
+    var(--color-bg)
+  ); /* card edges */
   --color-border-inverse: rgb(255 255 255 / 0.2); /* lines on the navy footer */
   --color-focus: #2563eb;
   --color-error: #b91c1c;
@@ -54,6 +60,7 @@
   --font-size-h1: clamp(2.125rem, 1.6rem + 2.4vw, 3.25rem);
   --font-weight-regular: 400;
   --font-weight-medium: 500;
+  --font-weight-semibold: 600;
   --font-weight-bold: 700;
   --line-height-tight: 1.2;
   --line-height-body: 1.6;
@@ -89,6 +96,10 @@
   --radius-full: 999px;
   --shadow-sm: 0 1px 3px rgb(23 37 84 / 0.08);
   --shadow-md: 0 4px 12px rgb(23 37 84 / 0.1);
+  /* Soft, layered: a tight contact shadow plus a wide, faint one (ui-polish.md follow-up 2) */
+  --shadow-card:
+    0 1px 2px rgb(23 37 84 / 0.06), 0 4px 12px rgb(23 37 84 / 0.06),
+    0 16px 32px -12px rgb(23 37 84 / 0.12);
 
   /* Motion */
   --duration-fast: 150ms;

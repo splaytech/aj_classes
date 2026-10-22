@@ -2,7 +2,7 @@
 // an icon, the figure, what it's for and what it's made of, so it reads at a glance
 // (ui-polish.md §3, item 1).
 
-import { ArrowRight, TrendingUp } from 'lucide-react';
+import { ArrowRight, Check, TrendingUp } from 'lucide-react';
 
 import { RESULT_ICONS } from '@/components/icons/site-icons';
 import { Section } from '@/components/ui';
@@ -39,9 +39,19 @@ export function Results() {
                   </ul>
                 )}
                 {item.about && <p className={styles.about}>{item.about}</p>}
+                {item.highlights && (
+                  <ul className={styles.highlights}>
+                    {item.highlights.map((highlight) => (
+                      <li key={highlight}>
+                        <Check aria-hidden="true" />
+                        {highlight}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-              <a className={styles.link} href={item.link.href}>
-                {item.link.label}
+              <a className={styles.link} href={item.link.href} aria-label={item.link.label}>
+                {RESULTS.linkText}
                 <ArrowRight aria-hidden="true" />
               </a>
             </li>
@@ -50,7 +60,9 @@ export function Results() {
       </ul>
       {RESULTS.note && (
         <p className={styles.note}>
-          <TrendingUp className={styles.noteIcon} aria-hidden="true" />
+          <span className={styles.noteIcon}>
+            <TrendingUp aria-hidden="true" />
+          </span>
           {RESULTS.note}
         </p>
       )}
