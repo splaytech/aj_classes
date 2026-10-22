@@ -61,4 +61,4 @@
 
 - [x] T7.1 Go-live checklist updated; PRP updated
 - [x] T7.2 Full check (web, database, functions, build, bundle); browser check
-- [ ] T7.3 Merge into `develop`, push; CI and Vercel green
+- [x] T7.3 Merge into `develop`, push; CI (web + database jobs) and Vercel green
