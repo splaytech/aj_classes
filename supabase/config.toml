@@ -408,7 +408,8 @@ deno_version = 2
 [edge_runtime.secrets]
 ALLOWED_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000"
 # LOCAL ONLY: Zoho CRM is a fake server run by `pnpm test:functions` (scripts/fake-zoho.mjs),
-# reached from the Docker container through host.docker.internal. Without that test running,
+# reached from the Docker container through host.docker.internal. `supabase secrets set` copies
+# these to the hosted project too, so scripts/deploy.sh removes them again. Without the test running,
 # local enquiries are saved with Zoho CRM status "failed". Hosted: real values via deploy.sh.
 ZOHO_ACCOUNTS_URL = "http://host.docker.internal:55398"
 ZOHO_API_URL = "http://host.docker.internal:55398"

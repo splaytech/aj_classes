@@ -21,6 +21,15 @@ PUBLISHABLE_KEY="sb_publishable_RcrO-f-2jyjJyfTWNWy0IQ_1NwGbnhb" # public, same 
 SITE_ORIGINS="https://ajclasses.com.au,https://staging.ajclasses.com.au"
 FUNCTIONS=(account-admin leads)
 
+# Secrets can also come from supabase/.env.deploy (git-ignored), so they never pass through chat
+# or shell history. Values already in the environment win.
+ENV_FILE="$(dirname "$0")/../.env.deploy"
+if [[ -f "$ENV_FILE" ]]; then
+  while IFS='=' read -r key value; do
+    [[ "$key" =~ ^[A-Z_]+$ && -n "$value" && -z "${!key:-}" ]] && export "$key=$value"
+  done < <(grep -E '^[A-Z_]+=' "$ENV_FILE")
+fi
+
 DRY_RUN=false
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
 
@@ -85,7 +94,12 @@ for name in ZOHO_CLIENT_ID ZOHO_CLIENT_SECRET ZOHO_REFRESH_TOKEN ZOHO_LEAD_SOURC
   [[ -n "${!name:-}" ]] && secrets+=("${name}=${!name}")
 done
 run supabase secrets set --project-ref "$PROJECT_REF" "${secrets[@]}"
-if [[ ${#secrets[@]} -lt 4 ]]; then
+# The CLI also copies [edge_runtime.secrets] from config.toml, which point Zoho at the LOCAL fake
+# used by the tests. Remove those from the hosted project (unless set on purpose here).
+local_only=(ZOHO_ACCOUNTS_URL ZOHO_API_URL)
+[[ -z "${ZOHO_LEAD_SOURCE:-}" ]] && local_only+=(ZOHO_LEAD_SOURCE)
+run supabase secrets unset --project-ref "$PROJECT_REF" "${local_only[@]}"
+if [[ -z "${ZOHO_REFRESH_TOKEN:-}" ]]; then
   printf '  Zoho CRM not configured: enquiries are saved but not sent to Zoho CRM (leads-and-crm.md §4).\n'
 fi
 

@@ -1,10 +1,22 @@
 # Release 2 — Go-Live Checklist (portal, leads, Zoho CRM and Invoice)
 
-> **Status:** Code complete and on `develop` (22 Oct 2026). One hosted Supabase project serves
-> staging and prod (`unzjnxctkyahtmrkinyr`, owner decision). Its public URL and key are already in
-> `apps/web/.env.production`. The **portal stays switched off** until the Turnstile site key is set
-> in Vercel (§4), and **lead capture stays off** until `VITE_LEAD_CAPTURE=on`, so the live site is
-> safe at every step. Todo: [completion-todo.md](completion-todo.md).
+> **Status (22 Oct 2026): hosted setup DONE.** Done in the owner's browser and by
+> `supabase/scripts/deploy.sh`:
+> - Supabase: public sign-ups off (checked), sign-in settings pushed (invite only, Turnstile,
+>   Resend email, site URL), 7 migrations applied, `account-admin` and `leads` deployed, secrets set.
+> - Cloudflare Turnstile widget "AJ Classes portal" (ajclasses.com.au and subdomains).
+> - Resend: domain verified (Tokyo region); DNS on Squarespace: `resend._domainkey`, `send`,
+>   `rsend` CNAMEs, `_dmarc` (Zoho mail records untouched).
+> - Zoho CRM API (Self Client, scope `ZohoCRM.modules.leads.ALL`); a test enquiry arrived as a
+>   lead. Lead Source not sent (the org's list has no "Website" value).
+> - Zoho Invoice customer portal linked for parents; Zoho Invoice ↔ CRM connected by the owner.
+>   Payments: PayID and bank transfer, invoices raised by hand (no Stripe for now).
+> - Portal and lead capture switched on in `apps/web/.env.production`.
+>
+> **Left:** first admins (§5), then merge `develop` into `main` (§7). Until that merge,
+> sign-in **emails** (invites, password resets) link to `ajclasses.com.au/portal/…`, which only
+> exists after the merge; so create the first admin in the dashboard (§5) and invite everyone
+> else after going live. Secrets for the script live in the git-ignored `supabase/.env.deploy`.
 
 ## 0. Before anything: public sign-ups must be off
 
@@ -58,8 +70,12 @@ Never put a secret in Vercel. Redeploy after setting them.
 
 ## 5. First admins (owner)
 
-`supabase/README.md` → "First admin on a new environment": invite yourself, set the role to admin,
-set up two-step sign-in. Repeat for a **second admin**.
+Before the merge to `main`, don't use an emailed invite (its link needs the live portal):
+Dashboard → Authentication → Users → **Add user → Create new user** with your email and a
+password you choose (tick auto-confirm), then in the SQL editor:
+`update public.profiles set role = 'admin' where email = 'your@email';`. Sign in at
+`https://staging.ajclasses.com.au/portal/login` and set up two-step sign-in. After going live,
+add the second admin with a normal invite (`supabase/README.md` → "First admin on a new environment").
 
 ## 6. Owner decisions
 

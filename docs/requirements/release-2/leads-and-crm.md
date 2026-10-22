@@ -58,8 +58,8 @@ record's `status` is checked. No tags: tagging isn't in the Free edition.
    copy the code. Within its time limit, exchange it for a refresh token:
    `POST https://accounts.zoho.com.au/oauth/v2/token` with `grant_type=authorization_code`,
    `client_id`, `client_secret`, `code` (the developer can do this step with you).
-2. Optional: in Zoho CRM → Setup → Modules → Leads → Lead Source, note the exact value to use for
-   website enquiries (e.g. "Website"; add it if it's not there).
+2. Optional: in Zoho CRM → Setup → Modules → Leads → Lead Source, add a "Website" value and put it in
+   `ZOHO_LEAD_SOURCE` (22 Oct 2026: the org's list has no website value, so it isn't sent).
 3. Set the function secrets (or pass them to `supabase/scripts/deploy.sh`): `ZOHO_CLIENT_ID`,
    `ZOHO_CLIENT_SECRET`, `ZOHO_REFRESH_TOKEN`, optional `ZOHO_LEAD_SOURCE`.
 4. **Zoho Invoice**: Settings → Zoho Apps → **Connect** Zoho CRM (two-way sync of accounts and
