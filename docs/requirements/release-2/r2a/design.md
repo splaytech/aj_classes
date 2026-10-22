@@ -570,7 +570,7 @@ sequenceDiagram
 
 | Host | File | Rule |
 |---|---|---|
-| Vercel | `apps/web/vercel.json` | `rewrites: [{ "source": "/portal/:path*", "destination": "/__spa-fallback.html" }]` (`:path*` also matches `/portal`) |
+| Vercel | `apps/web/vercel.json` | `rewrites: [{ "source": "/portal/:path*", "destination": "/__spa-fallback" }]` (`:path*` also matches `/portal`). **No `.html`**: with `cleanUrls` Vercel redirects `/__spa-fallback.html`, so the rewrite found nothing and served the 404 page with status 404 (found on go-live, 22 Oct 2026). |
 | Railway | `apps/web/serve.railway.json` | `rewrites: [{ "source": "/portal", "destination": "/__spa-fallback.html" }, { "source": "/portal/**", "destination": "/__spa-fallback.html" }]`. `serve` matches header rules against the **rewritten file**, so the portal headers use `"source": "__spa-fallback.html"` (V23). |
 | Cloudflare Pages (if adopted, Q3) | `apps/web/public/_redirects` | `/portal/* /__spa-fallback.html 200` |
 

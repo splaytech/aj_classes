@@ -48,7 +48,7 @@
   "rewrites": [
     {
       "source": "/portal/:path*",
-      "destination": "/__spa-fallback.html"
+      "destination": "/__spa-fallback"
     }
   ]
 }
