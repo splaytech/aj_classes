@@ -343,6 +343,11 @@ export const SOCIAL_LABELS: Record<SocialPlatform, string> = {
   whatsapp: 'WhatsApp',
 };
 
+export const WHATSAPP_BUTTON = {
+  label: 'Chat on WhatsApp',
+  ariaLabel: 'Chat with AJ Classes on WhatsApp (opens WhatsApp)',
+};
+
 export const FOOTER = {
   followHeading: 'Follow AJ Classes',
   contactHeading: 'Contact',

@@ -53,6 +53,11 @@
     var(--color-bg)
   ); /* card edges */
 
+  /* WhatsApp's own brand colours, only for the chat button (whatsapp-button.md G4) */
+  --color-whatsapp: #25d366;
+  --color-whatsapp-hover: #1ebe5b;
+  --color-on-whatsapp: #ffffff;
+
   /* Staging and dev markers (environments.md). Never used on production. */
   --color-env-staging: #f59e0b; /* amber */
   --color-on-env-staging: #172554; /* navy on amber: well above 4.5:1 */
