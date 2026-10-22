@@ -42,6 +42,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  /* The menu scrolls when it's taller than the screen (the header is sticky). */
+  max-height: calc(100dvh - var(--header-height));
+  overflow-y: auto;
   padding: var(--space-6) var(--container-gutter);
   background: var(--color-bg);
   box-shadow: var(--shadow-md);
@@ -68,6 +71,74 @@
   color: var(--color-primary);
 }
 
+/* Sub-links (the programme pages under Programmes): one row each, icon | name | chevron or tag.
+   The whole row is the link, with a soft pill on hover, focus and for the current page. */
+.subLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0 0 0 var(--space-2);
+  list-style: none;
+}
+
+.subLinks a {
+  display: grid;
+  grid-template-columns: var(--icon-size-md) 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-regular);
+  transition: background-color var(--duration-fast);
+}
+
+.subLinks a:hover,
+.subLinks a:focus-visible {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.subLinks a[aria-current='page'] {
+  background: var(--color-primary-selected);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.subIcon {
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+  color: var(--color-primary);
+}
+
+.chevron {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  transition:
+    opacity var(--duration-fast),
+    transform var(--duration-fast);
+}
+
+.subLinks a:hover .chevron,
+.subLinks a:focus-visible .chevron,
+.subLinks a[aria-current='page'] .chevron {
+  color: var(--color-primary);
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+/* Gold with navy text: allowed by the gold rule (F1.4). */
+.newTag {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-secondary);
+  color: var(--color-text-emphasis);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
 /* Desktop: links sit in one row, no menu button. */
 @media (min-width: 900px) {
   .menuButton {
@@ -81,6 +152,8 @@
     flex-direction: row;
     align-items: center;
     gap: var(--space-8);
+    max-height: none;
+    overflow: visible;
     padding: 0;
     box-shadow: none;
   }
@@ -88,5 +161,46 @@
   .links {
     flex-direction: row;
     gap: var(--space-6);
+  }
+
+  /* A small dropdown under the parent link, shown on hover or keyboard focus. */
+  .hasSubLinks {
+    position: relative;
+  }
+
+  .hasSubLinks > a::after {
+    content: '';
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-left: var(--space-2);
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-25%) rotate(45deg);
+  }
+
+  .subLinks {
+    position: absolute;
+    top: 100%;
+    left: calc(-1 * var(--space-4));
+    min-width: 17rem;
+    padding: var(--space-2);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-md);
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity var(--duration-fast);
+  }
+
+  .subLinks a {
+    white-space: nowrap;
+  }
+
+  .hasSubLinks:hover .subLinks,
+  .hasSubLinks:focus-within .subLinks {
+    visibility: visible;
+    opacity: 1;
   }
 }

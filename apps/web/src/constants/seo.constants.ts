@@ -1,14 +1,19 @@
 // SEO metadata for each page (PRP F6). Business facts come from business.constants.ts.
 
+import { BUSINESS } from './business.constants';
+
 export const SEO = {
   home: {
     title: 'AJ Classes | Selective Entry Exam Tutoring in Melbourne',
-    description:
-      'AJ Classes offers expert coaching for the Victorian selective entry exam and interview, plus NAPLAN, ICAS, scholarship, UCAT and GAMSAT preparation. Small groups in Truganina or online.',
+    description: `AJ Classes offers expert coaching for the Victorian selective entry exam and interview, plus NAPLAN, ICAS, scholarship, UCAT and GAMSAT preparation. Small groups in ${BUSINESS.suburbsText}, or online.`,
   },
   privacy: {
     title: 'Privacy Policy | AJ Classes',
     description: 'How AJ Classes collects, uses and protects your personal information.',
+  },
+  subscribed: {
+    title: 'Subscribed | AJ Classes',
+    description: 'Thanks for subscribing to the AJ Classes weekly update.',
   },
   notFound: {
     title: 'Page not found | AJ Classes',
@@ -48,4 +53,5 @@ export const STRUCTURED_DATA = {
 
 export const ROBOTS = {
   rules: 'User-agent: *\nAllow: /\nDisallow: /portal', // staff pages stay out of search (R2a)
+  disallowAll: 'User-agent: *\nDisallow: /', // staging and dev (environments.md G6)
 } as const;

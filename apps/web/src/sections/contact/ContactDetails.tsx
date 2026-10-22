@@ -22,7 +22,7 @@ export function ContactDetails() {
           <div>
             <dt>{CONTACT_DETAILS.phoneLabel}</dt>
             <dd>
-              <a href={`tel:${BUSINESS.phone}`}>{BUSINESS.phone}</a>
+              <a href={`tel:${BUSINESS.phoneDial}`}>{BUSINESS.phone}</a>
             </dd>
           </div>
         )}

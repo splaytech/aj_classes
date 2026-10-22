@@ -1,8 +1,11 @@
 // Sticky site header: logo, section links and the "Register Interest" button.
 // On small screens the links fold into a menu button (PRP F2 section 1).
 
+import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
+import { useLocation } from 'react-router';
 
+import { PROGRAMME_ICONS } from '@/components/icons/site-icons';
 import { ButtonLink, Container, Logo } from '@/components/ui';
 import {
   A11Y,
@@ -10,6 +13,7 @@ import {
   CTA_LOCATIONS,
   ELEMENT_IDS,
   NAV,
+  PROGRAMMES,
   ROUTES,
   SECTION_IDS,
   sectionLink,
@@ -18,8 +22,14 @@ import { trackEvent } from '@/lib/analytics';
 
 import styles from './Header.module.css';
 
+/** True when a link points at the page being shown (ignores a trailing slash). */
+function isCurrentPage(pathname: string, href: string): boolean {
+  return pathname.replace(/\/$/, '') === href;
+}
+
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { pathname } = useLocation();
 
   function closeMenu() {
     setIsMenuOpen(false);
@@ -61,10 +71,37 @@ export function Header() {
           >
             <ul className={styles.links}>
               {NAV.links.map((link) => (
-                <li key={link.sectionId}>
+                <li key={link.sectionId} className={link.subLinks ? styles.hasSubLinks : undefined}>
                   <a href={sectionLink(link.sectionId)} onClick={closeMenu}>
                     {link.label}
                   </a>
+                  {link.subLinks && (
+                    <ul className={styles.subLinks}>
+                      {link.subLinks.map((subLink) => {
+                        const Icon = PROGRAMME_ICONS[subLink.id];
+                        const isCurrent = isCurrentPage(pathname, subLink.href);
+                        // Three slots: icon, name, then a "New" tag or a chevron. The whole
+                        // row is the link (ui-polish.md §3, item 3).
+                        return (
+                          <li key={subLink.href}>
+                            <a
+                              href={subLink.href}
+                              onClick={closeMenu}
+                              aria-current={isCurrent ? 'page' : undefined}
+                            >
+                              <Icon className={styles.subIcon} aria-hidden="true" />
+                              <span>{subLink.label}</span>
+                              {subLink.isNew ? (
+                                <span className={styles.newTag}>{PROGRAMMES.newBadge}</span>
+                              ) : (
+                                <ChevronRight className={styles.chevron} aria-hidden="true" />
+                              )}
+                            </a>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </li>
               ))}
             </ul>

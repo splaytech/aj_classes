@@ -1,19 +1,11 @@
 // Newsletter sign-ups from the footer "Stay in the loop" form.
 //
-//   Release 1: emailed to us through Web3Forms; we keep the list by hand.
-//   Release 2: saved to a `subscribers` table in Supabase, with one-click unsubscribe.
-
-import { SUBSCRIBE } from '@/constants';
+// Sign-ups go to Kit, which emails a confirmation link (double opt-in), sends our weekly
+// updates and handles unsubscribes. Components only call `subscribe(email)`.
 
 import type { SubmitResult } from './types';
-import { sendToWeb3Forms } from './web3forms.client';
+import { sendToKit } from './kit.client';
 
-export async function subscribe(email: string, captchaToken: string): Promise<SubmitResult> {
-  const cleanEmail = email.trim();
-  return sendToWeb3Forms({
-    subject: SUBSCRIBE.emailSubject,
-    replyTo: cleanEmail,
-    captchaToken,
-    fields: { [SUBSCRIBE.emailLabel]: cleanEmail },
-  });
+export async function subscribe(email: string): Promise<SubmitResult> {
+  return sendToKit(email.trim());
 }

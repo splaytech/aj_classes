@@ -46,7 +46,7 @@ export function Footer() {
             </p>
             {BUSINESS.phone && (
               <p className={styles.text}>
-                <a href={`tel:${BUSINESS.phone}`}>{BUSINESS.phone}</a>
+                <a href={`tel:${BUSINESS.phoneDial}`}>{BUSINESS.phone}</a>
               </p>
             )}
             <p className={styles.text}>{FOOTER.location}</p>

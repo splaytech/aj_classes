@@ -1,29 +1,20 @@
-// "Register your interest" form (PRP F3). Validates, sends to the form service,
-// and shows one of four states: idle, submitting, success or error.
+// "Register your interest" form (PRP F3). Kept as short as possible so anyone can send a query:
+// name and email, plus an optional phone number and message. Validates, sends to the form
+// service, and shows one of three states: idle, submitting or success (errors show inline).
 
-import type HCaptcha from '@hcaptcha/react-hcaptcha';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 
-import { Button, CaptchaField } from '@/components/ui';
+import { Button } from '@/components/ui';
 import {
   ANALYTICS_EVENTS,
   CONTACT_FORM,
-  CONTACT_METHOD_LABELS,
-  CONTACT_METHODS,
   ELEMENT_IDS,
-  ENQUIRER_ROLE_LABELS,
-  ENQUIRER_ROLES,
-  ENQUIRY_TYPE_LABELS,
-  ENQUIRY_TYPES,
   FORM_ERRORS,
   FORM_LIMITS,
   ROUTES,
   SECTION_IDS,
-  VALIDATION,
-  YEAR_LEVELS,
 } from '@/constants';
-import type { ContactMethod } from '@/constants';
 import { trackEvent } from '@/lib/analytics';
 import { hasErrors, validateContactForm } from '@/lib/validation';
 import { submitEnquiry } from '@/services';
@@ -38,10 +29,6 @@ const INITIAL_VALUES: ContactFormValues = {
   name: '',
   email: '',
   phone: '',
-  contactMethod: '',
-  role: 'parent',
-  enquiryType: 'registerInterest',
-  yearLevel: '',
   message: '',
   updatesConsent: false,
 };
@@ -65,30 +52,14 @@ export function ContactForm() {
   const [errors, setErrors] = useState<ContactFormErrors>({});
   const [status, setStatus] = useState<Status>('idle');
   const [submitError, setSubmitError] = useState('');
-  const [captchaToken, setCaptchaToken] = useState('');
-  const [captchaError, setCaptchaError] = useState('');
-  const captchaRef = useRef<HCaptcha>(null);
-
-  usePreselectFromLink(setValues);
-
-  function handleCaptchaChange(token: string) {
-    setCaptchaToken(token);
-    if (token) setCaptchaError('');
-  }
-
-  /** A captcha token works only once, so ask for a fresh check after a failed send. */
-  function resetCaptcha() {
-    setCaptchaToken('');
-    captchaRef.current?.resetCaptcha();
-  }
+  // Spam trap (Web3Forms "botcheck"): hidden from people, so only bots tick it.
+  const [botcheck, setBotcheck] = useState(false);
 
   function updateValue(field: keyof ContactFormValues, value: string | boolean) {
     setValues({ ...values, [field]: value });
   }
 
-  function handleTextChange(
-    event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
-  ) {
+  function handleTextChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     updateValue(event.target.name as keyof ContactFormValues, event.target.value);
   }
 
@@ -102,32 +73,27 @@ export function ContactForm() {
       return;
     }
 
-    if (!captchaToken) {
-      setCaptchaError(VALIDATION.captchaRequired);
-      return;
-    }
-
     setStatus('submitting');
     setSubmitError('');
-    const result = await submitEnquiry(values, captchaToken);
+    const result = await submitEnquiry(values, botcheck);
 
     if (result === 'success') {
       setStatus('success');
-      trackEvent(ANALYTICS_EVENTS.formSubmitSuccess, { enquiry_type: values.enquiryType });
+      trackEvent(ANALYTICS_EVENTS.formSubmitSuccess);
       return;
     }
 
     setStatus('idle');
     setSubmitError(result === 'not-configured' ? FORM_ERRORS.notConfigured : FORM_ERRORS.network);
-    resetCaptcha();
     trackEvent(ANALYTICS_EVENTS.formSubmitError);
   }
 
   if (status === 'success') {
     return (
-      <p className={styles.success} role="status">
-        {CONTACT_FORM.success(values.contactMethod as ContactMethod)}
-      </p>
+      <div className={styles.success} role="status">
+        <p className={styles.successHeading}>{CONTACT_FORM.successHeading}</p>
+        <p>{CONTACT_FORM.success}</p>
+      </div>
     );
   }
 
@@ -145,124 +111,50 @@ export function ContactForm() {
         />
       </FormField>
 
-      <FormField id={fieldId('email')} label={CONTACT_FORM.labels.email} error={errors.email}>
-        <input
-          id={fieldId('email')}
-          name="email"
-          type="email"
-          className={styles.input}
-          autoComplete="email"
-          value={values.email}
-          onChange={handleTextChange}
-          {...errorProps('email', errors)}
-        />
-      </FormField>
-
-      <fieldset className={styles.fieldset} {...errorProps('contactMethod', errors)}>
-        <legend className={styles.label}>{CONTACT_FORM.labels.contactMethod}</legend>
-        <div className={styles.radioRow}>
-          {CONTACT_METHODS.map((method, index) => (
-            <label key={method} className={styles.radio}>
-              <input
-                id={index === 0 ? fieldId('contactMethod') : undefined}
-                type="radio"
-                name="contactMethod"
-                value={method}
-                checked={values.contactMethod === method}
-                onChange={handleTextChange}
-              />
-              {CONTACT_METHOD_LABELS[method]}
-            </label>
-          ))}
-        </div>
-        {errors.contactMethod && (
-          <p id={errorIdFor(fieldId('contactMethod'))} className={styles.error}>
-            {errors.contactMethod}
-          </p>
-        )}
-      </fieldset>
-
-      <FormField
-        id={fieldId('phone')}
-        label={CONTACT_FORM.labels.phone}
-        error={errors.phone}
-        optional={values.contactMethod !== 'phone'}
-      >
-        <input
-          id={fieldId('phone')}
-          name="phone"
-          type="tel"
-          className={styles.input}
-          autoComplete="tel"
-          value={values.phone}
-          onChange={handleTextChange}
-          {...errorProps('phone', errors)}
-        />
-      </FormField>
-
       <div className={styles.twoColumns}>
-        <FormField id={fieldId('role')} label={CONTACT_FORM.labels.role}>
-          <select
-            id={fieldId('role')}
-            name="role"
+        <FormField id={fieldId('email')} label={CONTACT_FORM.labels.email} error={errors.email}>
+          <input
+            id={fieldId('email')}
+            name="email"
+            type="email"
             className={styles.input}
-            value={values.role}
+            autoComplete="email"
+            value={values.email}
             onChange={handleTextChange}
-          >
-            {ENQUIRER_ROLES.map((role) => (
-              <option key={role} value={role}>
-                {ENQUIRER_ROLE_LABELS[role]}
-              </option>
-            ))}
-          </select>
+            {...errorProps('email', errors)}
+          />
         </FormField>
 
-        <FormField id={fieldId('enquiryType')} label={CONTACT_FORM.labels.enquiryType}>
-          <select
-            id={fieldId('enquiryType')}
-            name="enquiryType"
+        <FormField
+          id={fieldId('phone')}
+          label={CONTACT_FORM.labels.phone}
+          error={errors.phone}
+          optional
+        >
+          <input
+            id={fieldId('phone')}
+            name="phone"
+            type="tel"
             className={styles.input}
-            value={values.enquiryType}
+            autoComplete="tel"
+            value={values.phone}
             onChange={handleTextChange}
-          >
-            {ENQUIRY_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {ENQUIRY_TYPE_LABELS[type]}
-              </option>
-            ))}
-          </select>
+            {...errorProps('phone', errors)}
+          />
         </FormField>
       </div>
-
-      <FormField id={fieldId('yearLevel')} label={CONTACT_FORM.labels.yearLevel} optional>
-        <select
-          id={fieldId('yearLevel')}
-          name="yearLevel"
-          className={styles.input}
-          value={values.yearLevel}
-          onChange={handleTextChange}
-        >
-          <option value="">{CONTACT_FORM.yearLevelPlaceholder}</option>
-          {YEAR_LEVELS.map((year) => (
-            <option key={year} value={`${CONTACT_FORM.yearLevelPrefix} ${year}`}>
-              {CONTACT_FORM.yearLevelPrefix} {year}
-            </option>
-          ))}
-          <option value={CONTACT_FORM.yearLevelOther}>{CONTACT_FORM.yearLevelOther}</option>
-        </select>
-      </FormField>
 
       <FormField
         id={fieldId('message')}
         label={CONTACT_FORM.labels.message}
         error={errors.message}
-        optional={values.enquiryType === 'registerInterest'}
+        optional
       >
         <textarea
           id={fieldId('message')}
           name="message"
           className={styles.input}
-          rows={5}
+          rows={4}
           maxLength={FORM_LIMITS.messageMax}
           value={values.message}
           onChange={handleTextChange}
@@ -286,10 +178,15 @@ export function ContactForm() {
         {CONTACT_FORM.privacyNoticeAfter}
       </p>
 
-      <CaptchaField
-        captchaRef={captchaRef}
-        onTokenChange={handleCaptchaChange}
-        error={captchaError}
+      <input
+        type="checkbox"
+        name="botcheck"
+        className={styles.trap}
+        checked={botcheck}
+        onChange={(event) => setBotcheck(event.target.checked)}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
       />
 
       {submitError && (
@@ -310,24 +207,4 @@ function focusFirstError(errors: ContactFormErrors) {
   const firstField = Object.keys(errors)[0] as keyof ContactFormValues | undefined;
   if (!firstField) return;
   document.getElementById(fieldId(firstField))?.focus();
-}
-
-/**
- * "Ask a Question" links point at #ask-a-question. When the page arrives with that
- * hash, preselect "General question" so the family doesn't have to (PRP F2.2).
- */
-function usePreselectFromLink(
-  setValues: (update: (current: ContactFormValues) => ContactFormValues) => void,
-) {
-  useEffect(() => {
-    function applyHash() {
-      if (window.location.hash === `#${SECTION_IDS.askQuestion}`) {
-        setValues((current) => ({ ...current, enquiryType: 'generalQuestion' }));
-      }
-    }
-
-    applyHash();
-    window.addEventListener('hashchange', applyHash);
-    return () => window.removeEventListener('hashchange', applyHash);
-  }, [setValues]);
 }

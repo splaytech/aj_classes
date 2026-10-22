@@ -2,9 +2,10 @@
 // To change any wording, edit it here. Components never contain text of their own.
 // A section with empty content is hidden automatically.
 
-import type { ContactMethod, EnquirerRole, EnquiryType } from './app.constants';
+import { BUSINESS } from './business.constants';
 import type { SocialPlatform } from './business.constants';
-import { SECTION_IDS } from './routes.constants';
+import { PROGRAMMES, PROGRAMME_SLUGS } from './programmes.constants';
+import { SECTION_IDS, programmePath } from './routes.constants';
 
 export const TAGLINE = 'Every student can rise.';
 
@@ -21,15 +22,26 @@ export const A11Y = {
   closeMenu: 'Close menu',
   homeLink: 'AJ Classes home',
   socialLinks: 'AJ Classes on social media',
-  captcha: 'Spam protection check',
+  captcha: 'Spam protection check', // the Turnstile check on portal sign-in
 };
 
 // Where classes run. Shown in the footer and the contact details card.
-const LOCATION = 'Truganina VIC · Online across Australia';
+const LOCATION = `${BUSINESS.suburbsText} VIC · Online across Australia`;
 
+// Header links. A link can have sub-links (shown as a small dropdown on desktop, indented in
+// the phone menu). Programmes lists every programme page, with a "New" tag where it applies.
 export const NAV = {
   links: [
-    { label: 'Programmes', sectionId: SECTION_IDS.programmes },
+    {
+      label: 'Programmes',
+      sectionId: SECTION_IDS.programmes,
+      subLinks: PROGRAMMES.items.map((programme) => ({
+        id: programme.slug,
+        label: programme.menuLabel,
+        href: programmePath(programme.slug),
+        isNew: programme.isNew,
+      })),
+    },
     { label: 'Our Approach', sectionId: SECTION_IDS.approach },
     { label: 'About', sectionId: SECTION_IDS.about },
     { label: 'FAQ', sectionId: SECTION_IDS.faq },
@@ -46,12 +58,11 @@ export const ANNOUNCEMENT = {
 
 export const HERO = {
   headline: 'AJ Classes: Selective Entry Exam & Interview Coaching',
-  supporting:
-    'Small-group coaching in Maths, Science and English for Years 5–10, plus NAPLAN preparation from Year 2. In person in Truganina or online anywhere in Australia.',
+  supporting: `Small-group coaching in Maths, Science and English for Years 5–10, plus NAPLAN preparation from Year 2. In person in ${BUSINESS.suburbsText}, or online anywhere in Australia.`,
   primaryCta: 'Register Interest',
   secondaryCta: 'Ask a Question',
   proofPoints: [
-    '7 selective school offers in 2026',
+    '10 selective school offers in 2026',
     '20+ years of teaching experience',
     'Small groups, twice a week',
   ],
@@ -87,109 +98,80 @@ export const WHY_US = {
   ],
 };
 
+export type ResultId = 'selective' | 'jmss' | 'scholarships';
+
+type ResultItem = {
+  id: ResultId;
+  value: string;
+  label: string;
+  /** What the figure is made of, shown as a list (ui-polish.md §3, item 1). */
+  breakdown: readonly { label: string; value: string }[];
+  /** One line of context, for cards with little or no breakdown (general facts only). */
+  about?: string;
+  /** Short ticked points about how we prepared these students (our own services only). */
+  highlights?: readonly string[];
+  /** The programme that prepares for it, at the bottom of the card. */
+  link: { href: string; label: string };
+};
+
 export const RESULTS = {
   heading: 'Our 2026 results',
+  /** Visible text of every card's link; screen readers hear the full `link.label`. */
+  linkText: 'How we prepare',
   items: [
     {
-      value: '7',
+      id: 'selective',
+      value: '10',
       label: 'Selective high school offers for Year 9',
-      detail:
-        "Melbourne High School (2) · Suzanne Cory High School (3) · The Mac.Robertson Girls' High School (1) · Nossal High School (1)",
+      breakdown: [
+        { label: 'Melbourne High School', value: '4' },
+        { label: 'Suzanne Cory High School', value: '4' },
+        { label: "The Mac.Robertson Girls' High School", value: '1' },
+        { label: 'Nossal High School', value: '1' },
+      ],
+      link: {
+        href: programmePath(PROGRAMME_SLUGS.selectiveEntry),
+        label: 'How we prepare for the selective entry exam',
+      },
     },
     {
+      id: 'jmss',
       value: '5',
       label: 'John Monash Science School offers',
-      detail: '3 for Year 10 · 2 for Year 11',
+      breakdown: [
+        { label: 'Year 10', value: '3' },
+        { label: 'Year 11', value: '2' },
+      ],
+      about:
+        "Victoria's specialist senior secondary school for science, maths and technology, with entry from Year 10.",
+      link: {
+        href: programmePath(PROGRAMME_SLUGS.selectiveEntry),
+        label: 'How we prepare for entry exams',
+      },
     },
     {
+      id: 'scholarships',
       value: '3',
       label: 'Private school scholarships',
-      detail: '',
+      breakdown: [],
+      about:
+        "Scholarships are usually awarded after the school's own scholarship exam, often followed by an interview.",
+      highlights: [
+        'Practice in the style and timing of each school’s scholarship exam',
+        'Mock interviews with written feedback',
+      ],
+      link: {
+        href: programmePath(PROGRAMME_SLUGS.sealAndScholarships),
+        label: 'How we prepare for scholarships',
+      },
     },
-  ],
+  ] satisfies readonly ResultItem[],
   note: 'Our students also exceeded expectations in NAPLAN and improved significantly in ICAS.',
 };
 
-export const PROGRAMMES = {
-  heading: 'Programmes',
-  intro: 'Small-group classes and coaching from Year 2 through to university entry.',
-  newBadge: 'New',
-  items: [
-    {
-      title: 'Selective entry exam preparation',
-      years: 'Years 6–10',
-      points: [
-        'Reading comprehension and creative and persuasive writing',
-        'Mathematics, plus verbal and quantitative reasoning',
-        'Timed practice under exam conditions',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'Selective school and scholarship interviews',
-      years: 'Years 8–10',
-      points: [
-        'One-on-one and group mock interviews with written feedback',
-        'Coaching on common questions and help with applications',
-        "For Melbourne High School, The Mac.Robertson Girls' High School, Nossal High School, Suzanne Cory High School, John Monash Science School and private school scholarships",
-      ],
-      isNew: false,
-    },
-    {
-      title: 'SEAL and scholarship preparation',
-      years: '',
-      points: ['Preparation for SEAL program entry', 'Private school scholarship exams'],
-      isNew: false,
-    },
-    {
-      title: 'NAPLAN',
-      years: 'Years 2–9',
-      points: [
-        'Starts in Year 2, ahead of the first NAPLAN in Year 3',
-        'Continues through to Year 9',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'ICAS',
-      years: 'Years 5–10',
-      points: [
-        'Preparation for the ICAS academic competitions',
-        'Our students improved significantly in ICAS in 2026',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'Maths, Science and English tutoring',
-      years: 'Years 5–10',
-      points: [
-        'Regular term-by-term tutoring',
-        'Builds strong foundations',
-        'Keeps students ahead at school',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'VCE subject-selection counselling',
-      years: '',
-      points: [
-        'Sessions with students and parents together',
-        'Complete guidance on choosing VCE subjects',
-      ],
-      isNew: false,
-    },
-    {
-      title: 'UCAT and GAMSAT preparation',
-      years: '',
-      points: [
-        'For medical and health-science entry tests',
-        'Enrolments are open now',
-        'Classes start in January 2027',
-      ],
-      isNew: true,
-    },
-  ],
-};
+export type ApproachStepId = 'assess' | 'plan' | 'practise' | 'review';
+
+type ApproachStep = { id: ApproachStepId; name: string; text: string };
 
 export const APPROACH = {
   heading: 'Our Approach',
@@ -198,33 +180,41 @@ export const APPROACH = {
     "Selective entry isn't only about the exam. We build strong foundations in Maths, Science and English, sharpen exam technique under timed conditions, and prepare students to speak with confidence at interview.",
     "Parents are part of the journey too. We keep you informed about your child's progress and next steps.",
   ],
+  stepLabel: (step: number, total: number) => `Step ${step} of ${total}`,
   steps: [
     {
+      id: 'assess',
       name: 'Assess',
       text: 'An initial assessment shows where your child is today: their strengths, gaps and goals.',
     },
     {
+      id: 'plan',
       name: 'Plan',
       text: 'We place them in the right small group and set personalised targets for the term.',
     },
     {
+      id: 'practise',
       name: 'Practise',
       text: 'Twice-weekly classes build skills, then timed practice builds exam confidence.',
     },
     {
+      id: 'review',
       name: 'Review',
       text: 'Regular feedback and progress updates, then interview preparation when it counts.',
     },
-  ],
+  ] satisfies readonly ApproachStep[],
 };
 
 export const ABOUT = {
   heading: 'About Us',
-  story:
-    "AJ Classes started with a simple belief: every child can learn and rise, whatever their background. From our home-based classroom in Truganina, and online for families across Australia, we prepare students for Victoria's selective entry high schools, from the exam through to the interview, and support them from their first NAPLAN to choosing VCE subjects and beyond. We keep our groups small and our standards high, and we offer fee support so that more motivated students can learn with us.",
+  story: `AJ Classes started with a simple belief: every child can learn and rise, whatever their background. From our classrooms in ${BUSINESS.suburbsText}, and online for families across Australia, we prepare students for Victoria's selective entry high schools, from the exam through to the interview, and support them from their first NAPLAN to choosing VCE subjects and beyond. We keep our groups small and our standards high, and we offer fee support so that more motivated students can learn with us.`,
   teamHeading: 'Our team',
   team: 'Our qualified teachers bring more than 20 years of combined teaching experience in Maths, Science and English, and in preparing students for selective entry exams and interviews.',
   badge: 'Working With Children Check held',
+  // The badge links to the Victorian Government's WWC Check page (checked 22 Oct 2026).
+  badgeUrl: 'https://www.vic.gov.au/working-with-children-check',
+  badgeLinkLabel:
+    'Working With Children Check held: about the check on vic.gov.au (opens in a new tab)',
 };
 
 export const FAQ = {
@@ -247,8 +237,7 @@ export const FAQ = {
     },
     {
       question: 'Are classes online or in person?',
-      answer:
-        'Both. We run small in-person classes from our home-based centre in Truganina, and live online classes for students anywhere in Australia.',
+      answer: `Both. We run small in-person classes in ${BUSINESS.suburbsText}, and live online classes for students anywhere in Australia.`,
     },
     {
       question: 'How big are the groups?',
@@ -258,7 +247,7 @@ export const FAQ = {
     {
       question: 'How do I enrol?',
       answer:
-        "Register your interest using the form on this page. We'll contact you by phone or email (your choice) within 3 business days to book an initial assessment, explain fees, and share term dates and the timetable. Our 2027 batch starts on 12 October 2026. Joining mid-term is considered case by case.",
+        "Register your interest using the form on this page. We'll get back to you within 3 business days to book an initial assessment, explain fees, and share term dates and the timetable. Our 2027 batch starts on 12 October 2026. Joining mid-term is considered case by case.",
     },
     {
       question: 'How much are the fees?',
@@ -273,41 +262,17 @@ export const FAQ = {
   ],
 };
 
-export const ENQUIRY_TYPE_LABELS: Record<EnquiryType, string> = {
-  registerInterest: 'Register interest for enrolment',
-  generalQuestion: 'General question',
-  other: 'Other',
-};
-
-export const ENQUIRER_ROLE_LABELS: Record<EnquirerRole, string> = {
-  parent: 'Parent',
-  student: 'Student',
-  other: 'Other',
-};
-
-export const CONTACT_METHOD_LABELS: Record<ContactMethod, string> = {
-  phone: 'Phone call',
-  email: 'Email',
-};
-
 export const CONTACT_FORM = {
   heading: 'Register your interest',
   intro:
-    "Tell us a little about your child and how you'd like us to contact you. There's no obligation.",
+    "Leave your name and email, and we'll be in touch within 3 business days. There's no obligation.",
   labels: {
     name: 'Your name',
     email: 'Email',
     phone: 'Phone',
-    contactMethod: 'How should we contact you?',
-    role: 'I am a…',
-    enquiryType: 'Enquiry type',
-    yearLevel: "Student's year level",
-    message: 'Message',
+    message: 'How can we help?',
     updatesConsent: 'Email me about AJ Classes updates and enrolment openings.',
   },
-  yearLevelPlaceholder: 'Select a year level (optional)',
-  yearLevelPrefix: 'Year',
-  yearLevelOther: 'University / graduate (UCAT, GAMSAT)',
   optional: '(optional)',
   privacyNoticeBefore: 'By submitting, you agree to our',
   privacyLinkText: 'Privacy Policy',
@@ -316,10 +281,11 @@ export const CONTACT_FORM = {
   submit: 'Register interest',
   submitting: 'Sending…',
   emailSubjectPrefix: '[AJ Classes]',
+  emailSubject: 'Website enquiry',
   yes: 'Yes',
   no: 'No',
-  success: (contactMethod: ContactMethod) =>
-    `Thank you! We've received your details and will contact you by ${contactMethod === 'phone' ? 'phone' : 'email'} within 3 business days.`,
+  successHeading: 'Message sent',
+  success: "Thank you! We've received your details and will be in touch within 3 business days.",
 };
 
 // The card beside the form. A row with no value (e.g. phone or hours still TBC) is hidden.
@@ -331,7 +297,7 @@ export const CONTACT_DETAILS = {
   location: LOCATION,
   hoursLabel: 'Class hours',
   responseLabel: 'Response time',
-  response: 'Within 3 business days, by phone or email (your choice)',
+  response: 'Within 3 business days',
 };
 
 // Navy band halfway down the page, with the same single CTA label as everywhere else (F2.2).
@@ -349,13 +315,25 @@ export const MOBILE_CTA_BAR = {
 
 export const SUBSCRIBE = {
   heading: 'Stay in the loop',
-  blurb: 'News, events and enrolment updates from AJ Classes. No spam, unsubscribe any time.',
-  emailLabel: 'Email address',
-  consent: 'Send me AJ Classes news, events and enrolment updates. Unsubscribe any time.',
+  blurb: 'A weekly update for parents and guardians: news, events, enrolments and study tips.',
+  emailLabel: 'Parent or guardian email',
+  // Clear consent wording beside the button (Spam Act 2003). Kit's confirmation email
+  // (double opt-in) is the record that they asked to subscribe.
+  consentNotice:
+    "By subscribing, you agree to receive AJ Classes updates by email. We'll email you a link to confirm. Unsubscribe any time.",
   submit: 'Subscribe',
   submitting: 'Subscribing…',
-  success: "You're subscribed. Thanks for staying in touch!",
-  emailSubject: '[AJ Classes] New subscriber',
+  success: (email: string) =>
+    `Almost done! We've sent a confirmation link to ${email}. Please check your inbox, and your spam folder if it's not there.`,
+};
+
+// The page Kit sends people to after they click the confirmation link.
+// (Set this as the "redirect after confirming" URL in the Kit form settings.)
+export const SUBSCRIBED_PAGE = {
+  heading: "You're subscribed!",
+  text: "Thanks for joining the AJ Classes weekly update. You'll get news, events, enrolment updates and study tips once a week.",
+  tip: `So our emails reach your inbox, add ${BUSINESS.email} to your contacts.`,
+  backHome: 'Back to the home page',
 };
 
 export const SOCIAL_LABELS: Record<SocialPlatform, string> = {
@@ -388,11 +366,16 @@ export const PRIVACY = {
     },
     {
       heading: 'Why we collect it',
-      text: 'To respond to your enquiry, contact you in the way you prefer, and, if you ticked the box or subscribed, send you news and enrolment updates. You can unsubscribe at any time.',
+      text: 'To respond to your enquiry, contact you in the way you prefer, and, if you ticked the box or subscribed, send you news and enrolment updates. Every newsletter email has an unsubscribe link, and you can unsubscribe at any time.',
     },
     {
       heading: 'Who handles it',
-      text: "Form submissions are delivered to us by email through a form-processing service (Web3Forms), which may process data outside Australia. To block spam, our forms use hCaptcha, which checks that you are a person and may process your IP address and browser information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing.",
+      text: "Enquiry form submissions are delivered to us by email through a form-processing service (Web3Forms). Newsletter sign-ups are managed by Kit (kit.com), our email newsletter service, which stores your email address and sends our updates. Both may process data outside Australia (including the United States). To block spam, our enquiry form uses a hidden check that doesn't collect any extra information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing.",
+    },
+    {
+      // Owner request (Oct 2026). Wording for the owner to review; consumer law limits what can be excluded.
+      heading: 'Accuracy of information',
+      text: 'Every effort has been made to verify the information on this website, including our results, programmes, class times and fees. However, details can change and mistakes can happen, and AJ Classes is not liable for any action taken based on this information, to the extent permitted by law. Please contact us to confirm details before making decisions, and let us know if you spot something that is wrong.',
     },
     {
       // R3b review F19: family accounts. Wording for the owner to review.
@@ -441,7 +424,7 @@ export const HERO_SLIDES = {
   slides: [
     {
       eyebrow: 'Our 2026 results',
-      title: '7 selective high school offers',
+      title: '10 selective high school offers',
       points: [
         '5 John Monash Science School offers',
         '3 private school scholarships',

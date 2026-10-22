@@ -9,10 +9,6 @@ const validForm: ContactFormValues = {
   name: 'Priya Sharma',
   email: 'priya@example.com',
   phone: '',
-  contactMethod: 'email',
-  role: 'parent',
-  enquiryType: 'registerInterest',
-  yearLevel: 'Year 6',
   message: '',
   updatesConsent: false,
 };
@@ -40,22 +36,27 @@ describe('isValidAustralianPhone', () => {
 });
 
 describe('validateContactForm', () => {
-  it('returns no errors for a valid "register interest" form', () => {
+  it('needs only a name and an email', () => {
     expect(validateContactForm(validForm)).toEqual({});
   });
 
-  it('requires a phone number when the family asks for a call', () => {
-    const errors = validateContactForm({ ...validForm, contactMethod: 'phone' });
-    expect(errors.phone).toBe(VALIDATION.phoneRequiredForCall);
+  it('requires a name and an email', () => {
+    const errors = validateContactForm({ ...validForm, name: ' ', email: '' });
+    expect(errors.name).toBe(VALIDATION.nameRequired);
+    expect(errors.email).toBe(VALIDATION.emailRequired);
   });
 
-  it('requires a message for general questions', () => {
-    const errors = validateContactForm({ ...validForm, enquiryType: 'generalQuestion' });
-    expect(errors.message).toBe(VALIDATION.messageRequired);
+  it('accepts a missing phone number, but checks one that is given', () => {
+    expect(validateContactForm({ ...validForm, phone: '' }).phone).toBeUndefined();
+    expect(validateContactForm({ ...validForm, phone: '12345' }).phone).toBe(
+      VALIDATION.phoneInvalid,
+    );
   });
 
-  it('requires a contact method', () => {
-    const errors = validateContactForm({ ...validForm, contactMethod: '' });
-    expect(errors.contactMethod).toBe(VALIDATION.contactMethodRequired);
+  it('accepts an empty message, but not one over the limit', () => {
+    expect(validateContactForm({ ...validForm, message: '' }).message).toBeUndefined();
+    expect(validateContactForm({ ...validForm, message: 'x'.repeat(2001) }).message).toBe(
+      VALIDATION.messageTooLong,
+    );
   });
 });

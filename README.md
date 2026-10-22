@@ -26,7 +26,7 @@ pnpm dev          # http://localhost:5173
 | `pnpm format`    | Formats every file with Prettier                        |
 | `pnpm check`     | Everything above in one go. Run before pushing          |
 
-Copy `apps/web/.env.example` to `apps/web/.env.local` and add the Web3Forms access key to make the forms send.
+Copy `apps/web/.env.example` to `apps/web/.env.local` and add the Web3Forms access key (enquiry form) and the Kit form ID (newsletter sign-up). Without the Kit form ID the newsletter form stays hidden.
 
 **Portal (Release 2a, R3a, R3b):** sign-in with two-step for admins; staff management and activity; classes, weekly timetable, student roster, assignments and marking; online assignments with multiple-choice and written questions (publish, autosave, hand in, mark, return); student and parent accounts by invitation, with parental consent; light and dark appearance. Staff pages use Material UI, themed from `theme.css`. In development the first visit to a page using a new Material UI part reloads once while Vite prepares it. Needs Docker and the Supabase CLI. Run `pnpm db:start`, add the three portal settings to `.env.local` (see `.env.example`), then `pnpm dev` and open http://localhost:5173/portal/login. Local accounts and commands: [supabase/README.md](supabase/README.md). Without the portal settings, the portal is switched off.
 
@@ -70,7 +70,8 @@ aj_classes/
 │       │   ├── services/            the ONLY code that talks to a backend (Web3Forms now, Supabase in R2)
 │       │   │   ├── enquiry.service.ts       submitEnquiry()
 │       │   │   ├── subscription.service.ts  subscribe()
-│       │   │   ├── web3forms.client.ts      the one file that calls Web3Forms
+│       │   │   ├── web3forms.client.ts      the one file that calls Web3Forms (enquiries)
+│       │   │   ├── kit.client.ts            the one file that calls Kit (newsletter)
 │       │   │   └── index.ts                 what components are allowed to import
 │       │   ├── lib/                 plain helpers: validation, seo, analytics, social
 │       │   ├── routes/              one file per URL: home, privacy, not-found, sitemap, robots

@@ -2,7 +2,7 @@
 //
 // Components and sections import from '@/services' and call plain functions
 // such as `submitEnquiry()`. Only files inside this folder may import backend
-// clients (Web3Forms today; Supabase for the staff portal from Release 2). ESLint enforces this.
+// clients (Web3Forms and Kit today; Supabase for the portal from Release 2). ESLint enforces this.
 //
 // Supabase is created in `supabase.client.ts` and loaded only when a portal function runs,
 // so the public pages never download it.

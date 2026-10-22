@@ -1,9 +1,25 @@
 // Application configuration.
 // This is the ONLY file allowed to read environment variables (PRP F8.4).
 
+import { resolveAppEnvironment } from './app-environment.constants';
+
 const env = import.meta.env;
 
+const environment = resolveAppEnvironment(env.VITE_APP_ENV, env.DEV);
+const isProduction = environment === 'production';
+
+// Kit (formerly ConvertKit) form that receives newsletter sign-ups. The form ID is public and
+// safe in the browser. Until it's set, the footer sign-up form is hidden.
+const kitFormId: string = env.VITE_KIT_FORM_ID || '';
+
 export const APP_CONFIG = {
+  environment,
+  isProduction,
+  // Branch and commit of this build, shown on the staging and dev label (set in vite.config.ts).
+  build: {
+    branch: env.VITE_BUILD_BRANCH || '',
+    commit: env.VITE_BUILD_COMMIT || '',
+  },
   siteUrl: env.VITE_SITE_URL || 'https://ajclasses.com.au',
   language: 'en-AU',
   dateLocale: 'en-au', // dayjs locale for the staff portal's date and time pickers
@@ -14,8 +30,8 @@ export const APP_CONFIG = {
   // Turn whole features on or off without touching components.
   features: {
     announcement: true,
-    subscribe: true,
-    analytics: true,
+    subscribe: kitFormId !== '', // footer newsletter sign-up (needs a Kit form ID)
+    analytics: isProduction, // staging and dev visits never count (environments.md E4)
     // Staff portal (R2a): on only when Supabase and the Turnstile check are configured.
     portal: Boolean(
       env.VITE_SUPABASE_URL && env.VITE_SUPABASE_PUBLISHABLE_KEY && env.VITE_TURNSTILE_SITE_KEY,
@@ -32,6 +48,7 @@ export const APP_CONFIG = {
   // Cloudflare Turnstile "I am human" check on staff sign-in and password reset.
   turnstile: {
     siteKey: env.VITE_TURNSTILE_SITE_KEY || '',
+    language: 'en',
   },
 
   // LOCAL DEVELOPMENT ONLY (R2a design §16.1): the dev server enters the local admin's two-step
@@ -47,11 +64,12 @@ export const APP_CONFIG = {
     endpoint: 'https://api.web3forms.com/submit',
     accessKey: env.VITE_FORM_ACCESS_KEY || '',
     senderName: 'AJ Classes Website', // shown as the "From" name on notification emails
+  },
 
-    // hCaptcha "I am human" check (turned on in the Web3Forms dashboard). This is Web3Forms'
-    // shared public sitekey: https://docs.web3forms.com/getting-started/customizations/spam-protection/hcaptcha
-    captchaSiteKey: '50b2fe65-b00b-4b9e-ad62-3ba471098be2',
-    captchaLanguage: 'en',
+  // Newsletter sign-ups go to Kit, which emails a confirmation link (double opt-in).
+  newsletter: {
+    kitFormId,
+    kitFormUrl: 'https://app.convertkit.com/forms/{formId}/subscriptions',
   },
 
   // Hero flyer slideshow: time each slide stays before moving on.
@@ -118,22 +136,12 @@ export const FORM_LIMITS = {
   messageMax: 2000,
 } as const;
 
-// Year levels offered in the enquiry form (Year 2 – Year 12). A "University / graduate" option
-// for UCAT and GAMSAT is added by the form itself (label in content.constants.ts).
-export const YEAR_LEVELS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
-
-// Option keys for form dropdowns and radios. Their labels live in content.constants.ts.
-export const ENQUIRY_TYPES = ['registerInterest', 'generalQuestion', 'other'] as const;
-export const ENQUIRER_ROLES = ['parent', 'student', 'other'] as const;
-export const CONTACT_METHODS = ['phone', 'email'] as const;
-
-export type EnquiryType = (typeof ENQUIRY_TYPES)[number];
-export type EnquirerRole = (typeof ENQUIRER_ROLES)[number];
-export type ContactMethod = (typeof CONTACT_METHODS)[number];
-
 // Static files in /public.
 export const ASSETS = {
   logo: '/logo.svg',
   favicon: '/favicon.svg',
   appleTouchIcon: '/apple-touch-icon.png', // icon when a parent adds the site to their phone's home screen
 } as const;
+
+// Year levels offered in the portal's class and student forms (Release 2).
+export const YEAR_LEVELS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;

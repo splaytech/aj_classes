@@ -11,7 +11,3 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
 }
-
-.onDark {
-  color: var(--color-secondary);
-}

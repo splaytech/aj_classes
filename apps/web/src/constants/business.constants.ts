@@ -5,11 +5,13 @@
 export const BUSINESS = {
   name: 'AJ Classes',
   email: 'hello@ajclasses.com.au',
-  phone: null as string | null, // TBC (PRP Appendix B, O3)
+  phone: '+61 469 800 685' as string | null, // shown on the site (PRP Appendix B, O3)
+  phoneDial: '+61469800685', // the same number for tel: links
   classHours: null as string | null, // TBC, e.g. 'Mon–Fri 4–8pm, Sat 9am–1pm'
 
-  suburb: 'Truganina',
-  postcode: '3029',
+  // Where in-person classes run (updated Oct 2026; was Truganina only).
+  suburbs: ['Williams Landing', 'Truganina', 'Craigieburn'],
+  suburbsText: 'Williams Landing, Truganina and Craigieburn',
   state: 'VIC',
   country: 'AU',
   city: 'Melbourne',
@@ -24,9 +26,10 @@ export type SocialLink = {
 };
 
 // Links are TBC (PRP Appendix B, O4). A platform with no URL is not shown.
+// Facebook added 22 Oct 2026.
 export const SOCIAL_LINKS: SocialLink[] = [
   { platform: 'instagram', url: null },
-  { platform: 'facebook', url: null },
+  { platform: 'facebook', url: 'https://www.facebook.com/profile.php?id=61595519166933' },
   { platform: 'youtube', url: null },
   { platform: 'whatsapp', url: null },
 ];

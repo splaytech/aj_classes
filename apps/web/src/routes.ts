@@ -5,9 +5,14 @@ import type { RouteConfig } from '@react-router/dev/routes';
 
 import { PORTAL_ROUTE_PATTERNS, PORTAL_ROUTES, ROUTES } from './constants/routes.constants';
 
+const PROGRAMME_PAGE = `${ROUTES.programmes}/:slug`;
+
 export default [
   index('routes/home.tsx'),
   route(ROUTES.privacy, 'routes/privacy.tsx'),
+  route(ROUTES.vce, 'routes/vce.tsx'), // a fixed path wins over the :slug pattern below
+  route(PROGRAMME_PAGE, 'routes/programme.tsx'),
+  route(ROUTES.subscribed, 'routes/subscribed.tsx'),
   route(ROUTES.sitemap, 'routes/sitemap.ts'),
   route(ROUTES.robots, 'routes/robots.ts'),
 

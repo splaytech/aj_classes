@@ -1,10 +1,13 @@
-// Footer "Stay in the loop" sign-up: email, consent tick box and the hCaptcha check (PRP F3.6).
+// Footer "Stay in the loop" newsletter sign-up (PRP F3.6).
+//
+// Just an email and a button. Kit then emails a confirmation link (double opt-in), which
+// stops bots and typos, so there is no captcha or tick box here. The consent wording
+// sits beside the button instead.
 
-import type HCaptcha from '@hcaptcha/react-hcaptcha';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import type { FormEvent } from 'react';
 
-import { Button, CaptchaField } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { ANALYTICS_EVENTS, ELEMENT_IDS, FORM_ERRORS, SUBSCRIBE, VALIDATION } from '@/constants';
 import { trackEvent } from '@/lib/analytics';
 import { isValidEmail } from '@/lib/validation';
@@ -16,34 +19,20 @@ type Status = 'idle' | 'submitting' | 'success';
 
 export function SubscribeForm() {
   const [email, setEmail] = useState('');
-  const [consent, setConsent] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
-  const captchaRef = useRef<HCaptcha>(null);
-
-  function findError(): string {
-    if (!isValidEmail(email)) return VALIDATION.emailInvalid;
-    if (!consent) return VALIDATION.consentRequired;
-    if (!captchaToken) return VALIDATION.captchaRequired;
-    return '';
-  }
-
-  /** A captcha token works only once, so ask for a fresh check after a failed send. */
-  function resetCaptcha() {
-    setCaptchaToken('');
-    captchaRef.current?.resetCaptcha();
-  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const validationError = findError();
-    setError(validationError);
-    if (validationError) return;
+    if (!isValidEmail(email)) {
+      setError(VALIDATION.emailInvalid);
+      return;
+    }
 
+    setError('');
     setStatus('submitting');
-    const result = await subscribe(email, captchaToken);
+    const result = await subscribe(email);
 
     if (result === 'success') {
       setStatus('success');
@@ -53,13 +42,12 @@ export function SubscribeForm() {
 
     setStatus('idle');
     setError(result === 'not-configured' ? FORM_ERRORS.notConfigured : FORM_ERRORS.network);
-    resetCaptcha();
   }
 
   if (status === 'success') {
     return (
       <p className={styles.success} role="status">
-        {SUBSCRIBE.success}
+        {SUBSCRIBE.success(email.trim())}
       </p>
     );
   }
@@ -78,16 +66,7 @@ export function SubscribeForm() {
         onChange={(event) => setEmail(event.target.value)}
       />
 
-      <label className={styles.consent}>
-        <input
-          type="checkbox"
-          checked={consent}
-          onChange={(event) => setConsent(event.target.checked)}
-        />
-        {SUBSCRIBE.consent}
-      </label>
-
-      <CaptchaField captchaRef={captchaRef} onTokenChange={setCaptchaToken} theme="dark" />
+      <p className={styles.consent}>{SUBSCRIBE.consentNotice}</p>
 
       {error && (
         <p className={styles.error} role="alert">
