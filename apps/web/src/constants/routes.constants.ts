@@ -5,6 +5,7 @@ export const ROUTES = {
   home: '/',
   privacy: '/privacy',
   programmes: '/programmes', // one page per programme under here (programme-pages.md)
+  resources: '/resources', // parent guides (completion-todo §5.3)
   vce: '/programmes/vce', // VCE tutoring has its own page layout (vce-page.md)
   notFound: '/404',
   sitemap: '/sitemap.xml',
@@ -107,6 +108,11 @@ export const SECTION_IDS = {
   contact: 'contact',
   askQuestion: 'ask-a-question', // the enquiry form itself ("Ask a Question" scrolls to it)
 } as const;
+
+/** Path of a parent guide, such as "/resources/victorian-selective-entry-exam". */
+export function resourcePath(slug: string): string {
+  return `${ROUTES.resources}/${slug}`;
+}
 
 /** Path of a programme's page, such as "/programmes/naplan". */
 export function programmePath(slug: string): string {

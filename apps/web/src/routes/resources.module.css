@@ -1,0 +1,82 @@
+.intro {
+  font-size: var(--font-size-lg);
+}
+
+.guides {
+  display: grid;
+  gap: var(--space-6);
+  margin: var(--space-8) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-subtle) 100%);
+  box-shadow: var(--shadow-card);
+}
+
+.guide h2 {
+  margin: 0;
+  font-size: var(--font-size-h3);
+}
+
+.more {
+  font-weight: var(--font-weight-bold);
+}
+
+.back {
+  margin-bottom: var(--space-4);
+}
+
+.checked {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* The guide body: comfortable reading width, clear spacing between sections. */
+.article {
+  max-width: var(--measure);
+}
+
+.article section {
+  margin-top: var(--space-8);
+}
+
+.article h2 {
+  font-size: var(--font-size-h3);
+}
+
+/* Short ticked points, like the programme pages. */
+.points {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.points li {
+  position: relative;
+  padding-left: var(--space-6);
+}
+
+.points li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-6);
+}

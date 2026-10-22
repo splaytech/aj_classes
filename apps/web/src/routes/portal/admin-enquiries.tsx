@@ -110,17 +110,31 @@ export default function AdminEnquiriesPage() {
                     </Typography>
                   )}
                 </TableCell>
-                <TableCell sx={{ maxWidth: 360, whiteSpace: 'pre-wrap' }}>
+                <TableCell sx={{ minWidth: 260, maxWidth: 420, whiteSpace: 'pre-wrap' }}>
                   {enquiry.message ?? (
                     <Typography variant="body2" color="text.secondary">
                       {ENQUIRIES_PAGE.noMessage}
                     </Typography>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ maxWidth: 220 }}>
                   <CrmStatusChip status={enquiry.crmStatus} />
                   {enquiry.crmStatus === 'failed' && enquiry.crmError && (
-                    <Typography variant="caption" color="text.secondary" component="p">
+                    // Zoho's reason can be long and technical: two lines, the rest on hover.
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      component="p"
+                      title={enquiry.crmError}
+                      sx={{
+                        mt: 0.5,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        wordBreak: 'break-word',
+                      }}
+                    >
                       {enquiry.crmError}
                     </Typography>
                   )}

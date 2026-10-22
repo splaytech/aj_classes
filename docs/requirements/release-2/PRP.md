@@ -45,6 +45,16 @@ Release 1 shipped as a static site only, so these items move here:
 - Database provisioning: `users`/`profiles` and roles tables.
 - Secure session management and password reset. Auth emails go through **Resend SMTP**.
 
+### Completion (22 Oct 2026)
+
+Built on top of R2a and R3: lead capture to **Zoho Bigin** with an admin Enquiries page
+([leads-and-crm.md](leads-and-crm.md)), parents' link to **Zoho Invoice**, a WhatsApp chat button
+([whatsapp-button.md](whatsapp-button.md)), parent guides and course data for SEO, GitHub Actions
+CI, and a one-command Supabase setup ([go-live.md](go-live.md)). The planned `submit-lead`
+function became `leads`; enquiry emails stay on Web3Forms for now. Subscribers stay in Kit;
+testimonials wait for real testimonials with consent; Sentry needs an account.
+Todo: [completion-todo.md](completion-todo.md).
+
 ## Service Layer Rule (decided 28 Sep 2026)
 
 There is **no separate BFF server**. The web and Flutter apps talk to Supabase directly (protected by RLS), and anything that needs secrets runs in Supabase Edge Functions.

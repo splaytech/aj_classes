@@ -1,89 +1,93 @@
-# Release 2 — Go-Live Checklist (portal for staff, students and parents)
+# Release 2 — Go-Live Checklist (portal, leads, Zoho)
 
-> **Status:** Ready to start (22 Oct 2026). Code: branch `release/r2` (Release 2 + 3 portal merged
-> with the live public site, all tests passing). The portal **switches itself off** until its
-> three settings are present (§4), so merging the code is safe before any of this is done.
-> Design: [R2a design §8, §13–14](r2a/design.md). Runbooks: [supabase/README.md](../../../supabase/README.md).
+> **Status:** Code complete and on `develop` (22 Oct 2026). One hosted Supabase project serves
+> staging and prod (`unzjnxctkyahtmrkinyr`, owner decision). Its public URL and key are already in
+> `apps/web/.env.production`. The **portal stays switched off** until the Turnstile site key is set
+> in Vercel (§4), and **lead capture stays off** until `VITE_LEAD_CAPTURE=on`, so the live site is
+> safe at every step. Todo: [completion-todo.md](completion-todo.md).
 
-Two Supabase projects: **staging** (for the Vercel Preview site) and **prod**. Both free to start;
-move prod to **Pro before real family data** (no pausing, daily backups; R2a review Q5).
+## 0. Before anything: public sign-ups must be off
+
+The hosted project currently allows anyone to sign up. Once the tables exist, an account created
+without an invite would become an **active tutor**. The setup script (§3) switches sign-ups off
+and **refuses to create any table until it has confirmed they are off**. If you'd rather do it by
+hand first: Dashboard → Authentication → Sign In / Providers → turn off **Allow new users to sign up**.
 
 ## 1. Accounts to create (owner)
 
 | # | What | Where | Notes |
 |---|---|---|---|
-| A1 | Supabase account, two projects: `aj-classes-staging`, `aj-classes-prod` | supabase.com | Region **Sydney**. Save each database password in a password manager. |
-| A2 | Cloudflare Turnstile widget | dash.cloudflare.com → Turnstile | Hostnames: `ajclasses.com.au`, `staging.ajclasses.com.au`, `localhost`. Gives a **site key** (public) and a **secret** (private). |
-| A3 | Resend (sends sign-in, invite and reset emails) | resend.com | Add domain `ajclasses.com.au`; it gives DNS records on the `send.` subdomain plus a DKIM record, so the Zoho mail records don't change. Create an SMTP password. |
+| A1 | Supabase access token, and the project's database password | supabase.com → Account → Access tokens; the password chosen when creating the project | For the setup script only. Never commit them. |
+| A2 | Cloudflare Turnstile widget | dash.cloudflare.com → Turnstile | Hostnames `ajclasses.com.au`, `staging.ajclasses.com.au`, `localhost`. Gives a site key (public) and a secret. |
+| A3 | Resend (sign-in, invite and reset emails) | resend.com | Add domain `ajclasses.com.au`; create an API key (used as the SMTP password). |
+| A4 | Zoho Bigin + Zoho Invoice | bigin.com / zoho.com.au | Australian data centre. Setup in [leads-and-crm.md §4](leads-and-crm.md). |
 
 ## 2. DNS (Squarespace)
 
-Add Resend's records exactly as shown in Resend (MX and TXT on `send`, TXT `resend._domainkey`).
-Don't touch the Zoho MX/SPF/DKIM records or the Vercel records. Wait for Resend to show "Verified".
+Add Resend's records exactly as shown (MX and TXT on the `send` subdomain, TXT `resend._domainkey`).
+Leave the Zoho mail and Vercel records alone. Wait for Resend to show "Verified".
 
-## 3. Supabase setup (developer, per project: staging first, then prod)
+## 3. Supabase: one command
+
+From the repo root, with the values from §1:
 
 ```bash
-supabase link --project-ref <ref>
-supabase db push                     # all migrations; seed.sql is never run here
-supabase config push                 # auth settings from config.toml (design §8)
-supabase functions deploy account-admin
-supabase secrets set ALLOWED_ORIGINS=https://ajclasses.com.au      # staging: https://staging.ajclasses.com.au
+SUPABASE_ACCESS_TOKEN=… SUPABASE_DB_PASSWORD=… TURNSTILE_SECRET=… RESEND_API_KEY=… \
+ZOHO_CLIENT_ID=… ZOHO_CLIENT_SECRET=… ZOHO_REFRESH_TOKEN=… \
+  supabase/scripts/deploy.sh
 ```
 
-**Then, straight away, in the Supabase dashboard.** `config push` also copies the *local* values
-from `config.toml` (site URL `http://localhost:5173`, Turnstile's always-pass test secret, no SMTP),
-so these settings must be set **after** it, and again after any later `config push`:
+It links the project, pushes the sign-in settings (invite only, captcha, Resend email, site URL
+`https://ajclasses.com.au`, exact redirect URLs: `[remotes.production]` in `supabase/config.toml`),
+**checks sign-ups are off**, applies all migrations, deploys the `account-admin` and `leads`
+functions and sets their secrets. Add `--dry-run` to see the steps first. Zoho values are optional
+(enquiries are still saved without them); add `ZOHO_BIGIN_SUB_PIPELINE` and `ZOHO_BIGIN_STAGE` with
+`supabase secrets set` to also create pipeline records. Safe to run again.
 
-| Setting | Value |
-|---|---|
-| Auth → URL configuration → Site URL | `https://ajclasses.com.au` (staging: `https://staging.ajclasses.com.au`) |
-| Redirect URLs | the same origin + `/portal/auth/confirm` (exact, no wildcards) |
-| Auth → Attack protection → Captcha | Turnstile, **secret** from A2 |
-| Auth → SMTP | Resend: host `smtp.resend.com`, port 465, user `resend`, password from A3, sender `AJ Classes <hello@ajclasses.com.au>` |
-| Auth → Email templates | Paste each file from `supabase/templates/` (if `config push` didn't) |
-| Storage | `avatars` bucket comes from the migrations; check it exists |
+Then in the dashboard: Auth → Email templates show the AJ Classes branding (from
+`supabase/templates/`); Storage has the `avatars` bucket; Authentication → Users is empty.
 
-## 4. Vercel environment variables
+## 4. Vercel environment variables (Production and Preview)
 
-| Name | Production | Preview (staging) |
+| Name | Value | Effect |
 |---|---|---|
-| `VITE_SUPABASE_URL` | prod project URL | staging project URL |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | prod publishable key (`sb_publishable_…`) | staging publishable key |
-| `VITE_TURNSTILE_SITE_KEY` | site key (A2) | same site key |
+| `VITE_TURNSTILE_SITE_KEY` | site key (A2) | **Switches the portal on** (footer "Sign in") |
+| `VITE_LEAD_CAPTURE` | `on` | Enquiries saved and sent to Bigin (email to hello@ unchanged) |
 
-Never put a **secret** key (`sb_secret_…`, service role, Turnstile secret, SMTP password) in Vercel:
-they only live in Supabase. Redeploy after setting them. Optional hardening: replace
-`https://*.supabase.co` in `apps/web/vercel.json` with the exact project host (design §13.2).
+Already set: `VITE_APP_ENV`. Already in the repo: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`.
+Never put a secret in Vercel. Redeploy after setting them.
 
-## 5. First admins (owner, on prod)
+## 5. First admins (owner)
 
-Follow "First admin on a new environment" in `supabase/README.md`: invite yourself, set the role
-to admin, set up two-step sign-in. Repeat for a **second admin** so either can reset the other.
+`supabase/README.md` → "First admin on a new environment": invite yourself, set the role to admin,
+set up two-step sign-in. Repeat for a **second admin**.
 
-## 6. Owner decisions before families are invited
+## 6. Owner decisions
 
 | # | Item |
 |---|---|
-| O1 | The Privacy Policy already has a "Student and parent portal accounts" section (R3b review F19), marked for owner review. Read it before inviting families. |
-| O2 | WhatsApp: confirm `+61 469 800 685` is the WhatsApp Business number ([whatsapp-button.md](whatsapp-button.md)). |
-| O3 | Move prod to Supabase Pro before real family data. |
+| O1 | Read the Privacy Policy's portal and enquiry wording before inviting families. |
+| O2 | Confirm `+61 469 800 685` is the WhatsApp Business number ([whatsapp-button.md](whatsapp-button.md)). |
+| O3 | Move the Supabase project to **Pro** before real family data (no pausing, daily backups). |
+| O4 | Staging and prod share one database: test with clearly fake names, and delete test accounts and enquiries afterwards. |
+| O5 | Send the developer the Zoho Invoice customer-portal address; parents then see "Fees and invoices". |
 
 ## 7. Release order
 
-1. Merge `release/r2` into `develop` → staging deploys; portal stays off until §4 Preview values exist.
-2. Do §1–4 for **staging**; test §8 on `staging.ajclasses.com.au`.
-3. Do §3–5 for **prod**; merge `develop` into `main` (PR) → live.
-4. Test §8 on the live site; then invite tutors, then students and parents.
+1. `develop` deploys to staging automatically (done).
+2. §1–4, then §5 on the live address.
+3. Merge `develop` into `main` (pull request) → live.
+4. Smoke test (§8), then invite tutors, then students and parents.
 
-## 8. Smoke test (each environment)
+## 8. Smoke test
 
-- [ ] Public pages unchanged; WhatsApp button opens a chat; no `/portal` in `sitemap.xml`; `robots.txt` disallows `/portal`
+- [ ] Public pages unchanged; WhatsApp button opens a chat; `/resources` and the guide load; `sitemap.xml` has no `/portal`; `robots.txt` disallows `/portal`
 - [ ] Footer "Sign in" appears (portal on)
 - [ ] Invite a tutor → email arrives (check spam) → Continue → set password → tutor dashboard
 - [ ] Admin sign-in asks for the two-step code
-- [ ] Forgot password email works; old link says "expired or already used"
-- [ ] Create a class, add a student, invite the parent; publish an online assignment; student submits; tutor returns it; parent sees marks
+- [ ] Forgot password works; an old link says "expired or already used"
+- [ ] Send a test enquiry: email arrives as before, and it appears in Portal → Admin → Enquiries as "In Bigin" (and in Bigin); delete it afterwards
+- [ ] Class, student and parent invite; online assignment published, solved, returned; parent sees marks
 - [ ] Deactivate a test tutor → their next action fails
 - [ ] Refresh on a deep link (e.g. `/portal/classes`) still loads
-- [ ] Response headers on `/portal/*`: `Content-Security-Policy`, `X-Robots-Tag: noindex, nofollow`, `Cache-Control: no-store`
+- [ ] `/portal/*` responses carry `Content-Security-Policy` (naming `unzjnxctkyahtmrkinyr.supabase.co`), `X-Robots-Tag: noindex, nofollow`, `Cache-Control: no-store`

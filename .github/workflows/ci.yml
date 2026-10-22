@@ -1,0 +1,51 @@
+# Checks every push and pull request (R2 PRP "Site hardening": GitHub Actions CI).
+#   web       — format, lint, typecheck, unit tests, production build
+#   database  — the pgTAP tests against a fresh local Supabase database (Docker)
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4 # version from package.json "packageManager"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - name: Build (production settings, as Vercel builds it)
+        run: pnpm build
+        env:
+          VITE_APP_ENV: production
+
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start a local database with every migration
+        run: supabase db start
+      - name: Database tests (row-level security, functions, triggers)
+        run: supabase test db

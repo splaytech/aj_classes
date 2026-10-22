@@ -31,6 +31,8 @@ export const SOCIAL_PREVIEW = {
 } as const;
 
 export const STRUCTURED_DATA = {
+  // Breadcrumb names in search results (Home › Programmes › NAPLAN preparation).
+  breadcrumbs: { home: 'Home', programmes: 'Programmes', resources: 'Resources' },
   description: 'Expert coaching for the Victorian selective entry high school exam and interview.',
   logoPath: '/logo-512.png',
   knowsAbout: [
