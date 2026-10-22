@@ -6,6 +6,9 @@ import {
   APP_CONFIG,
   BUSINESS,
   FOOTER,
+  FOOTER_PORTAL,
+  PORTAL_ROUTES,
+  RESOURCES,
   ROUTES,
   SOCIAL_LABELS,
   SUBSCRIBE,
@@ -68,7 +71,11 @@ export function Footer() {
 
         <div className={styles.bottom}>
           <span>{FOOTER.copyright(currentYear)}</span>
-          <a href={ROUTES.privacy}>{FOOTER.privacyLink}</a>
+          <span className={styles.legal}>
+            <a href={ROUTES.resources}>{RESOURCES.footerLink}</a>
+            <a href={ROUTES.privacy}>{FOOTER.privacyLink}</a>
+            {APP_CONFIG.features.portal && <a href={PORTAL_ROUTES.login}>{FOOTER_PORTAL.signIn}</a>}
+          </span>
         </div>
         <p className={styles.disclaimer}>{FOOTER.disclaimer}</p>
       </Container>

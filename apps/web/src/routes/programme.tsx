@@ -6,16 +6,19 @@ import { useParams } from 'react-router';
 import { SiteLayout } from '@/components/layout/SiteLayout';
 import { ButtonLink, Section } from '@/components/ui';
 import {
+  GUIDES,
   PROGRAMMES,
+  RESOURCES,
   PROGRAMME_PAGE,
   ROUTES,
   SECTION_IDS,
   findProgramme,
   programmePath,
+  resourcePath,
   sectionLink,
 } from '@/constants';
 import type { Programme } from '@/constants';
-import { buildPageMeta } from '@/lib/seo';
+import { buildPageMeta, buildProgrammeJsonLd } from '@/lib/seo';
 
 import type { Route } from './+types/programme';
 import NotFoundPage, { meta as notFoundMeta } from './not-found';
@@ -24,7 +27,11 @@ import styles from './programme.module.css';
 export function meta({ params }: Route.MetaArgs) {
   const programme = findProgramme(params.slug);
   if (!programme) return notFoundMeta();
-  return buildPageMeta(programme.seo, programmePath(programme.slug));
+  const path = programmePath(programme.slug);
+  return [
+    ...buildPageMeta(programme.seo, path),
+    buildProgrammeJsonLd({ title: programme.title, description: programme.seo.description, path }),
+  ];
 }
 
 export default function ProgrammeRoute() {
@@ -34,6 +41,7 @@ export default function ProgrammeRoute() {
 }
 
 export function ProgrammePage({ programme }: { programme: Programme }) {
+  const guide = GUIDES.find((item) => item.programme === programme.slug);
   const others = PROGRAMMES.items.filter((other) => other.slug !== programme.slug);
 
   return (
@@ -54,6 +62,11 @@ export function ProgrammePage({ programme }: { programme: Programme }) {
           {programme.about.paragraphs.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
+          {guide && (
+            <p>
+              <a href={resourcePath(guide.slug)}>{RESOURCES.programmeLink}</a>
+            </p>
+          )}
         </Section>
       )}
 

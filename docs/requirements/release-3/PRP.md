@@ -4,6 +4,10 @@
 > **Architecture:** [arch.md](../../architecture/arch.md)
 > **Depends on:** [Release 2](../release-2/PRP.md) (auth, RBAC, dashboard shell)
 
+## R3a — Staff Dashboard (pulled forward, 8 Oct 2026)
+
+The staff side of this release (classes, timetable, student roster, assignments and marking) is being built early: [design](r3a/design.md) · [stories](r3a/stories.md) · [gap review](r3a/review.md). Student and parent logins, submissions and files remain in R3.
+
 ## Objective
 
 Onboard students and build the main reason people use the app: tutors assign work, students submit files, and tutors give feedback.

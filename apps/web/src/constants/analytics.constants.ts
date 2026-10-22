@@ -5,6 +5,7 @@ export const ANALYTICS_EVENTS = {
   formSubmitSuccess: 'form_submit_success',
   formSubmitError: 'form_submit_error',
   subscribeSuccess: 'subscribe_success',
+  whatsappClick: 'whatsapp_click',
 } as const;
 
 // Where on the page a CTA was clicked (sent with ANALYTICS_EVENTS.ctaClick).

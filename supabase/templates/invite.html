@@ -1,0 +1,78 @@
+<!doctype html>
+<!-- AJ Classes invite (R2a design §9.2). Colours copied from apps/web/src/styles/theme.css.
+     Worded by role (R3b design §5, F20): .Data is the user metadata the account-admin function
+     stored. It has account_role only for student and parent invites, so staff get the default. -->
+<html lang="en">
+  <body
+    style="
+      margin: 0;
+      padding: 24px;
+      background: #f5f9ff;
+      font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        sans-serif;
+      color: #172033;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 16px"
+    >
+      <tr>
+        <td
+          style="
+            padding: 24px 32px;
+            background: #172554;
+            border-radius: 16px 16px 0 0;
+            color: #ffffff;
+            font-size: 20px;
+          "
+        >
+          <strong>AJ</strong> Classes
+          <!-- prettier-ignore -->
+          <span style="color: #f9c62b; font-size: 14px">&nbsp;{{ with .Data.account_role }}{{ if eq . "student" }}Students{{ else }}Parents{{ end }}{{ else }}Staff{{ end }}</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 32px; font-size: 16px; line-height: 1.6">
+          <h1 style="margin: 0 0 16px; font-size: 22px; color: #172554">
+            You're invited to AJ Classes
+          </h1>
+          <!-- prettier-ignore -->
+          <p style="margin: 0">
+            {{ with .Data.account_role }}{{ if eq . "student" }}You've been invited to the AJ Classes student portal, where you can see your classes and do your assignments online.{{ else }}You've been invited to the AJ Classes parent portal, where you can follow your child's assignments, marks and tutor comments.{{ end }}{{ else }}You've been invited to the AJ Classes staff portal.{{ end }}
+            Click the button, then choose your password.
+          </p>
+          <p style="margin: 24px 0">
+            <a
+              href="{{ .SiteURL }}/portal/auth/confirm?token_hash={{ .TokenHash }}&type=invite"
+              style="
+                display: inline-block;
+                padding: 12px 24px;
+                background: #2563eb;
+                color: #ffffff;
+                border-radius: 8px;
+                font-weight: 700;
+                text-decoration: none;
+              "
+              >Accept invite</a
+            >
+          </p>
+          <p style="margin: 0; color: #4b5563; font-size: 14px">
+            This link expires in 1 hour and works once. If it has expired, ask AJ Classes to send
+            you a new one.
+          </p>
+          <p style="margin: 24px 0 0; color: #4b5563; font-size: 14px">
+            If you didn't expect this email, you can ignore it.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

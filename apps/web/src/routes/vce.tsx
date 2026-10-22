@@ -13,13 +13,17 @@ import {
   programmePath,
   sectionLink,
 } from '@/constants';
-import { buildPageMeta } from '@/lib/seo';
+import { buildPageMeta, buildProgrammeJsonLd } from '@/lib/seo';
 
 import styles from './vce.module.css';
 
 export function meta() {
   const vce = PROGRAMMES.items.find((programme) => programme.slug === PROGRAMME_SLUGS.vce);
-  return vce ? buildPageMeta(vce.seo, ROUTES.vce) : [];
+  if (!vce) return [];
+  return [
+    ...buildPageMeta(vce.seo, ROUTES.vce),
+    buildProgrammeJsonLd({ title: vce.title, description: vce.seo.description, path: ROUTES.vce }),
+  ];
 }
 
 export default function VcePage() {

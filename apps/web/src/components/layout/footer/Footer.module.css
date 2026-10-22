@@ -55,6 +55,12 @@
   font-size: var(--font-size-sm);
 }
 
+.legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
 .disclaimer {
   margin: var(--space-4) 0 0;
   max-width: none;

@@ -3,14 +3,18 @@
 
 import { Analytics } from '@vercel/analytics/react';
 import type { ReactNode } from 'react';
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLocation } from 'react-router';
 
 import { EnvironmentMarker } from '@/components/layout/EnvironmentMarker';
-import { APP_CONFIG, ASSETS, CURRENT_MARKER } from '@/constants';
+import { APP_CONFIG, ASSETS, CURRENT_MARKER, PORTAL_ROUTES } from '@/constants';
 import './styles/theme.css';
 import './styles/global.css';
 
 export function Layout({ children }: { children: ReactNode }) {
+  // No analytics on staff pages: their URLs can carry email-link tokens (R2a design §13.3).
+  const isPortalPage = useLocation().pathname.startsWith(PORTAL_ROUTES.root);
+  const showAnalytics = APP_CONFIG.features.analytics && !isPortalPage;
+
   return (
     <html lang={APP_CONFIG.language}>
       <head>
@@ -27,7 +31,7 @@ export function Layout({ children }: { children: ReactNode }) {
         {children}
         <ScrollRestoration />
         <Scripts />
-        {APP_CONFIG.features.analytics && <Analytics />}
+        {showAnalytics && <Analytics />}
       </body>
     </html>
   );

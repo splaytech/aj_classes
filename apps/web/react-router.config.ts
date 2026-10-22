@@ -1,6 +1,7 @@
 import type { Config } from '@react-router/dev/config';
 
 import { PROGRAMME_PATHS } from './src/constants/programmes.constants';
+import { GUIDE_PATHS } from './src/constants/resources.constants';
 import { ROUTES } from './src/constants/routes.constants';
 
 // Static site: no server runtime. Every public page is pre-rendered to HTML at build time
@@ -12,6 +13,8 @@ export default {
     ROUTES.home,
     ROUTES.privacy,
     ...PROGRAMME_PATHS, // includes VCE
+    ROUTES.resources,
+    ...GUIDE_PATHS,
     ROUTES.subscribed,
     ROUTES.notFound,
     ROUTES.sitemap,

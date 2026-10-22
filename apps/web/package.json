@@ -12,8 +12,16 @@
     "start:railway": "serve --config serve.railway.json --no-clipboard --listen tcp://0.0.0.0:${PORT:-3000}"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@marsidev/react-turnstile": "^1.6.1",
+    "@mui/icons-material": "^9.4.0",
+    "@mui/material": "^9.4.0",
+    "@mui/x-date-pickers": "^9.14.0",
     "@react-router/node": "^8.4.0",
+    "@supabase/supabase-js": "^2.117.2",
     "@vercel/analytics": "^2.0.1",
+    "dayjs": "^1.11.23",
     "isbot": "^5.2.2",
     "lucide-react": "1.52.0",
     "react": "^19.3.0",

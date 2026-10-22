@@ -91,8 +91,7 @@ export const PROGRAMMES = {
       isNew: false,
       seo: {
         title: 'Selective Entry Exam Preparation in Melbourne | AJ Classes',
-        description:
-          'Small-group coaching for the Victorian selective entry high school exam: reading, writing, mathematics, and verbal and quantitative reasoning, with timed practice.',
+        description: `Selective entry exam coaching in ${BUSINESS.suburbsText}, or online: reading, writing, maths and reasoning, with timed practice.`,
       },
       intro:
         'Focused, small-group coaching for the Victorian selective entry exam, building the reading, writing, maths and reasoning skills the test rewards, and the calm, timed exam technique that brings them together on the day.',
@@ -126,8 +125,7 @@ export const PROGRAMMES = {
       isNew: false,
       seo: {
         title: 'Selective School and Scholarship Interview Coaching | AJ Classes',
-        description:
-          'Mock interviews, feedback and application help for selective school and private school scholarship interviews in Melbourne.',
+        description: `Mock interviews and application help for selective school and private school scholarship interviews. In ${BUSINESS.suburbsText}, or online.`,
       },
       intro:
         'An interview is a chance for a student to show who they are beyond a test score. We help students prepare thoughtfully, so they walk in confident, clear and genuinely themselves.',
@@ -156,8 +154,7 @@ export const PROGRAMMES = {
       isNew: false,
       seo: {
         title: 'SEAL and Scholarship Exam Preparation | AJ Classes',
-        description:
-          'Small-group preparation for SEAL program entry tests and private school scholarship exams in Melbourne, in person or online.',
+        description: `SEAL program and private school scholarship exam preparation in small groups, in ${BUSINESS.suburbsText}, or online.`,
       },
       intro:
         'Preparation for the entry tests to accelerated programs and private school scholarships, with practice in the style and timing of the real tests.',
@@ -185,8 +182,7 @@ export const PROGRAMMES = {
       isNew: false,
       seo: {
         title: 'NAPLAN Preparation from Year 2 | AJ Classes',
-        description:
-          'Small-group NAPLAN preparation in reading, writing, language conventions and numeracy, from Year 2 through to Year 9.',
+        description: `NAPLAN preparation from Year 2 to Year 9: reading, writing, language conventions and numeracy. In ${BUSINESS.suburbsText}, or online.`,
       },
       intro:
         'Steady, low-stress NAPLAN preparation that starts in Year 2, so students meet their first NAPLAN in Year 3 with the skills and the confidence to show what they know.',
@@ -218,8 +214,7 @@ export const PROGRAMMES = {
       isNew: false,
       seo: {
         title: 'ICAS Preparation | AJ Classes',
-        description:
-          'Small-group preparation for the ICAS academic competitions, building problem solving and higher-order thinking in Maths, Science and English.',
+        description: `ICAS preparation that builds problem solving in Maths, Science and English. Small groups in ${BUSINESS.suburbsText}, or online.`,
       },
       intro:
         'ICAS rewards students who can think, not just recall. Our preparation stretches students with challenging problems and the reasoning behind them, and our students improved significantly in ICAS in 2026.',
@@ -245,8 +240,7 @@ export const PROGRAMMES = {
       isNew: false,
       seo: {
         title: 'Maths, Science and English Tutoring, Years 5–10 | AJ Classes',
-        description:
-          'Regular small-group tutoring in Maths, Science and English for Years 5–10, building strong foundations and keeping students ahead at school.',
+        description: `Maths, Science and English tutoring for Years 5–10 in ${BUSINESS.suburbsText}, or online, building strong foundations.`,
       },
       intro:
         'Regular, term-by-term tutoring that fills gaps, builds strong foundations and keeps students a step ahead of their class.',
@@ -271,8 +265,7 @@ export const PROGRAMMES = {
       isNew: false,
       seo: {
         title: 'VCE Tutoring in Melbourne | AJ Classes',
-        description:
-          'Small-group VCE tutoring in Chemistry, General Mathematics, Mathematical Methods, Psychology and Business Management, Units 1–4, taught by qualified teachers. In person or online.',
+        description: `VCE tutoring in Chemistry, General Mathematics, Mathematical Methods, Psychology and Business Management. ${BUSINESS.suburbsText} or online.`,
       },
       // The VCE page has its own layout (routes/vce.tsx, VCE_PAGE below).
       intro: '',
@@ -291,8 +284,7 @@ export const PROGRAMMES = {
       isNew: false,
       seo: {
         title: 'VCE Subject Selection Counselling | AJ Classes',
-        description:
-          'Counselling sessions for students and parents together, to choose VCE subjects with a clear view of pathways and university prerequisites.',
+        description: `VCE subject-selection counselling for students and parents together: pathways and prerequisites. In ${BUSINESS.suburbsText}, or online.`,
       },
       intro:
         'Choosing VCE subjects shapes the next three years and beyond. Our counselling sessions bring students and parents together to make that choice with confidence.',

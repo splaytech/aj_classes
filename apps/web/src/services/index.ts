@@ -2,11 +2,140 @@
 //
 // Components and sections import from '@/services' and call plain functions
 // such as `submitEnquiry()`. Only files inside this folder may import backend
-// clients (Web3Forms and Kit today; Supabase from Release 2). ESLint enforces this.
+// clients (Web3Forms and Kit today; Supabase for the portal from Release 2). ESLint enforces this.
 //
-// Release 2 adds `supabase.client.ts` here (the single place that creates the
-// Supabase client) and services such as `testimonials.service.ts`.
+// Supabase is created in `supabase.client.ts` and loaded only when a portal function runs,
+// so the public pages never download it.
 
 export { submitEnquiry } from './enquiry.service';
 export { subscribe } from './subscription.service';
-export type { SubmitResult } from './types';
+export {
+  changePassword,
+  confirmEmailLink,
+  getAccessState,
+  requestPasswordReset,
+  sendReauthCode,
+  setNewPassword,
+  signIn,
+  signOut,
+  watchForSignOut,
+} from './auth.service';
+export { listActivity } from './activity.service';
+export { deleteEnquiry, listEnquiries, resyncEnquiry } from './enquiries.service';
+export {
+  deleteAssignment,
+  getAssignment,
+  listAssignments,
+  saveAssignment,
+  saveResult,
+  setAssignmentPublished,
+} from './assignments.service';
+export { deleteQuestion, moveQuestion, saveQuestion } from './questions.service';
+export { getSubmission, saveSubmission } from './submissions.service';
+export {
+  getMyAssignment,
+  getMyTimetable,
+  listMyAssignments,
+  saveMyAnswer,
+  submitMyAssignment,
+} from './student.service';
+export type { AnswerChange } from './student.service';
+export {
+  getChildAssignment,
+  getChildTimetable,
+  giveConsent,
+  listChildAssignments,
+  listMyChildren,
+} from './parent.service';
+export {
+  addSession,
+  enrolStudent,
+  getClass,
+  listClasses,
+  listTimetable,
+  removeEnrolment,
+  removeSession,
+  saveClass,
+  setClassActive,
+} from './classes.service';
+export { listStudents, saveStudent, setStudentActive } from './students.service';
+export {
+  getStudentFamily,
+  inviteParent,
+  inviteStudentAccount,
+  recordConsent,
+  unlinkParent,
+} from './families.service';
+export {
+  getMyProfile,
+  getProfile,
+  removeMyPhoto,
+  removePhoto,
+  updateMyProfile,
+  updateProfile,
+  uploadMyPhoto,
+  uploadPhoto,
+} from './profile.service';
+export {
+  cancelInvite,
+  getStaffMember,
+  inviteStaff,
+  listStaff,
+  resendInvite,
+  resetStaffTwoStep,
+  setAccountActive,
+  setStaffRole,
+} from './staff.service';
+export {
+  canAddAuthenticator,
+  listAuthenticators,
+  removeAuthenticator,
+  startTwoStepSetup,
+  verifyTwoStepCode,
+} from './two-step.service';
+export type {
+  AccessState,
+  AnswerMark,
+  AssignmentDetail,
+  AssignmentInput,
+  AssignmentResult,
+  AssignmentSummary,
+  Child,
+  ChildAccountStatus,
+  ResultInput,
+  ResultStatus,
+  ActivityAction,
+  ActivityEntry,
+  Enquiry,
+  ResyncOutcome,
+  Authenticator,
+  ClassDetail,
+  ClassInput,
+  ClassSession,
+  ClassSummary,
+  DayOfWeek,
+  Delivery,
+  RosterStudent,
+  SessionInput,
+  StudentInput,
+  StudentSummary,
+  TimetableEntry,
+  EmailLinkType,
+  ErrorKey,
+  FamilyAccount,
+  FamilyAssignment,
+  FamilyAssignmentView,
+  FamilyQuestion,
+  ParentInviteOutcome,
+  ProfileChanges,
+  Question,
+  QuestionInput,
+  Result,
+  StaffMember,
+  StaffProfile,
+  StudentFamily,
+  Submission,
+  SubmissionAnswer,
+  SubmitResult,
+  TwoStepEnrolment,
+} from './types';

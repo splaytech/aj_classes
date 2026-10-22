@@ -75,3 +75,72 @@ describe('submitEnquiry', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+describe('submitEnquiry with lead capture (leads-and-crm.md §1)', () => {
+  const LEADS_URL = 'https://project.supabase.co/functions/v1/leads';
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  const callTo = (url: string) =>
+    fetchMock.mock.calls.find(([calledUrl]) => String(calledUrl).startsWith(url)) as
+      [string, RequestInit] | undefined;
+
+  beforeEach(() => {
+    vi.stubEnv('VITE_FORM_ACCESS_KEY', 'test-key');
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://project.supabase.co');
+    vi.stubEnv('VITE_SUPABASE_PUBLISHABLE_KEY', 'sb_publishable_test');
+    fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it('sends only the email while lead capture is off', async () => {
+    vi.stubEnv('VITE_LEAD_CAPTURE', '');
+    const { submitEnquiry } = await loadService();
+    await submitEnquiry(values, false);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(callTo(LEADS_URL)).toBeUndefined();
+  });
+
+  it('also sends the enquiry to the leads function when switched on', async () => {
+    vi.stubEnv('VITE_LEAD_CAPTURE', 'on');
+    const { submitEnquiry } = await loadService();
+    await submitEnquiry({ ...values, phone: '0400 123 456', updatesConsent: true }, false);
+
+    const call = callTo(LEADS_URL);
+    expect(call).toBeDefined();
+    const body = JSON.parse(call?.[1].body as string);
+    expect(body).toMatchObject({
+      action: 'submit',
+      name: 'Priya Sharma',
+      phone: '0400 123 456',
+      wantsUpdates: true,
+      botcheck: '',
+    });
+    expect((call?.[1].headers as Record<string, string>).apikey).toBe('sb_publishable_test');
+  });
+
+  it('passes a ticked spam trap on, so the function can drop it', async () => {
+    vi.stubEnv('VITE_LEAD_CAPTURE', 'on');
+    const { submitEnquiry } = await loadService();
+    await submitEnquiry(values, true);
+
+    expect(JSON.parse(callTo(LEADS_URL)?.[1].body as string).botcheck).not.toBe('');
+  });
+
+  it("never changes the parent's result when the leads call fails", async () => {
+    vi.stubEnv('VITE_LEAD_CAPTURE', 'on');
+    fetchMock.mockImplementation((url: string) =>
+      url.startsWith(LEADS_URL)
+        ? Promise.reject(new Error('offline'))
+        : Promise.resolve({ ok: true }),
+    );
+    const { submitEnquiry } = await loadService();
+
+    expect(await submitEnquiry(values, false)).toBe('success');
+  });
+});

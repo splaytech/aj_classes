@@ -22,6 +22,7 @@ export const A11Y = {
   closeMenu: 'Close menu',
   homeLink: 'AJ Classes home',
   socialLinks: 'AJ Classes on social media',
+  captcha: 'Spam protection check', // the Turnstile check on portal sign-in
 };
 
 // Where classes run. Shown in the footer and the contact details card.
@@ -342,6 +343,11 @@ export const SOCIAL_LABELS: Record<SocialPlatform, string> = {
   whatsapp: 'WhatsApp',
 };
 
+export const WHATSAPP_BUTTON = {
+  label: 'Chat on WhatsApp',
+  ariaLabel: 'Chat with AJ Classes on WhatsApp (opens WhatsApp)',
+};
+
 export const FOOTER = {
   followHeading: 'Follow AJ Classes',
   contactHeading: 'Contact',
@@ -361,7 +367,7 @@ export const PRIVACY = {
   sections: [
     {
       heading: 'What we collect',
-      text: "When you register interest, contact us or subscribe, we collect the details you give us: your name, email address, phone number (if provided), your preferred contact method, whether you are a parent or student, your child's year level and your message. We don't ask for sensitive information.",
+      text: "When you register interest, contact us or subscribe, we collect the details you give us: your name, email address, and, if you choose to give them, your phone number and message. We don't ask for sensitive information.",
     },
     {
       heading: 'Why we collect it',
@@ -369,7 +375,7 @@ export const PRIVACY = {
     },
     {
       heading: 'Who handles it',
-      text: "Enquiry form submissions are delivered to us by email through a form-processing service (Web3Forms). Newsletter sign-ups are managed by Kit (kit.com), our email newsletter service, which stores your email address and sends our updates. Both may process data outside Australia (including the United States). To block spam, our enquiry form uses a hidden check that doesn't collect any extra information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing.",
+      text: "Enquiry form submissions are delivered to us by email through a form-processing service (Web3Forms). We also keep a copy of each enquiry in our database (Supabase) and in our customer records system (Zoho CRM), so we can follow up; if you enrol, invoices are sent through Zoho Invoice. Newsletter sign-ups are managed by Kit (kit.com), our email newsletter service, which stores your email address and sends our updates. Both may process data outside Australia (including the United States). To block spam, our enquiry form uses a hidden check that doesn't collect any extra information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing.",
     },
     {
       // Owner request (Oct 2026). Wording for the owner to review; consumer law limits what can be excluded.
@@ -377,12 +383,17 @@ export const PRIVACY = {
       text: 'Every effort has been made to verify the information on this website, including our results, programmes, class times and fees. However, details can change and mistakes can happen, and AJ Classes is not liable for any action taken based on this information, to the extent permitted by law. Please contact us to confirm details before making decisions, and let us know if you spot something that is wrong.',
     },
     {
+      // R3b review F19: family accounts. Wording for the owner to review.
+      heading: 'Student and parent portal accounts',
+      text: "Portal accounts are created only by invitation from AJ Classes. For each account we keep your name, email address and sign-in times. For students we also keep their classes and timetable, their assignment answers, marks, and tutor feedback and comments. A student's account is only created after a parent or guardian agrees, in the portal or on our enrolment form. Parents linked to a student can see that student's assignments, answers once handed in, marks, progress and tutor comments; they never see other students. Portal data is stored with Supabase (database and sign-in), and our sign-in pages use Cloudflare Turnstile to check that you are a person; both may process data outside Australia. We never use portal information for marketing.",
+    },
+    {
       heading: 'How long we keep it',
       text: 'Only as long as we need it to respond to you and provide our services, then we delete it.',
     },
     {
       heading: 'Children',
-      text: 'Our students are school-aged. We ask parents or guardians to make enquiries on behalf of children where possible.',
+      text: "Our students are school-aged. We ask parents or guardians to make enquiries on behalf of children where possible, and a child's portal account is only set up with a parent's or guardian's permission.",
     },
     {
       heading: 'Access and correction',
