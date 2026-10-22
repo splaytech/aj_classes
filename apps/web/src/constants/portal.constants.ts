@@ -13,6 +13,7 @@ export const PORTAL_SEO = {
   forgotPassword: 'Forgot password',
   authConfirm: 'Continue',
   setPassword: 'Set your password',
+  join: 'Set up your account',
   account: 'Your account',
   profile: 'My profile',
   timetable: 'Timetable',
@@ -154,7 +155,7 @@ export const AUTH_CONFIRM_PAGE = {
     recovery: 'Reset your password',
   },
   intro: {
-    invite: "You've been invited to the AJ Classes portal. Continue to set your password.",
+    invite: "You've been invited to the AJ Classes portal. Continue to set up your account.",
     recovery: 'Continue to choose a new password.',
   },
   continue: 'Continue',
@@ -174,6 +175,32 @@ export const SET_PASSWORD_PAGE = {
   },
   submit: 'Save password',
   submitting: 'Saving…',
+} as const;
+
+export const JOIN_PAGE = {
+  heading: 'Set up your account',
+  intro: (email: string) =>
+    `You're joining the AJ Classes portal as ${email}. Fill in your details to finish.`,
+  labels: {
+    fullName: 'Full name',
+    phone: 'Phone number',
+    yearLevel: 'Year level',
+    password: 'Create password',
+    confirm: 'Confirm password',
+  },
+  hints: {
+    phone: 'So AJ Classes can reach you about your classes.',
+    password: `At least ${AUTH_LIMITS.passwordMin} characters. A short sentence is easy to remember and hard to guess.`,
+  },
+  yearLevelPlaceholder: 'Choose your year level',
+  terms: {
+    before: 'I agree to the ',
+    termsLink: 'Terms & Conditions',
+    between: ' and ',
+    privacyLink: 'Privacy Policy',
+  },
+  submit: 'Finish setup',
+  submitting: 'Setting up…',
 } as const;
 
 export const ACCOUNT_PAGE = {
@@ -510,6 +537,7 @@ export const ACTIVITY_LABELS = {
   parent_linked: 'Linked parent',
   parent_unlinked: 'Removed parent',
   consent_recorded: 'Recorded consent for',
+  account_activated: 'Finished account setup',
 } as const;
 
 export const ACTIVITY_PAGE = {

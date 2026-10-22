@@ -26,11 +26,31 @@ export type AccessState = {
   signedIn: boolean;
   userId: string;
   email: string;
-  /** null when signed out, or when the profile can't be read (e.g. deactivated). */
+  /** null when signed out, or when the profile can't be read (deactivated, or still invited). */
   profile: { fullName: string; role: AppRole } | null;
+  /** Set only for an invited account that hasn't finished the setup form (/portal/join). */
+  onboarding: OnboardingInfo | null;
   /** aal2 = password and authenticator code; aal1 = password (or email link) only. */
   aal: 'aal1' | 'aal2';
   hasVerifiedFactor: boolean;
+};
+
+/** What the setup form needs: the role (read on the server) decides which fields it shows. */
+export type OnboardingInfo = {
+  role: AppRole;
+  fullName: string;
+  email: string;
+  /** Students: their roster year level, as a starting value (null: not set, or not at school). */
+  yearLevel: number | null;
+};
+
+/** The setup form's answers. phone: staff only. yearLevel: students only ('other' = not at school). */
+export type OnboardingInput = {
+  fullName: string;
+  password: string;
+  phone: string | null;
+  yearLevel: string | null;
+  acceptsTerms: boolean;
 };
 
 /** An authenticator app linked to the account (two-step sign-in). */
@@ -119,7 +139,8 @@ export type ActivityAction =
   | 'parent_invited'
   | 'parent_linked'
   | 'parent_unlinked'
-  | 'consent_recorded';
+  | 'consent_recorded'
+  | 'account_activated';
 
 // --- Classes, timetable, students, assignments (R3a) ------------------------------
 

@@ -20,6 +20,7 @@ export {
   signOut,
   watchForSignOut,
 } from './auth.service';
+export { completeOnboarding } from './onboarding.service';
 export { listActivity } from './activity.service';
 export { deleteEnquiry, listEnquiries, resyncEnquiry } from './enquiries.service';
 export {
@@ -126,6 +127,8 @@ export type {
   FamilyAssignment,
   FamilyAssignmentView,
   FamilyQuestion,
+  OnboardingInfo,
+  OnboardingInput,
   ParentInviteOutcome,
   ProfileChanges,
   Question,

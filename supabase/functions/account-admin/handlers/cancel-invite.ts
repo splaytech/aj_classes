@@ -1,6 +1,6 @@
 // Cancel an invite sent to the wrong address (R2a story US15; students and parents too, R3b FA3).
-// Only for people who never joined and never signed in, so nobody with history can be deleted
-// (R2a G24). A student's roster row and a parent's links stay; only the account goes.
+// Only for people who never finished the setup form, so nobody with history can be deleted
+// (R2a G24): until then an account can't see or change anything (invite-onboarding design). A student's roster row and a parent's links stay; only the account goes.
 
 import type { Caller } from '../../_shared/auth.ts';
 import { serviceClient } from '../../_shared/clients.ts';
@@ -18,7 +18,7 @@ export async function cancelInvite(
 
   const target = await findAccount(input.userId);
   if (!target) return fail('not_found');
-  if (target.joined_at || target.last_sign_in_at) return fail('already_joined');
+  if (target.status !== 'invited') return fail('already_joined');
 
   const { error } = await serviceClient().auth.admin.deleteUser(target.id);
   if (error) return fail('cancel_failed');

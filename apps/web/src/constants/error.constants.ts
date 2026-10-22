@@ -79,6 +79,14 @@ export const PORTAL_ERRORS = {
   alreadySubmitted: 'This work has already been submitted, so answers can’t change.',
   answerTooLong: 'That answer is too long. Please shorten it.',
   notOnline: 'This assignment is handed in on paper.',
+  // Setup form (invite-onboarding design)
+  inviteExpired:
+    'This invitation link has expired. Please contact your AJ Classes administrator to request a new invite.',
+  notInvited: 'Your account is already set up. Please sign in.',
+  passwordNotSet: "Your password wasn't saved. Please try again.",
+  termsRequired: 'Please agree to the Terms & Conditions and Privacy Policy.',
+  invalidPhone: 'Please enter an Australian phone number, like 0412 345 678.',
+  invalidYearLevel: 'Please choose your year level.',
   notConfigured: "Sign-in isn't available right now.",
   unknown: 'Something went wrong. Please try again.',
 } as const;
@@ -91,6 +99,9 @@ export const PORTAL_VALIDATION = {
   passwordsDiffer: "The two passwords don't match.",
   codeInvalid: `Please enter the ${AUTH_LIMITS.codeLength}-digit code.`,
   nameRequired: 'Please enter a name.',
+  phoneInvalid: 'Please enter an Australian phone number, like 0412 345 678.',
+  yearLevelRequired: 'Please choose your year level.',
+  termsRequired: 'Please agree to the Terms & Conditions and Privacy Policy to continue.',
   captchaRequired: 'Please complete the "I am human" check.',
 } as const;
 

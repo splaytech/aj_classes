@@ -96,6 +96,12 @@ const ERROR_KEYS_BY_OWN_KEY: Record<string, ErrorKey> = {
   answer_too_long: 'answerTooLong',
   not_online: 'notOnline',
   invalid_input: 'invalidInput',
+  // Setup form (invite-onboarding)
+  not_invited: 'notInvited',
+  password_not_set: 'passwordNotSet',
+  terms_required: 'termsRequired',
+  invalid_phone: 'invalidPhone',
+  invalid_year_level: 'invalidYearLevel',
 };
 
 /** The portal error to show for anything a Supabase call returned or threw. */

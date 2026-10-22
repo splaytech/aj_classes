@@ -60,6 +60,15 @@ $$;
 
 update public.profiles set role = 'admin' where email in ('admin@local.test', 'newadmin@local.test');
 
+-- These accounts skip the setup form (/portal/join): mark them as having finished it.
+-- To try the form, invite someone from the admin pages and open the e-mail in Mailpit.
+update public.profiles
+set status = 'active',
+    joined_at = now(),
+    terms_accepted_at = now(),
+    phone = case when role in ('tutor', 'admin') then '+61400000000' end
+where email like '%@local.test';
+
 -- A confirmed authenticator for admin@local.test, so the dev server can enter its code.
 insert into auth.mfa_factors (id, user_id, friendly_name, factor_type, status, created_at, updated_at, secret)
 select gen_random_uuid(), id, 'Local dev (automatic)', 'totp', 'verified', now(), now(),

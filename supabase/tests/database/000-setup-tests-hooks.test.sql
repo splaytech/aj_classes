@@ -47,7 +47,16 @@ begin
     jsonb_build_object('full_name', 'Test ' || split_part(p_email, '@', 1))
   );
 
-  update public.profiles set role = p_role, is_active = p_active where id = p_id;
+  -- "Joined" means onboarding is done: active, with a password (invite-onboarding design).
+  if p_joined then
+    update auth.users set encrypted_password = 'test-hash' where id = p_id;
+  end if;
+  update public.profiles
+  set role = p_role,
+      is_active = p_active,
+      status = case when p_joined then 'active'::public.account_status else 'invited' end,
+      joined_at = case when p_joined then now() end
+  where id = p_id;
   return p_id;
 end;
 $$;
@@ -74,7 +83,14 @@ begin
     jsonb_build_object('full_name', 'Test ' || split_part(p_email, '@', 1))
   );
 
-  update public.profiles set is_active = p_active where id = p_id;
+  if p_joined then
+    update auth.users set encrypted_password = 'test-hash' where id = p_id;
+  end if;
+  update public.profiles
+  set is_active = p_active,
+      status = case when p_joined then 'active'::public.account_status else 'invited' end,
+      joined_at = case when p_joined then now() end
+  where id = p_id;
   return p_id;
 end;
 $$;

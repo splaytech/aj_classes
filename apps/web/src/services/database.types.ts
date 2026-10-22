@@ -473,9 +473,12 @@ export type Database = {
           is_active: boolean;
           joined_at: string | null;
           last_sign_in_at: string | null;
+          phone: string | null;
           qualifications: string[];
           role: Database['public']['Enums']['app_role'];
+          status: Database['public']['Enums']['account_status'];
           subjects: string[];
+          terms_accepted_at: string | null;
           updated_at: string;
         };
         ComputedFields: never;
@@ -490,9 +493,12 @@ export type Database = {
           is_active?: boolean;
           joined_at?: string | null;
           last_sign_in_at?: string | null;
+          phone?: string | null;
           qualifications?: string[];
           role?: Database['public']['Enums']['app_role'];
+          status?: Database['public']['Enums']['account_status'];
           subjects?: string[];
+          terms_accepted_at?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -506,9 +512,12 @@ export type Database = {
           is_active?: boolean;
           joined_at?: string | null;
           last_sign_in_at?: string | null;
+          phone?: string | null;
           qualifications?: string[];
           role?: Database['public']['Enums']['app_role'];
+          status?: Database['public']['Enums']['account_status'];
           subjects?: string[];
+          terms_accepted_at?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -651,7 +660,25 @@ export type Database = {
         Returns: undefined;
       };
       am_i_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
+      complete_onboarding: {
+        Args: {
+          accepts_terms?: boolean;
+          new_full_name: string;
+          new_phone?: string;
+          new_year_level?: string;
+        };
+        Returns: undefined;
+      };
       move_question: { Args: { step: number; target: string }; Returns: undefined };
+      my_onboarding: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          email: string;
+          full_name: string;
+          role: Database['public']['Enums']['app_role'];
+          year_level: number;
+        }[];
+      };
       parent_child_assignment: {
         Args: { target_assignment: string; target_student: string };
         Returns: Json;
@@ -755,6 +782,7 @@ export type Database = {
       };
     };
     Enums: {
+      account_status: 'invited' | 'active';
       app_role: 'tutor' | 'admin' | 'student' | 'parent';
     };
     CompositeTypes: {
@@ -870,6 +898,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      account_status: ['invited', 'active'],
       app_role: ['tutor', 'admin', 'student', 'parent'],
     },
   },

@@ -10,7 +10,8 @@ import type { AccessState } from '@/services';
 export type PortalArea =
   | 'signedOutOnly' // sign-in page
   | 'twoStepVerify' // code step after the password
-  | 'setPassword' // after an invite or reset link
+  | 'setPassword' // after a reset link
+  | 'join' // the setup form after an invite link (invited accounts only)
   | 'twoStepSetup' // linking an authenticator (admins)
   | 'member' // anyone signed in with an active account (home, account)
   | 'staff' // tutors and admins
@@ -72,7 +73,13 @@ export function decidePortalAccess(
     return { kind: 'redirect', to: PORTAL_ROUTES.login };
   }
 
-  // 2. Signed in, but no readable profile: deactivated (or never set up)
+  // 2. Invited and not set up yet: the setup form is the only page they can use
+  //    (invite-onboarding design). The database lets them see nothing else either.
+  if (state.onboarding) {
+    return area === 'join' ? ALLOW : { kind: 'redirect', to: PORTAL_ROUTES.join };
+  }
+
+  // 3. Signed in, but no readable profile: deactivated
   if (!state.profile) {
     const to = `${PORTAL_ROUTES.login}?${new URLSearchParams({ [PORTAL_QUERY.reason]: SIGN_IN_REASONS.inactive })}`;
     return { kind: 'signOut', to };
@@ -82,10 +89,13 @@ export function decidePortalAccess(
   const home = homeForRole(role);
   const needsCode = state.hasVerifiedFactor && state.aal === 'aal1';
 
-  // 3. After an invite or reset link. The page itself asks for a code first when needed.
+  // 4. Already set up: the setup form has nothing to do
+  if (area === 'join') return { kind: 'redirect', to: home };
+
+  // 5. After a reset link. The page itself asks for a code first when needed.
   if (area === 'setPassword') return ALLOW;
 
-  // 4. Password done, authenticator code still needed
+  // 6. Password done, authenticator code still needed
   if (needsCode) {
     return area === 'twoStepVerify'
       ? ALLOW
@@ -93,7 +103,7 @@ export function decidePortalAccess(
   }
   if (area === 'twoStepVerify') return { kind: 'redirect', to: home };
 
-  // 5. Admins must link an authenticator before anything else
+  // 7. Admins must link an authenticator before anything else
   if (role === 'admin' && !state.hasVerifiedFactor) {
     return area === 'twoStepSetup'
       ? ALLOW
@@ -103,10 +113,10 @@ export function decidePortalAccess(
     return role === 'admin' ? ALLOW : { kind: 'redirect', to: home };
   }
 
-  // 6. Already signed in: skip the sign-in page
+  // 8. Already signed in: skip the sign-in page
   if (area === 'signedOutOnly') return { kind: 'redirect', to: home };
 
-  // 7. Pages for some roles only (e.g. admin pages for a tutor, staff pages for a student)
+  // 9. Pages for some roles only (e.g. admin pages for a tutor, staff pages for a student)
   if (allowedRoles && !allowedRoles.includes(role)) return { kind: 'forbidden' };
 
   return ALLOW;

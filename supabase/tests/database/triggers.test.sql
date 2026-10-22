@@ -18,16 +18,18 @@ select results_eq(
   'A new auth user gets a tutor profile: email lower-cased, name trimmed, role metadata ignored'
 );
 
--- Accepting the invite and signing in are copied across, without touching updated_at.
+-- Clicking the invite link (e-mail confirmed, signed in) does NOT make the account joined: only
+-- finishing /portal/join does (invite-onboarding design). Sign-in is still copied, without
+-- touching updated_at.
 update public.profiles set updated_at = '2000-01-01' where id = '00000000-0000-0000-0000-0000000000e1';
 update auth.users set email_confirmed_at = now(), last_sign_in_at = now()
 where id = '00000000-0000-0000-0000-0000000000e1';
 
 select results_eq(
-  $$ select joined_at is not null, last_sign_in_at is not null, updated_at = '2000-01-01'
+  $$ select status::text, joined_at is null, last_sign_in_at is not null, updated_at = '2000-01-01'
      from public.profiles where id = '00000000-0000-0000-0000-0000000000e1' $$,
-  $$ values (true, true, true) $$,
-  'Invite acceptance and sign-in are copied; updated_at is unchanged by the sync'
+  $$ values ('invited', true, true, true) $$,
+  'Clicking the invite link leaves the account invited; sign-in is copied; updated_at unchanged'
 );
 
 update public.profiles set bio = 'Hello' where id = '00000000-0000-0000-0000-0000000000e1';
