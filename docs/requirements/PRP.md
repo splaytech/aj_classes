@@ -1,3 +1,5 @@
+> **Superseded:** This is the original brief from 30 Sep 2026, kept for history. The live/current plan and decisions for each release are in `docs/requirements/release-<n>/PRP.md` — see [release-1/PRP.md](release-1/PRP.md) and [release-2/PRP.md](release-2/PRP.md).
+
 ## Release 1 (Month 1): The Public Face & Lead Generation
 
 **Objective:** Establish brand presence, validate the market, and begin capturing prospective student and parent interest through a modern, high-converting web presence.
