@@ -63,6 +63,9 @@ export const PORTAL_COMMON = {
   yes: 'Yes',
   no: 'No',
   errorHeading: 'Something went wrong',
+  // Shown when a page breaks for a reason other than the connection (lib/connection-errors.ts).
+  errorIntro:
+    "This page couldn't be shown. Please try again, and contact AJ Classes if it keeps happening.",
   tryAgain: 'Try again',
   signOut: 'Sign out',
   signingOut: 'Signing out…',

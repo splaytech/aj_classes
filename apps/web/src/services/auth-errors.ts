@@ -2,6 +2,8 @@
 // Matches on error codes and on the keys we raise ourselves, never on Supabase's wording
 // (R2a design §11.4, G28) — except one captcha case noted below.
 
+import { isConnectionFailure } from '@/lib/connection-errors';
+
 import type { ErrorKey } from './types';
 
 type SupabaseLikeError = {
@@ -127,7 +129,7 @@ export function toErrorKey(error: unknown): ErrorKey {
   if (details.status === 429) {
     return 'tooManyAttempts';
   }
-  if (details.name === 'AuthRetryableFetchError' || details.name === 'TypeError') {
+  if (details.name === 'AuthRetryableFetchError' || isConnectionFailure(error)) {
     return 'network';
   }
   return 'unknown';

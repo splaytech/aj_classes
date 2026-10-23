@@ -18,7 +18,6 @@ export async function attempt<T>(action: () => Promise<Result<T>>): Promise<Resu
   try {
     return await action();
   } catch (error) {
-    const key = toErrorKey(error);
-    return fail(key === 'unknown' ? 'network' : key); // a thrown error is almost always the network
+    return fail(toErrorKey(error)); // 'network' only when it really was the connection
   }
 }
