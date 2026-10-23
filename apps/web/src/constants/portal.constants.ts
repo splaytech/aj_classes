@@ -177,6 +177,32 @@ export const SET_PASSWORD_PAGE = {
   submitting: 'Saving…',
 } as const;
 
+// Optional permissions, offered to parents only, separate from the Terms so they're voluntary
+// (Privacy Act APP 6, Spam Act). Same wording on the setup form and Account → Your choices
+// (invite-onboarding.md, "Consents").
+export const CONSENT_KINDS = ['marketing', 'resultsPublicity', 'videoPublicity'] as const;
+export type ConsentKind = (typeof CONSENT_KINDS)[number];
+
+export const CONSENT_CHOICES = {
+  heading: 'Optional permissions',
+  intro: 'Each one is up to you. You can change them at any time in Account → Your choices.',
+  labels: {
+    marketing: 'Send me news, offers and enrolment updates by email and SMS.',
+    resultsPublicity:
+      'AJ Classes may share my child’s name and their selective school or scholarship result on its website and social media.',
+    videoPublicity:
+      'If we provide a testimonial video, AJ Classes may publish it on its website and social media.',
+  } satisfies Record<ConsentKind, string>,
+  /** Short names for the admin's view of a parent's choices. */
+  short: {
+    marketing: 'News by email/SMS',
+    resultsPublicity: 'Name and results',
+    videoPublicity: 'Testimonial video',
+  } satisfies Record<ConsentKind, string>,
+  yes: 'yes',
+  no: 'no',
+} as const;
+
 export const JOIN_PAGE = {
   heading: 'Set up your account',
   intro: (email: string) =>
@@ -199,6 +225,8 @@ export const JOIN_PAGE = {
     termsLink: 'Terms & Conditions',
     between: ' and ',
     privacyLink: 'Privacy Policy',
+    // Service messages need no separate consent (Spam Act); marketing is asked separately below.
+    after: ', including emails, SMS and calls about classes, my account and invoices.',
   },
   submit: 'Finish setup',
   submitting: 'Setting up…',
@@ -209,6 +237,13 @@ export const JOIN_PAGE = {
 
 export const ACCOUNT_PAGE = {
   heading: 'Your account',
+  choices: {
+    heading: 'Your choices',
+    intro: 'Optional permissions. Changes take effect straight away.',
+    save: 'Save choices',
+    saving: 'Saving…',
+    saved: 'Your choices are saved.',
+  },
   signedInAs: 'Signed in as',
   role: 'Role',
   password: {
@@ -541,6 +576,7 @@ export const ACTIVITY_LABELS = {
   parent_linked: 'Linked parent',
   parent_unlinked: 'Removed parent',
   consent_recorded: 'Recorded consent for',
+  consent_changed: 'Changed their permissions',
   account_activated: 'Finished account setup',
 } as const;
 

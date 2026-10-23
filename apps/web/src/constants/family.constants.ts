@@ -66,6 +66,11 @@ export const ADMIN_STUDENT_PAGE = {
     removed: 'Parent removed.',
     invited: (email: string) => `Invite sent to ${email}.`,
     linked: (email: string) => `${email} already had a parent account and is now linked.`,
+    // Each parent's optional permissions (invite-onboarding.md, "Consents"): check before
+    // publishing a result or video; if parents differ, ask the family.
+    permissionsLabel: (name: string) => `${name}’s permissions`,
+    permissionsHint:
+      'Check these before sharing a result or video. If parents differ, ask the family.',
   },
   classes: {
     heading: 'Classes',

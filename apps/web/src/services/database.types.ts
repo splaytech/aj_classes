@@ -473,13 +473,17 @@ export type Database = {
           is_active: boolean;
           joined_at: string | null;
           last_sign_in_at: string | null;
+          marketing_consent_at: string | null;
+          password_set_at: string | null;
           phone: string | null;
           qualifications: string[];
+          results_publicity_consent_at: string | null;
           role: Database['public']['Enums']['app_role'];
           status: Database['public']['Enums']['account_status'];
           subjects: string[];
           terms_accepted_at: string | null;
           updated_at: string;
+          video_publicity_consent_at: string | null;
         };
         ComputedFields: never;
         Insert: {
@@ -493,13 +497,17 @@ export type Database = {
           is_active?: boolean;
           joined_at?: string | null;
           last_sign_in_at?: string | null;
+          marketing_consent_at?: string | null;
+          password_set_at?: string | null;
           phone?: string | null;
           qualifications?: string[];
+          results_publicity_consent_at?: string | null;
           role?: Database['public']['Enums']['app_role'];
           status?: Database['public']['Enums']['account_status'];
           subjects?: string[];
           terms_accepted_at?: string | null;
           updated_at?: string;
+          video_publicity_consent_at?: string | null;
         };
         Update: {
           avatar_path?: string | null;
@@ -512,13 +520,17 @@ export type Database = {
           is_active?: boolean;
           joined_at?: string | null;
           last_sign_in_at?: string | null;
+          marketing_consent_at?: string | null;
+          password_set_at?: string | null;
           phone?: string | null;
           qualifications?: string[];
+          results_publicity_consent_at?: string | null;
           role?: Database['public']['Enums']['app_role'];
           status?: Database['public']['Enums']['account_status'];
           subjects?: string[];
           terms_accepted_at?: string | null;
           updated_at?: string;
+          video_publicity_consent_at?: string | null;
         };
         Relationships: [];
       };
@@ -663,9 +675,12 @@ export type Database = {
       complete_onboarding: {
         Args: {
           accepts_terms?: boolean;
+          allows_results_publicity?: boolean;
+          allows_video_publicity?: boolean;
           new_full_name: string;
           new_phone?: string;
           new_year_level?: string;
+          wants_marketing?: boolean;
         };
         Returns: undefined;
       };
@@ -732,6 +747,14 @@ export type Database = {
         }[];
       };
       parent_give_consent: { Args: { target_student: string }; Returns: undefined };
+      set_my_consents: {
+        Args: {
+          allows_results_publicity: boolean;
+          allows_video_publicity: boolean;
+          wants_marketing: boolean;
+        };
+        Returns: undefined;
+      };
       student_assignment: { Args: { target: string }; Returns: Json };
       student_assignments: {
         Args: Record<PropertyKey, never>;

@@ -159,8 +159,8 @@ reset role;
 
 select results_eq(
   $$ select action, target_id, details from public.audit_log where actor_id = '00000000-0000-0000-0000-0000000000f1' $$,
-  $$ values ('account_activated', '00000000-0000-0000-0000-0000000000f1'::uuid, '{"role": "tutor"}'::jsonb) $$,
-  'Activation is audited'
+  $$ values ('account_activated', '00000000-0000-0000-0000-0000000000f1'::uuid, '{"role": "tutor", "marketing": false, "results_publicity": false, "video_publicity": false}'::jsonb) $$,
+  'Activation is audited, with the optional choices (none for a tutor)'
 );
 
 -- ---------------------------------------------------------------------------

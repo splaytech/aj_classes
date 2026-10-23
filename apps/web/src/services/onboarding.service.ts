@@ -31,6 +31,9 @@ export async function completeOnboarding(
       new_phone: input.phone ?? undefined,
       new_year_level: input.yearLevel ?? undefined,
       accepts_terms: input.acceptsTerms,
+      wants_marketing: input.consents.marketing,
+      allows_results_publicity: input.consents.resultsPublicity,
+      allows_video_publicity: input.consents.videoPublicity,
     });
     return error ? fail(toErrorKey(error)) : succeed();
   });

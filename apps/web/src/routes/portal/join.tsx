@@ -9,6 +9,7 @@ import { useLoaderData, useNavigate } from 'react-router';
 import type { ClientLoaderFunctionArgs } from 'react-router';
 
 import {
+  ConsentChoices,
   AuthCard,
   CodeInput,
   FormAlert,
@@ -23,6 +24,7 @@ import formStyles from '@/components/portal/PortalForm.module.css';
 import { Button } from '@/components/ui';
 import {
   JOIN_PAGE,
+  CONSENT_CHOICES,
   LEGAL_LINKS,
   PORTAL_ERRORS,
   PORTAL_ROUTES,
@@ -40,6 +42,7 @@ import {
   validateOnboarding,
 } from '@/lib/onboarding-validation';
 import type { OnboardingErrors, OnboardingValues } from '@/lib/onboarding-validation';
+import { NO_CONSENTS, asksForConsents } from '@/lib/consents';
 import { guardPortalPage } from '@/lib/portal-guard';
 import { checkCode } from '@/lib/portal-validation';
 import { buildPortalMeta } from '@/lib/seo';
@@ -53,6 +56,7 @@ const FIELD_IDS = {
   password: 'join-password',
   confirm: 'join-confirm-password',
   terms: 'join-terms',
+  consents: 'join-consent',
   code: 'join-code',
 } as const;
 
@@ -86,6 +90,7 @@ function JoinForm({ onboarding }: { onboarding: OnboardingInfo }) {
     password: '',
     confirmation: '',
     acceptsTerms: false,
+    consents: NO_CONSENTS,
   });
   const [errors, setErrors] = useState<OnboardingErrors>({});
   const [formError, setFormError] = useState('');
@@ -214,7 +219,7 @@ function JoinForm({ onboarding }: { onboarding: OnboardingInfo }) {
       />
 
       <div className={formStyles.field}>
-        <label className={formStyles.checkbox} htmlFor={FIELD_IDS.terms}>
+        <label className={formStyles.consent} htmlFor={FIELD_IDS.terms}>
           <input
             id={FIELD_IDS.terms}
             type="checkbox"
@@ -228,6 +233,7 @@ function JoinForm({ onboarding }: { onboarding: OnboardingInfo }) {
             <LegalLink href={LEGAL_LINKS.terms}>{JOIN_PAGE.terms.termsLink}</LegalLink>
             {JOIN_PAGE.terms.between}
             <LegalLink href={LEGAL_LINKS.privacy}>{JOIN_PAGE.terms.privacyLink}</LegalLink>
+            {JOIN_PAGE.terms.after}
           </span>
         </label>
         {errors.terms && (
@@ -236,6 +242,18 @@ function JoinForm({ onboarding }: { onboarding: OnboardingInfo }) {
           </p>
         )}
       </div>
+
+      {asksForConsents(role) && (
+        <fieldset className={formStyles.fieldset}>
+          <legend className={formStyles.label}>{CONSENT_CHOICES.heading}</legend>
+          <p className={formStyles.hint}>{CONSENT_CHOICES.intro}</p>
+          <ConsentChoices
+            idPrefix={FIELD_IDS.consents}
+            values={values.consents}
+            onChange={(kind, agreed) => update('consents', { ...values.consents, [kind]: agreed })}
+          />
+        </fieldset>
+      )}
 
       {needsCode && (
         <>

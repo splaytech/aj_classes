@@ -1,10 +1,18 @@
 // Small labelled chips. Each always shows text, never colour alone (R3a review H22).
 
 import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
 
-import { ACCOUNT_STATUS_LABELS, CRM_STATUS_LABELS, ROLE_LABELS } from '@/constants';
+import {
+  ACCOUNT_STATUS_LABELS,
+  CONSENT_CHOICES,
+  CONSENT_KINDS,
+  CRM_STATUS_LABELS,
+  ROLE_LABELS,
+} from '@/constants';
 import type { CrmStatus, StaffRole } from '@/constants';
 import type { AccountStatus } from '@/lib/account-status';
+import type { Consents } from '@/services';
 
 const ACCOUNT_STATUS_COLOURS = {
   none: 'default',
@@ -53,5 +61,30 @@ export function CrmStatusChip({ status }: { status: CrmStatus }) {
       color={CRM_STATUS_COLOURS[status]}
       label={CRM_STATUS_LABELS[status]}
     />
+  );
+}
+
+/** A parent's optional permissions, e.g. "Name and results: yes" (invite-onboarding.md, "Consents"). */
+export function PermissionChips({ consents, label }: { consents: Consents; label: string }) {
+  return (
+    <Stack
+      component="ul"
+      direction="row"
+      spacing={1}
+      useFlexGap
+      aria-label={label}
+      sx={{ flexWrap: 'wrap', listStyle: 'none', m: 0, p: 0 }}
+    >
+      {CONSENT_KINDS.map((kind) => (
+        <li key={kind}>
+          <Chip
+            size="small"
+            variant="outlined"
+            color={consents[kind] ? 'success' : 'default'}
+            label={`${CONSENT_CHOICES.short[kind]}: ${consents[kind] ? CONSENT_CHOICES.yes : CONSENT_CHOICES.no}`}
+          />
+        </li>
+      ))}
+    </Stack>
   );
 }

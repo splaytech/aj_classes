@@ -2,6 +2,7 @@
 
 import type {
   AppRole,
+  ConsentKind,
   ConsentSource,
   CrmStatus,
   FamilyStatus,
@@ -51,7 +52,12 @@ export type OnboardingInput = {
   phone: string | null;
   yearLevel: string | null;
   acceptsTerms: boolean;
+  /** Parents only; everyone else sends all false. */
+  consents: Consents;
 };
+
+/** A parent's optional permissions (invite-onboarding.md, "Consents"). true = agreed. */
+export type Consents = Record<ConsentKind, boolean>;
 
 /** An authenticator app linked to the account (two-step sign-in). */
 export type Authenticator = {
@@ -140,7 +146,8 @@ export type ActivityAction =
   | 'parent_linked'
   | 'parent_unlinked'
   | 'consent_recorded'
-  | 'account_activated';
+  | 'account_activated'
+  | 'consent_changed';
 
 // --- Classes, timetable, students, assignments (R3a) ------------------------------
 
@@ -339,6 +346,8 @@ export type FamilyAccount = {
   invitedAt: string | null;
   joinedAt: string | null;
   lastSignInAt: string | null;
+  /** Optional permissions; only parents are offered them, so a student's are all false. */
+  consents: Consents;
 };
 
 /** Everything on an admin's student page (R3b stories FA1–FA3). */

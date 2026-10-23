@@ -3,6 +3,8 @@
 // Resend, cancel and deactivate use the shared account actions in staff.service.ts.
 
 import type { ConsentSource } from '@/constants';
+import { CONSENT_COLUMNS, consentsFromColumns } from '@/lib/consents';
+import type { ConsentColumns } from '@/lib/consents';
 
 import { toErrorKey } from './auth-errors';
 import { callAccountAdmin } from './account-admin.client';
@@ -10,7 +12,7 @@ import { attempt, fail, succeed } from './result';
 import { getSupabase } from './supabase.client';
 import type { FamilyAccount, ParentInviteOutcome, Result, StudentFamily } from './types';
 
-type AccountRow = {
+type AccountRow = ConsentColumns & {
   id: string;
   email: string;
   full_name: string;
@@ -32,7 +34,7 @@ type StudentFamilyRow = {
   enrolments: { class: { id: string; name: string } | null }[];
 };
 
-const ACCOUNT_COLUMNS = 'id, email, full_name, is_active, invited_at, joined_at, last_sign_in_at';
+const ACCOUNT_COLUMNS = `id, email, full_name, is_active, invited_at, joined_at, last_sign_in_at, ${CONSENT_COLUMNS}`;
 
 const STUDENT_FAMILY_COLUMNS = `id, full_name, year_level, is_active, consent_recorded_at, consent_source,
   account:profiles!students_profile_id_fkey(${ACCOUNT_COLUMNS}),
@@ -48,6 +50,7 @@ function toFamilyAccount(row: AccountRow): FamilyAccount {
     invitedAt: row.invited_at,
     joinedAt: row.joined_at,
     lastSignInAt: row.last_sign_in_at,
+    consents: consentsFromColumns(row),
   };
 }
 

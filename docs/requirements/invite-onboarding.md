@@ -69,3 +69,64 @@ old web app would land on the old set-password page and then be signed out as in
 - **Terms & Conditions page**: none yet. `LEGAL_LINKS.terms` is `null`, so the words show without a
   link. Set it before go-live.
 - **Privacy Policy**: mention the phone numbers now collected from staff.
+
+## Consents (added 23 Oct 2026)
+
+Owner request: on the setup form, capture consent for online communication by email and phone,
+and for using a family's information online: the child's name with their selective school or
+scholarship result, and a testimonial video if the family provides one.
+
+### Why not one checkbox
+
+Folding these into the required Terms checkbox would make them invalid:
+
+- **Privacy Act (APP 6, OAIC consent guidance):** using personal information for a second purpose,
+  such as publicising a child's name, result or video, needs consent that is voluntary, informed,
+  specific and current. A box people must tick to use the portal isn't voluntary (bundled consent).
+- **Spam Act 2003:** marketing emails and SMS need express consent. Messages about classes, the
+  account and invoices don't (factual messages about an existing relationship), so those stay with
+  the Terms, and the Terms wording says so.
+- **Children:** students are mostly minors, so publicity about a child is agreed by a **parent**.
+
+### Design
+
+| Box | Who sees it | Required | Saved as |
+| --- | --- | :-: | --- |
+| I agree to the Terms & Conditions and Privacy Policy, **including emails, SMS and calls about classes, my account and invoices** | everyone | ✓ | `terms_accepted_at` (existing) |
+| Send me news, offers and enrolment updates by email and SMS | parents | – | `marketing_consent_at` |
+| AJ Classes may share my child's name and their selective school or scholarship result on its website and social media | parents | – | `results_publicity_consent_at` |
+| If we provide a testimonial video, AJ Classes may publish it on its website and social media | parents | – | `video_publicity_consent_at` |
+
+- Optional boxes start **unticked**; nothing is assumed. A timestamp means "agreed at"; `null` means no.
+- `complete_onboarding()` gains three optional booleans (default false). Sending `true` for a role
+  that isn't offered the box is refused (`invalid_input`), like the other role-specific fields.
+- **Changing your mind:** parents see the same three choices on **Account → Your choices**
+  (`set_my_consents()`). Withdrawing clears the timestamp. Every change is in the activity log
+  (`consent_changed`, with which choices changed).
+- **Admins** see each parent's choices on the student's page (Admin → Students → student →
+  Parents), so nobody publishes a result or video without checking. Choices apply to all of that
+  parent's children; if two parents differ, ask the family before publishing.
+- Students and tutors don't get the optional boxes. Tutors' and students' service messages are
+  covered by the Terms. (A student who is an adult, e.g. UCAT/GAMSAT, can be asked directly later.)
+- Privacy Policy gets an "Optional permissions" paragraph describing the three choices and how to
+  change them.
+
+### Gap review
+
+| # | Type | Gap | Fix |
+| --- | --- | --- | --- |
+| C1 | LEGAL | Bundled consent isn't valid. | Separate, optional, unticked boxes; the Terms box covers only service messages. |
+| C2 | LEGAL | Consent must be withdrawable. | Account → Your choices; withdrawal is immediate and logged. |
+| C3 | LEGAL | Proof of consent. | Timestamp per choice plus an audit entry for every change. |
+| C4 | PRIV | A minor can't give publicity consent. | Only parents see the publicity boxes. |
+| C5 | SEC | A browser could set consents for someone else, or for a role that isn't offered them. | Only through `complete_onboarding()` / `set_my_consents()` for the caller's own active parent account; columns aren't writable directly; tests cover it. |
+| C6 | REQ | Two parents may disagree. | Admin page shows each parent's choices; the guide says to ask the family. |
+| C7 | OPS | Marketing consent isn't yet synced to Kit (the newsletter list). | Admins see it; syncing to Kit is a later step. |
+
+### Todo
+
+- [x] T1 Migration: consent columns, `complete_onboarding()` with the three choices, `set_my_consents()`; database tests
+- [x] T2 Setup form: Terms wording; three optional boxes for parents; validation and service
+- [x] T3 Account → Your choices (parents): load and save
+- [x] T4 Admin student page: each parent's choices
+- [x] T5 Activity label, Privacy Policy paragraph, types; full check; browser check; commit

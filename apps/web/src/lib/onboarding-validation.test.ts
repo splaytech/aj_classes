@@ -9,6 +9,7 @@ import {
   validateOnboarding,
 } from './onboarding-validation';
 import type { OnboardingValues } from './onboarding-validation';
+import { NO_CONSENTS } from './consents';
 
 const valid: OnboardingValues = {
   fullName: '  Priya Shah ',
@@ -17,6 +18,7 @@ const valid: OnboardingValues = {
   password: 'a long enough password',
   confirmation: 'a long enough password',
   acceptsTerms: true,
+  consents: { marketing: true, resultsPublicity: true, videoPublicity: true },
 };
 
 describe('which fields each role gets', () => {
@@ -84,9 +86,21 @@ describe('toOnboardingInput', () => {
       phone: '0412 345 678',
       yearLevel: null,
       acceptsTerms: true,
+      consents: NO_CONSENTS,
     });
     expect(toOnboardingInput(valid, 'student')).toMatchObject({ phone: null, yearLevel: '9' });
     expect(toOnboardingInput(valid, 'parent')).toMatchObject({ phone: null, yearLevel: null });
+  });
+
+  it('sends the optional permissions for parents only; everyone else sends none', () => {
+    expect(toOnboardingInput(valid, 'parent').consents).toEqual(valid.consents);
+    for (const role of ['tutor', 'admin', 'student'] as const) {
+      expect(toOnboardingInput(valid, role).consents).toEqual(NO_CONSENTS);
+    }
+  });
+
+  it('never requires the optional permissions', () => {
+    expect(validateOnboarding({ ...valid, consents: NO_CONSENTS }, 'parent')).toEqual({});
   });
 });
 

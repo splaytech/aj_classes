@@ -5,7 +5,9 @@
 
 import { PORTAL_VALIDATION, PROFILE_LIMITS, PROFILE_VALIDATION, YEAR_LEVELS } from '@/constants';
 import type { AppRole } from '@/constants';
-import type { OnboardingInput } from '@/services';
+import type { Consents, OnboardingInput } from '@/services';
+
+import { NO_CONSENTS, asksForConsents } from './consents';
 
 import { checkNewPassword, checkPasswordsMatch } from './portal-validation';
 import { isValidAustralianPhone } from './validation';
@@ -20,6 +22,8 @@ export type OnboardingValues = {
   password: string;
   confirmation: string;
   acceptsTerms: boolean;
+  /** Optional, parents only (invite-onboarding.md, "Consents"). Never required. */
+  consents: Consents;
 };
 
 export type OnboardingField = 'fullName' | 'phone' | 'yearLevel' | 'password' | 'confirm' | 'terms';
@@ -75,5 +79,6 @@ export function toOnboardingInput(values: OnboardingValues, role: AppRole): Onbo
     phone: asksForPhone(role) ? values.phone.trim() : null,
     yearLevel: asksForYearLevel(role) ? values.yearLevel : null,
     acceptsTerms: values.acceptsTerms,
+    consents: asksForConsents(role) ? values.consents : NO_CONSENTS,
   };
 }

@@ -21,6 +21,7 @@ import {
   NotFoundPanel,
   PageHeader,
   ParentInviteDialog,
+  PermissionChips,
   SectionCard,
 } from '@/components/portal';
 import {
@@ -361,6 +362,11 @@ function ParentsSection({ student, onChanged }: SectionProps) {
     >
       <Stack spacing={3}>
         <Typography color="text.secondary">{texts.intro}</Typography>
+        {student.parents.length > 0 && (
+          <Typography variant="body2" color="text.secondary">
+            {texts.permissionsHint}
+          </Typography>
+        )}
         <ActionAlerts action={action} />
         {student.parents.length === 0 ? (
           <Typography>{texts.empty}</Typography>
@@ -380,6 +386,14 @@ function ParentsSection({ student, onChanged }: SectionProps) {
                   <Typography variant="body2" color="text.secondary">
                     {parent.email}
                   </Typography>
+                  {hasJoined(parent) && (
+                    <Box sx={{ mt: 1 }}>
+                      <PermissionChips
+                        consents={parent.consents}
+                        label={texts.permissionsLabel(parent.fullName || parent.email)}
+                      />
+                    </Box>
+                  )}
                 </Box>
                 <Stack
                   direction="row"

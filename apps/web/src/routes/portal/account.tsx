@@ -1,5 +1,5 @@
-// Your account (stories US6, US9; R3b FS4): change password, appearance, and two-step sign-in
-// for staff.
+// Your account (stories US6, US9; R3b FS4): change password, appearance, your choices (parents'
+// optional permissions) and two-step sign-in for staff.
 
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Radio from '@mui/material/Radio';
@@ -8,7 +8,13 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useLoaderData, useRevalidator } from 'react-router';
 
-import { CodeInput, FormAlert, FormStatus, PasswordInput } from '@/components/portal';
+import {
+  CodeInput,
+  ConsentChoices,
+  FormAlert,
+  FormStatus,
+  PasswordInput,
+} from '@/components/portal';
 import formStyles from '@/components/portal/PortalForm.module.css';
 import { Button } from '@/components/ui';
 import {
@@ -21,6 +27,7 @@ import {
   THEME_MODES,
 } from '@/constants';
 import type { ThemeMode } from '@/constants';
+import { NO_CONSENTS, asksForConsents } from '@/lib/consents';
 import { isStaffRole } from '@/lib/portal-access';
 import { checkCode, checkNewPassword, checkPasswordsMatch } from '@/lib/portal-validation';
 import { useAppearance } from '@/lib/appearance-context';
@@ -28,11 +35,13 @@ import { buildPortalMeta } from '@/lib/seo';
 import {
   canAddAuthenticator,
   changePassword,
+  getMyConsents,
   listAuthenticators,
   removeAuthenticator,
   sendReauthCode,
+  setMyConsents,
 } from '@/services';
-import type { Authenticator } from '@/services';
+import type { Authenticator, Consents } from '@/services';
 
 import { usePortalAccess } from './member-layout';
 import styles from './account.module.css';
@@ -42,15 +51,18 @@ const FIELD_IDS = {
   password: 'change-password',
   confirm: 'change-confirm',
   appearance: 'appearance-heading',
+  consents: 'account-consent',
 };
 
 export function meta() {
   return buildPortalMeta(PORTAL_SEO.account);
 }
 
-// Access is checked by the member layout; this only loads the authenticator list.
+// Access is checked by the member layout. Loads the authenticator list (staff) and the optional
+// permissions (parents; invite-onboarding.md, "Consents").
 export async function clientLoader() {
-  return listAuthenticators();
+  const [authenticators, consents] = await Promise.all([listAuthenticators(), getMyConsents()]);
+  return { authenticators, consents };
 }
 
 export default function AccountPage() {
@@ -68,6 +80,7 @@ export default function AccountPage() {
       </dl>
       <ChangePasswordSection />
       <AppearanceSection />
+      {asksForConsents(role) && <ChoicesSection />}
       {isStaffRole(role) && <TwoStepSection isAdmin={role === 'admin'} />}
     </div>
   );
@@ -201,6 +214,51 @@ function ChangePasswordSection() {
   );
 }
 
+/** A parent's optional permissions: change them at any time (invite-onboarding.md, "Consents"). */
+function ChoicesSection() {
+  const loaded = useLoaderData<typeof clientLoader>().consents;
+  const [values, setValues] = useState<Consents>(loaded.ok ? loaded.data : NO_CONSENTS);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
+
+  if (!loaded.ok) return <FormAlert message={PORTAL_ERRORS[loaded.error]} />;
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaving(true);
+    setError('');
+    setSaved(false);
+    const result = await setMyConsents(values);
+    setSaving(false);
+    if (result.ok) setSaved(true);
+    else setError(PORTAL_ERRORS[result.error]);
+  }
+
+  return (
+    <section className={styles.section}>
+      <h2>{ACCOUNT_PAGE.choices.heading}</h2>
+      <p>{ACCOUNT_PAGE.choices.intro}</p>
+      <form className={formStyles.form} onSubmit={handleSubmit} noValidate>
+        <ConsentChoices
+          idPrefix={FIELD_IDS.consents}
+          values={values}
+          disabled={saving}
+          onChange={(kind, agreed) => {
+            setSaved(false);
+            setValues((current) => ({ ...current, [kind]: agreed }));
+          }}
+        />
+        <FormAlert message={error} />
+        {saved && <FormStatus message={ACCOUNT_PAGE.choices.saved} />}
+        <Button type="submit" disabled={saving}>
+          {saving ? ACCOUNT_PAGE.choices.saving : ACCOUNT_PAGE.choices.save}
+        </Button>
+      </form>
+    </section>
+  );
+}
+
 function formatDate(isoDate: string): string {
   return new Intl.DateTimeFormat(APP_CONFIG.language, { dateStyle: 'medium' }).format(
     new Date(isoDate),
@@ -208,7 +266,7 @@ function formatDate(isoDate: string): string {
 }
 
 function TwoStepSection({ isAdmin }: { isAdmin: boolean }) {
-  const loaded = useLoaderData<typeof clientLoader>();
+  const loaded = useLoaderData<typeof clientLoader>().authenticators;
   const revalidator = useRevalidator();
   const [error, setError] = useState('');
   const [removingId, setRemovingId] = useState('');
