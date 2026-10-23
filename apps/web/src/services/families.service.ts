@@ -20,6 +20,7 @@ type AccountRow = ConsentColumns & {
   invited_at: string | null;
   joined_at: string | null;
   last_sign_in_at: string | null;
+  terms_accepted_at: string | null;
 };
 
 type StudentFamilyRow = {
@@ -34,7 +35,7 @@ type StudentFamilyRow = {
   enrolments: { class: { id: string; name: string } | null }[];
 };
 
-const ACCOUNT_COLUMNS = `id, email, full_name, is_active, invited_at, joined_at, last_sign_in_at, ${CONSENT_COLUMNS}`;
+const ACCOUNT_COLUMNS = `id, email, full_name, is_active, invited_at, joined_at, last_sign_in_at, terms_accepted_at, ${CONSENT_COLUMNS}`;
 
 const STUDENT_FAMILY_COLUMNS = `id, full_name, year_level, is_active, consent_recorded_at, consent_source,
   account:profiles!students_profile_id_fkey(${ACCOUNT_COLUMNS}),
@@ -50,6 +51,7 @@ function toFamilyAccount(row: AccountRow): FamilyAccount {
     invitedAt: row.invited_at,
     joinedAt: row.joined_at,
     lastSignInAt: row.last_sign_in_at,
+    termsAcceptedAt: row.terms_accepted_at,
     consents: consentsFromColumns(row),
   };
 }

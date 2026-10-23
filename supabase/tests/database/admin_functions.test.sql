@@ -65,6 +65,16 @@ select results_eq(
   'The staff list shows everyone and who has two-step'
 );
 
+reset role;
+update public.profiles set phone = '+61412345678', terms_accepted_at = '2026-10-23 10:00+11'
+where id = '00000000-0000-0000-0000-0000000000b1';
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select results_eq(
+  $$ select phone, terms_accepted_at from public.admin_list_staff('00000000-0000-0000-0000-0000000000b1') $$,
+  $$ values ('+61412345678', '2026-10-23 10:00+11'::timestamptz) $$,
+  'Admins see the phone number and Terms acceptance given at setup'
+);
+
 select results_eq(
   $$ select email from public.admin_list_staff('00000000-0000-0000-0000-0000000000b1') $$,
   $$ values ('tutor1@test.local') $$,

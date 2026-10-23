@@ -652,9 +652,11 @@ export type Database = {
           is_active: boolean;
           joined_at: string;
           last_sign_in_at: string;
+          phone: string;
           qualifications: string[];
           role: Database['public']['Enums']['app_role'];
           subjects: string[];
+          terms_accepted_at: string;
         }[];
       };
       admin_log: {

@@ -308,6 +308,11 @@ function ActiveAccount({
           ? texts.lastSignIn(formatDateTime(account.lastSignInAt))
           : texts.neverSignedIn}
       </Typography>
+      {account.termsAcceptedAt && (
+        <Typography color="text.secondary">
+          {texts.termsAccepted(formatDate(account.termsAcceptedAt))}
+        </Typography>
+      )}
       <Box>
         <Button
           color={nextActive ? 'primary' : 'error'}
@@ -386,6 +391,11 @@ function ParentsSection({ student, onChanged }: SectionProps) {
                   <Typography variant="body2" color="text.secondary">
                     {parent.email}
                   </Typography>
+                  {parent.termsAcceptedAt && (
+                    <Typography variant="body2" color="text.secondary">
+                      {texts.termsAccepted(formatDate(parent.termsAcceptedAt))}
+                    </Typography>
+                  )}
                   {hasJoined(parent) && (
                     <Box sx={{ mt: 1 }}>
                       <PermissionChips

@@ -1,4 +1,4 @@
-// Dates and times shown in the staff portal, in Australian English.
+// Dates, times and phone numbers shown in the portal, in Australian English.
 
 import { APP_CONFIG } from '@/constants';
 
@@ -19,4 +19,12 @@ export function formatDate(value: string | null): string {
 /** "8 Oct 2026, 4:05 pm" from an ISO timestamp. Empty for null. */
 export function formatDateTime(value: string | null): string {
   return value ? DATE_TIME.format(new Date(value)) : '';
+}
+
+/** "0412 345 678" or "(02) 9876 5432" from a stored "+61…" number. Empty for null. */
+export function formatPhone(value: string | null): string {
+  if (!value) return '';
+  const local = value.replace(/^\+61/, '0');
+  if (local.startsWith('04')) return `${local.slice(0, 4)} ${local.slice(4, 7)} ${local.slice(7)}`;
+  return `(${local.slice(0, 2)}) ${local.slice(2, 6)} ${local.slice(6)}`;
 }

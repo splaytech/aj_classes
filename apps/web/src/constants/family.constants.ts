@@ -34,6 +34,7 @@ export const ADMIN_STUDENT_PAGE = {
     expired: 'The invite link has expired. Send a new one.',
     lastSignIn: (date: string) => `Last sign-in ${date}`,
     neverSignedIn: 'Not signed in yet.',
+    termsAccepted: (date: string) => `Accepted the Terms ${date}.`,
     resend: 'Resend invite',
     resent: 'A new invite link has been sent.',
     cancel: 'Cancel invite',
@@ -69,6 +70,7 @@ export const ADMIN_STUDENT_PAGE = {
     // Each parent's optional permissions (invite-onboarding.md, "Consents"): check before
     // publishing a result or video; if parents differ, ask the family.
     permissionsLabel: (name: string) => `${name}’s permissions`,
+    termsAccepted: (date: string) => `Accepted the Terms ${date}`,
     permissionsHint:
       'Check these before sharing a result or video. If parents differ, ask the family.',
   },

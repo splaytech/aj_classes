@@ -483,6 +483,7 @@ export const STAFF_PAGE = {
   columns: {
     name: 'Name',
     email: 'E-mail',
+    phone: 'Phone',
     role: 'Role',
     status: 'Status',
     twoStep: 'Two-step',
@@ -560,6 +561,10 @@ export const STAFF_MEMBER_PAGE = {
   },
   joined: (date: string) => `Joined ${date}`,
   lastSignIn: (date: string) => `Last sign-in ${date}`,
+  // Given at setup (invite-onboarding.md, "Admin view").
+  phone: 'Phone:',
+  phoneLink: (phone: string) => `tel:${phone}`,
+  termsAccepted: (date: string) => `Accepted the Terms ${date}`,
 } as const;
 
 export const ACTIVITY_LABELS = {

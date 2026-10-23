@@ -104,6 +104,9 @@ export type StaffMember = {
   joinedAt: string | null;
   lastSignInAt: string | null;
   hasTwoStep: boolean;
+  /** Given at setup; stored as +61…. */
+  phone: string | null;
+  termsAcceptedAt: string | null;
 };
 
 /** One entry in the activity (audit) list. */
@@ -346,6 +349,7 @@ export type FamilyAccount = {
   invitedAt: string | null;
   joinedAt: string | null;
   lastSignInAt: string | null;
+  termsAcceptedAt: string | null;
   /** Optional permissions; only parents are offered them, so a student's are all false. */
   consents: Consents;
 };

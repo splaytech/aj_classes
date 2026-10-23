@@ -143,3 +143,20 @@ Owner request: one sign-in link, and after signing in each person sees the scree
   Someone already signed in who clicks the link goes straight to their home.
 - The header switches to the full desktop layout at 1024px (it was 900px) so the extra link fits;
   the phone call bar and WhatsApp button use the same breakpoint.
+
+## Admin view (added 23 Oct 2026)
+
+What a person gave at setup is visible to admins:
+
+| Where | Shows |
+| --- | --- |
+| Admin → Staff (list) | Phone column |
+| Admin → Staff → person | Phone (tap to call) and "Accepted the Terms {date}" |
+| Admin → Students → student | "Accepted the Terms {date}" for the student account and each parent, plus each parent's optional permissions |
+
+Proof of agreement is the `profiles` timestamp plus the `account_activated` audit entry (which
+records the optional choices), and a `consent_changed` entry for every later change. Migration
+`20261023120000_admin_staff_phone_and_terms.sql` adds `phone` and `terms_accepted_at` to
+`admin_list_staff()`.
+
+Open: nobody can change a staff phone number after setup yet (it isn't on the profile form).
