@@ -130,3 +130,16 @@ Folding these into the required Terms checkbox would make them invalid:
 - [x] T3 Account → Your choices (parents): load and save
 - [x] T4 Admin student page: each parent's choices
 - [x] T5 Activity label, Privacy Policy paragraph, types; full check; browser check; commit
+
+## Sign-in link (added 23 Oct 2026)
+
+Owner request: one sign-in link, and after signing in each person sees the screen for their role.
+
+- The site header has a **Sign in** link (desktop bar and phone menu) to `/portal/login`, shown
+  only when the portal is switched on (`APP_CONFIG.features.portal`). There's one link for everyone;
+  public pages don't load Supabase, so they can't know who is signed in.
+- After sign-in, `/portal` sends each role to its own home (`homeForRole`): admin → Admin,
+  tutor → Tutor, student → Student, parent → My children; an invited account goes to the setup form.
+  Someone already signed in who clicks the link goes straight to their home.
+- The header switches to the full desktop layout at 1024px (it was 900px) so the extra link fits;
+  the phone call bar and WhatsApp button use the same breakpoint.

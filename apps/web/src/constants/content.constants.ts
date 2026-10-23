@@ -48,6 +48,9 @@ export const NAV = {
     { label: 'Contact', sectionId: SECTION_IDS.contact },
   ],
   cta: 'Register Interest',
+  // One link for everyone: the portal sends each person to their own home by role.
+  signIn: 'Sign in',
+  signInLabel: 'Sign in to the AJ Classes portal (staff, students and parents)',
 };
 
 export const ANNOUNCEMENT = {

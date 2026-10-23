@@ -50,7 +50,7 @@
 }
 
 /* Phones: sit above the sticky "Register Interest" bar (48px button + padding). */
-@media (max-width: 899px) {
+@media (max-width: 1023px) {
   .button {
     bottom: calc(
       var(--tap-target) + 2 * var(--space-3) + var(--space-4) + env(safe-area-inset-bottom)
@@ -58,14 +58,14 @@
   }
 }
 
-@media (min-width: 900px) and (hover: hover) {
+@media (min-width: 1024px) and (hover: hover) {
   .button:hover .label {
     visibility: visible;
     opacity: 1;
   }
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1024px) {
   .button:focus-visible .label {
     visibility: visible;
     opacity: 1;

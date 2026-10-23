@@ -1,7 +1,7 @@
 // Sticky site header: logo, section links and the "Register Interest" button.
 // On small screens the links fold into a menu button (PRP F2 section 1).
 
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, LogIn } from 'lucide-react';
 import { useState } from 'react';
 import { useLocation } from 'react-router';
 
@@ -10,9 +10,11 @@ import { ButtonLink, Container, Logo } from '@/components/ui';
 import {
   A11Y,
   ANALYTICS_EVENTS,
+  APP_CONFIG,
   CTA_LOCATIONS,
   ELEMENT_IDS,
   NAV,
+  PORTAL_ROUTES,
   PROGRAMMES,
   ROUTES,
   SECTION_IDS,
@@ -105,9 +107,22 @@ export function Header() {
                 </li>
               ))}
             </ul>
-            <ButtonLink href={sectionLink(SECTION_IDS.contact)} onClick={handleCtaClick}>
-              {NAV.cta}
-            </ButtonLink>
+            <div className={styles.actions}>
+              {APP_CONFIG.features.portal && (
+                <a
+                  className={styles.signIn}
+                  href={PORTAL_ROUTES.login}
+                  aria-label={NAV.signInLabel}
+                  onClick={closeMenu}
+                >
+                  <LogIn aria-hidden="true" />
+                  {NAV.signIn}
+                </a>
+              )}
+              <ButtonLink href={sectionLink(SECTION_IDS.contact)} onClick={handleCtaClick}>
+                {NAV.cta}
+              </ButtonLink>
+            </div>
           </nav>
         </div>
       </Container>

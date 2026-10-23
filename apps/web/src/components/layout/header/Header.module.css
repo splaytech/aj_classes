@@ -14,6 +14,8 @@
 }
 
 .logoLink {
+  flex-shrink: 0;
+  white-space: nowrap; /* "AJ Classes" stays on one line */
   text-decoration: none;
 }
 
@@ -139,8 +141,37 @@
   font-weight: var(--font-weight-bold);
 }
 
-/* Desktop: links sit in one row, no menu button. */
-@media (min-width: 900px) {
+/* Sign in (portal) and Register Interest. Stacked in the phone menu. */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.signIn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-target);
+  color: var(--color-text-emphasis);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+.signIn svg {
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+  color: var(--color-primary);
+}
+
+.signIn:hover,
+.signIn:focus-visible {
+  color: var(--color-primary);
+}
+
+/* Desktop: links sit in one row, no menu button. From 1024px: below that the full menu (with
+   Sign in) doesn't fit on one line, so it folds into the menu button like on phones. */
+@media (min-width: 1024px) {
   .menuButton {
     display: none;
   }
@@ -151,16 +182,29 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: var(--space-8);
+    gap: var(--space-6);
     max-height: none;
     overflow: visible;
     padding: 0;
     box-shadow: none;
   }
 
+  .actions {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  /* One line each: names never wrap inside the bar. */
+  .links a,
+  .signIn,
+  .actions a {
+    white-space: nowrap;
+  }
+
   .links {
     flex-direction: row;
-    gap: var(--space-6);
+    gap: var(--space-4);
   }
 
   /* A small dropdown under the parent link, shown on hover or keyboard focus. */
