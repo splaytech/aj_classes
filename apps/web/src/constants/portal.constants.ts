@@ -165,6 +165,8 @@ export const AUTH_CONFIRM_PAGE = {
   checking: 'Checking your link…',
   invalidLink: 'This link is incomplete. Please use the button in the email.',
   requestNewLink: 'Request a new link',
+  // A used invite reads as expired, so someone who already set up can still get in.
+  alreadySetUp: 'Already set up your account? Sign in',
 } as const;
 
 export const SET_PASSWORD_PAGE = {
@@ -242,7 +244,7 @@ export const ACCOUNT_PAGE = {
   heading: 'Your account',
   choices: {
     heading: 'Your choices',
-    intro: 'Optional permissions. Changes take effect straight away.',
+    intro: 'Optional permissions. Changes apply as soon as you save them.',
     save: 'Save choices',
     saving: 'Saving…',
     saved: 'Your choices are saved.',
@@ -597,6 +599,7 @@ export const ACTIVITY_PAGE = {
   fields: (fields: string) => `Fields: ${fields}`,
   student: (name: string) => `Student: ${name}`,
   someone: 'Someone',
+  listSeparator: ' · ',
 } as const;
 
 export const DAYS_OF_WEEK = [1, 2, 3, 4, 5, 6, 7] as const; // ISO: 1 = Monday

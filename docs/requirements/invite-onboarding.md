@@ -159,4 +159,10 @@ records the optional choices), and a `consent_changed` entry for every later cha
 `20261023120000_admin_staff_phone_and_terms.sql` adds `phone` and `terms_accepted_at` to
 `admin_list_staff()`.
 
+Admin → Activity shows a parent's choices in the Details column: all three at setup ("Finished
+account setup") and the changed ones on each "Changed their permissions" entry.
+
+An invite link that's expired or already used also offers "Already set up your account? Sign in",
+so someone who clicks the email again after finishing setup isn't stuck.
+
 Open: nobody can change a staff phone number after setup yet (it isn't on the profile form).

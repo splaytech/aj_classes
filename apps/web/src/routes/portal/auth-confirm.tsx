@@ -67,12 +67,18 @@ export default function AuthConfirmPage() {
     setError(linkErrorMessage(type, result.error));
   }
 
+  // Once the link has failed, "Continue to…" no longer applies, so the intro is dropped.
   return (
-    <AuthCard heading={AUTH_CONFIRM_PAGE.heading[type]} intro={AUTH_CONFIRM_PAGE.intro[type]}>
+    <AuthCard
+      heading={AUTH_CONFIRM_PAGE.heading[type]}
+      intro={error ? undefined : AUTH_CONFIRM_PAGE.intro[type]}
+    >
       <FormAlert message={error} />
       {error ? (
-        type === 'recovery' && (
+        type === 'recovery' ? (
           <Link to={PORTAL_ROUTES.forgotPassword}>{AUTH_CONFIRM_PAGE.requestNewLink}</Link>
+        ) : (
+          <Link to={PORTAL_ROUTES.login}>{AUTH_CONFIRM_PAGE.alreadySetUp}</Link>
         )
       ) : (
         <div className={formStyles.actions}>
