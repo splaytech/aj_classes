@@ -1,6 +1,7 @@
 // Where invite and reset emails land (design §9.1). Nothing happens until the person clicks
 // Continue, so an email scanner that opens the link can't use it up. The token is then removed
-// from the address bar.
+// from the address bar. Supabase uses the token up here (single use, 1 hour); an invite then
+// goes on to the setup form, which the account can't skip (invite-onboarding design).
 
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
@@ -18,7 +19,7 @@ import {
 } from '@/constants';
 import { buildPortalMeta } from '@/lib/seo';
 import { confirmEmailLink } from '@/services';
-import type { EmailLinkType } from '@/services';
+import type { EmailLinkType, ErrorKey } from '@/services';
 
 export function meta() {
   return buildPortalMeta(PORTAL_SEO.authConfirm);
@@ -26,6 +27,12 @@ export function meta() {
 
 function readLinkType(value: string | null): EmailLinkType | null {
   return value === 'invite' || value === 'recovery' ? value : null;
+}
+
+/** Supabase gives the same error for an expired link and a used one, so both read as expired. */
+function linkErrorMessage(type: EmailLinkType, error: ErrorKey): string {
+  if (type === 'invite' && error === 'linkExpired') return PORTAL_ERRORS.inviteExpired;
+  return `${PORTAL_ERRORS[error]} ${AUTH_LINK_ERRORS[type]}`;
 }
 
 export default function AuthConfirmPage() {
@@ -51,19 +58,27 @@ export default function AuthConfirmPage() {
     window.history.replaceState(null, '', PORTAL_ROUTES.authConfirm);
 
     if (result.ok) {
-      navigate(PORTAL_ROUTES.setPassword, { replace: true });
+      navigate(type === 'invite' ? PORTAL_ROUTES.join : PORTAL_ROUTES.setPassword, {
+        replace: true,
+      });
       return;
     }
     setChecking(false);
-    setError(`${PORTAL_ERRORS[result.error]} ${AUTH_LINK_ERRORS[type]}`);
+    setError(linkErrorMessage(type, result.error));
   }
 
+  // Once the link has failed, "Continue to…" no longer applies, so the intro is dropped.
   return (
-    <AuthCard heading={AUTH_CONFIRM_PAGE.heading[type]} intro={AUTH_CONFIRM_PAGE.intro[type]}>
+    <AuthCard
+      heading={AUTH_CONFIRM_PAGE.heading[type]}
+      intro={error ? undefined : AUTH_CONFIRM_PAGE.intro[type]}
+    >
       <FormAlert message={error} />
       {error ? (
-        type === 'recovery' && (
+        type === 'recovery' ? (
           <Link to={PORTAL_ROUTES.forgotPassword}>{AUTH_CONFIRM_PAGE.requestNewLink}</Link>
+        ) : (
+          <Link to={PORTAL_ROUTES.login}>{AUTH_CONFIRM_PAGE.alreadySetUp}</Link>
         )
       ) : (
         <div className={formStyles.actions}>

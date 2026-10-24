@@ -3,6 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { PRIVACY } from '@/constants';
 
 describe('Privacy Policy content', () => {
+  it('explains the optional permissions and how to withdraw them', () => {
+    const section = PRIVACY.sections.find((item) => item.heading === 'Optional permissions');
+    expect(section?.text).toContain('Account → Your choices');
+    expect(section?.text).toContain('None of these is needed');
+  });
+
   it('has each section once (merges have duplicated sections before)', () => {
     const headings = PRIVACY.sections.map((section) => section.heading);
     expect(new Set(headings).size).toBe(headings.length);

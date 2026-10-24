@@ -18,6 +18,7 @@ import {
   ROLE_LABELS,
 } from '@/constants';
 import type { StaffRole } from '@/constants';
+import { describeConsentChoices } from '@/lib/consents';
 import { formatDateTime } from '@/lib/format';
 import { buildPortalMeta } from '@/lib/seo';
 import { listActivity } from '@/services';
@@ -39,6 +40,13 @@ function describeDetails(entry: ActivityEntry): string {
     const from = ROLE_LABELS[details.from as StaffRole] ?? String(details.from);
     const to = ROLE_LABELS[details.to as StaffRole] ?? String(details.to);
     return ACTIVITY_PAGE.roleChange(from, to);
+  }
+  // A parent's optional permissions: what they chose at setup, and each later change.
+  if (
+    entry.action === 'consent_changed' ||
+    (entry.action === 'account_activated' && details.role === 'parent')
+  ) {
+    return describeConsentChoices(details);
   }
   if (entry.action === 'profile_edited_by_admin' && Array.isArray(details.fields)) {
     return ACTIVITY_PAGE.fields(details.fields.join(', '));

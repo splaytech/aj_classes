@@ -20,6 +20,8 @@ type StaffRow = {
   joined_at: string | null;
   last_sign_in_at: string | null;
   has_two_step: boolean;
+  phone: string | null;
+  terms_accepted_at: string | null;
 };
 
 function toStaffMember(row: StaffRow): StaffMember {
@@ -33,6 +35,8 @@ function toStaffMember(row: StaffRow): StaffMember {
     joinedAt: row.joined_at,
     lastSignInAt: row.last_sign_in_at,
     hasTwoStep: row.has_two_step,
+    phone: row.phone,
+    termsAcceptedAt: row.terms_accepted_at,
   };
 }
 

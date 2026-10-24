@@ -42,6 +42,8 @@ describe('filterStaff', () => {
     joinedAt: '2026-10-01T00:00:00Z',
     lastSignInAt: null,
     hasTwoStep: false,
+    phone: null,
+    termsAcceptedAt: null,
   };
   const pending: StaffMember = {
     ...base,

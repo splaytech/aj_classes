@@ -2,6 +2,7 @@
 
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
+import Link from '@mui/material/Link';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -29,7 +30,7 @@ import {
   STAFF_ROLES,
 } from '@/constants';
 import type { StaffRole } from '@/constants';
-import { formatDate, formatDateTime } from '@/lib/format';
+import { formatDate, formatDateTime, formatPhone } from '@/lib/format';
 import { buildPortalMeta } from '@/lib/seo';
 import { hasJoined, accountStatus } from '@/lib/account-status';
 import { usePortalAction } from '@/lib/use-portal-action';
@@ -90,6 +91,19 @@ export default function AdminStaffMemberPage() {
             {person.lastSignInAt && (
               <Typography variant="body2" color="text.secondary">
                 {STAFF_MEMBER_PAGE.lastSignIn(formatDateTime(person.lastSignInAt))}
+              </Typography>
+            )}
+            {person.phone && (
+              <Typography variant="body2" color="text.secondary">
+                {STAFF_MEMBER_PAGE.phone}{' '}
+                <Link href={STAFF_MEMBER_PAGE.phoneLink(person.phone)}>
+                  {formatPhone(person.phone)}
+                </Link>
+              </Typography>
+            )}
+            {person.termsAcceptedAt && (
+              <Typography variant="body2" color="text.secondary">
+                {STAFF_MEMBER_PAGE.termsAccepted(formatDate(person.termsAcceptedAt))}
               </Typography>
             )}
           </>

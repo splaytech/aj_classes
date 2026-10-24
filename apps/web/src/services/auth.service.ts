@@ -4,13 +4,14 @@
 import { getSupabase, isPortalConfigured } from './supabase.client';
 import { attempt, fail, succeed } from './result';
 import { toErrorKey } from './auth-errors';
-import type { AccessState, EmailLinkType, Result } from './types';
+import type { AccessState, EmailLinkType, OnboardingInfo, Result } from './types';
 
 const SIGNED_OUT: AccessState = {
   signedIn: false,
   userId: '',
   email: '',
   profile: null,
+  onboarding: null,
   aal: 'aal1',
   hasVerifiedFactor: false,
 };
@@ -132,17 +133,36 @@ export async function getAccessState(): Promise<AccessState> {
   ]);
   if (profileResult.error) throw profileResult.error;
 
-  // A deactivated person can't read their own row (RLS), so `data` is null for them.
+  // Only active accounts can read their own row (RLS), so `data` is null for someone deactivated
+  // or still invited. An invited person gets their setup details instead (invite-onboarding).
   const row = profileResult.data;
   const profile = row?.is_active ? { fullName: row.full_name, role: row.role } : null;
+  const onboarding = profile ? null : await readOnboarding();
 
   return {
     signedIn: true,
     userId: session.user.id,
     email: session.user.email ?? '',
     profile,
+    onboarding,
     aal: levelResult.data?.currentLevel === 'aal2' ? 'aal2' : 'aal1',
     hasVerifiedFactor: levelResult.data?.nextLevel === 'aal2',
+  };
+}
+
+/** The setup form's details, or null unless the signed-in account is invited and not deactivated. */
+async function readOnboarding(): Promise<OnboardingInfo | null> {
+  const supabase = await getSupabase();
+  const { data, error } = await supabase.rpc('my_onboarding');
+  if (error) throw error;
+
+  const row = data?.[0];
+  if (!row) return null;
+  return {
+    role: row.role,
+    fullName: row.full_name,
+    email: row.email,
+    yearLevel: row.year_level ?? null,
   };
 }
 

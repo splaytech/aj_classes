@@ -2,6 +2,8 @@
 // Matches on error codes and on the keys we raise ourselves, never on Supabase's wording
 // (R2a design §11.4, G28) — except one captcha case noted below.
 
+import { isConnectionFailure } from '@/lib/connection-errors';
+
 import type { ErrorKey } from './types';
 
 type SupabaseLikeError = {
@@ -96,6 +98,12 @@ const ERROR_KEYS_BY_OWN_KEY: Record<string, ErrorKey> = {
   answer_too_long: 'answerTooLong',
   not_online: 'notOnline',
   invalid_input: 'invalidInput',
+  // Setup form (invite-onboarding)
+  not_invited: 'notInvited',
+  password_not_set: 'passwordNotSet',
+  terms_required: 'termsRequired',
+  invalid_phone: 'invalidPhone',
+  invalid_year_level: 'invalidYearLevel',
 };
 
 /** The portal error to show for anything a Supabase call returned or threw. */
@@ -121,7 +129,7 @@ export function toErrorKey(error: unknown): ErrorKey {
   if (details.status === 429) {
     return 'tooManyAttempts';
   }
-  if (details.name === 'AuthRetryableFetchError' || details.name === 'TypeError') {
+  if (details.name === 'AuthRetryableFetchError' || isConnectionFailure(error)) {
     return 'network';
   }
   return 'unknown';

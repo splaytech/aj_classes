@@ -12,8 +12,9 @@
   box-shadow: var(--shadow-md);
 }
 
-/* Phones and small tablets only: on wider screens the header button is always visible. */
-@media (min-width: 900px) {
+/* Phones and tablets only (matches the header's menu button, Header.module.css): on wider
+   screens the header button is always visible. */
+@media (min-width: 1024px) {
   .bar {
     display: none;
   }

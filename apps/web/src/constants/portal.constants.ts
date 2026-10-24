@@ -13,6 +13,7 @@ export const PORTAL_SEO = {
   forgotPassword: 'Forgot password',
   authConfirm: 'Continue',
   setPassword: 'Set your password',
+  join: 'Set up your account',
   account: 'Your account',
   profile: 'My profile',
   timetable: 'Timetable',
@@ -62,6 +63,9 @@ export const PORTAL_COMMON = {
   yes: 'Yes',
   no: 'No',
   errorHeading: 'Something went wrong',
+  // Shown when a page breaks for a reason other than the connection (lib/connection-errors.ts).
+  errorIntro:
+    "This page couldn't be shown. Please try again, and contact AJ Classes if it keeps happening.",
   tryAgain: 'Try again',
   signOut: 'Sign out',
   signingOut: 'Signing out…',
@@ -154,13 +158,15 @@ export const AUTH_CONFIRM_PAGE = {
     recovery: 'Reset your password',
   },
   intro: {
-    invite: "You've been invited to the AJ Classes portal. Continue to set your password.",
+    invite: "You've been invited to the AJ Classes portal. Continue to set up your account.",
     recovery: 'Continue to choose a new password.',
   },
   continue: 'Continue',
   checking: 'Checking your link…',
   invalidLink: 'This link is incomplete. Please use the button in the email.',
   requestNewLink: 'Request a new link',
+  // A used invite reads as expired, so someone who already set up can still get in.
+  alreadySetUp: 'Already set up your account? Sign in',
 } as const;
 
 export const SET_PASSWORD_PAGE = {
@@ -176,8 +182,73 @@ export const SET_PASSWORD_PAGE = {
   submitting: 'Saving…',
 } as const;
 
+// Optional permissions, offered to parents only, separate from the Terms so they're voluntary
+// (Privacy Act APP 6, Spam Act). Same wording on the setup form and Account → Your choices
+// (invite-onboarding.md, "Consents").
+export const CONSENT_KINDS = ['marketing', 'resultsPublicity', 'videoPublicity'] as const;
+export type ConsentKind = (typeof CONSENT_KINDS)[number];
+
+export const CONSENT_CHOICES = {
+  heading: 'Optional permissions',
+  intro: 'Each one is up to you. You can change them at any time in Account → Your choices.',
+  labels: {
+    marketing: 'Send me news, offers and enrolment updates by email and SMS.',
+    resultsPublicity:
+      'AJ Classes may share my child’s name and their selective school or scholarship result on its website and social media.',
+    videoPublicity:
+      'If we provide a testimonial video, AJ Classes may publish it on its website and social media.',
+  } satisfies Record<ConsentKind, string>,
+  /** Short names for the admin's view of a parent's choices. */
+  short: {
+    marketing: 'News by email/SMS',
+    resultsPublicity: 'Name and results',
+    videoPublicity: 'Testimonial video',
+  } satisfies Record<ConsentKind, string>,
+  yes: 'yes',
+  no: 'no',
+} as const;
+
+export const JOIN_PAGE = {
+  heading: 'Set up your account',
+  intro: (email: string) =>
+    `You're joining the AJ Classes portal as ${email}. Fill in your details to finish.`,
+  labels: {
+    fullName: 'Full name',
+    phone: 'Phone number',
+    yearLevel: 'Year level',
+    password: 'Create password',
+    confirm: 'Confirm password',
+    code: 'Code from the email',
+  },
+  hints: {
+    phone: 'So AJ Classes can reach you about your classes.',
+    password: `At least ${AUTH_LIMITS.passwordMin} characters. A short sentence is easy to remember and hard to guess.`,
+  },
+  yearLevelPlaceholder: 'Choose your year level',
+  terms: {
+    before: 'I agree to the ',
+    termsLink: 'Terms & Conditions',
+    between: ' and ',
+    privacyLink: 'Privacy Policy',
+    // Service messages need no separate consent (Spam Act); marketing is asked separately below.
+    after: ', including emails, SMS and calls about classes, my account and invoices.',
+  },
+  submit: 'Finish setup',
+  submitting: 'Setting up…',
+  codeSent:
+    "For your security, we've emailed you a code. Enter it below, then press Finish setup again.",
+  signOut: 'Not you? Sign out',
+} as const;
+
 export const ACCOUNT_PAGE = {
   heading: 'Your account',
+  choices: {
+    heading: 'Your choices',
+    intro: 'Optional permissions. Changes apply as soon as you save them.',
+    save: 'Save choices',
+    saving: 'Saving…',
+    saved: 'Your choices are saved.',
+  },
   signedInAs: 'Signed in as',
   role: 'Role',
   password: {
@@ -417,6 +488,7 @@ export const STAFF_PAGE = {
   columns: {
     name: 'Name',
     email: 'E-mail',
+    phone: 'Phone',
     role: 'Role',
     status: 'Status',
     twoStep: 'Two-step',
@@ -494,6 +566,10 @@ export const STAFF_MEMBER_PAGE = {
   },
   joined: (date: string) => `Joined ${date}`,
   lastSignIn: (date: string) => `Last sign-in ${date}`,
+  // Given at setup (invite-onboarding.md, "Admin view").
+  phone: 'Phone:',
+  phoneLink: (phone: string) => `tel:${phone}`,
+  termsAccepted: (date: string) => `Accepted the Terms ${date}`,
 } as const;
 
 export const ACTIVITY_LABELS = {
@@ -510,6 +586,8 @@ export const ACTIVITY_LABELS = {
   parent_linked: 'Linked parent',
   parent_unlinked: 'Removed parent',
   consent_recorded: 'Recorded consent for',
+  consent_changed: 'Changed their permissions',
+  account_activated: 'Finished account setup',
 } as const;
 
 export const ACTIVITY_PAGE = {
@@ -521,6 +599,7 @@ export const ACTIVITY_PAGE = {
   fields: (fields: string) => `Fields: ${fields}`,
   student: (name: string) => `Student: ${name}`,
   someone: 'Someone',
+  listSeparator: ' · ',
 } as const;
 
 export const DAYS_OF_WEEK = [1, 2, 3, 4, 5, 6, 7] as const; // ISO: 1 = Monday

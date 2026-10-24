@@ -28,6 +28,13 @@ describe('toErrorKey', () => {
   it('treats 429 as too many attempts and fetch failures as network problems', () => {
     expect(toErrorKey({ status: 429 })).toBe('tooManyAttempts');
     expect(toErrorKey({ name: 'AuthRetryableFetchError' })).toBe('network');
+    expect(toErrorKey(new TypeError('Failed to fetch'))).toBe('network');
+  });
+
+  it('does not blame the connection for a bug', () => {
+    expect(toErrorKey(new TypeError("Cannot read properties of undefined (reading 'map')"))).toBe(
+      'unknown',
+    );
   });
 
   it('maps database codes and the keys our own functions raise', () => {

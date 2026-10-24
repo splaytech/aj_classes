@@ -139,3 +139,16 @@
   display: flex;
   gap: var(--space-2);
 }
+
+/* A checkbox with a longer label (Terms, optional permissions): the box stays at the top of the text. */
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+}
+
+.consent input {
+  flex-shrink: 0;
+  margin-top: 0.3em;
+}

@@ -20,6 +20,8 @@ export {
   signOut,
   watchForSignOut,
 } from './auth.service';
+export { completeOnboarding } from './onboarding.service';
+export { getMyConsents, setMyConsents } from './consents.service';
 export { listActivity } from './activity.service';
 export { deleteEnquiry, listEnquiries, resyncEnquiry } from './enquiries.service';
 export {
@@ -113,6 +115,7 @@ export type {
   ClassInput,
   ClassSession,
   ClassSummary,
+  Consents,
   DayOfWeek,
   Delivery,
   RosterStudent,
@@ -126,6 +129,8 @@ export type {
   FamilyAssignment,
   FamilyAssignmentView,
   FamilyQuestion,
+  OnboardingInfo,
+  OnboardingInput,
   ParentInviteOutcome,
   ProfileChanges,
   Question,

@@ -6,6 +6,8 @@ export type AccountRecord = {
   id: string;
   email: string;
   role: string;
+  status: 'invited' | 'active';
+  is_active: boolean;
   joined_at: string | null;
   last_sign_in_at: string | null;
 };
@@ -20,7 +22,7 @@ export type StudentRecord = {
   consent_recorded_at: string | null;
 };
 
-const ACCOUNT_COLUMNS = 'id, email, role, joined_at, last_sign_in_at';
+const ACCOUNT_COLUMNS = 'id, email, role, status, is_active, joined_at, last_sign_in_at';
 
 /** Anyone's profile (read with the secret key), or null if there isn't one. */
 export async function findAccount(userId: string): Promise<AccountRecord | null> {
@@ -84,6 +86,22 @@ export async function createFamilyAccount(
 export async function sendInvite(email: string): Promise<boolean> {
   const { error } = await serviceClient().auth.admin.inviteUserByEmail(email);
   return !error;
+}
+
+/**
+ * A new link for someone who opened their invite but didn't finish the setup form.
+ * Supabase won't send an invite to a confirmed e-mail, so this sends a password-reset link
+ * instead; it lands on the same setup form, because the account is still invited.
+ */
+export async function sendSetupLink(userId: string, email: string): Promise<boolean> {
+  const service = serviceClient();
+  const { data, error } = await service.auth.admin.getUserById(userId);
+  if (error || !data.user) return false;
+
+  const { error: sendError } = data.user.email_confirmed_at
+    ? await service.auth.resetPasswordForEmail(email)
+    : await service.auth.admin.inviteUserByEmail(email);
+  return !sendError;
 }
 
 /** Removes an account that was only just created (undo). Its links go with it. */

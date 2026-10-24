@@ -48,6 +48,9 @@ export const NAV = {
     { label: 'Contact', sectionId: SECTION_IDS.contact },
   ],
   cta: 'Register Interest',
+  // One link for everyone: the portal sends each person to their own home by role.
+  signIn: 'Sign in',
+  signInLabel: 'Sign in to the AJ Classes portal (staff, students and parents)',
 };
 
 export const ANNOUNCEMENT = {
@@ -386,6 +389,11 @@ export const PRIVACY = {
       // R3b review F19: family accounts. Wording for the owner to review.
       heading: 'Student and parent portal accounts',
       text: "Portal accounts are created only by invitation from AJ Classes. For each account we keep your name, email address and sign-in times. For students we also keep their classes and timetable, their assignment answers, marks, and tutor feedback and comments. A student's account is only created after a parent or guardian agrees, in the portal or on our enrolment form. Parents linked to a student can see that student's assignments, answers once handed in, marks, progress and tutor comments; they never see other students. Portal data is stored with Supabase (database and sign-in), and our sign-in pages use Cloudflare Turnstile to check that you are a person; both may process data outside Australia. We never use portal information for marketing.",
+    },
+    {
+      // invite-onboarding.md, "Consents". Wording for the owner to review.
+      heading: 'Optional permissions',
+      text: 'When parents set up their portal account, they can choose, separately and only if they want to: to receive news, offers and enrolment updates by email and SMS; to let us share their child’s name and selective school or scholarship result on our website and social media; and to let us publish a testimonial video they provide. None of these is needed to use the portal. Parents can change or withdraw any of them at any time in Account → Your choices, or by emailing hello@ajclasses.com.au; withdrawing stops future use, though we can’t always remove something already shared. Emails, SMS and calls about classes, accounts and invoices are part of our service and are covered by our Terms.',
     },
     {
       heading: 'How long we keep it',

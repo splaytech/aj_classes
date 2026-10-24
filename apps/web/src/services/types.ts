@@ -2,6 +2,7 @@
 
 import type {
   AppRole,
+  ConsentKind,
   ConsentSource,
   CrmStatus,
   FamilyStatus,
@@ -26,12 +27,37 @@ export type AccessState = {
   signedIn: boolean;
   userId: string;
   email: string;
-  /** null when signed out, or when the profile can't be read (e.g. deactivated). */
+  /** null when signed out, or when the profile can't be read (deactivated, or still invited). */
   profile: { fullName: string; role: AppRole } | null;
+  /** Set only for an invited account that hasn't finished the setup form (/portal/join). */
+  onboarding: OnboardingInfo | null;
   /** aal2 = password and authenticator code; aal1 = password (or email link) only. */
   aal: 'aal1' | 'aal2';
   hasVerifiedFactor: boolean;
 };
+
+/** What the setup form needs: the role (read on the server) decides which fields it shows. */
+export type OnboardingInfo = {
+  role: AppRole;
+  fullName: string;
+  email: string;
+  /** Students: their roster year level, as a starting value (null: not set, or not at school). */
+  yearLevel: number | null;
+};
+
+/** The setup form's answers. phone: staff only. yearLevel: students only ('other' = not at school). */
+export type OnboardingInput = {
+  fullName: string;
+  password: string;
+  phone: string | null;
+  yearLevel: string | null;
+  acceptsTerms: boolean;
+  /** Parents only; everyone else sends all false. */
+  consents: Consents;
+};
+
+/** A parent's optional permissions (invite-onboarding.md, "Consents"). true = agreed. */
+export type Consents = Record<ConsentKind, boolean>;
 
 /** An authenticator app linked to the account (two-step sign-in). */
 export type Authenticator = {
@@ -78,6 +104,9 @@ export type StaffMember = {
   joinedAt: string | null;
   lastSignInAt: string | null;
   hasTwoStep: boolean;
+  /** Given at setup; stored as +61…. */
+  phone: string | null;
+  termsAcceptedAt: string | null;
 };
 
 /** One entry in the activity (audit) list. */
@@ -119,7 +148,9 @@ export type ActivityAction =
   | 'parent_invited'
   | 'parent_linked'
   | 'parent_unlinked'
-  | 'consent_recorded';
+  | 'consent_recorded'
+  | 'account_activated'
+  | 'consent_changed';
 
 // --- Classes, timetable, students, assignments (R3a) ------------------------------
 
@@ -318,6 +349,9 @@ export type FamilyAccount = {
   invitedAt: string | null;
   joinedAt: string | null;
   lastSignInAt: string | null;
+  termsAcceptedAt: string | null;
+  /** Optional permissions; only parents are offered them, so a student's are all false. */
+  consents: Consents;
 };
 
 /** Everything on an admin's student page (R3b stories FA1–FA3). */

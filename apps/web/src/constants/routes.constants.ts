@@ -22,6 +22,7 @@ export const PORTAL_ROUTES = {
   forgotPassword: '/portal/forgot-password',
   authConfirm: '/portal/auth/confirm',
   setPassword: '/portal/set-password',
+  join: '/portal/join', // setup form after an invite link (invite-onboarding design)
   account: '/portal/account',
   profile: '/portal/profile',
   twoStepSetup: '/portal/account/two-step/setup',
@@ -82,6 +83,13 @@ export function parentChildPath(studentId: string): string {
 export function parentChildAssignmentPath(studentId: string, assignmentId: string): string {
   return `${parentChildPath(studentId)}/assignments/${assignmentId}`;
 }
+
+// Legal pages linked from the setup form's terms checkbox. The Terms & Conditions page doesn't
+// exist yet: until the owner provides one (set its URL here), the words show without a link.
+export const LEGAL_LINKS: { privacy: string; terms: string | null } = {
+  privacy: ROUTES.privacy,
+  terms: null,
+};
 
 // Query-string names used by portal pages and email links.
 export const PORTAL_QUERY = {

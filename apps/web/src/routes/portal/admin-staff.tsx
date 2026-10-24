@@ -25,7 +25,7 @@ import {
   AccountStatusChip,
 } from '@/components/portal';
 import { PORTAL_COMMON, PORTAL_SEO, STAFF_PAGE, staffMemberPath } from '@/constants';
-import { formatDateTime } from '@/lib/format';
+import { formatDateTime, formatPhone } from '@/lib/format';
 import { buildPortalMeta } from '@/lib/seo';
 import { filterStaff, accountStatus } from '@/lib/account-status';
 import type { StaffFilter } from '@/lib/account-status';
@@ -113,6 +113,7 @@ export default function AdminStaffPage() {
             <TableRow>
               <TableCell>{STAFF_PAGE.columns.name}</TableCell>
               <TableCell>{STAFF_PAGE.columns.email}</TableCell>
+              <TableCell>{STAFF_PAGE.columns.phone}</TableCell>
               <TableCell>{STAFF_PAGE.columns.role}</TableCell>
               <TableCell>{STAFF_PAGE.columns.status}</TableCell>
               <TableCell>{STAFF_PAGE.columns.twoStep}</TableCell>
@@ -132,6 +133,9 @@ export default function AdminStaffPage() {
                   </Link>
                 </TableCell>
                 <TableCell>{member.email}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  {member.phone ? formatPhone(member.phone) : PORTAL_COMMON.none}
+                </TableCell>
                 <TableCell>
                   <RoleChip role={member.role} />
                 </TableCell>
@@ -152,7 +156,7 @@ export default function AdminStaffPage() {
             ))}
             {rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6}>{STAFF_PAGE.empty}</TableCell>
+                <TableCell colSpan={7}>{STAFF_PAGE.empty}</TableCell>
               </TableRow>
             )}
           </TableBody>

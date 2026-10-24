@@ -9,6 +9,7 @@ const signedOut: AccessState = {
   userId: '',
   email: '',
   profile: null,
+  onboarding: null,
   aal: 'aal1',
   hasVerifiedFactor: false,
 };
@@ -18,6 +19,7 @@ const tutor: AccessState = {
   userId: 'tutor-id',
   email: 'tutor@example.com',
   profile: { fullName: 'Tutor', role: 'tutor' },
+  onboarding: null,
   aal: 'aal1',
   hasVerifiedFactor: false,
 };
@@ -31,8 +33,45 @@ const adminFull: AccessState = { ...adminNeedsCode, aal: 'aal2' };
 const deactivated: AccessState = { ...tutor, profile: null };
 const student: AccessState = { ...tutor, profile: { fullName: 'Student', role: 'student' } };
 const parent: AccessState = { ...tutor, profile: { fullName: 'Parent', role: 'parent' } };
+const invitedStudent: AccessState = {
+  ...tutor,
+  profile: null,
+  onboarding: { role: 'student', fullName: 'New Kid', email: 'kid@example.com', yearLevel: 8 },
+};
 
 describe('decidePortalAccess (design §11.3)', () => {
+  it('keeps an invited account on the setup form until it is finished (invite-onboarding)', () => {
+    expect(decidePortalAccess(invitedStudent, 'join', '/portal/join')).toEqual({ kind: 'allow' });
+    for (const area of [
+      'member',
+      'student',
+      'staff',
+      'admin',
+      'setPassword',
+      'signedOutOnly',
+    ] as const) {
+      expect(decidePortalAccess(invitedStudent, area, '/portal/student')).toEqual({
+        kind: 'redirect',
+        to: '/portal/join',
+      });
+    }
+  });
+
+  it('sends people who are already set up, or signed out, away from the setup form', () => {
+    expect(decidePortalAccess(tutor, 'join', '/portal/join')).toEqual({
+      kind: 'redirect',
+      to: '/portal/tutor',
+    });
+    expect(decidePortalAccess(signedOut, 'join', '/portal/join')).toEqual({
+      kind: 'redirect',
+      to: '/portal/login',
+    });
+    expect(decidePortalAccess(deactivated, 'join', '/portal/join')).toEqual({
+      kind: 'signOut',
+      to: '/portal/login?reason=inactive',
+    });
+  });
+
   it('1. sends signed-out people to sign in, remembering where they were going', () => {
     expect(decidePortalAccess(signedOut, 'admin', '/portal/admin')).toEqual({
       kind: 'redirect',
