@@ -140,6 +140,14 @@ export const FORM_LIMITS = {
   messageMax: 2000,
 } as const;
 
+// Admin daily posts (posts.md). Must match the checks in the posts migration, and listCap must
+// match posts.service.ts's MAX_ROWS.
+export const POST_LIMITS = {
+  titleMax: 120,
+  bodyMax: 5000,
+  listCap: 200,
+} as const;
+
 // Static files in /public.
 export const ASSETS = {
   logo: '/logo.svg',

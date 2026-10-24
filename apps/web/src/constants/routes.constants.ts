@@ -11,6 +11,7 @@ export const ROUTES = {
   sitemap: '/sitemap.xml',
   robots: '/robots.txt',
   subscribed: '/subscribed', // Kit sends people here after they confirm their subscription
+  posts: '/posts', // admin daily posts, public (posts.md)
 } as const;
 
 // Portal (R2a staff, R3b students and parents). Everything private lives under /portal, so each
@@ -35,6 +36,7 @@ export const PORTAL_ROUTES = {
   adminStudents: '/portal/admin/students',
   adminActivity: '/portal/admin/activity',
   adminEnquiries: '/portal/admin/enquiries', // website enquiries and Zoho CRM status
+  adminPosts: '/portal/admin/posts', // compose and manage the public daily posts
   student: '/portal/student',
   studentTimetable: '/portal/student/timetable',
   parent: '/portal/parent',
