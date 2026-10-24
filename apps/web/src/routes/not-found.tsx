@@ -3,10 +3,10 @@
 import { SiteLayout } from '@/components/layout/SiteLayout';
 import { ButtonLink, Section } from '@/components/ui';
 import { NOT_FOUND, ROUTES, SEO } from '@/constants';
-import { buildPageMeta, noIndexMeta } from '@/lib/seo';
+import { buildPageMeta } from '@/lib/seo';
 
 export function meta() {
-  return [...buildPageMeta(SEO.notFound, ROUTES.notFound), noIndexMeta()];
+  return buildPageMeta(SEO.notFound, ROUTES.notFound, { noIndex: true });
 }
 
 export default function NotFoundPage() {

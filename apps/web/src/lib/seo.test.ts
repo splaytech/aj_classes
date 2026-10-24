@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { PROGRAMMES, programmePath } from '@/constants';
+import { PROGRAMMES, ROUTES, SEO, programmePath } from '@/constants';
+import { meta as notFoundMeta } from '@/routes/not-found';
+import { meta as subscribedMeta } from '@/routes/subscribed';
 
-import { buildProgrammeJsonLd } from './seo';
+import { buildPageMeta, buildProgrammeJsonLd } from './seo';
 
 type Graph = { '@graph': Record<string, unknown>[] };
 
@@ -39,5 +41,22 @@ describe('programme descriptions', () => {
       programme.seo.description.includes('Truganina'),
     );
     expect(withSuburbs.length).toBeGreaterThanOrEqual(8);
+  });
+});
+
+describe('search engine exclusion', () => {
+  const robotsTags = (tags: ReturnType<typeof buildPageMeta>) =>
+    tags.filter((tag) => 'name' in tag && tag.name === 'robots');
+
+  // Two identical robots tags made React log a duplicate-key error (BUG-1, 2026-10-25).
+  it('emits a single robots tag on pages that are always excluded', () => {
+    expect(robotsTags(notFoundMeta())).toHaveLength(1);
+    expect(robotsTags(subscribedMeta())).toHaveLength(1);
+  });
+
+  it('adds the robots tag when a page asks to be excluded', () => {
+    expect(robotsTags(buildPageMeta(SEO.privacy, ROUTES.privacy, { noIndex: true }))).toEqual([
+      { name: 'robots', content: 'noindex' },
+    ]);
   });
 });
