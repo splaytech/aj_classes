@@ -10,7 +10,13 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useLoaderData, useRevalidator } from 'react-router';
 
-import { ConfirmDialog, LoadError, PageHeader, TextAreaInput, TextInput } from '@/components/portal';
+import {
+  ConfirmDialog,
+  LoadError,
+  PageHeader,
+  TextAreaInput,
+  TextInput,
+} from '@/components/portal';
 import { POST_LIMITS, POSTS_PAGE, PORTAL_SEO } from '@/constants';
 import { formatDateTime } from '@/lib/format';
 import { buildPortalMeta } from '@/lib/seo';

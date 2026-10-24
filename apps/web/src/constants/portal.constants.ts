@@ -433,8 +433,7 @@ export const POSTS_PAGE = {
   cancel: 'Cancel',
   delete: 'Delete',
   confirmDeleteTitle: 'Delete this post?',
-  confirmDeleteText: (title: string) =>
-    `"${title}" will be removed from the website immediately.`,
+  confirmDeleteText: (title: string) => `"${title}" will be removed from the website immediately.`,
   deleted: 'Post deleted.',
   empty: 'No posts yet. Publish the first one above.',
 } as const;
