@@ -174,7 +174,9 @@ export const RESULTS = {
 
 export type ApproachStepId = 'assess' | 'plan' | 'practise' | 'review';
 
-type ApproachStep = { id: ApproachStepId; name: string; text: string };
+// `assertion` is a short, school-as-subject ("We…") headline; optional keeps the
+// renderer null-safe for any step that doesn't have one (ui-polish.md §3, item 2).
+type ApproachStep = { id: ApproachStepId; name: string; text: string; assertion?: string };
 
 export const APPROACH = {
   heading: 'Our Approach',
@@ -188,22 +190,26 @@ export const APPROACH = {
     {
       id: 'assess',
       name: 'Assess',
-      text: 'An initial assessment shows where your child is today: their strengths, gaps and goals.',
+      assertion: 'We start by knowing your child.',
+      text: 'A first assessment pinpoints exactly where your child stands — their strengths, gaps and goals.',
     },
     {
       id: 'plan',
       name: 'Plan',
-      text: 'We place them in the right small group and set personalised targets for the term.',
+      assertion: 'We build a plan that fits.',
+      text: 'We place your child in the right small group and set clear, personal targets for the term.',
     },
     {
       id: 'practise',
       name: 'Practise',
-      text: 'Twice-weekly classes build skills, then timed practice builds exam confidence.',
+      assertion: 'We turn practice into confidence.',
+      text: 'Twice-weekly classes build real skill, and timed practice builds exam confidence.',
     },
     {
       id: 'review',
       name: 'Review',
-      text: 'Regular feedback and progress updates, then interview preparation when it counts.',
+      assertion: 'We keep you in the loop.',
+      text: 'You get regular feedback and progress updates, and focused interview preparation when it counts.',
     },
   ] satisfies readonly ApproachStep[],
 };
