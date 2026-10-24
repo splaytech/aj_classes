@@ -24,6 +24,7 @@ export { completeOnboarding } from './onboarding.service';
 export { getMyConsents, setMyConsents } from './consents.service';
 export { listActivity } from './activity.service';
 export { deleteEnquiry, listEnquiries, resyncEnquiry } from './enquiries.service';
+export { createPost, deletePost, listPosts, updatePost } from './posts.service';
 export {
   deleteAssignment,
   getAssignment,
@@ -132,6 +133,8 @@ export type {
   OnboardingInfo,
   OnboardingInput,
   ParentInviteOutcome,
+  Post,
+  PostInput,
   ProfileChanges,
   Question,
   QuestionInput,

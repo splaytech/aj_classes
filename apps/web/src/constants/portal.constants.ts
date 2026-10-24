@@ -26,6 +26,7 @@ export const PORTAL_SEO = {
   adminStudents: 'Students',
   adminActivity: 'Activity',
   adminEnquiries: 'Enquiries',
+  adminPosts: 'Posts',
   twoStepSetup: 'Set up two-step sign-in',
   tutor: 'Dashboard',
   admin: 'Admin',
@@ -366,6 +367,7 @@ export const ADMIN_DASHBOARD = {
     students: 'Students',
     timetable: 'Timetable',
     enquiries: 'Enquiries',
+    posts: 'Posts',
     activity: 'Activity',
   },
   recent: {
@@ -413,6 +415,27 @@ export const ENQUIRIES_PAGE = {
   deleted: 'Enquiry deleted.',
   emailLink: (email: string) => `mailto:${email}`,
   phoneLink: (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`,
+} as const;
+
+// Admin → Posts (posts.md): compose, edit and delete the posts shown publicly on the website.
+export const POSTS_PAGE = {
+  heading: 'Posts',
+  intro: 'Publish a short update for the website. Newest first, visible to every visitor.',
+  titleLabel: 'Title',
+  bodyLabel: 'Body',
+  publish: 'Publish',
+  publishing: 'Publishing…',
+  published: 'Post published.',
+  edit: 'Edit',
+  save: 'Save',
+  saving: 'Saving…',
+  saved: 'Post updated.',
+  cancel: 'Cancel',
+  delete: 'Delete',
+  confirmDeleteTitle: 'Delete this post?',
+  confirmDeleteText: (title: string) => `"${title}" will be removed from the website immediately.`,
+  deleted: 'Post deleted.',
+  empty: 'No posts yet. Publish the first one above.',
 } as const;
 
 export const FOOTER_PORTAL = {

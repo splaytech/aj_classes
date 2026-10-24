@@ -6,6 +6,13 @@
 > Each story lists its acceptance criteria (AC), the design sections it relies on, and how it is tested.
 > Test keys: **DB** = pgTAP, **FN** = edge function tests, **UNIT** = Vitest, **E2E** = Playwright (local), **MAN** = manual checklist.
 > Tags like **(G32)** point to the gap in [review.md](review.md) that added or changed the criterion.
+>
+> **22–23 Oct update:** invite onboarding grew into a closed setup step for tutors, students and
+> parents (profile fields, Terms, optional parent consents), a consolidated header **Sign in** link
+> with role-based landing pages, and a friendlier connection-error message — see
+> [invite-onboarding.md](../../invite-onboarding.md). It supersedes US2's accept-invite details (the
+> account now passes through `/portal/join` before becoming active, and the expired/used-link
+> wording changed) and extends US3 AC5/AC8 (sign-in is also in the header now, not footer-only).
 
 ## People
 

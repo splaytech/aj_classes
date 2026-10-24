@@ -135,6 +135,19 @@ export type Enquiry = {
 /** What happened when an admin retried sending an enquiry to Zoho CRM. */
 export type ResyncOutcome = { crmStatus: CrmStatus; crmError: string | null };
 
+/** A daily post, as shown to admins and to any website visitor (posts.md). */
+export type Post = {
+  id: string;
+  publishedAt: string; // ISO; mapped from created_at
+  updatedAt: string; // ISO; mapped from updated_at
+  title: string;
+  body: string; // plain text, rendered escaped
+  authorId: string | null; // null once the author's account is removed
+};
+
+/** What the compose/edit form on the admin page sends. */
+export type PostInput = { title: string; body: string };
+
 export type ActivityAction =
   | 'invite_sent'
   | 'invite_resent'
