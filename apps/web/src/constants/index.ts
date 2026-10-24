@@ -10,6 +10,7 @@ export * from './error.constants';
 export * from './family.constants';
 export * from './online-assignments.constants';
 export * from './portal.constants';
+export * from './posts.constants';
 export * from './programmes.constants';
 export * from './resources.constants';
 export * from './routes.constants';

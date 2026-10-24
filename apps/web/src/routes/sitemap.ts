@@ -9,6 +9,7 @@ const PUBLIC_PAGES = [
   ROUTES.resources,
   ...GUIDE_PATHS,
   ROUTES.privacy,
+  ROUTES.posts,
 ];
 
 function urlEntry(path: string, lastModified: string): string {
