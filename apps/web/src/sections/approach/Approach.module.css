@@ -75,6 +75,13 @@
   margin-top: 0;
 }
 
+.assertion {
+  margin: 0 0 var(--space-3);
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
 .step p {
   margin: 0;
   font-size: var(--font-size-sm);

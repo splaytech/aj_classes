@@ -55,6 +55,33 @@ describe('approach steps', () => {
       expect(step.querySelector('svg')).not.toBeNull();
     });
   });
+
+  it('shows each step’s assertion headline and reworded description', () => {
+    render(<Approach />);
+    for (const step of APPROACH.steps) {
+      if (step.assertion) {
+        expect(screen.getByText(step.assertion)).toBeInTheDocument();
+      }
+      expect(screen.getByText(step.text)).toBeInTheDocument();
+    }
+  });
+
+  it('keeps a single heading per card, with the assertion as a styled paragraph, not a heading', () => {
+    render(<Approach />);
+    const steps = within(screen.getByRole('list')).getAllByRole('listitem');
+    steps.forEach((step, index) => {
+      const headings = within(step).getAllByRole('heading');
+      expect(headings).toHaveLength(1);
+      expect(headings[0]).toHaveTextContent(APPROACH.steps[index]!.name);
+    });
+  });
+
+  it('keeps every icon decorative', () => {
+    render(<Approach />);
+    for (const icon of screen.getByRole('list').querySelectorAll('svg')) {
+      expect(icon).toHaveAttribute('aria-hidden', 'true');
+    }
+  });
 });
 
 describe('credential badge', () => {
