@@ -17,3 +17,8 @@ docs/requirements/raw_user_inputs/
 # Personal AI playbook and third-party legacy code review (kept local only; repo is public)
 docs/ai-playbook/
 docs/legacy-erp/
+
+# KINET — generated/local files (remove these lines to commit them instead)
+.kinet
+CLAUDE.md
+kinet.config.json

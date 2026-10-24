@@ -37,12 +37,17 @@ export function environmentTitle(
 /**
  * Standard tags for a page: title, description, canonical URL and social previews.
  * Outside production every page is also kept out of search results (environments.md G6).
+ * Pass `noIndex` to keep a page out in production too; the tag is emitted once either way.
  */
-export function buildPageMeta(page: PageSeo, path: string): MetaDescriptor[] {
+export function buildPageMeta(
+  page: PageSeo,
+  path: string,
+  { noIndex = false }: { noIndex?: boolean } = {},
+): MetaDescriptor[] {
   const title = environmentTitle(page.title);
   const url = absoluteUrl(path);
   const imageUrl = absoluteUrl(SOCIAL_PREVIEW.imagePath);
-  const searchTags = APP_CONFIG.isProduction ? [] : [noIndexMeta()];
+  const searchTags = noIndex || !APP_CONFIG.isProduction ? [noIndexMeta()] : [];
 
   return [
     ...searchTags,

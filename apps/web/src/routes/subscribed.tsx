@@ -4,10 +4,10 @@
 import { SiteLayout } from '@/components/layout/SiteLayout';
 import { ButtonLink, Section } from '@/components/ui';
 import { ROUTES, SEO, SUBSCRIBED_PAGE } from '@/constants';
-import { buildPageMeta, noIndexMeta } from '@/lib/seo';
+import { buildPageMeta } from '@/lib/seo';
 
 export function meta() {
-  return [...buildPageMeta(SEO.subscribed, ROUTES.subscribed), noIndexMeta()];
+  return buildPageMeta(SEO.subscribed, ROUTES.subscribed, { noIndex: true });
 }
 
 export default function SubscribedPage() {
