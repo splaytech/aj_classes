@@ -14,3 +14,6 @@ coverage/
 .editorconfig
 # Ad-hoc raw requirement inputs from the client (kept local only)
 docs/requirements/raw_user_inputs/
+# Personal AI playbook and third-party legacy code review (kept local only; repo is public)
+docs/ai-playbook/
+docs/legacy-erp/
