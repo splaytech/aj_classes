@@ -7,6 +7,7 @@ import { afterEach, beforeEach, vi } from 'vitest';
 // Unit tests never reach a real server. The site header checks for news on every render, and
 // the test environment reads the local Supabase URL from .env.local, so without this a test
 // would quietly call the local database. A test that needs fetch stubs its own.
+// Stub globals in beforeEach, not beforeAll or at module scope: afterEach below removes them.
 beforeEach(() => {
   vi.stubGlobal(
     'fetch',
