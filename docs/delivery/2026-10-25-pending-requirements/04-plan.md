@@ -269,7 +269,7 @@ function `notifications` (03 §3.4). All email goes to the local Mailpit
   AC-3.8 (refused for non-admins and aal1; failed/waiting rows with every reason; no email/body
   column; newest first), AC-3.2 (after each no-recipient return from T3.1, `admin_email_problems`
   returns 0 rows), AC-3.10 (`authenticated` can't execute `notify_*`). Run: `pnpm db:reset && pnpm db:test`.
-- [ ] **T3.3 Transport, template and copy.** Files: #4 `transport.ts`, #5 `template.ts`, #6
+- [x] **T3.3 Transport, template and copy.** Files: #4 `transport.ts`, #5 `template.ts`, #6
   `copy.ts`; #9 `test-notifications.mjs` with the Node unit block at the top. Tests: `pickTransport`
   null for unset / `''` / `smtp` / `Resend` / resend without key (AC-3.11); `resendRequest` headers
   (`Idempotency-Key`, `Authorization`); `outcomeForStatus` 200/429/409/500/422; `shouldStopBatch`;
