@@ -16,6 +16,8 @@ unless `git merge-base --is-ancestor 33c8573 HEAD` exits 0. If the T4.11 Reviewe
 Security pass leads to fix commits, the TSR names that fix SHA too, and the run uses the HEAD that
 contains it. Record both SHAs in the TSR.
 
+**Status: FROZEN, 75 cases.** No case may be removed or weakened from here on; new cases go at the end.
+
 **Frozen on `FIX=2ff414f`** (26 Oct 2026). Security round 2 and code review round 2 both came back
 APPROVED on it. The fix commits it contains are `dfcd372` and `beb59f0` (S1), `7fb4c31` (review 5
 nits), `9711224` (S3), `1996c62` (E-60 wrong-role reads), `154a664` (dev notes §7) and `2ff414f`
