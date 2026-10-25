@@ -32,6 +32,40 @@ describe('reportFor', () => {
     expect(report.supabaseRequests).toEqual(['https://x.supabase.co/rest/v1/posts']);
   });
 
+  it('finds a supabase.co request the CSP blocked before it reached the network', () => {
+    const run = {
+      ...lhr(PAGE, [PAGE], 1000),
+      audits: {
+        ...lhr(PAGE, [PAGE], 1000).audits,
+        'inspector-issues': {
+          details: {
+            items: [
+              {
+                issueType: 'Content security policy',
+                subItems: { items: [{ url: 'https://x.supabase.co/rest/v1/posts?select=id' }] },
+              },
+            ],
+          },
+        },
+      },
+    };
+    expect(reportFor(run).supabaseRequests).toEqual([
+      'https://x.supabase.co/rest/v1/posts?select=id',
+    ]);
+  });
+
+  it('counts a URL once when it was both requested and reported', () => {
+    const url = 'https://x.supabase.co/rest/v1/posts';
+    const run = {
+      ...lhr(PAGE, [url], 1000),
+      audits: {
+        ...lhr(PAGE, [url], 1000).audits,
+        'inspector-issues': { details: { items: [{ subItems: { items: [{ url }] } }] } },
+      },
+    };
+    expect(reportFor(run).supabaseRequests).toEqual([url]);
+  });
+
   it('finds none on a clean run, and reads the script transfer size', () => {
     const report = reportFor(lhr(PAGE, [PAGE, 'http://127.0.0.1:55321/rest/v1/posts'], 1234));
     expect(report).toEqual({ url: PAGE, supabaseRequests: [], scriptTransferBytes: 1234 });

@@ -1,5 +1,8 @@
 // Lighthouse CI results → the two checks the Lighthouse job adds after `lhci autorun` (03b §6.6):
-//   1. no request to any supabase.co host, read from each run's network-requests audit (AC-6.14);
+//   1. no request to any supabase.co host (AC-6.14): neither one made (network-requests) nor one
+//      the mirror's CSP blocked before it reached the network (inspector-issues). The mirror's
+//      CSP names only the local origin, so a build pointed at a hosted project shows up only in
+//      the second list;
 //   2. the JavaScript transferred per page, as a median over the runs (AC-6.8, reported only).
 // CLI: node scripts/lighthouse-report.ts <.lighthouseci folder>
 // Writes a Markdown table to $GITHUB_STEP_SUMMARY when set, else stdout. Exits 1 on any
@@ -27,17 +30,35 @@ function auditItems(lhr: Record<string, unknown>, auditId: string): Record<strin
   return audit.details.items.filter(isRecord);
 }
 
+/** URLs the page tried to reach that its CSP blocked, from the inspector-issues audit. */
+function cspBlockedUrls(lhr: Record<string, unknown>): unknown[] {
+  return auditItems(lhr, 'inspector-issues').flatMap((issue) => {
+    const subItems = issue.subItems;
+    if (!isRecord(subItems) || !Array.isArray(subItems.items)) return [];
+    return subItems.items.filter(isRecord).map((item) => item.url);
+  });
+}
+
 /**
- * One LHR (Lighthouse result JSON) → its page report: every network-requests URL containing
- * "supabase.co", and the resource-summary "script" transferSize. Throws if it isn't an LHR.
+ * One LHR (Lighthouse result JSON) → its page report: every URL containing "supabase.co" that
+ * the page requested or tried to (network-requests, plus CSP-blocked inspector-issues), and the
+ * resource-summary "script" transferSize. Throws if it isn't an LHR.
  */
 export function reportFor(lhr: unknown): PageReport {
   if (!isRecord(lhr) || typeof lhr.requestedUrl !== 'string') {
     throw new Error('not a Lighthouse result: no requestedUrl');
   }
-  const supabaseRequests = auditItems(lhr, 'network-requests')
-    .map((item) => item.url)
-    .filter((url): url is string => typeof url === 'string' && url.includes(HOSTED_SUPABASE_HOST));
+  const attempted = [
+    ...auditItems(lhr, 'network-requests').map((item) => item.url),
+    ...cspBlockedUrls(lhr),
+  ];
+  const supabaseRequests = [
+    ...new Set(
+      attempted.filter(
+        (url): url is string => typeof url === 'string' && url.includes(HOSTED_SUPABASE_HOST),
+      ),
+    ),
+  ];
   const script = auditItems(lhr, 'resource-summary').find((item) => item.resourceType === 'script');
   const scriptTransferBytes = typeof script?.transferSize === 'number' ? script.transferSize : 0;
   return { url: lhr.requestedUrl, supabaseRequests, scriptTransferBytes };
