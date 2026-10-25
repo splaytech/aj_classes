@@ -49,3 +49,37 @@ None.
 2. `error.constants.ts:90/:120` repeats the `phoneRequired` sentence. Optionally define it once.
 3. Info: the branch also carries ADRs 0005–0008 from the architecture stage, as expected.
 4. Info: O1 (scroll to the first bad field, already on `develop`) and O2 (hint wraps at 360 px) are for a ticket or the PO.
+
+---
+
+APPROVED
+
+# Review 5 — item 4 diff, round 2
+
+**Scope:** `dfcd372`..`154a664`.
+
+**What I ran:** vitest 51 files and 439 tests, all passing; typecheck, lint and format are clean. pgTAP is 507 (+6), taken from the dev notes.
+
+**Blocking findings:** none.
+
+**What I verified:**
+1. **S1:** the aal check runs after the phone is normalised and after the second "unchanged" return, so an aal1 admin can still save a bio.
+   - The functions are schema-qualified.
+   - The exemption for a null `auth.uid()` covers the seed, fixtures and service role.
+   - The `invited` exemption holds: `complete_onboarding` activates the account in the same update.
+   - The check covers the admin's own row only.
+   - The in-place migration edit is acceptable, because it is unmerged and was never applied to the hosted database.
+2. **Error mapping:** `insufficient_aal → needsTwoStep` is in the own-key table, so it shows as a form alert.
+3. **E-60:** `staff-client.ts` follows the BUG-9 pattern. Only reads are gated; writes rely on RLS.
+4. **Tests:** `staff-access.test.ts` is strong; with the change mutated, 18 of 27 fail. pgTAP test 46 bites.
+5. **Nits:** `PHONE_REQUIRED` is defined once, and the assertion is fixed.
+6. **S3:** the Privacy text is accurate and tested. It is pending B17.
+7. **Runbooks:** both are consistent.
+8. **Repo rules:** followed.
+
+**Nits:**
+1. The `staff-client.ts:20` comment says "active staff", but the code checks the role only. Reword it, or check `is_active`.
+2. Follow-up tickets:
+   - the other admin loaders, for E-60;
+   - S2;
+   - S4, with the replica workaround documented only alongside a retention function.
