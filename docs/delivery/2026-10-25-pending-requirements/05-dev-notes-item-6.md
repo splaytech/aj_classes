@@ -231,6 +231,7 @@ collects them straight after the push:
 - **D9. `lighthouse-report.ts` is the pure module and the CLI in one file**, as 03b row 28 names
   it. The CLI part runs only under `import.meta.main`, so the tests import it without side
   effects. It also exports `summaryTable`. The CLI exits 1 on a folder with no `lhr-*.json`.
+  **Superseded by §11 (review-5 finding 5):** the CLI is now `check-lighthouse-report.ts`.
 - **D10. `e2e/src/config.ts` loads `e2e/.env` by absolute path,** with `quiet: true`, so the
   suite works from any working directory. A relative `AJ_CLASSES_DIR` is resolved from `e2e/`. A
   `PG_HOST` that isn't local is refused too, beside the three URLs.
@@ -289,3 +290,56 @@ collects them straight after the push:
   (§4).
 - The rest of 01b's deferred list is unchanged: the full E2E suite on every PR, Lighthouse on
   portal pages, visual regression, E2E against hosted staging, and required checks (Q30, owner).
+
+## 11. Review fixes (review-5, 06-security, test plan E-26, rulings R2 and R3)
+
+Both gates approved. These are the non-blocking findings that were cheap enough to fix on this
+branch. Left alone on purpose: S1 (SHA pinning), S5 (advisories), S6 (GitHub setting), review 9
+(the dependency table goes in the `develop` merge commit) and review 10 (O1 as its own bug; B
+below fixes the cause seen in `act`).
+
+| Finding | Change | Commit |
+|---|---|---|
+| S2 | `reportFor` throws when `network-requests` has no `details.items` array; the CLI exits 1 naming the file. `inspector-issues` and `resource-summary` stay optional. +1 test (one existing test rewritten) | `f4a14f5` |
+| Review 5 | CLI split into `scripts/check-lighthouse-report.ts`; `lighthouse-report.ts` is pure (no `import.meta.main`). Script name `lighthouse:report` unchanged. Supersedes D9 | `f4a14f5` |
+| Review 3 | `missingPageKinds()`: the check fails unless home, a programme and a guide page are all present. +2 tests | `3f89d3a` |
+| Review 6 | "has a node of type AggregateRating"; test updated | `3f89d3a` |
+| S3 | `mockLeads` matches only `http://127.0.0.1:55321/functions/v1/leads` (the mirror's `LOCAL_SUPABASE_ORIGIN`) | `b980ba1` |
+| Review 8 | `e2e/.env.example`: the job env wins over `e2e/.env` (dotenv doesn't override); unconfirmed on GitHub | `b980ba1` |
+| Review 1 | `if: ${{ !cancelled() }}` on "No Supabase requests; JS size per page" and the CSP sweep | `b57e464` |
+| Review 4 | Root `typecheck` adds `pnpm --filter aj-classes-e2e typecheck`; the E2E job's typecheck runs before `setup-cli` and `supabase start` | `b57e464` |
+| S4 | The condition in ci-gates.md "The one rule" (CLI default keys only; `signing_keys_path`, `jwt_secret` or real CI `env(...)` would publish them). `supabase start … > /dev/null` in the E2E job | `b57e464`, `7aa7d43` |
+| Review 2 | ci-gates.md `act` steps: before, `supabase stop --no-backup`; after, `supabase stop --no-backup` then `pnpm db:start` | `7aa7d43` |
+| Review 7 | ADR-0006 dated amendment (`-o json`, `inspector-issues`, missing `network-requests`) | `7aa7d43` |
+| A (E-26, R2) | Global setup refuses an unset `VITE_SUPABASE_URL`, or any non-loopback `VITE_SUPABASE_*URL`, before starting the dev server or the browser. The warm-up browser runs under `abortHostedSupabase` (shared with `hosted-guard.ts`) and fails setup on any `*.supabase.co` attempt. Loopback checks moved to the pure `e2e/src/local-hosts.ts`, with 6 `node:test` unit tests (`test:unit`, now part of root `pnpm test`). The setup hint points at ci-gates.md | `5485710` |
+| B (R3) | `ProfileForm` and `admin-posts` tests use `setupUser()` (`src/test/user.ts`, `delay: null`). Cause and evidence below | `dae99de` |
+| C | ci-gates.md starts with `pnpm install`; the README says the `web` job builds with `VITE_APP_ENV=production` and that `pnpm typecheck` covers e2e | `05faecd`, `7aa7d43` |
+
+**B: the cause.** In the failing `act` web run (`final-web.log`, cold: transform 61%, 32 s),
+AC-4.5 and posts' synchronous "shows a loading line" test both took about 27.3 s, at the same
+moment, in two workers. Test code can't make a synchronous render take 27 s, so that was a stall
+of the whole machine. AC-4.4's failure was collateral: its field held `9 999`, the tail of AC-4.5's
+`0499 999 999`. With user-event's default delay, each keystroke waits on a timer, so a timed-out
+test keeps typing into the next test's focused field. With `delay: null`, one `type` call sends
+every keystroke with no timer between them.
+- Forced `--testTimeout=60`: old AC-4.5 timed out 3 of 3, new passed 3 of 3. At 25 ms the old file
+  also failed fast neighbours ("saves once", "server refusal"); the new file didn't.
+- Not reproduced: `act` web 3 of 3 green before the fix (peak 2.7 GiB of 7.75 GiB), and 3 local
+  runs under 45 CPU hogs, all green. No timeout was raised. The posts test is unchanged: a
+  machine-wide stall can't be fixed in it.
+
+**Checks on the final HEAD.** `format:check`, `lint`, `typecheck` (web and e2e) pass. `test`:
+**56 files, 496 tests** (+3) plus **6** e2e unit tests; 5 back-to-back local runs green. Build with
+local exports and `check:hosted-ref` `0 files (of 153 scanned)`. `db:test` **14 files, 507, PASS**.
+`test:functions` **169 ok, 0 not ok**. Gates: structured data **18 pages, 0 problems** (a 2-page
+partial build exits 1 with "no guide page"); Lighthouse all assertions, **18 runs, 0
+`supabase.co`** (an LHR with no `network-requests` list exits 1); CSP **19 passed**; E2E smoke
+**9 passed**. Global-setup proofs: `VITE_SUPABASE_URL=https://example.supabase.co` refused before
+any server started; a reused dev server built for `example.supabase.co` failed setup in the
+warm-up, which aborted the request.
+
+**`act` re-runs.** `structured-data` pass (18 s); `lighthouse` pass (4 min 42 s: 0 `supabase.co`,
+CSP 19 passed); `web` 3 of 3 pass on `dae99de`; `e2e` pass (2 min 39 s, 9 passed, typecheck before
+the stack). The `e2e` log now has 0 key-shaped strings. Before the `> /dev/null` it had one
+`sb_secret_` and one `sb_publishable_` line. Around `e2e` I ran `supabase stop --no-backup` and
+then `pnpm db:start`; the stack is back at `20261026100000`.
