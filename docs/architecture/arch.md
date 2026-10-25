@@ -26,7 +26,19 @@ Runs on every push to `main`/`develop` and every pull request:
 * `web` job: `pnpm format:check`, `lint`, `typecheck`, `test` (Vitest), then a production build
   (`VITE_APP_ENV=production`), mirroring what Vercel builds.
 * `database` job: spins up a local Supabase (Docker) with every migration applied, then runs the
-  pgTAP test suite (`supabase test db`) against it.
+  pgTAP test suite (`supabase test db`) against it. The Supabase CLI is pinned (2.120.0).
+* `E2E smoke` job (item 6, ADR-0006): a fresh local Supabase, the dev server on 5173 with local
+  settings only, and the Playwright suite in `e2e/`. The report and traces are uploaded on
+  failure (7 days).
+* `Lighthouse` job: a production build with no Supabase config, served by the local mirror with
+  the committed headers; mobile Lighthouse with the thresholds in `apps/web/lighthouserc.json`
+  (median of 3), a check that no run requested `supabase.co`, the median JS per page, and the
+  Playwright CSP sweep. Reports stay on the filesystem and go up as an artifact.
+* `Structured data` job: the same no-Supabase build, then a check of the JSON-LD on every
+  pre-rendered page.
+
+No job reaches the hosted Supabase project; each gate build is checked for the hosted project
+ref first. Local commands for every gate: `docs/testing/ci-gates.md`.
 
 **3. Hosting (Vercel)**
 
@@ -113,7 +125,7 @@ flowchart TD
 
     %% CI/CD Layer
     subgraph CICDLayer [2. CI and Hosting]
-        B -->|Every push / PR| D[GitHub Actions CI: format, lint, typecheck, test, build, pgTAP db tests]:::cicd
+        B -->|Every push / PR| D[GitHub Actions CI: web checks, pgTAP db tests, E2E smoke, Lighthouse, structured data]:::cicd
         C -->|Auto-deploy| E[Vercel Preview - staging.ajclasses.com.au]:::cicd
         M -->|Auto-deploy, unverified| F[Vercel Production - ajclasses.com.au]:::cicd
     end
