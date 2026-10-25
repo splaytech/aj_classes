@@ -151,3 +151,8 @@ S*n* = finding *n* above.
 | Other changes in the range | No new risk | Network errors now stop the batch, and released rows keep the same reason: fewer stranded `sending` rows, and the cap is unchanged. The test script resumes cron before restoring and checks the seed ids before pausing (local-only helpers unchanged). pgTAP covers the `no_address` path, which adds no PII. The posts migration changed only a comment. No new dependencies. No secrets in the diff. |
 
 Round 2 result: no open blocking finding. S2(a) (corrected) is still open as minor.
+
+## Team-lead closure (after `6aeb734`)
+
+- **S2 closed against `6aeb734`.** On hosted, the committed local secret, `EMAIL_TRANSPORT=mailpit` or a non-https `SITE_URL` gives 503 `config_missing`, after the idempotent flag call and before any claim or send. That differs from the "401 before any RPC" wording in corrected fix 2(a), but the outcome is the same (nothing claimed, sent or charged), so it is accepted as meeting 2(a). No code change.
+- **"503 before the secret check" order accepted.** A caller without the secret can learn that sending is off; no data or ids leak, and the kill switch always shows "Set-up error" (review-5 Round 3).

@@ -84,6 +84,71 @@ before the merge, without another Reviewer round. If R2-1 is done in code, the T
 
 ---
 
+## Round 3
+
+> 25 Oct 2026 · `git diff 02fb148..HEAD`: code fix `6aeb734`, docs `15d7e97` and `716c283`. Local stack only.
+> **The verdict stays APPROVED.**
+
+### Re-run
+
+`pnpm test:functions` → exit 0: 169 `ok`, 0 `NOT OK`. Cron afterwards: `email-worker-kick` and
+`daily-history-trim` are both `active = t`.
+
+The end-to-end leg still sends both emails to Mailpit. That is live proof that the local runtime's
+`SUPABASE_URL` is classed as local. If it were classed as hosted, the worker would 503 and those checks
+would fail.
+
+### Round 2 findings, re-checked
+
+| # | Status | Evidence |
+|---|---|---|
+| R2-1 S2 guard exempted Mailpit | **Fixed** | See the detail below |
+| R2-2 90-day trim vs AC-3.5 | **Fixed (accepted limit)** | 01 change log row, a migration comment above `trim_history()`, and README retention line |
+| R2-3 Vault box order | **Fixed** | go-live §7a: the Vault box now sits before the merge box and says "before merging to `main`" |
+
+**R2-1 detail.** `config.ts` `isHostedProject()` reads the built-in `SUPABASE_URL`, which `secrets set`
+can't change.
+- It treats https, or any host other than `localhost`/`127.0.0.1`/`kong`, as hosted. An unreadable
+  value also counts as hosted.
+- On hosted, `isUsableConfig()` refuses Mailpit, the local secret and a non-https `SITE_URL`.
+- In the copy scenario (Mailpit + `MAILPIT_URL` + local secret + localhost), a caller holding the public
+  secret now gets 503. Nothing is claimed and no attempt is used. That closes the exploit.
+- Unit checks cover hosted and local, the fail-safe case, and each refusal.
+
+### The trade-off asked about: 503 before the secret check
+
+**Accepted.** With `EMAIL_TRANSPORT` unset, `gateRequest()` returns `config_missing` before the secret
+check, so a caller without the secret learns "sending is off".
+1. *What leaks:* one bit of operational state, with no data and no ids. Anyone can already find the
+   function's URL. They can't make anything send, claim a row or burn an attempt.
+2. *What it costs:* each such request runs `notify_flag_config_missing()`. That update is idempotent
+   (`reason is distinct from 'config_missing'`) over pending rows only, so repeat calls are cheap no-ops.
+3. *What it buys:* the README kill switch (unset `EMAIL_TRANSPORT`) always ends as "Set-up error",
+   even if the Vault secret is also wrong. It never sits silently as "Not attempted". For a solo operator
+   that is worth more than hiding the bit.
+
+### New findings (round 3)
+
+R3-1. **[minor] `supabase/functions/notifications/config.ts:55-58`: the local secret on hosted gets 503, not the 401 Security's corrected 2(a) asks for.**
+- Security's text: "refuse if the expected secret is the committed `local-notify-secret` … with a 401
+  before any RPC". The code lets the public secret pass step 2, then returns 503 at step 3 after
+  running the flag RPC.
+- The security outcome is the same: no claim, no send, no attempt used. The difference is one
+  idempotent update and the status code.
+- **Fix, either one:**
+  - (a) one line in `gateRequest` step 2:
+    `if (isHostedProject(config.supabaseUrl) && config.workerSecret === LOCAL_WORKER_SECRET) return 'not_allowed';`,
+    plus a unit check;
+  - (b) Security records the landed behaviour as meeting 2(a).
+- Not blocking. Recorded the same way in `review-6b-item-3.md` round 2.
+
+### Next
+
+Item 3 is approved for the Tester and `/test-and-ship`. R3-1 can ride with the TSR fix loop, or be
+closed by Security's note. Nothing needs Saurabh beyond B17/Q7.
+
+---
+
 # Round 1 (kept for the record; its first line was `CHANGES_REQUESTED`)
 
 

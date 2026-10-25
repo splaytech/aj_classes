@@ -1,4 +1,59 @@
-CHANGES_REQUESTED
+APPROVED
+
+# Review 6b, item 3, round 2: verdict APPROVED
+
+> **Round 2** · 25 Oct 2026 · amended `06-security-item-3.md` (committed in `90a31d8`), judged against
+> the landed code at HEAD (which includes `6aeb734`, written after Security's re-check). Local stack only.
+
+## Round 2
+
+Security has fixed all four round 1 findings. The document is complete against the diff, with sound
+severities and real evidence. The landed code meets corrected 2(a) in effect, with one small mismatch
+in how it refuses (finding R2-1 below). That doesn't block this gate, and Security's "no open
+blocking finding" still holds.
+
+### Round 1 findings, re-checked
+
+| # | Status | Evidence |
+|---|---|---|
+| 1 [blocking] fix 2(a) contradicted its exploit | **Fixed** | Finding 2(a) is rewritten. It explains why the first version couldn't work, and tells hosted from local by the built-in `SUPABASE_URL`, which a `secrets set` can't override (checked with `printenv` in the local edge runtime: `http://kong:8000`). It names 2(b), the README rule, as the interim control, and the release gate follows from that. 2(c) stays Later |
+| 2 no closure section | **Fixed** | "Round 2: re-check of the fix commits" covers S1–S8, each with its status and code or local evidence |
+| 3 S7 side effect on AC-3.5 | **Fixed** | Finding 7 notes it, and 01's change log accepts it |
+| 4 cron/pg_net coverage | **Fixed** | A new "What was checked" row, from a real cron run: `cron.job_run_details` holds only the command, with 0 `%secret%` matches. `net._http_response` holds counts only, with 0 secret or `@` matches. Finding 8 now adds that `net.http_request_queue` briefly holds the `x-notify-secret` header, readable by `authenticated` through SQL only. That's a good find, and it strengthens the "never expose `net`" rule |
+
+### Does the landed code (`6aeb734`) match corrected 2(a)?
+
+| Corrected 2(a) asks for | Landed code | Match |
+|---|---|---|
+| Hosted when `SUPABASE_URL` is https, or not localhost/127.0.0.1/kong | `isHostedProject()`, which also treats an unreadable value as hosted | Yes, and fail-safe |
+| On hosted, Mailpit or a non-https `SITE_URL` → flag rows, 503, claim nothing | `isUsableConfig()` → `config_missing` → `notify_flag_config_missing`, 503 | Yes |
+| On hosted, the local secret → **401 before any RPC** | Passes the secret check, then 503 at step 3, after the idempotent flag RPC | **Partly**: same outcome (no claim, no send, no attempt used), different status, and one RPC runs |
+| No change locally | The end-to-end test sends to Mailpit locally (169 ok) | Yes |
+| Unit tests on both sides | `isHostedProject` / `isUsableConfig` / `gateRequest` checks for hosted and local | Yes |
+
+The Developer's new ordering also runs the "no transport → 503" kill switch before the secret check.
+The doc doesn't cover that, because Security reviewed before it landed. I accepted it in review-5
+round 3: one bit of state leaks, and the flag RPC is an idempotent no-op on repeats.
+
+### New findings (round 2)
+
+R2-1. **[minor] `06-security-item-3.md` finding 2 and its Round 2 S2 row are stale against the landed code.**
+- They still say "Partly fixed … the Developer is building the corrected guard now".
+- **Fix:** add one line closing S2 against `6aeb734`. Either accept 503 + the idempotent flag RPC as
+  meeting 2(a), or keep the "401 before any RPC" wording and have the Developer add the one-line
+  step-2 refusal (review-5 R3-1).
+- In the same line, accept or reject the "503 before the secret check" ordering, so the security
+  record covers it.
+
+### Next
+
+This gate passes. R2-1 is a doc line, or a one-line code change. It can ride with the Tester stage
+and needs no further Reviewer round.
+
+---
+
+# Round 1 (kept for the record; its first line was `CHANGES_REQUESTED`)
+
 
 # Review 6b, item 3: Security review gate (`06-security-item-3.md`)
 
