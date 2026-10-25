@@ -201,7 +201,7 @@ The local post, the test photo and its profile path were removed by the `db:rese
    public CSP; `/portal/login` and `/__spa-fallback` each show exactly 1 CSP, the portal one
    (§8, S1); `/_vercel/insights/script.js` → 200; HSTS present; the live home page shows 0 CSP
    violations in Chrome. If `/portal/*` ever shows two CSPs, revert the release (config only).
-   The same list is in `docs/requirements/release-2/go-live.md` §7b.
+   The same list is in `docs/requirements/release-2/go-live.md` §7c (§7b is reserved for held item 2).
 
 ## 8. Review and security fixes (round 2)
 

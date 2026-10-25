@@ -108,7 +108,7 @@ approved (Q7 / B17); B1 done first, or released together at the same SHA.
 - [ ] Dashboard → Project Settings → API → Exposed schemas is still only `public` and `graphql_public` (never `net`).
 - [ ] AC-3.11 test-family check (same README section): both emails arrive within 5 minutes; Admin → Emails is empty; delete the test class.
 
-## 7b. Public CSP (pending-requirements item 5, ADR-0005)
+## 7c. Public CSP (pending-requirements item 5, ADR-0005)
 
 Release steps for Saurabh, then the team (03b §5.8). No migration or function.
 
