@@ -261,3 +261,40 @@ Not verified: the kill switch end to end on the local runtime. That needs `EMAIL
 | Cron | Both jobs active |
 
 The local post was re-added after the reset.
+
+## 9. Round 2 fixes (bug loop round 1 → 2, TSR-item-3 at 90/93)
+
+| Bug | Fix | Proof |
+|---|---|---|
+| BUG-5 (Medium) return with no `marked_by` sent nothing | `check_assignment_result`, redefined in Step 10 of item 3's own migration (`20261025110000`, unreleased). Body copied from `20261007090320` (verified identical to the live local function) with one new last `elsif`: when staff change the status to `returned` and `marked_by` is null, set `marked_by` to the caller and `marked_at` if it's null. Seed: Aarav's "Reasoning mock test 1" now has the tutor as marker (a follow-up update, because the insert trigger blanks `marked_by` when nobody is signed in) | pgTAP: a `marked` row with no marker, returned by the tutor, records the tutor and queues the usual recipients. The fixture has 3 (student and both active parents) rather than the bug's 2, so the test compares against the expected set. Mutation: with the old body, both asserts fail. Browser: tutor sets Aarav's mock test to Returned in the UI → 2 rows queued → worker sends one email each to `student@` and `parent@` |
+| BUG-6 (Low) signed-out links made RPC calls | Fixed at the single source rather than in each loader: `getSignedInSupabase()` in `supabase.client.ts` reads the stored session only (no request) and returns null when signed out. All 7 family reads that page loaders use (`listMyAssignments`, `getMyAssignment`, `getMyTimetable`, `listMyChildren`, `listChildAssignments`, `getChildAssignment`, `getChildTimetable`) return `notAllowed` without an RPC. The layout's redirect still wins, so the redirect and the landing after sign-in are unchanged | `family-signed-out.test.ts` (8): each read makes no call while signed out, and calls the RPC once signed in. Browser, fresh context: student and parent links → `/portal/login?next=<path>`, **0** `/rest/v1/rpc/` calls, 0 console errors; after sign-in, both land on the assignment page |
+| BUG-7 (Low) `parent_child_assignment` gave 500 | Redefined in the same Step 10: "not this parent's child" and "work not visible" both raise `not_found` with `42501`. The message is unchanged, so the app maps it as before | pgTAP: the two existing asserts changed from `P0002` to `42501`, plus a new tutor case. Browser: a tutor on a parent link sees "You don't have access to this page" (`403 parent_children`, `403 parent_child_assignment`, no 500). A parent on another child's link sees "Not found", with a 403 |
+| BUG-8 (E2E) spec selected `*` | `~/dev/work/aj_classes-e2e` `tests/admin-posts.spec.ts`: anon selects `id,created_at,updated_at,title,body`, and a new assert checks that anon `select=author_id` gets `42501`. Commit `0ceb308`, local only, not pushed | E2E suite **9/9**. 0 `e2e-%` rows left behind |
+
+**Not changed, and worth noting:**
+- `require_my_child()` still raises `P0002`. So `parent_child_assignments` and `parent_child_timetable` still answer 500 to someone who isn't the parent. Only `parent_child_assignment`, the email link's target, was in scope. Changing the shared helper is a one-line follow-up. It would also move 2 more `family_portal` asserts to `42501`.
+- `student_assignment` still raises `P0002` for work the student can't see.
+- Staff and admin page loaders have the same parallel-loader pattern as BUG-6. They aren't linked from emails, so I left them.
+- Signed-in wrong-role opens still log a 403 in the console, because the RPC is refused. That's expected, and it isn't BUG-6, which was about signed-out opens.
+
+**Commits:**
+1. `fdcf317` fix(email): email the family when staff return work nobody is recorded as marking (BUG-5, BUG-7)
+2. `c877f4a` fix(portal): make no database call from family pages while signed out (BUG-6)
+3. E2E repo `0ceb308` fix(admin-posts): read only the public post columns as anon, and assert author_id is refused (BUG-8)
+4. This section (docs commit)
+
+**Checks** (local exports, after `pnpm db:reset`): full check exit 0.
+
+| Step | Result |
+|---|---|
+| `test` | 48 files, 360 tests |
+| `db:test` | 13 files, 454 tests, PASS |
+| `test:functions` | 169 `ok`, 0 failed (account-admin 49, leads 30, notifications 90) |
+| E2E | 9/9 |
+| Cron | Both jobs active |
+
+**Local state:**
+- "Reasoning mock test 1" is back to `marked`, with the tutor as marker.
+- "Word problems set 1" is `submitted`.
+- The local post was re-added.
+- The dev server is stopped.
