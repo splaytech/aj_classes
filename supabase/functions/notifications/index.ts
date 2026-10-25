@@ -1,17 +1,17 @@
 // notifications: sends queued "work returned" emails (ADR-0004; design 03 §3.4).
 // Called only by pg_cron's kick through pg_net, every 5 minutes when rows are waiting, with the
 // shared secret header. The gateway doesn't check a token (config.toml); the secret check is here.
-//   200 ran (counts) · 401 wrong or unset secret · 405 not POST
-//   503 no usable EMAIL_TRANSPORT or SITE_URL, or local-only values on a non-Mailpit transport:
-//       rows are flagged "Set-up error" and nothing is claimed
+//   200 ran (counts) · 405 not POST · 401 wrong or unset secret
+//   503 no usable EMAIL_TRANSPORT (checked before the secret: the kill switch), no SITE_URL, or
+//       local-only values on the hosted project (config.ts gateRequest): rows are flagged
+//       "Set-up error" and nothing is claimed
 //   500 anything thrown (claimed rows are reclaimed by the next kicks)
 
 import { serviceClient } from '../_shared/clients.ts';
 import { fail, respond, succeed } from '../_shared/responses.ts';
 
 import { processBatch } from './batch.ts';
-import { isUsableConfig } from './config.ts';
-import { secretMatches } from './secret.ts';
+import { gateRequest } from './config.ts';
 import { renderWorkReturned } from './template.ts';
 import type { ClaimedRow } from './template.ts';
 import { pickTransport, sendEmail } from './transport.ts';
@@ -24,15 +24,23 @@ const pause = () => new Promise<void>((resolve) => setTimeout(resolve, GAP_BETWE
 
 Deno.serve(async (request) => {
   if (request.method !== 'POST') return respond(fail('method_not_allowed'), null, 405);
-  if (!secretMatches(request.headers.get('x-notify-secret'), env('NOTIFY_WORKER_SECRET'))) {
-    return respond(fail('not_allowed'), null, 401);
-  }
+
+  const transport = pickTransport(env);
+  const siteUrl = env('SITE_URL') ?? '';
+  const gate = gateRequest(
+    {
+      transport,
+      workerSecret: env('NOTIFY_WORKER_SECRET'),
+      siteUrl,
+      supabaseUrl: env('SUPABASE_URL'),
+    },
+    request.headers.get('x-notify-secret'),
+  );
+  if (gate === 'not_allowed') return respond(fail('not_allowed'), null, 401);
 
   try {
     const service = serviceClient();
-    const transport = pickTransport(env);
-    const siteUrl = env('SITE_URL') ?? '';
-    if (!isUsableConfig(transport, env('NOTIFY_WORKER_SECRET'), siteUrl)) {
+    if (gate === 'config_missing' || transport === null) {
       const { error } = await service.rpc('notify_flag_config_missing');
       if (error) throw error;
       console.error('notifications config missing');

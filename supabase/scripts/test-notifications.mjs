@@ -8,7 +8,12 @@
 import { API, MAILPIT, api, check, finish, signIn, sql } from './local-test-helpers.mjs';
 import { processBatch } from '../functions/notifications/batch.ts';
 import { secretMatches } from '../functions/notifications/secret.ts';
-import { LOCAL_WORKER_SECRET, isUsableConfig } from '../functions/notifications/config.ts';
+import {
+  LOCAL_WORKER_SECRET,
+  gateRequest,
+  isHostedProject,
+  isUsableConfig,
+} from '../functions/notifications/config.ts';
 import { escapeHtml, oneLine, renderWorkReturned } from '../functions/notifications/template.ts';
 import {
   mailpitRequest,
@@ -292,29 +297,78 @@ async function unitChecks() {
     oneLine('Number patterns check') === 'Number patterns check',
   );
 
-  // Local-only settings are refused outside Mailpit (Security finding 2)
+  // Local-only settings are refused on hosted, allowed locally (Security finding 2, review-5 R2-1)
+  const HOSTED = 'https://unzjnxctkyahtmrkinyr.supabase.co';
+  const LOCAL = 'http://kong:8000'; // what the local edge runtime gets as SUPABASE_URL
   const resendTransport = { kind: 'resend', apiKey: 're_x' };
   const mailpitTransport = { kind: 'mailpit', baseUrl: 'http://mailpit:8025' };
+  const config = (overrides) => ({
+    transport: resendTransport,
+    workerSecret: 'a-long-random-secret',
+    siteUrl: SITE,
+    supabaseUrl: HOSTED,
+    ...overrides,
+  });
+  check('https://<ref>.supabase.co is hosted', isHostedProject(HOSTED));
+  check('http://kong:8000 is local', !isHostedProject(LOCAL));
+  check('http://127.0.0.1:55321 is local', !isHostedProject('http://127.0.0.1:55321'));
+  check('A missing SUPABASE_URL counts as hosted (fail safe)', isHostedProject(undefined));
+  check('Hosted settings are usable', isUsableConfig(config({})));
   check(
-    'Hosted settings are usable',
-    isUsableConfig(resendTransport, 'a-long-random-secret', SITE),
+    'Hosted + EMAIL_TRANSPORT=mailpit → set-up error',
+    !isUsableConfig(config({ transport: mailpitTransport })),
   );
   check(
-    'Resend with the committed local secret → set-up error',
-    !isUsableConfig(resendTransport, LOCAL_WORKER_SECRET, SITE),
+    'Hosted + the committed local worker secret → set-up error',
+    !isUsableConfig(config({ workerSecret: LOCAL_WORKER_SECRET })),
   );
   check(
-    'Resend with a non-https SITE_URL → set-up error',
-    !isUsableConfig(resendTransport, 'a-long-random-secret', 'http://localhost:5173'),
+    'Hosted + an http SITE_URL → set-up error',
+    !isUsableConfig(config({ siteUrl: 'http://localhost:5173' })),
   );
-  check('No transport → set-up error', !isUsableConfig(null, 'a-long-random-secret', SITE));
+  check('Empty SITE_URL → set-up error', !isUsableConfig(config({ siteUrl: '' })));
   check(
-    'Empty SITE_URL → set-up error',
-    !isUsableConfig(mailpitTransport, LOCAL_WORKER_SECRET, ''),
+    'Local Mailpit with the local secret and http://localhost is fine',
+    isUsableConfig(
+      config({
+        transport: mailpitTransport,
+        workerSecret: LOCAL_WORKER_SECRET,
+        siteUrl: 'http://localhost:5173',
+        supabaseUrl: LOCAL,
+      }),
+    ),
+  );
+
+  // Request order: an unset transport is the kill switch and wins over the secret check
+  for (const where of [HOSTED, LOCAL]) {
+    const place = where === HOSTED ? 'hosted' : 'local';
+    check(
+      `${place}: EMAIL_TRANSPORT unset → config_missing (503), even with no or a wrong secret`,
+      gateRequest(config({ transport: null, supabaseUrl: where }), null) === 'config_missing' &&
+        gateRequest(config({ transport: null, supabaseUrl: where }), 'wrong') ===
+          'config_missing' &&
+        gateRequest(config({ transport: null, supabaseUrl: where }), 'a-long-random-secret') ===
+          'config_missing',
+    );
+  }
+  check(
+    'With a transport, a wrong secret → not_allowed (401)',
+    gateRequest(config({}), 'wrong') === 'not_allowed',
   );
   check(
-    'Mailpit locally may use the local secret and http://localhost',
-    isUsableConfig(mailpitTransport, LOCAL_WORKER_SECRET, 'http://localhost:5173'),
+    'With a transport, no secret configured → not_allowed (401)',
+    gateRequest(config({ workerSecret: undefined }), '') === 'not_allowed',
+  );
+  check(
+    'Right secret but local values on hosted → config_missing (503)',
+    gateRequest(
+      config({ transport: mailpitTransport, workerSecret: LOCAL_WORKER_SECRET }),
+      LOCAL_WORKER_SECRET,
+    ) === 'config_missing',
+  );
+  check(
+    'Right secret and hosted settings → ok',
+    gateRequest(config({}), 'a-long-random-secret') === 'ok',
   );
 
   // Worker secret: no default
