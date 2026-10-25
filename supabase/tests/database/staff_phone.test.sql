@@ -300,6 +300,50 @@ select is(
 );
 
 -- ---------------------------------------------------------------------------
+-- Security review S1: an admin's own phone needs a two-step session
+-- ---------------------------------------------------------------------------
+
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal1');
+select throws_ok(
+  $$ update public.profiles set phone = '0499 888 777' where id = '00000000-0000-0000-0000-0000000000a1' $$,
+  'P0001', 'insufficient_aal', 'An admin without two-step cannot change their own phone'
+);
+select lives_ok(
+  $$ update public.profiles set bio = 'Still editable', phone = '0400 111 222'
+     where id = '00000000-0000-0000-0000-0000000000a1' $$,
+  'Without two-step, an admin can still save other fields when the phone is unchanged'
+);
+reset role;
+select is(
+  (select phone from public.profiles where id = '00000000-0000-0000-0000-0000000000a1'),
+  '+61400111222',
+  'The admin''s phone is unchanged after the refusal'
+);
+
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select lives_ok(
+  $$ update public.profiles set phone = '0499 888 777' where id = '00000000-0000-0000-0000-0000000000a1' $$,
+  'With two-step, an admin can change their own phone'
+);
+reset role;
+
+-- An invited admin sets their first number in the setup form, before any two-step exists.
+select tests.create_staff('00000000-0000-0000-0000-0000000000a2', 'newadmin@test.local', 'admin', p_joined => false);
+update auth.users set email_confirmed_at = now(), encrypted_password = 'bcrypt-hash'
+where id = '00000000-0000-0000-0000-0000000000a2';
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a2', 'aal1');
+select lives_ok(
+  $$ select public.complete_onboarding('New Admin', '0412 000 111', null, true) $$,
+  'An invited admin can still finish setup with a phone, without two-step'
+);
+reset role;
+select is(
+  (select phone from public.profiles where id = '00000000-0000-0000-0000-0000000000a2'),
+  '+61412000111',
+  'The invited admin''s phone is stored'
+);
+
+-- ---------------------------------------------------------------------------
 -- updated_at, and the trigger function is not callable
 -- ---------------------------------------------------------------------------
 

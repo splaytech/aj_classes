@@ -40,6 +40,19 @@ begin
   if new.phone is null then
     raise exception 'invalid_phone';
   end if;
+  if new.phone is not distinct from old.phone then
+    return new; -- the same number in another format, as the form sends it: not a change
+  end if;
+  -- An admin's phone needs a two-step session (security review S1): with only a stolen password,
+  -- an attacker could otherwise swap in their own number before asking for a two-step reset.
+  -- Only signed-in callers are checked (seed.sql and service-role updates have no user), and
+  -- invited accounts are skipped: complete_onboarding() sets the first number before two-step exists.
+  if new.role = 'admin'
+     and (select auth.uid()) is not null
+     and old.status <> 'invited'
+     and (select auth.jwt() ->> 'aal') is distinct from 'aal2' then
+    raise exception 'insufficient_aal';
+  end if;
   return new;
 end;
 $$;

@@ -59,7 +59,8 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 
 ### Only admin has lost every authenticator (break-glass)
 
-1. Confirm who they are by phone.
+1. Confirm who they are by calling a number held outside the portal (for example, your own
+   contacts). Never use the phone on their portal profile: the account itself can change it.
 2. Dashboard → Authentication → the user → delete their MFA factors.
 3. Record it:
    ```sql
