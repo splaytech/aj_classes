@@ -141,14 +141,14 @@ Rules (they add to 04-plan §2; they don't replace it):
 
 Design: 03b §4 (16 files). One migration, no function deploy, no new dependency. AC-4.1–4.10.
 
-- [ ] **T4.0 Stack from this worktree.**
+- [x] **T4.0 Stack from this worktree.**
   - **Run:** `pnpm install --frozen-lockfile && pnpm db:stop && pnpm db:start && pnpm db:reset`.
   - **Test:**
     1. `docker inspect supabase_edge_runtime_aj_classes --format '{{range .Mounts}}{{.Source}}{{"\n"}}{{end}}' | grep -c aj_classes-items-4-9` prints `1`.
     2. `docker exec supabase_db_aj_classes psql -U postgres -Atc "select max(version) from supabase_migrations.schema_migrations"` prints `20261025110100`.
     3. `pnpm db:types && git diff --exit-code apps/web/src/services/database.types.ts` exits 0. That proves the stack now matches `develop`.
   - **Visible:** `pnpm dev` → `tutor@local.test` → My profile loads.
-- [ ] **T4.1 Phone grant and validating trigger (DB).**
+- [x] **T4.1 Phone grant and validating trigger (DB).**
   - **Files:** 03b #1, migration steps 1–2 (`grant update (phone)`, `private.check_profile_phone()` `security definer`, `profiles_check_phone`); #2 `staff_phone.test.sql` (fixtures a1, b1, b2, c1, c2, s1, p1 as in 03b §4.7).
   - **Tests:**
     - AC-4.2: five formats normalise to `+61…`.
@@ -157,21 +157,21 @@ Design: 03b §4 (16 files). One migration, no function deploy, no new dependency
     - AC-4.7: other people's rows and family rows return 0 rows; a1 setting a family phone gives `invalid_input`; c1, c2 and an aal1 admin return 0 rows; `status`, `terms_accepted_at` and `password_set_at` give `42501`.
     - `onboarding.test.sql` stays green.
   - **Run:** `pnpm db:reset && pnpm db:test`.
-- [ ] **T4.2 `updated_at`, admin audit, grants (DB).**
+- [x] **T4.2 `updated_at`, admin audit, grants (DB).**
   - **Files:** #1 steps 3–5 (the `profiles_set_updated_at` column list plus `phone`; the `audit_admin_profile_edit` body copied from `20261006004522` lines 237–263 plus the `phone` line; the trigger column list; the revoke; the column comment); #2 more cases.
   - **Tests:**
     - AC-4.6: as a1 aal2, one `profile_edited_by_admin` row with `fields ? 'phone'` and `details::text !~ '[0-9]'`; a self-edit, by b1 or a1, adds 0 audit rows; `admin_list_staff` shows the new number.
     - b1's `updated_at` goes up.
     - Nobody can execute `check_profile_phone`.
   - **Run:** `pnpm db:reset && pnpm db:test`.
-- [ ] **T4.3 Browser phone rule.**
+- [x] **T4.3 Browser phone rule.**
   - **Files:** #9 `lib/profile-validation.ts` (`validateProfilePhone`, `validateProfile(values, savedPhone)`), #10 its test, #7 `PROFILE_VALIDATION.phoneRequired` (03b §4.5 text).
   - **Tests:** AC-4.2, 4.3 and 4.4 unit cases: the same five formats are accepted, the same bad ones refused, and `('', saved)` gives required while `('', null)` gives `undefined`.
   - **Run:** `pnpm --filter web exec vitest run src/lib/profile-validation.test.ts`.
-- [ ] **T4.4 Server error keys.**
+- [x] **T4.4 Server error keys.**
   - **Files:** #5 `auth-errors.ts` (`phone_required: 'phoneRequired'`), #6 its test (`phone_required` and `invalid_phone`), #7 `PORTAL_ERRORS.phoneRequired`.
   - **Run:** `pnpm --filter web exec vitest run src/services/auth-errors.test.ts`.
-- [ ] **T4.5 The phone field, end to end.**
+- [x] **T4.5 The phone field, end to end.**
   - **Files:** #3 `profile.service.ts` (`PROFILE_COLUMNS`, `ProfileRow`, `updateProfile` sends `phone.trim() || null`, `toStaffProfile`), #4 `types.ts`, #11 `PortalField.tsx` (`type: 'tel'`, `inputMode`), #12 `ProfileForm.tsx` (field after Full name; phone server errors shown on the field), #8 `PROFILE_PAGE.labels.phone` / `.hints.phone`, #13 `ProfileForm.test.tsx` (new).
   - **Tests:**
     - AC-4.1: label, formatted value, empty for null, the hint, `type="tel"` and `inputMode="tel"`.
@@ -181,19 +181,19 @@ Design: 03b §4 (16 files). One migration, no function deploy, no new dependency
     - `tutor@local.test` → My profile: change the phone, save, reload, and the formatted number shows.
     - `admin@local.test` → Admin → Staff → the tutor: change it, and the header link and the list's Phone column update.
   - **Run:** `pnpm --filter web exec vitest run src/components/portal/ProfileForm.test.tsx && pnpm typecheck`.
-- [ ] **T4.6 Privacy sentence and heading.**
+- [x] **T4.6 Privacy sentence and heading.**
   - **Files:** #14 `PRIVACY` (heading `'Portal accounts'`, the 03b §4.6 sentence, `lastUpdated` set to the build month, the code comment extended; no `[TBC]`, TODO or "draft" literal), #15 `privacy.test.tsx` (lookups renamed, AC-4.9 phrases, no old heading).
   - **Run:** `pnpm --filter web exec vitest run src/routes/privacy.test.tsx`.
-- [ ] **T4.7 Docs.**
+- [x] **T4.7 Docs.**
   - **Files:** #16 `docs/requirements/invite-onboarding.md` "Fields".
   - **Run:** `pnpm format:check`.
-- [ ] **T4.8 Manual passes (scripted).** Record each result in the dev notes.
-  1. **AC-4.8:** give the local tutors the seed numbers through My profile; run the local-Supabase gate build; then `grep -rlE '412345678|0412 345 678|398765432' apps/web/build/client` finds nothing. The code grep in 03b §4.7 finds no profile phone in public services, `sitemap.ts` or `seo.ts`.
+- [x] **T4.8 Manual passes (scripted).** Record each result in the dev notes.
+  1. **AC-4.8:** give the local tutors the seed numbers through My profile; run the local-Supabase gate build; then `grep -rlE` for every form (`+61…`, digits only, formatted) of the numbers actually stored on the local staff profiles finds nothing in `apps/web/build/client`. Don't use `0412 345 678`: it is the existing example in the invalid-phone error text, so it always matches (dev notes item 4, D2). The code grep in 03b §4.7 finds no profile phone in public services, `sitemap.ts` or `seo.ts`.
   2. **AC-4.10:** at 360 px, light and dark, on both pages, the field, hint and error are legible, and the keypad opens in Chrome device mode.
   3. **AC-4.6:** Admin → Activity shows "profile edited" with no number.
-- [ ] **T4.9 Full check.**
+- [x] **T4.9 Full check.**
   - **Run:** §0 steps 1–4: the web check, 0 hosted refs, `pnpm db:test && pnpm test:functions`, and E2E from the external repo, 9 passed.
-- [ ] **T4.10 Dev notes.** `05-dev-notes-item-4.md`: what was built, deviations from 03b, the T4.8 measurements, and the full-check output.
+- [x] **T4.10 Dev notes.** `05-dev-notes-item-4.md`: what was built, deviations from 03b, the T4.8 measurements, and the full-check output.
 - [ ] **T4.11 Reviewer pass.**
   - **What:** Reviewer on `develop...HEAD` writes `review-5-item-4.md`.
   - **Gate:** loop to the Developer until it's APPROVED.
