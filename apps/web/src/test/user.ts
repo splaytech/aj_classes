@@ -1,4 +1,4 @@
-import userEvent from '@testing-library/user-event';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
 
 /**
  * A user-event session for one test. `delay: null` sends all the keystrokes of one `type` call
@@ -7,6 +7,6 @@ import userEvent from '@testing-library/user-event';
  * field the next test has focused. Seen in `act`: the AC-4.4 phone test found "9 999", the tail
  * of the previous test's "0499 999 999". Assertions are unchanged.
  */
-export function setupUser() {
+export function setupUser(): UserEvent {
   return userEvent.setup({ delay: null });
 }

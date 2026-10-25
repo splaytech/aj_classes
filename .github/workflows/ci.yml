@@ -124,6 +124,7 @@ jobs:
           VITE_FORM_ACCESS_KEY: local-placeholder
           VITE_KIT_FORM_ID: '0000000'
       - name: No hosted project reference in the build
+        id: hosted-ref
         run: pnpm --filter web check:hosted-ref build/client
       - run: pnpm --filter aj-classes-e2e exec playwright install --with-deps chromium
       # One browser, pinned by the Playwright version, for Lighthouse and the CSP sweep, rather
@@ -137,12 +138,13 @@ jobs:
       # in act). It only ever opens this job's own local build.
       - name: Lighthouse (mobile, median of 3; thresholds in apps/web/lighthouserc.json)
         run: pnpm --filter web lighthouse --collect.settings.chromeFlags=--no-sandbox
-      # !cancelled(): a Lighthouse score miss mustn't hide these two results.
+      # A Lighthouse score miss mustn't hide these two results, but a build that failed the
+      # hosted-ref check is never served.
       - name: No Supabase requests; JS size per page
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.hosted-ref.outcome == 'success' }}
         run: pnpm --filter web lighthouse:report
       - name: CSP sweep on the mirror (item 5, AC-5.3 and AC-5.8)
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.hosted-ref.outcome == 'success' }}
         run: pnpm --filter aj-classes-e2e test:csp
       - if: always()
         uses: actions/upload-artifact@v4

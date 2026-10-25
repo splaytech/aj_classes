@@ -126,7 +126,9 @@ pnpm --filter aj-classes-e2e test:csp
   LHCI's public temporary storage. Raw results are in `apps/web/.lighthouseci/`.
 - `lighthouse:report` prints the median JavaScript per page and fails on any `supabase.co`
   request, or on a run whose `network-requests` audit has no list (it can't be checked). In CI
-  it and the CSP sweep run even when a Lighthouse threshold fails, so all three results show. Locally LHCI uses your installed Chrome. CI uses Playwright's Chromium instead
+  it and the CSP sweep run even when a Lighthouse threshold fails, so all three results show
+  (but never on a build that failed the hosted-ref check). Locally LHCI uses your installed
+  Chrome. CI uses Playwright's Chromium instead
   (`CHROME_PATH`) with `--collect.settings.chromeFlags=--no-sandbox`; add both to match CI
   exactly.
 - `test:csp` starts the mirror itself if 4173 is free. It needs none of the E2E settings.

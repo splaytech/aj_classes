@@ -22,7 +22,7 @@ pnpm dev          # http://localhost:5173
 | `pnpm preview`   | Serves the production build locally                     |
 | `pnpm lint`      | ESLint, including the "no text in components" rule      |
 | `pnpm typecheck` | TypeScript check of `apps/web` and the `e2e` suite      |
-| `pnpm test`      | Unit tests (Vitest)                                     |
+| `pnpm test`      | Unit tests (Vitest, plus the e2e `node:test` checks)    |
 | `pnpm format`    | Formats every file with Prettier                        |
 | `pnpm check`     | Everything above in one go. Run before pushing          |
 
