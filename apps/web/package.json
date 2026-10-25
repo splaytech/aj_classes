@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "start:railway": "serve --config serve.railway.json --no-clipboard --listen tcp://0.0.0.0:${PORT:-3000}",
-    "check:hosted-ref": "node scripts/check-hosted-ref.ts"
+    "check:hosted-ref": "node scripts/check-hosted-ref.ts",
+    "mirror": "node scripts/serve-mirror.ts --stub-analytics"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

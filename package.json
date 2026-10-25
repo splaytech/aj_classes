@@ -16,6 +16,7 @@
     "format:check": "prettier --check .",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "start:railway": "pnpm --filter web start:railway",
+    "mirror": "pnpm --filter web mirror",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
