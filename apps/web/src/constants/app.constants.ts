@@ -142,10 +142,12 @@ export const FORM_LIMITS = {
   messageMax: 2000,
 } as const;
 
-// Admin daily posts (posts.md). Must match the checks in the posts migration, and listCap must
-// match posts.service.ts's MAX_ROWS.
+// Admin daily posts (posts.md). Must match the checks in the posts migration. listCap is the
+// most rows either posts page reads (services/post-rows.ts).
 export const POST_LIMITS = {
+  titleMin: 1, // counted after trimming spaces; the database counts untrimmed (05 dev notes)
   titleMax: 120,
+  bodyMin: 1,
   bodyMax: 5000,
   listCap: 200,
 } as const;

@@ -2,7 +2,7 @@
 // family.constants.ts, online assignments in online-assignments.constants.ts. Error messages live
 // in error.constants.ts.
 
-import { AUTH_LIMITS, PHOTO_LIMITS, PROFILE_LIMITS } from './app.constants';
+import { AUTH_LIMITS, PHOTO_LIMITS, POST_LIMITS, PROFILE_LIMITS } from './app.constants';
 import type { AppRole, ThemeMode } from './app.constants';
 import { BUSINESS } from './business.constants';
 
@@ -436,6 +436,10 @@ export const POSTS_PAGE = {
   confirmDeleteText: (title: string) => `"${title}" will be removed from the website immediately.`,
   deleted: 'Post deleted.',
   empty: 'No posts yet. Publish the first one above.',
+  // Inline field messages (AC-1.14). Spaces alone don't count as text.
+  titleLength: `Please enter a title (${POST_LIMITS.titleMin}–${POST_LIMITS.titleMax} characters).`,
+  bodyLength: `Please write the post (${POST_LIMITS.bodyMin}–${POST_LIMITS.bodyMax} characters).`,
+  bodyCount: (used: number) => `${used} / ${POST_LIMITS.bodyMax} characters`,
 } as const;
 
 export const FOOTER_PORTAL = {
