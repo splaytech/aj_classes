@@ -10,7 +10,7 @@
     "build": "pnpm --filter web build",
     "preview": "pnpm --filter web preview",
     "lint": "pnpm --filter web lint",
-    "typecheck": "pnpm --filter web typecheck",
+    "typecheck": "pnpm --filter web typecheck && pnpm --filter aj-classes-e2e typecheck",
     "test": "pnpm --filter web test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

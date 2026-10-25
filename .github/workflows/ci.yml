@@ -79,14 +79,16 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: No hosted project reference in the workflow or the specs
         run: pnpm --filter web check:hosted-ref ../../.github/workflows ../../e2e
+      - run: pnpm --filter aj-classes-e2e typecheck
       - uses: supabase/setup-cli@v1
         with:
           version: 2.120.0
+      # stdout dropped: it's the status table with the local keys, printed before any mask.
+      # local-env.mjs reads them from `supabase status -o json` instead; errors still show.
       - name: Start local Supabase (only the services the specs use)
-        run: supabase start -x studio,imgproxy,logflare,vector,supavisor,postgres-meta
+        run: supabase start -x studio,imgproxy,logflare,vector,supavisor,postgres-meta > /dev/null
       - name: Local keys into the job env (masked)
         run: node e2e/scripts/local-env.mjs >> "$GITHUB_ENV"
-      - run: pnpm --filter aj-classes-e2e typecheck
       - run: pnpm --filter aj-classes-e2e exec playwright install --with-deps chromium
       - name: E2E smoke (global setup starts the dev server on 5173)
         run: pnpm --filter aj-classes-e2e test:smoke
@@ -135,9 +137,12 @@ jobs:
       # in act). It only ever opens this job's own local build.
       - name: Lighthouse (mobile, median of 3; thresholds in apps/web/lighthouserc.json)
         run: pnpm --filter web lighthouse --collect.settings.chromeFlags=--no-sandbox
+      # !cancelled(): a Lighthouse score miss mustn't hide these two results.
       - name: No Supabase requests; JS size per page
+        if: ${{ !cancelled() }}
         run: pnpm --filter web lighthouse:report
       - name: CSP sweep on the mirror (item 5, AC-5.3 and AC-5.8)
+        if: ${{ !cancelled() }}
         run: pnpm --filter aj-classes-e2e test:csp
       - if: always()
         uses: actions/upload-artifact@v4
