@@ -71,12 +71,15 @@ describe('reportFor', () => {
     expect(report).toEqual({ url: PAGE, supabaseRequests: [], scriptTransferBytes: 1234 });
   });
 
-  it('copes with a result that has no audits', () => {
-    expect(reportFor({ requestedUrl: PAGE })).toEqual({
-      url: PAGE,
-      supabaseRequests: [],
-      scriptTransferBytes: 0,
-    });
+  it('copes with a result that has no resource-summary or inspector-issues', () => {
+    const run = { requestedUrl: PAGE, audits: { 'network-requests': { details: { items: [] } } } };
+    expect(reportFor(run)).toEqual({ url: PAGE, supabaseRequests: [], scriptTransferBytes: 0 });
+  });
+
+  it('fails a result whose network-requests audit has no list, so it cannot pass unseen', () => {
+    const errored = { requestedUrl: PAGE, audits: { 'network-requests': { score: null } } };
+    expect(() => reportFor(errored)).toThrow('no network-requests list');
+    expect(() => reportFor({ requestedUrl: PAGE })).toThrow('no network-requests list');
   });
 
   it('rejects something that is not a Lighthouse result', () => {

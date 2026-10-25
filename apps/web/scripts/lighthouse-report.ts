@@ -4,12 +4,7 @@
 //      CSP names only the local origin, so a build pointed at a hosted project shows up only in
 //      the second list;
 //   2. the JavaScript transferred per page, as a median over the runs (AC-6.8, reported only).
-// CLI: node scripts/lighthouse-report.ts <.lighthouseci folder>
-// Writes a Markdown table to $GITHUB_STEP_SUMMARY when set, else stdout. Exits 1 on any
-// supabase.co request, or when the folder holds no result (an empty folder can't pass).
-
-import { appendFileSync, readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+// Pure: the CLI (check-lighthouse-report.ts) reads the files.
 
 export type PageReport = { url: string; supabaseRequests: string[]; scriptTransferBytes: number };
 
@@ -19,15 +14,23 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** The `details.items` array of one audit, or [] if the result doesn't have it. */
-function auditItems(lhr: Record<string, unknown>, auditId: string): Record<string, unknown>[] {
+/** The `details.items` array of one audit, or null if the result doesn't have it. */
+function auditItemsOrNull(
+  lhr: Record<string, unknown>,
+  auditId: string,
+): Record<string, unknown>[] | null {
   const audits = lhr.audits;
-  if (!isRecord(audits)) return [];
+  if (!isRecord(audits)) return null;
   const audit = audits[auditId];
   if (!isRecord(audit) || !isRecord(audit.details) || !Array.isArray(audit.details.items)) {
-    return [];
+    return null;
   }
   return audit.details.items.filter(isRecord);
+}
+
+/** The `details.items` array of an optional audit, or [] if the result doesn't have it. */
+function auditItems(lhr: Record<string, unknown>, auditId: string): Record<string, unknown>[] {
+  return auditItemsOrNull(lhr, auditId) ?? [];
 }
 
 /** URLs the page tried to reach that its CSP blocked, from the inspector-issues audit. */
@@ -42,16 +45,18 @@ function cspBlockedUrls(lhr: Record<string, unknown>): unknown[] {
 /**
  * One LHR (Lighthouse result JSON) → its page report: every URL containing "supabase.co" that
  * the page requested or tried to (network-requests, plus CSP-blocked inspector-issues), and the
- * resource-summary "script" transferSize. Throws if it isn't an LHR.
+ * resource-summary "script" transferSize. Throws if it isn't an LHR, or if it has no
+ * network-requests list (an errored audit would otherwise count zero requests and pass unseen).
  */
 export function reportFor(lhr: unknown): PageReport {
   if (!isRecord(lhr) || typeof lhr.requestedUrl !== 'string') {
     throw new Error('not a Lighthouse result: no requestedUrl');
   }
-  const attempted = [
-    ...auditItems(lhr, 'network-requests').map((item) => item.url),
-    ...cspBlockedUrls(lhr),
-  ];
+  const requests = auditItemsOrNull(lhr, 'network-requests');
+  if (requests === null) {
+    throw new Error(`no network-requests list for ${lhr.requestedUrl}; the audit may have errored`);
+  }
+  const attempted = [...requests.map((item) => item.url), ...cspBlockedUrls(lhr)];
   const supabaseRequests = [
     ...new Set(
       attempted.filter(
@@ -93,43 +98,4 @@ export function summaryTable(medians: Record<string, number>): string {
     ...rows,
     '',
   ].join('\n');
-}
-
-function readReports(folder: string): PageReport[] {
-  return readdirSync(folder)
-    .filter((name) => /^lhr-.*\.json$/.test(name))
-    .map((name) => reportFor(JSON.parse(readFileSync(join(folder, name), 'utf8'))));
-}
-
-function runCli(folder: string | undefined): number {
-  if (!folder) {
-    console.error('lighthouse-report: give the .lighthouseci folder');
-    return 1;
-  }
-  const reports = readReports(folder);
-  if (reports.length === 0) {
-    console.error(`lighthouse-report: no lhr-*.json in ${folder}; run lhci autorun first`);
-    return 1;
-  }
-
-  const table = summaryTable(medianScriptBytes(reports));
-  const summaryFile = process.env.GITHUB_STEP_SUMMARY;
-  if (summaryFile) {
-    appendFileSync(summaryFile, `${table}\n`);
-  }
-  process.stdout.write(`${table}\n`);
-
-  const supabaseRequests = reports.flatMap((report) => report.supabaseRequests);
-  process.stdout.write(
-    `lighthouse-report: ${reports.length} runs, ${supabaseRequests.length} supabase.co requests\n`,
-  );
-  for (const url of supabaseRequests) {
-    console.error(`  supabase.co request: ${url}`);
-  }
-  return supabaseRequests.length > 0 ? 1 : 0;
-}
-
-// Run only as a script, so the unit tests can import the functions above without side effects.
-if (import.meta.main) {
-  process.exit(runCli(process.argv[2]));
 }

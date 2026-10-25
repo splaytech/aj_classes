@@ -13,7 +13,7 @@
     "check:hosted-ref": "node scripts/check-hosted-ref.ts",
     "mirror": "node scripts/serve-mirror.ts --stub-analytics",
     "lighthouse": "lhci autorun",
-    "lighthouse:report": "node scripts/lighthouse-report.ts .lighthouseci",
+    "lighthouse:report": "node scripts/check-lighthouse-report.ts .lighthouseci",
     "check:structured-data": "node scripts/check-structured-data.ts build/client"
   },
   "dependencies": {
