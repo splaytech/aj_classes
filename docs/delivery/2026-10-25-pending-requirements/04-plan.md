@@ -314,7 +314,7 @@ function `notifications` (03 §3.4). All email goes to the local Mailpit
   `supabase/scripts/deploy.sh --dry-run` prints the new steps in order;
   `NOTIFY_WORKER_SECRET=local-notify-secret supabase/scripts/deploy.sh --dry-run` exits non-zero.
   **Never run it without `--dry-run`**: the real run is Saurabh's (§6.3).
-- [ ] **T3.8 Privacy sentence and docs.** Files: #26 `PRIVACY` (the 03 §3.8 sentence only;
+- [x] **T3.8 Privacy sentence and docs.** Files: #26 `PRIVACY` (the 03 §3.8 sentence only;
   `[TBC: B17]` is a marker in the docs, never in code: no literal "[TBC…]" and no TODO in the
   constant, per KINET `no-todo-without-ticket`; the B17 approval is tracked as Q7 and in §6.3),
   #31 `privacy.test.tsx` (sentence renders), #11 `supabase/README.md` (local email flow, Vault

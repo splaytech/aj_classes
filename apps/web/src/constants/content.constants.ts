@@ -398,8 +398,9 @@ export const PRIVACY = {
     },
     {
       // R3b review F19: family accounts. Wording for the owner to review.
+      // The "work returned" email sentence (ADR-0004) is for the owner to approve with B17.
       heading: 'Student and parent portal accounts',
-      text: "Portal accounts are created only by invitation from AJ Classes. For each account we keep your name, email address and sign-in times. For students we also keep their classes and timetable, their assignment answers, marks, and tutor feedback and comments. A student's account is only created after a parent or guardian agrees, in the portal or on our enrolment form. Parents linked to a student can see that student's assignments, answers once handed in, marks, progress and tutor comments; they never see other students. Portal data is stored with Supabase (database and sign-in), and our sign-in pages use Cloudflare Turnstile to check that you are a person; both may process data outside Australia. We never use portal information for marketing.",
+      text: "Portal accounts are created only by invitation from AJ Classes. For each account we keep your name, email address and sign-in times. For students we also keep their classes and timetable, their assignment answers, marks, and tutor feedback and comments. A student's account is only created after a parent or guardian agrees, in the portal or on our enrolment form. Parents linked to a student can see that student's assignments, answers once handed in, marks, progress and tutor comments; they never see other students. Portal data is stored with Supabase (database and sign-in), and our sign-in pages use Cloudflare Turnstile to check that you are a person; both may process data outside Australia. We never use portal information for marketing. When your child's work is marked and returned, we email you and your child (if they have their own account). These are service emails; you can turn them off in Account → Notifications.",
     },
     {
       // invite-onboarding.md, "Consents". Wording for the owner to review.

@@ -94,6 +94,18 @@ add the second admin with a normal invite (`supabase/README.md` → "First admin
 3. Merge `develop` into `main` (pull request) → live.
 4. Smoke test (§8), then invite tutors, then students and parents.
 
+## 7a. "Work returned" emails (pending-requirements item 3, ADR-0004)
+
+Release steps for Saurabh (04-plan §6.3). Preconditions: Q2 answered; the item 3 Privacy sentence
+approved (Q7 / B17); B1 done first, or released together at the same SHA.
+
+- [ ] Put a new long random `NOTIFY_WORKER_SECRET` and the Resend key in the password manager and in `supabase/.env.deploy` (git-ignored).
+- [ ] `git fetch && git checkout -b release/work-returned-email <item 3 develop merge SHA>`, then from that branch run `supabase/scripts/deploy.sh`. It applies the migration (enables `pg_cron` and `pg_net`; if `db push` refuses, enable both in Dashboard → Database → Extensions and run it again), deploys `notifications` and sets the function settings.
+- [ ] Confirm the script printed "Hosted function settings checked". First run only: confirm `supabase secrets list -o json` shows SHA-256 hex digests; if not, fix the check before relying on it.
+- [ ] Merge `release/work-returned-email` (the same SHA, not `develop`) into `main` through a PR.
+- [ ] Run the two Vault lines the script printed, in Dashboard → SQL Editor (supabase/README.md → "Work returned emails").
+- [ ] AC-3.11 test-family check (same README section): both emails arrive within 5 minutes; Admin → Emails is empty; delete the test class.
+
 ## 8. Smoke test
 
 - [x] Public pages unchanged; WhatsApp button opens a chat; `/resources` and the guide load; `sitemap.xml` has no `/portal`; `robots.txt` disallows `/portal` — verified via curl (23 Oct 2026): `/` and `/resources` → 200, guide page `/resources/victorian-selective-entry-exam` → 200, `wa.me/61469800685` link present in page source, `sitemap.xml` has zero `/portal` entries, `robots.txt` has `Disallow: /portal`.
