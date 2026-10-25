@@ -236,9 +236,7 @@ export function publicSitemapPaths(supabaseConfigured: boolean): string[]; // RO
   `routes.constants`, as `SECTION_IDS` already is).
 - `FOOTER.newsLink: 'News'`.
 - `PRIVACY`, in the existing section that describes the website (02 item 1 risk 3):
-  "When you visit a page, your browser asks our database whether there is any news to show.
-  Like any web request, this shares your IP address and browser type with our database provider
-  (Supabase, Sydney). We don't store it or use it to identify you."
+  "When you visit a page, your browser asks our database provider (Supabase, Sydney) whether there is any news to show. Like any web request, this sends your IP address and browser type. Supabase keeps these in short-lived technical logs for security and troubleshooting. We don't save them in our own records or use them to identify you." (replaced on 25 Oct by Security's wording, `06-security-item-1.md` finding 6.)
   Saurabh approves it as part of the **B1 question** in `01-requirement.md` §2.2 (review-3
   finding 12), so he says yes to this wording knowingly before it goes to production.
 

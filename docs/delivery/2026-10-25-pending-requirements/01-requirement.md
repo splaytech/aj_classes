@@ -199,10 +199,7 @@ Each entry ends with the exact question for Saurabh.
 
 1. **B1 — Release to production (OD-01).** After item 1 passes its local gate: "OK to apply the
    posts migration to the hosted Supabase, publish at least one post, and merge `develop` into
-   `main`? This release also adds one sentence to the Privacy Policy: 'When you visit a page,
-   your browser asks our database whether there is any news to show. Like any web request, this
-   shares your IP address and browser type with our database provider (Supabase, Sydney). We
-   don't store it or use it to identify you.' OK to publish that wording?" **Release check (Saurabh, or the team watching):** on the live site,
+   `main`? This release also adds this to the Privacy Policy (Security's wording, `06-security-item-1.md` finding 6): 'When you visit a page, your browser asks our database provider (Supabase, Sydney) whether there is any news to show. Like any web request, this sends your IP address and browser type. Supabase keeps these in short-lived technical logs for security and troubleshooting. We don't save them in our own records or use them to identify you.' OK to publish that wording?" **Release check (Saurabh, or the team watching):** on the live site,
    `curl -s -o /dev/null -w '%{http_code}' https://ajclasses.com.au/posts` returns 200 after a hard
    refresh, the News link shows in the header and footer, and `sitemap.xml` lists `/posts`.
 2. **B2 — Hosted release checks (R2-18).** "Can you run the 6 unticked checks in go-live.md §8
@@ -604,3 +601,4 @@ Build and local tests use Mailpit and don't wait for this.
 |---|---|---|
 | 25 Oct 2026 | B1's question now includes item 1's Privacy Policy sentence, so it's approved with the release (team lead for the PO) | Review-3 finding 12: Privacy wording shouldn't reach production without Saurabh's explicit yes |
 | 25 Oct 2026 | AC-3.8 now lists **Failed and Waiting** sends, with a state column, and the empty state "No failed or waiting emails" | Architecture stage (02 item 3, ADR-0004) added Waiting rows so a missing cron job, secret or daily-cap backlog is visible; carried over by review-2 round 2, finding 4 |
+| 25 Oct 2026 | B1's Privacy wording replaced with Security's suggested text (item 1 security review, finding 6) | "We don't store it" wasn't accurate: Supabase keeps short-lived request logs |

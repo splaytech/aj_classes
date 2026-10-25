@@ -44,11 +44,8 @@ B17 review as items 2–3. Item 6 should land before 7 and 8 so they ship behind
 
 **A. Releases and production (unblock shipped work first)**
 1. **[B1] Release item 1.** "OK to apply the posts migration to the hosted Supabase, publish at
-   least one post, and release item 1's commit to `main` (via `release/news`, §2 rule 5)? This release also adds one sentence to the
-   Privacy Policy: 'When you visit a page, your browser asks our database whether there is any
-   news to show. Like any web request, this shares your IP address and browser type with our
-   database provider (Supabase, Sydney). We don't store it or use it to identify you.' OK to
-   publish that wording?" (This also releases the 19 commits already on `develop`: admin posts,
+   least one post, and release item 1's commit to `main` (via `release/news`, §2 rule 5)? This release also adds this to the Privacy Policy
+   (Security's wording, `06-security-item-1.md` finding 6): 'When you visit a page, your browser asks our database provider (Supabase, Sydney) whether there is any news to show. Like any web request, this sends your IP address and browser type. Supabase keeps these in short-lived technical logs for security and troubleshooting. We don't save them in our own records or use them to identify you.' OK to publish that wording?" (This also releases the 19 commits already on `develop`: admin posts,
    Approach statements, KINET fixes. In practice the merge to `main` is `release/news` cut at
    item 1's SHA, not `develop` HEAD: §2 rule 5.)
 2. **[Item 3 release]** "When item 3 is on `develop`: will you run the item 3 release steps (§6.3
