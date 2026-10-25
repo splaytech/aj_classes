@@ -174,7 +174,9 @@ export default function AdminPostsPage() {
                 spacing={2}
                 sx={{ justifyContent: 'space-between', alignItems: { sm: 'flex-start' } }}
               >
-                <Box>
+                {/* minWidth 0 + overflowWrap: long titles and links wrap instead of
+                    pushing the card past the screen (BUG-4). */}
+                <Box sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
                   <Typography variant="caption" color="text.secondary">
                     {formatDateTime(post.publishedAt)}
                   </Typography>
