@@ -58,3 +58,28 @@ Reviewed `01b-requirement-items-4-9.md` at `a8bbdbc`. Checked against:
 12. **AC-8.1 wording.** Say "one email per recipient per enrolled student".
 
 **Result:** criteria 1, 3, 5, 6 and 7 pass, apart from finding 2. Criteria 2 and 4 fail only on finding 1, so the doc is approvable once that is fixed.
+
+---
+
+APPROVED
+
+# Review 1 — items 4–9 requirement (01b), round 2
+
+Re-reviewed `b5582ab` against `a8bbdbc`. The new references check out against the code: `has_submissions` (`20261007090320`:372/377), the 90-day outbox trim (`20261025110000`:352), and the local port 55321.
+
+## Round 1 findings
+
+All 12 are resolved.
+
+- **Blocker 1:**
+  - The common rule, AC-5.11 and AC-6.14 forbid hosted requests, with a CI step that fails on any hit.
+  - AC-5.1 uses a local build with the CSP origin substituted in the mirror, plus a check of the committed headers.
+  - AC-5.3 requires Web3Forms mocked, and `leads` mocked or local.
+  - AC-6.6 runs Lighthouse against local Supabase or no Supabase.
+- **Findings 2–12:** each is addressed as requested. See the 01b change log.
+
+## New in round 2 (non-blocking)
+
+1. **AC-8.3 and AC-8.8.** Qualify "republishing never notifies" and "at most one reminder even if the due date changes" with "(within the 90-day outbox retention, as AC-3.5)". This can be done at the design stage.
+
+Stage 1 can go to the Architect.
