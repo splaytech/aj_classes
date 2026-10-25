@@ -148,7 +148,8 @@ export default async function globalSetup(): Promise<void> {
 
   console.warn(
     '[global-setup] Stack reachable. Note: the Register Interest spec requires the web dev server ' +
-      "to be running with VITE_LEAD_CAPTURE=on (set in aj_classes' apps/web/.env.development.local, " +
-      'gitignored, never committed). If that spec times out polling public.enquiries, this is the cause.',
+      'to run with VITE_LEAD_CAPTURE=on (from e2e/.env or the CI job env). A dev server that was ' +
+      'already running without it is reused as-is; if that spec times out polling public.enquiries, ' +
+      'stop it and re-run.',
   );
 }

@@ -1,4 +1,5 @@
-import { test as base, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { test as guarded } from './hosted-guard.js';
 import { query } from '../db/pg-client.js';
 import { anon } from '../db/anon-client.js';
 import * as mailpit from '../mail/mailpit.js';
@@ -20,7 +21,8 @@ interface Fixtures {
   cleanup: CleanupStack;
 }
 
-export const test = base.extend<Fixtures>({
+// Built on the hosted guard, so every spec that imports this file runs under it (AC-6.14).
+export const test = guarded.extend<Fixtures>({
   db: async ({}, use) => {
     await use({ query });
   },
@@ -59,4 +61,4 @@ export const test = base.extend<Fixtures>({
   },
 });
 
-export { expect } from '@playwright/test';
+export { expect } from './hosted-guard.js';
