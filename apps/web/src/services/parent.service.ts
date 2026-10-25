@@ -5,7 +5,7 @@ import { toErrorKey } from './auth-errors';
 import { toFamilyAssignment, toFamilyAssignmentView, toTimetableEntry } from './family-data';
 import type { FamilyAssignmentJson, FamilyAssignmentRow, FamilyTimetableRow } from './family-data';
 import { attempt, fail, succeed } from './result';
-import { getSupabase } from './supabase.client';
+import { getSignedInSupabase, getSupabase } from './supabase.client';
 import type {
   Child,
   ChildAccountStatus,
@@ -37,7 +37,8 @@ function toChild(row: ChildRow): Child {
 
 export async function listMyChildren(): Promise<Result<Child[]>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getSignedInSupabase();
+    if (!supabase) return fail('notAllowed'); // signed out: the layout redirects to sign-in
     const { data, error } = await supabase.rpc('parent_children');
     if (error) return fail(toErrorKey(error));
     return succeed((data as unknown as ChildRow[]).map(toChild));
@@ -46,7 +47,8 @@ export async function listMyChildren(): Promise<Result<Child[]>> {
 
 export async function listChildAssignments(studentId: string): Promise<Result<FamilyAssignment[]>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getSignedInSupabase();
+    if (!supabase) return fail('notAllowed'); // signed out: the layout redirects to sign-in
     const { data, error } = await supabase.rpc('parent_child_assignments', {
       target_student: studentId,
     });
@@ -60,7 +62,8 @@ export async function getChildAssignment(
   assignmentId: string,
 ): Promise<Result<FamilyAssignmentView>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getSignedInSupabase();
+    if (!supabase) return fail('notAllowed'); // signed out: the layout redirects to sign-in
     const { data, error } = await supabase.rpc('parent_child_assignment', {
       target_student: studentId,
       target_assignment: assignmentId,
@@ -72,7 +75,8 @@ export async function getChildAssignment(
 
 export async function getChildTimetable(studentId: string): Promise<Result<TimetableEntry[]>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getSignedInSupabase();
+    if (!supabase) return fail('notAllowed'); // signed out: the layout redirects to sign-in
     const { data, error } = await supabase.rpc('parent_child_timetable', {
       target_student: studentId,
     });

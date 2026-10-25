@@ -27,6 +27,17 @@ export async function getSupabase(): Promise<SupabaseClient<Database>> {
   return client;
 }
 
+/**
+ * The client, or null when nobody is signed in. It reads the stored session only (no request).
+ * Page loaders run alongside the layout's sign-in check, so the family reads use this: a
+ * signed-out email link then makes no database call before the redirect to sign-in (BUG-6).
+ */
+export async function getSignedInSupabase(): Promise<SupabaseClient<Database> | null> {
+  const supabase = await getSupabase();
+  const { data } = await supabase.auth.getSession();
+  return data.session ? supabase : null;
+}
+
 export function isPortalConfigured(): boolean {
   return APP_CONFIG.features.portal;
 }
