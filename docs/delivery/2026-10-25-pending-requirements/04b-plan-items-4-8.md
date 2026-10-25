@@ -338,11 +338,11 @@ where the workflow is proven:
   - `act` isn't installed yet, so none of the `act` commands below have been run.
 - **Never on either path:** a deliberate failure committed to `develop` or to the feature branch.
 
-- [ ] **T6.0 Branch.**
+- [x] **T6.0 Branch.**
   - **Run:** `git checkout develop && git pull --ff-only && git checkout -b feature/ci-quality-gates && pnpm db:reset`.
   - **Test:** §0 stack checks 1 and 2. Check 2 prints item 4's `20261026100000` (item 5 adds no
     migration).
-- [ ] **T6.1 Move the E2E suite in.**
+- [x] **T6.1 Move the E2E suite in.**
   - **Copy:** `mkdir e2e && git -C ~/dev/work/aj_classes-e2e archive 488dde1 setup src tests playwright.config.ts tsconfig.json .env.example | tar -x -C e2e`.
     - That's 20 tracked files (`tar -t` lists 28 entries, including directories).
     - There's no `.env`, no `node_modules` and no lockfile.
@@ -361,27 +361,27 @@ where the workflow is proven:
   - **Tests:**
     - `pnpm install && pnpm --filter aj-classes-e2e typecheck && pnpm format:check` (prettier formats the moved specs to this repo's config);
     - `git status --porcelain` shows no `.env`.
-- [ ] **T6.2 Local env and the hosted guard.**
+- [x] **T6.2 Local env and the hosted guard.**
   - **Files:** #7 `e2e/scripts/local-env.mjs`, #10a `src/fixtures/hosted-guard.ts`, #10 `test-fixtures.ts` (extends the guard).
   - **Tests:**
     - `node e2e/scripts/local-env.mjs` prints the local URL and refuses if `API_URL` isn't `http://127.0.0.1:55321`;
     - with `GITHUB_ACTIONS=true` it writes `::add-mask::` lines on stderr only.
   - **Visible:** `node e2e/scripts/local-env.mjs > e2e/.env && pnpm --filter aj-classes-e2e test:smoke` gives the same 9 passing tests as the external run.
-- [ ] **T6.3 Automated CSP sweep.**
+- [x] **T6.3 Automated CSP sweep.**
   - **Files:** #11 `src/mocks/public-services.ts`, #5 `playwright.csp.config.ts`, #26 `csp/public-csp.spec.ts`.
   - **Tests:**
     1. The import-rule check finds nothing: `grep -rnE "src/(config|db|mail|auth)|test-fixtures" e2e/csp e2e/playwright.csp.config.ts e2e/src/fixtures/hosted-guard.ts e2e/src/mocks`.
     2. Run the no-Supabase build with `VITE_FORM_ACCESS_KEY=local-placeholder VITE_KIT_FORM_ID=0000000` (03b §6.8 Lighthouse env), then `check:hosted-ref build/client`.
     3. Then `env -u SUPABASE_ANON_KEY -u SUPABASE_SERVICE_ROLE_KEY pnpm --filter aj-classes-e2e test:csp` passes: 0 violations on every page at both widths, and the negative test sees one `script-src-elem` entry.
-- [ ] **T6.4 Lighthouse.**
+- [x] **T6.4 Lighthouse.**
   - **Files:** #27 `lighthouserc.json`, #28 `scripts/lighthouse-report.ts`, #29 its test, #34 `@lhci/cli` plus the `lighthouse` and `lighthouse:report` scripts.
   - **Tests:** `lighthouse-report.test.ts`: an LHR with a `supabase.co` URL gives one entry, a clean one none, and the median bytes are right.
   - **Visible:** on the no-Supabase build, `pnpm --filter web lighthouse && pnpm --filter web lighthouse:report` passes the assertions and prints the JS KB table. Confirm the `serve` ready text against `startServerReadyPattern`.
-- [ ] **T6.5 Structured-data check.**
+- [x] **T6.5 Structured-data check.**
   - **Files:** #30 `scripts/structured-data.ts`, #31 its test, #32 eight fixtures, #33 `scripts/check-structured-data.ts`, #34 the `check:structured-data` script.
   - **Tests:** AC-6.9: the valid fixtures pass and `pageKindFor` maps correctly. AC-6.10: each invalid fixture gives exactly one problem naming the file.
   - **Visible:** on the no-Supabase build, `pnpm --filter web check:structured-data` exits 0.
-- [ ] **T6.6 Workflow.**
+- [x] **T6.6 Workflow.**
   - **Files:** #35 `ci.yml`: the five jobs, the header comment, and the Supabase CLI pinned at `2.120.0`.
   - **Local test:** `pnpm --filter web check:hosted-ref ../../.github/workflows ../../e2e` → `0 files`.
   - **Path A:** push the branch and open a **draft** PR to `develop`. The run shows the "E2E
@@ -397,7 +397,7 @@ where the workflow is proven:
        host's Docker. Afterwards, run `pnpm db:start` and the §0 stack checks.
     4. A job `act` can't run (for example, Supabase's bind mounts failing inside the `act`
        container) goes to the fallback above. Record the error in the dev notes.
-- [ ] **T6.7 CI proof runs.** These never touch `develop` or the feature branch's history.
+- [x] **T6.7 CI proof runs.** These never touch `develop` or the feature branch's history.
   1. **Broken spec** (AC-6.1, 6.5): a wrong heading in `our-approach.spec.ts` fails only the E2E
      job, and the report and trace are uploaded.
      - **Path A:** a commit on `ci-proof/item-6` with its own draft PR. Check the `e2e-report`
@@ -426,15 +426,15 @@ where the workflow is proven:
      - **Path B:** they come from `pnpm --filter web lighthouse:report`, run locally in T6.4.
   5. **Path A clean-up:** close the `ci-proof/item-6` PR, then
      `git push origin --delete ci-proof/item-6 && git branch -D ci-proof/item-6`.
-- [ ] **T6.8 Docs.**
+- [x] **T6.8 Docs.**
   - **Files:** `docs/testing/ci-gates.md` (new, every gate's exact commands), the README "Checks" link, `arch.md` §2 (the five jobs).
   - **Test (AC-6.12):** follow `ci-gates.md` from a clean `git worktree add $TMPDIR/ci-check HEAD` and run each gate. Then `git worktree remove $TMPDIR/ci-check`.
   - **Run:** `pnpm format:check`.
-- [ ] **T6.9 Full check.** §0 steps 1–3, then E2E with the **in-repo** commands (`test:smoke`,
+- [x] **T6.9 Full check.** §0 steps 1–3, then E2E with the **in-repo** commands (`test:smoke`,
   and `test:csp` after the no-Supabase build). The structured-data check and Lighthouse run too.
   - **Path A:** the latest CI run on the draft PR is green.
   - **Path B:** every `act` job from T6.6 is green, or is under the fallback.
-- [ ] **T6.10 Dev notes.** `05-dev-notes-item-6.md`. It records:
+- [x] **T6.10 Dev notes.** `05-dev-notes-item-6.md`. It records:
   - the path taken (A or B);
   - the run URLs (A) or the `act` commands and output (B), and any `act` fallback with its error;
   - the durations;
