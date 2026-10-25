@@ -19,4 +19,12 @@ describe('Privacy Policy content', () => {
     expect(text).toContain('Zoho CRM');
     expect(text).toContain('Zoho Invoice');
   });
+
+  it('says every page asks the database whether there is news (ADR-0001)', () => {
+    const section = PRIVACY.sections.find((item) => item.heading === 'Who handles it');
+    expect(section?.text).toContain(
+      'When you visit a page, your browser asks our database whether there is any news to show.',
+    );
+    expect(section?.text).toContain("We don't store it or use it to identify you.");
+  });
 });
