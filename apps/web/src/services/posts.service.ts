@@ -3,34 +3,13 @@
 // this module does not re-check).
 
 import { toErrorKey } from './auth-errors';
+import { POST_COLUMNS, POSTS_MAX_ROWS, toPost } from './post-rows';
+import type { PostRow } from './post-rows';
 import { attempt, fail, succeed } from './result';
 import { getSupabase } from './supabase.client';
 import type { Post, PostInput, Result } from './types';
 
-const MAX_ROWS = 200;
-const POST_COLUMNS = 'id, created_at, updated_at, title, body, author_id';
-
-type PostRow = {
-  id: string;
-  created_at: string;
-  updated_at: string;
-  title: string;
-  body: string;
-  author_id: string | null;
-};
-
-function toPost(row: PostRow): Post {
-  return {
-    id: row.id,
-    publishedAt: row.created_at,
-    updatedAt: row.updated_at,
-    title: row.title,
-    body: row.body,
-    authorId: row.author_id,
-  };
-}
-
-/** Every post, newest-first. Used by both the admin page and the public page. */
+/** Every post, newest-first. Used by the admin page; the public page uses `public-posts.client.ts`. */
 export async function listPosts(): Promise<Result<Post[]>> {
   return attempt(async () => {
     const supabase = await getSupabase();
@@ -38,7 +17,7 @@ export async function listPosts(): Promise<Result<Post[]>> {
       .from('posts')
       .select(POST_COLUMNS)
       .order('created_at', { ascending: false })
-      .limit(MAX_ROWS);
+      .limit(POSTS_MAX_ROWS);
     if (error) return fail(toErrorKey(error));
 
     return succeed((data as PostRow[]).map(toPost));

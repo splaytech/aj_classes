@@ -25,6 +25,8 @@ export { getMyConsents, setMyConsents } from './consents.service';
 export { listActivity } from './activity.service';
 export { deleteEnquiry, listEnquiries, resyncEnquiry } from './enquiries.service';
 export { createPost, deletePost, listPosts, updatePost } from './posts.service';
+export { hasPublishedPosts, listPublicPosts } from './public-posts.client';
+export { isPublicSupabaseConfigured } from './public-supabase-config';
 export {
   deleteAssignment,
   getAssignment,
@@ -135,6 +137,7 @@ export type {
   ParentInviteOutcome,
   Post,
   PostInput,
+  PublicPost,
   ProfileChanges,
   Question,
   QuestionInput,

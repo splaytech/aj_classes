@@ -39,7 +39,15 @@ export function TwoStepCodeForm({ onVerified }: { onVerified: () => void }) {
     onVerifiedRef.current = onVerified;
   }, [onVerified]);
 
+  // Dev StrictMode runs mount effects twice. Two local auto-entries race on the same factor and
+  // GoTrue answers one with a 500 "deadlock detected" (BUG-3), so the load runs once per form.
+  // Production runs effects once anyway, so this changes nothing there.
+  const loadStarted = useRef(false);
+
   useEffect(() => {
+    if (loadStarted.current) return;
+    loadStarted.current = true;
+
     listAuthenticators().then(async (result) => {
       if (!result.ok) {
         setFormError(PORTAL_ERRORS[result.error]);

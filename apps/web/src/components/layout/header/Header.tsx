@@ -1,4 +1,5 @@
-// Sticky site header: logo, section links and the "Register Interest" button.
+// Sticky site header: logo, section links, News (only when posts exist) and the "Register
+// Interest" button.
 // On small screens the links fold into a menu button (PRP F2 section 1).
 
 import { ChevronRight, LogIn } from 'lucide-react';
@@ -21,6 +22,7 @@ import {
   sectionLink,
 } from '@/constants';
 import { trackEvent } from '@/lib/analytics';
+import { useHasNews } from '@/lib/use-has-news';
 
 import styles from './Header.module.css';
 
@@ -32,6 +34,7 @@ function isCurrentPage(pathname: string, href: string): boolean {
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { pathname } = useLocation();
+  const hasNews = useHasNews();
 
   function closeMenu() {
     setIsMenuOpen(false);
@@ -106,6 +109,17 @@ export function Header() {
                   )}
                 </li>
               ))}
+              {hasNews && (
+                <li key={NAV.newsLink.href}>
+                  <a
+                    href={NAV.newsLink.href}
+                    onClick={closeMenu}
+                    aria-current={isCurrentPage(pathname, NAV.newsLink.href) ? 'page' : undefined}
+                  >
+                    {NAV.newsLink.label}
+                  </a>
+                </li>
+              )}
             </ul>
             <div className={styles.actions}>
               {APP_CONFIG.features.portal && (

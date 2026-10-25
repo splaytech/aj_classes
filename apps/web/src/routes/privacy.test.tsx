@@ -19,4 +19,17 @@ describe('Privacy Policy content', () => {
     expect(text).toContain('Zoho CRM');
     expect(text).toContain('Zoho Invoice');
   });
+
+  it('says every page asks the database whether there is news (ADR-0001)', () => {
+    const section = PRIVACY.sections.find((item) => item.heading === 'Who handles it');
+    expect(section?.text).toContain(
+      'When you visit a page, your browser asks our database provider (Supabase, Sydney) whether there is any news to show.',
+    );
+    // Supabase does keep request logs for a while, so the policy must not say nothing is stored
+    expect(section?.text).toContain('Supabase keeps these in short-lived technical logs');
+    expect(section?.text).toContain(
+      "We don't save them in our own records or use them to identify you.",
+    );
+    expect(section?.text).not.toContain("We don't store it");
+  });
 });

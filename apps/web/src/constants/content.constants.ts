@@ -5,7 +5,7 @@
 import { BUSINESS } from './business.constants';
 import type { SocialPlatform } from './business.constants';
 import { PROGRAMMES, PROGRAMME_SLUGS } from './programmes.constants';
-import { SECTION_IDS, programmePath } from './routes.constants';
+import { ROUTES, SECTION_IDS, programmePath } from './routes.constants';
 
 export const TAGLINE = 'Every student can rise.';
 
@@ -47,6 +47,9 @@ export const NAV = {
     { label: 'FAQ', sectionId: SECTION_IDS.faq },
     { label: 'Contact', sectionId: SECTION_IDS.contact },
   ],
+  // A page, not a home-page section, so it sits outside `links`. Shown last, and only once at
+  // least one post exists (ADR-0001). Becomes "What's On" when Events ship (B11).
+  newsLink: { label: 'News', href: ROUTES.posts },
   cta: 'Register Interest',
   // One link for everyone: the portal sends each person to their own home by role.
   signIn: 'Sign in',
@@ -362,6 +365,7 @@ export const FOOTER = {
   contactHeading: 'Contact',
   location: LOCATION,
   privacyLink: 'Privacy Policy',
+  newsLink: 'News', // first in the legal row, only once at least one post exists (ADR-0001)
   copyright: (year: number) => `© ${year} AJ Classes. All rights reserved.`,
   // Short form of the "Accuracy of information" section in PRIVACY.
   disclaimer:
@@ -383,8 +387,9 @@ export const PRIVACY = {
       text: 'To respond to your enquiry, contact you in the way you prefer, and, if you ticked the box or subscribed, send you news and enrolment updates. Every newsletter email has an unsubscribe link, and you can unsubscribe at any time.',
     },
     {
+      // The news check wording (ADR-0001, Security item 1 finding 6) is for the owner to approve with B1.
       heading: 'Who handles it',
-      text: "Enquiry form submissions are delivered to us by email through a form-processing service (Web3Forms). We also keep a copy of each enquiry in our database (Supabase) and in our customer records system (Zoho CRM), so we can follow up; if you enrol, invoices are sent through Zoho Invoice. Newsletter sign-ups are managed by Kit (kit.com), our email newsletter service, which stores your email address and sends our updates. Both may process data outside Australia (including the United States). To block spam, our enquiry form uses a hidden check that doesn't collect any extra information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing.",
+      text: "Enquiry form submissions are delivered to us by email through a form-processing service (Web3Forms). We also keep a copy of each enquiry in our database (Supabase) and in our customer records system (Zoho CRM), so we can follow up; if you enrol, invoices are sent through Zoho Invoice. Newsletter sign-ups are managed by Kit (kit.com), our email newsletter service, which stores your email address and sends our updates. Both may process data outside Australia (including the United States). To block spam, our enquiry form uses a hidden check that doesn't collect any extra information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing. When you visit a page, your browser asks our database provider (Supabase, Sydney) whether there is any news to show. Like any web request, this sends your IP address and browser type. Supabase keeps these in short-lived technical logs for security and troubleshooting. We don't save them in our own records or use them to identify you.",
     },
     {
       // Owner request (Oct 2026). Wording for the owner to review; consumer law limits what can be excluded.

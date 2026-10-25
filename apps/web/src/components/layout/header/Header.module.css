@@ -248,3 +248,18 @@
     opacity: 1;
   }
 }
+
+/* With the News link there are six links. Between 1024px and 1279px the normal gaps push them
+   against the logo and squeeze the Sign in icon, so tighten all three gaps there only (02 item 1,
+   risk 1; measured in 05-dev-notes-item-1.md). Breakpoint unchanged. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .nav,
+  .navOpen {
+    gap: var(--space-4);
+  }
+
+  .links,
+  .actions {
+    gap: var(--space-3);
+  }
+}

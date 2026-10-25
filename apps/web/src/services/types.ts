@@ -145,6 +145,9 @@ export type Post = {
   authorId: string | null; // null once the author's account is removed
 };
 
+/** What the public /posts page reads: no author or edit time (Security item 1, finding 1). */
+export type PublicPost = Pick<Post, 'id' | 'publishedAt' | 'title' | 'body'>;
+
 /** What the compose/edit form on the admin page sends. */
 export type PostInput = { title: string; body: string };
 

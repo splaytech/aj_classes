@@ -19,6 +19,8 @@ import {
 } from '@/components/portal';
 import { POST_LIMITS, POSTS_PAGE, PORTAL_SEO } from '@/constants';
 import { formatDateTime } from '@/lib/format';
+import { hasPostErrors, trimPost, validatePost } from '@/lib/post-validation';
+import type { PostErrors } from '@/lib/post-validation';
 import { buildPortalMeta } from '@/lib/seo';
 import { usePortalAction } from '@/lib/use-portal-action';
 import { createPost, deletePost, listPosts, updatePost } from '@/services';
@@ -44,15 +46,19 @@ export default function AdminPostsPage() {
   const [draft, setDraft] = useState(emptyDraft());
   const [editingId, setEditingId] = useState('');
   const [editDraft, setEditDraft] = useState(emptyDraft());
+  const [draftErrors, setDraftErrors] = useState<PostErrors>({});
+  const [editErrors, setEditErrors] = useState<PostErrors>({});
   const [toDelete, setToDelete] = useState<Post | null>(null);
 
   if (!loaded.ok) return <LoadError error={loaded.error} />;
 
   async function publish() {
-    const worked = await action.run(
-      () => createPost({ title: draft.title, body: draft.body }),
-      POSTS_PAGE.published,
-    );
+    const post = trimPost(draft);
+    const errors = validatePost(post);
+    setDraftErrors(errors);
+    if (hasPostErrors(errors)) return; // shown on the fields; nothing is sent
+
+    const worked = await action.run(() => createPost(post), POSTS_PAGE.published);
     if (worked) {
       setDraft(emptyDraft());
       revalidator.revalidate();
@@ -63,18 +69,22 @@ export default function AdminPostsPage() {
     action.clear();
     setEditingId(post.id);
     setEditDraft({ title: post.title, body: post.body });
+    setEditErrors({});
   }
 
   function cancelEdit() {
     setEditingId('');
     setEditDraft(emptyDraft());
+    setEditErrors({});
   }
 
   async function saveEdit() {
-    const worked = await action.run(
-      () => updatePost(editingId, { title: editDraft.title, body: editDraft.body }),
-      POSTS_PAGE.saved,
-    );
+    const post = trimPost(editDraft);
+    const errors = validatePost(post);
+    setEditErrors(errors);
+    if (hasPostErrors(errors)) return;
+
+    const worked = await action.run(() => updatePost(editingId, post), POSTS_PAGE.saved);
     if (worked) {
       cancelEdit();
       revalidator.revalidate();
@@ -106,6 +116,7 @@ export default function AdminPostsPage() {
             value={draft.title}
             onChange={(title) => setDraft((current) => ({ ...current, title }))}
             maxLength={POST_LIMITS.titleMax}
+            error={draftErrors.title}
           />
           <TextAreaInput
             id="post-body"
@@ -113,6 +124,8 @@ export default function AdminPostsPage() {
             value={draft.body}
             onChange={(body) => setDraft((current) => ({ ...current, body }))}
             maxLength={POST_LIMITS.bodyMax}
+            error={draftErrors.body}
+            counter={POSTS_PAGE.bodyCount(draft.body.length)}
           />
           <Box>
             <Button variant="contained" onClick={publish} disabled={action.busy}>
@@ -133,6 +146,7 @@ export default function AdminPostsPage() {
                   value={editDraft.title}
                   onChange={(title) => setEditDraft((current) => ({ ...current, title }))}
                   maxLength={POST_LIMITS.titleMax}
+                  error={editErrors.title}
                 />
                 <TextAreaInput
                   id={`post-body-${post.id}`}
@@ -140,6 +154,8 @@ export default function AdminPostsPage() {
                   value={editDraft.body}
                   onChange={(body) => setEditDraft((current) => ({ ...current, body }))}
                   maxLength={POST_LIMITS.bodyMax}
+                  error={editErrors.body}
+                  counter={POSTS_PAGE.bodyCount(editDraft.body.length)}
                 />
                 <Stack direction="row" spacing={2}>
                   <Button variant="contained" onClick={saveEdit} disabled={action.busy}>
@@ -158,7 +174,9 @@ export default function AdminPostsPage() {
                 spacing={2}
                 sx={{ justifyContent: 'space-between', alignItems: { sm: 'flex-start' } }}
               >
-                <Box>
+                {/* minWidth 0 + overflowWrap: long titles and links wrap instead of
+                    pushing the card past the screen (BUG-4). */}
+                <Box sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
                   <Typography variant="caption" color="text.secondary">
                     {formatDateTime(post.publishedAt)}
                   </Typography>
