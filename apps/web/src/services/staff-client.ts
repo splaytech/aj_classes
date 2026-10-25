@@ -17,7 +17,7 @@ export async function getAdminClient() {
   return getSupabase();
 }
 
-/** A staff profile: your own as active staff (My profile), or anyone's as an admin with two-step. */
+/** A staff profile: your own as staff (My profile; RLS also requires an active account), or anyone's as an admin with two-step. */
 export async function getProfileClient(userId: string) {
   const access = await getAccessState();
   const role = access.profile?.role;

@@ -1,4 +1,4 @@
-CHANGES_REQUESTED
+APPROVED
 
 # Security review — item 4
 
@@ -49,3 +49,62 @@ CHANGES_REQUESTED
 1. The pre-existing aal1 admin own-row edit of non-identity fields has low impact.
 2. Statement logging, if ever turned up, could capture values (they are bound parameters by default).
 3. Hosted checks at release: the migration is applied, and the production-build grep runs there.
+
+## Re-check (round 2)
+
+**Scope.** Commits `dfcd372..154a664`. The local DB trigger contains `insufficient_aal`. `staff_phone.test.sql` passes **53/53**.
+
+| # | Status | Evidence |
+|---|---|---|
+| S1 | **Fixed** | See the verification below |
+| S2 | Open, non-blocking | Unchanged by design (AC-4.6). Less urgent now that the runbook no longer trusts the profile phone |
+| S3 | **Fixed** (pending B17/Q7) | The suggested sentence appears word for word in `content.constants.ts`, and `privacy.test.tsx` checks it |
+| S4 | Open, non-blocking | Unchanged |
+
+### S1 verification
+
+**The rule.** After normalising, and after the second "unchanged" return, the change is refused with `insufficient_aal` when all of these hold:
+- `new.role='admin'`
+- `auth.uid() is not null`
+- `old.status <> 'invited'`
+- `aal` is distinct from `aal2`
+
+This covers any change to an admin row, which is stricter than asked.
+
+**Probes** (all rolled back):
+- a1 at aal1 changing their own phone: `insufficient_aal`.
+- A JWT with no `aal` claim: `insufficient_aal`.
+- a3 at aal1 changing a1's phone: 0 rows.
+- At aal2: succeeds.
+- At aal1, a bio save that resends the same number in display format: saves.
+
+**Exemption (i): no user signed in (null uid).**
+- A null-uid `authenticated` caller can update 0 rows, because both RLS branches need a uid.
+- `complete_onboarding` returns `not_invited`.
+- anon gets `42501`.
+- A token with no `sub` needs the JWT secret to mint.
+- No security-definer writer sets `phone` apart from `complete_onboarding`, which keys on `auth.uid()`.
+- So only superuser and service role can reach it.
+
+**Exemption (ii): `invited` status.**
+- An invited admin's direct PATCH updates 0 rows, because `my_active_role` needs `active`.
+- An active admin calling `complete_onboarding` again gets `not_invited`.
+- No path sets a row back to `invited`.
+- So it is reachable only through `complete_onboarding`, once.
+
+**Web:** `insufficient_aal → needsTwoStep` is in the own-key table.
+
+**Runbooks:** both say to call a number held outside the portal.
+
+**E-60 (`staff-client.ts`):** this is a browser-side request filter, not an access control; RLS and `is_admin()` still decide. It adds no data flow and no dependency. No finding.
+
+**New findings:** none.
+
+### Residual risks (round 2)
+
+1. An admin at aal1 can still edit their own non-identity fields. This predates item 4 and is low impact.
+2. A tutor can change their own phone at aal1. Accepted, because no procedure uses the profile phone. Any future phone-based check must call a number held outside the portal.
+3. A tutor promoted to admin keeps the number they set. The runbook rule covers this.
+4. Statement logging, if it is ever turned up, could capture values.
+5. The migration was edited in place before merge. Any later change must be a new migration.
+6. At release: confirm on hosted that the migration is applied, and run the production-build grep.
