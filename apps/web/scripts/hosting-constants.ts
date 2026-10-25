@@ -10,8 +10,11 @@ export const HOSTED_PROJECT_REF = new URL(HOSTED_SUPABASE_ORIGIN).hostname.split
 /** The local Supabase API. Must match the [api] port in supabase/config.toml. */
 export const LOCAL_SUPABASE_ORIGIN = 'http://127.0.0.1:55321';
 
-/** Vercel source for the public CSP: every path except the portal and its fallback page. */
-export const PUBLIC_CSP_SOURCE = '/((?!portal(?:/|$)|__spa-fallback).*)';
+/**
+ * Vercel source for the public CSP: every path except the portal and its fallback page. The
+ * fallback is matched exactly (`$`): it has its own rule with the portal headers (security S1).
+ */
+export const PUBLIC_CSP_SOURCE = '/((?!portal(?:/|$)|__spa-fallback$).*)';
 
 /** Port the local production mirror listens on. */
 export const MIRROR_PORT = 4173;

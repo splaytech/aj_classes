@@ -424,13 +424,19 @@ default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-
 
 ```json
 {
-  "source": "/((?!portal(?:/|$)|__spa-fallback).*)",
+  "source": "/((?!portal(?:/|$)|__spa-fallback$).*)",
   "headers": [{ "key": "Content-Security-Policy", "value": "<public policy>" }]
 }
 ```
 
 The global rule (HSTS, `nosniff`, `X-Frame-Options`, `Referrer-Policy`) and the portal rule are
 byte-for-byte unchanged (AC-5.5, AC-5.6).
+
+**Amended after the item 5 security review (S1):** a `/__spa-fallback` rule, placed before the
+portal rule, sends the identical portal CSP, `X-Robots-Tag: noindex, nofollow` and
+`Cache-Control: no-store`. Vercel matches header rules on the requested path, so without it a
+direct request to the fallback got no CSP at all. The lookahead ends `__spa-fallback$`, so it
+excludes exactly that path.
 
 **`serve.railway.json`**: append `{ "key": "Content-Security-Policy", "value": "<public policy>" }`
 as the **last** header of the existing `**/*` rule. That rule stays first, before
@@ -453,7 +459,7 @@ portal fallback ends with the portal CSP only (02b §5.3).
 export const HOSTED_SUPABASE_ORIGIN = 'https://unzjnxctkyahtmrkinyr.supabase.co'; // must match vercel.json / serve.railway.json
 export const HOSTED_PROJECT_REF = new URL(HOSTED_SUPABASE_ORIGIN).hostname.split('.')[0] ?? '';
 export const LOCAL_SUPABASE_ORIGIN = 'http://127.0.0.1:55321'; // must match supabase/config.toml [api] port
-export const PUBLIC_CSP_SOURCE = '/((?!portal(?:/|$)|__spa-fallback).*)';
+export const PUBLIC_CSP_SOURCE = '/((?!portal(?:/|$)|__spa-fallback$).*)';
 export const MIRROR_PORT = 4173;
 ```
 
@@ -604,6 +610,7 @@ blocking, so a policy gap still shows as a violation. Item 6 adds the automated 
    - `curl -sI https://ajclasses.com.au/` and `…/programmes/vce` show the public CSP;
    - `curl -sI https://ajclasses.com.au/nope` shows it on the 404;
    - `curl -sI https://ajclasses.com.au/portal/login | grep -ci '^content-security-policy:'` = 1, the portal one;
+   - `curl -sI https://ajclasses.com.au/__spa-fallback | grep -ci '^content-security-policy:'` = 1, the portal one, with `noindex` and `no-store` (security S1, [06-security-item-5](06-security-item-5.md));
    - `curl -sI https://ajclasses.com.au/_vercel/insights/script.js` → 200;
    - live home page in Chrome: 0 CSP violations for the analytics script and beacon (AC-5.4);
    - `curl -sI https://ajclasses.com.au/ | grep -i strict-transport` present (AC-5.6).

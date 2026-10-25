@@ -5,6 +5,8 @@
 
 import { describe, expect, it } from 'vitest';
 
+import { APP_CONFIG } from '@/constants';
+
 import { HOSTED_SUPABASE_ORIGIN, PUBLIC_CSP_SOURCE } from '../scripts/hosting-constants.ts';
 import railway from '../serve.railway.json';
 import vercel from '../vercel.json';
@@ -13,6 +15,9 @@ const CSP = 'Content-Security-Policy';
 
 // The portal CSP as it was before item 5 (vercel.json at fb738ea). AC-5.5: unchanged.
 const PORTAL_CSP_BEFORE_ITEM_5 = `default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: ${HOSTED_SUPABASE_ORIGIN}; connect-src 'self' ${HOSTED_SUPABASE_ORIGIN}; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'`;
+
+// The whole public policy, pinned so any change to it is deliberate (ADR-0005 decision 1).
+const PUBLIC_CSP = `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ${HOSTED_SUPABASE_ORIGIN} https://api.web3forms.com https://app.convertkit.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`;
 
 // The global Vercel headers as they were before item 5. AC-5.6: unchanged.
 const GLOBAL_HEADERS_BEFORE_ITEM_5 = [
@@ -49,12 +54,29 @@ function directives(policy: string): Record<string, string[]> {
 const publicVercel = cspOf(ruleFor(vercel.headers, PUBLIC_CSP_SOURCE));
 const publicRailway = cspOf(ruleFor(railway.headers, '**/*'));
 const portalVercel = cspOf(ruleFor(vercel.headers, '/portal/:path*'));
+const fallbackVercel = cspOf(ruleFor(vercel.headers, '/__spa-fallback'));
 const portalRailway = cspOf(ruleFor(railway.headers, '__spa-fallback.html'));
 
 describe('public CSP (ADR-0005)', () => {
   it('is identical on Vercel and Railway, and so is the portal CSP (AC-5.7)', () => {
     expect(publicRailway).toBe(publicVercel);
     expect(portalRailway).toBe(portalVercel);
+    expect(fallbackVercel).toBe(portalVercel);
+  });
+
+  it('is exactly the agreed policy (AC-5.2)', () => {
+    expect(publicVercel).toBe(PUBLIC_CSP);
+  });
+
+  it('lets the site reach the Web3Forms and Kit addresses it actually uses', () => {
+    const connectSources = directives(publicVercel)['connect-src'] ?? [];
+    const usedOrigins = [APP_CONFIG.form.endpoint, APP_CONFIG.newsletter.kitFormUrl].map(
+      (url) => new URL(url).origin,
+    );
+
+    for (const origin of usedOrigins) {
+      expect(connectSources).toContain(origin);
+    }
   });
 
   it('names the hosted Supabase origin and nothing local or wildcard (AC-5.1, AC-5.2)', () => {
@@ -86,8 +108,9 @@ describe('public CSP (ADR-0005)', () => {
     ]);
   });
 
-  it('leaves the portal CSP as it was (AC-5.5)', () => {
+  it('leaves the portal CSP as it was, and sends the same one on the fallback (AC-5.5)', () => {
     expect(portalVercel).toBe(PORTAL_CSP_BEFORE_ITEM_5);
+    expect(fallbackVercel).toBe(PORTAL_CSP_BEFORE_ITEM_5);
   });
 
   it('puts the public CSP before the portal fallback on Railway, so the portal one wins', () => {
@@ -99,7 +122,15 @@ describe('public CSP (ADR-0005)', () => {
   it('applies the public rule on Vercel to every path except the portal and its fallback', () => {
     const matches = (path: string) => new RegExp(`^${PUBLIC_CSP_SOURCE}$`).test(path);
 
-    for (const path of ['/', '/privacy', '/posts', '/programmes/vce', '/nope', '/portalx']) {
+    for (const path of [
+      '/',
+      '/privacy',
+      '/posts',
+      '/programmes/vce',
+      '/nope',
+      '/portalx',
+      '/__spa-fallbackx',
+    ]) {
       expect(matches(path), path).toBe(true);
     }
     for (const path of ['/portal', '/portal/', '/portal/login', '/__spa-fallback']) {

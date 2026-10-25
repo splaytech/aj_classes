@@ -35,8 +35,12 @@ Two more facts shape the decision:
    The policy still blocks foreign scripts, exfiltration through fetch or images, off-site form
    posts, plugins, `<base>` hijacking and framing.
 3. **The rules never overlap.**
-   - In `vercel.json`, the public CSP goes on `source: "/((?!portal(?:/|$)|__spa-fallback).*)"`.
+   - In `vercel.json`, the public CSP goes on `source: "/((?!portal(?:/|$)|__spa-fallback$).*)"`.
      The portal rule is unchanged.
+   - Amended 26 Oct 2026 ([item 5 security review](../delivery/2026-10-25-pending-requirements/06-security-item-5.md) S1):
+     Vercel matches header rules on the requested path, so a direct request to `/__spa-fallback`
+     got no CSP at all. A `/__spa-fallback` rule now sends the identical portal CSP, `noindex` and
+     `no-store`, and the lookahead excludes exactly that path (`__spa-fallback$`).
    - In `serve.railway.json`, the public CSP goes on `**/*`, placed before the
      `__spa-fallback.html` rule. `serve` takes the last value for a key, so portal files get only
      the portal CSP.
