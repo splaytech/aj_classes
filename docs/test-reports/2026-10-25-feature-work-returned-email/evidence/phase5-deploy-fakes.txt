@@ -1,0 +1,56 @@
+== E-62 dry
+exit=1
+✖ NOTIFY_WORKER_SECRET is the local value from config.toml. Use a real secret for the hosted project.
+calls=absent
+== E-62 real
+exit=1
+✖ NOTIFY_WORKER_SECRET is the local value from config.toml. Use a real secret for the hosted project.
+calls=absent
+== E-63
+exit=0
+  Hosted function settings checked: no local values, NOTIFY_WORKER_SECRET as deployed, EMAIL_TRANSPORT=resend, SITE_URL=https://ajclasses.com.au
+link --project-ref unzjnxctkyahtmrkinyr --password fake-db-BBB
+config push --project-ref unzjnxctkyahtmrkinyr
+db push --password fake-db-BBB
+functions deploy account-admin --project-ref unzjnxctkyahtmrkinyr
+functions deploy leads --project-ref unzjnxctkyahtmrkinyr
+functions deploy notifications --project-ref unzjnxctkyahtmrkinyr
+secrets set --project-ref unzjnxctkyahtmrkinyr ALLOWED_ORIGINS=https://ajclasses.com.au,https://staging.ajclasses.com.au EMAIL_TRANSPORT=resend SITE_URL=https://ajclasses.com.au NOTIFY_WORKER_SECRET=fake-notify-EEE RESEND_API_KEY=re_fake_DDD
+secrets unset --project-ref unzjnxctkyahtmrkinyr ZOHO_ACCOUNTS_URL ZOHO_API_URL MAILPIT_URL ZOHO_LEAD_SOURCE
+secrets list --project-ref unzjnxctkyahtmrkinyr -o json
+== E-64a
+exit=1
+✖ MAILPIT_URL is still set on the hosted project (a local-only value). Run again after removing it: supabase secrets unset MAILPIT_URL.
+last=secrets list --project-ref unzjnxctkyahtmrkinyr -o json
+== E-64b
+exit=1
+✖ EMAIL_TRANSPORT on the hosted project isn't 'resend'.
+last=secrets list --project-ref unzjnxctkyahtmrkinyr -o json
+== E-64c
+exit=1
+✖ EMAIL_TRANSPORT on the hosted project isn't 'resend'.
+last=secrets list --project-ref unzjnxctkyahtmrkinyr -o json
+== E-64d
+exit=1
+✖ SITE_URL on the hosted project isn't https://ajclasses.com.au.
+last=secrets list --project-ref unzjnxctkyahtmrkinyr -o json
+== E-64e
+exit=1
+✖ NOTIFY_WORKER_SECRET on the hosted project isn't the value you deployed (missing, or the local one).
+last=secrets list --project-ref unzjnxctkyahtmrkinyr -o json
+== E-94a
+exit=1
+✖ NOTIFY_WORKER_SECRET on the hosted project isn't the value you deployed (missing, or the local one).
+last=secrets list --project-ref unzjnxctkyahtmrkinyr -o json
+== E-94b
+exit=1
+✖ NOTIFY_WORKER_SECRET on the hosted project isn't the value you deployed (missing, or the local one).
+last=secrets list --project-ref unzjnxctkyahtmrkinyr -o json
+== E-94c
+exit=0
+  Hosted function settings checked: no local values, NOTIFY_WORKER_SECRET as deployed, EMAIL_TRANSPORT=resend, SITE_URL=https://ajclasses.com.au
+== E-65
+exit=1
+✖ Sign-ups are still ON. Turn them off (Dashboard → Authentication → Sign In / Providers → 'Allow new users to sign up' off), then run this again. Nothing else was changed.
+link --project-ref unzjnxctkyahtmrkinyr --password fake-db-BBB
+config push --project-ref unzjnxctkyahtmrkinyr

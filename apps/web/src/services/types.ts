@@ -151,6 +151,31 @@ export type PublicPost = Pick<Post, 'id' | 'publishedAt' | 'title' | 'body'>;
 /** What the compose/edit form on the admin page sends. */
 export type PostInput = { title: string; body: string };
 
+/** A student's or parent's email switches (Account → Notifications; ADR-0004). */
+export type NotificationSettings = { workReturned: boolean };
+
+/** One row of the admin Emails page: a "work returned" email that failed or is still waiting. */
+export type EmailProblemState = 'failed' | 'waiting';
+export type EmailProblemReason =
+  | 'rejected'
+  | 'rate_limited'
+  | 'server_error'
+  | 'network'
+  | 'no_address'
+  | 'max_attempts'
+  | 'config_missing'
+  | 'daily_limit'
+  | 'retrying'
+  | 'not_attempted';
+export type EmailProblem = {
+  id: string;
+  at: string; // ISO; when the work was returned (the row was queued)
+  recipientRole: 'student' | 'parent';
+  assignmentTitle: string;
+  state: EmailProblemState;
+  reason: EmailProblemReason;
+};
+
 export type ActivityAction =
   | 'invite_sent'
   | 'invite_resent'

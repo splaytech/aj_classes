@@ -1,0 +1,16 @@
+E-60: syntax=0 envdeploy=absent bins=$F/bin/supabase $F/bin/curl /usr/bin/jq /usr/bin/shasum 
+E-61: exit=0 sentinels=0 steps=6 set=1 unset_mailpit=1 wouldcheck=1 vault=1 snippet=1 notif=1 calls=absent
+E-62 dry: exit=1 ✖ NOTIFY_WORKER_SECRET is the local value from config.toml.  calls=absent
+E-62 real: exit=1 ✖ NOTIFY_WORKER_SECRET is the local value from config.toml.  calls=absent
+E-63: exit=0   Hosted function settings checked: no local values, NOTIFY_WORKER_SECRET as deployed, EMAIL_TRANSPORT=resend, SITE_URL=https://ajclasses.com.au
+link --project-ref unzjnxctkyahtmrkinyr;config push --project-ref;db push --password;functions deploy account-admin;functions deploy leads;functions deploy notifications;secrets set --project-ref;secrets unset --project-ref;secrets list --project-ref;
+1
+E-64a: exit=1 ✖ MAILPIT_URL is still set on the hosted project (a local-only value). | last=secrets list
+E-64b: exit=1 ✖ EMAIL_TRANSPORT on the hosted project isn't 'resend'. | last=secrets list
+E-64c: exit=1 ✖ EMAIL_TRANSPORT on the hosted project isn't 'resend'. | last=secrets list
+E-64d: exit=1 ✖ SITE_URL on the hosted project isn't https://ajclasses.com.au. | last=secrets list
+E-64e: exit=1 ✖ NOTIFY_WORKER_SECRET on the hosted project isn't the value you deplo | last=secrets list
+E-94a: exit=1 ✖ NOTIFY_WORKER_SECRET on the hosted project isn't the value you deplo | last=secrets list
+E-94b: exit=1 ✖ NOTIFY_WORKER_SECRET on the hosted project isn't the value you deplo | last=secrets list
+E-94c: exit=0 1
+E-65: exit=1 ✖ Sign-ups are still ON. Turn them off ( calls=[link --project-ref;config push;]

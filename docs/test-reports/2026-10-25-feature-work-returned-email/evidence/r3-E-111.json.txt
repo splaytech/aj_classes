@@ -1,0 +1,12 @@
+{"step":1,"who":"parent","link":"parent-link","url":"/portal/parent/children/id/assignments/id","page":true,"mark":true,"noAccess":false,"header":"","rpc":["200 parent_children","200 parent_child_assignment"],"bad":[],"err":[]}
+{"step":"1-out","signedOut":"/portal/login","err":[]}
+{"step":2,"who":"tutor","link":"parent-link","url":"/portal/parent/children/id/assignments/id","page":false,"mark":false,"noAccess":true,"header":"AJ Classes Staff Local Tutor Tutor Sign out Dashboard Timetable Classes Assignme","rpc":[],"bad":[],"err":[]}
+{"step":"2-out","signedOut":"/portal/login","err":[]}
+{"step":3,"who":"parent","link":"parent-link","url":"/portal/parent/children/id/assignments/id","page":true,"mark":true,"noAccess":false,"header":"","rpc":["200 parent_children","200 parent_child_assignment"],"bad":[],"err":[]}
+{"step":"3-out","signedOut":"/portal/login","err":[]}
+{"step":4,"who":"student","link":"student-link","url":"/portal/student/assignments/id","page":true,"mark":true,"noAccess":false,"header":"","rpc":["200 student_assignment"],"bad":[],"err":[]}
+{"step":"4-out","signedOut":"/portal/login","err":[]}
+{"step":5,"who":"parent","link":"student-link","url":"/portal/student/assignments/id","page":false,"mark":false,"noAccess":true,"header":"AJ Classes Parent Local Parent Parent Sign out My children Account","rpc":[],"bad":[],"err":[]}
+{"step":6,"who":"parent","link":"parent-link","url":"/portal/parent/children/id/assignments/id","page":true,"mark":true,"noAccess":false,"header":"","rpc":["200 parent_children","200 parent_child_assignment"],"bad":[],"err":[]}
+{"step":"6-out","signedOut":"/portal/login","err":[]}
+{"step":7,"signedOutOpen":"/portal/login?next=%2Fpor","rpc":[],"err":[]}

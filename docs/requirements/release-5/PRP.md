@@ -22,6 +22,12 @@ Launch the Flutter mobile app to reach students on their phones, and drive engag
   - Due date approaching
 - Preference centre where users turn individual notification types on or off.
 
+> **Built so far (web, 25 Oct 2026):** the "Feedback returned" email to students and parents, and
+> the first preference switch (Account → Notifications), from the
+> [pending-requirements delivery, item 3](../../delivery/2026-10-25-pending-requirements/03-design.md)
+> (ADR-0004). It uses an outbox table, `pg_cron` and an edge function, which the other triggers
+> (new assignment, due date approaching) reuse. Push notifications are out of scope.
+
 ## Architecture Mapping
 
 | Concern | Component |

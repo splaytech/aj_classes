@@ -48,7 +48,10 @@ production — there is one database, not two. The web app talks to it via `@sup
   enforced by row-level security — e.g. a student can only read the `assignments` rows for
   classes they're enrolled in; admins and tutors have broader access.
 * **Storage:** the `avatars` bucket.
-* **Edge Functions:** `leads` (public `submit`, admin `resync` — see below) and `account-admin`.
+* **Edge Functions:** `leads` (public `submit`, admin `resync` — see below), `account-admin`, and
+  `notifications` (sends the "work returned" emails; called only by `pg_cron`, see §7).
+* **Scheduled jobs:** `pg_cron` runs `email-worker-kick` every 5 minutes (calls `notifications`
+  through `pg_net` when emails are waiting) and a daily trim (cron log to 7 days; sent, skipped and failed emails after 90 days).
 
 **5. Lead capture (Zoho CRM Free)**
 
@@ -70,6 +73,12 @@ Payments are PayID / bank transfer today — no Stripe integration exists yet.
 
 All auth-related email (invites, password resets, confirmations) is sent via **Resend**, configured
 against the `ajclasses.com.au` domain.
+
+App email (ADR-0004): the **"work returned"** email to students and parents. A trigger queues it in
+`email_outbox` when staff return work; the `notifications` edge function sends it through Resend's
+HTTP API (Mailpit locally). The app sends at most **70 in any rolling 24 hours**, leaving at least
+30 of Resend Free's 100 a day for sign-in email. Families turn it off in Account → Notifications;
+admins see failed and waiting sends in Admin → Emails.
 
 This is a solo-developer-friendly setup: one hosted Postgres/Auth backend (Supabase), one hosting
 platform for the web app (Vercel), and a small set of managed SaaS tools (Zoho CRM/Invoice, Resend,
@@ -109,7 +118,8 @@ flowchart TD
 
     %% Managed Backend
     subgraph BackendLayer [4. Supabase - Sydney, one hosted project]
-        G <-->|API| H(Supabase Edge Functions: leads, account-admin):::backend
+        G <-->|API| H(Supabase Edge Functions: leads, account-admin, notifications):::backend
+        J -->|pg_cron every 5 min, pg_net| H
         G <-->|API| I[Auth / GoTrue]:::backend
         H <--> J[(PostgreSQL + RLS)]:::backend
         G <--> K[Storage: avatars bucket]:::backend
@@ -118,6 +128,7 @@ flowchart TD
     %% External Services
     subgraph ExternalLayer [5. External Services]
         I -->|Auth emails| L[Resend]:::external
+        H -->|Work returned emails, max 70 per 24 h| L
         H -->|Lead upsert| N[Zoho CRM Free]:::external
         N -->|Convert on enrolment| O[Zoho Invoice - customer portal]:::external
         G -->|Spam protection on forms| P[Cloudflare Turnstile]:::external

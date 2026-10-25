@@ -27,10 +27,34 @@ select throws_ok(
 select throws_ok(
   $$ insert into public.posts (title, body) values ('Title', repeat('x', 5001)) $$,
   '23514', null, 'A body over 5000 characters is refused');
+select throws_ok(
+  $$ insert into public.posts (title, body) values ('   ', 'Body') $$,
+  '23514', null, 'A title of only spaces is refused');
+select throws_ok(
+  $$ insert into public.posts (title, body) values ('Title', E'  \n\t\r\n ') $$,
+  '23514', null, 'A body of only spaces and line breaks is refused');
+select throws_ok(
+  $$ insert into public.posts (title, body) values (' ' || repeat('x', 120), 'Body') $$,
+  '23514', null, 'Padding can''t take a title past 120 characters');
+select lives_ok(
+  $$ insert into public.posts (id, title, body) values
+       ('00000000-0000-0000-0000-00000000f009', repeat('x', 120), E'Line one\n\nLine two') $$,
+  'A 120-character title and a body with inner line breaks are fine');
+delete from public.posts where id = '00000000-0000-0000-0000-00000000f009';
 
 -- Visitors: can read, cannot write
 select tests.authenticate_as_anon();
 select is((select count(*)::int from public.posts), 2, 'Visitors can read every post');
+select results_eq(
+  $$ select title from public.posts order by created_at $$,
+  $$ values ('First day back'), ('Exam tips') $$,
+  'Visitors read the public columns');
+select lives_ok($$ select id, created_at, updated_at, title, body from public.posts $$,
+  'Visitors can read id, created_at, updated_at, title and body');
+select throws_ok($$ select author_id from public.posts $$, '42501', null,
+  'Visitors can''t read who wrote a post');
+select throws_ok($$ select * from public.posts $$, '42501', null,
+  'Visitors can''t read every column with select *');
 select throws_ok(
   $$ insert into public.posts (title, body) values ('Spam', 'Buy now') $$,
   '42501', null, 'Visitors cannot add posts');
@@ -45,6 +69,7 @@ reset role;
 -- Non-admin authenticated: can read (public policy), cannot write
 select tests.authenticate_as('00000000-0000-0000-0000-0000000000b1');
 select is((select count(*)::int from public.posts), 2, 'A tutor can read every post');
+select lives_ok($$ select author_id from public.posts $$, 'Signed-in staff still read every column');
 select throws_ok(
   $$ insert into public.posts (title, body) values ('Spam', 'Buy now') $$,
   '42501', null, 'A tutor cannot add posts');

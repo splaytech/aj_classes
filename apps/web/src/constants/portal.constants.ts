@@ -27,6 +27,7 @@ export const PORTAL_SEO = {
   adminActivity: 'Activity',
   adminEnquiries: 'Enquiries',
   adminPosts: 'Posts',
+  adminEmails: 'Emails',
   twoStepSetup: 'Set up two-step sign-in',
   tutor: 'Dashboard',
   admin: 'Admin',
@@ -250,6 +251,16 @@ export const ACCOUNT_PAGE = {
     saving: 'Saving…',
     saved: 'Your choices are saved.',
   },
+  // Students and parents only (AC-3.6). The id is the target of the link in every email.
+  notifications: {
+    id: 'notifications',
+    heading: 'Notifications',
+    intro: 'Emails we send about schoolwork.',
+    workReturned: 'Email me when work is marked and returned',
+    save: 'Save',
+    saving: 'Saving…',
+    saved: "Saved. We'll remember this choice.",
+  },
   signedInAs: 'Signed in as',
   role: 'Role',
   password: {
@@ -368,6 +379,7 @@ export const ADMIN_DASHBOARD = {
     timetable: 'Timetable',
     enquiries: 'Enquiries',
     posts: 'Posts',
+    emails: 'Emails',
     activity: 'Activity',
   },
   recent: {
@@ -627,6 +639,35 @@ export const ACTIVITY_PAGE = {
   student: (name: string) => `Student: ${name}`,
   someone: 'Someone',
   listSeparator: ' · ',
+} as const;
+
+// Admin → Emails (AC-3.8; ADR-0004). Reason keys must match the codes admin_email_problems returns.
+export const EMAILS_PAGE = {
+  heading: 'Emails',
+  intro:
+    '"Work returned" emails that failed, or haven\'t gone out about 2 hours after the work was returned. Sent emails aren\'t listed.',
+  columns: {
+    when: 'When',
+    recipient: 'Recipient',
+    assignment: 'Assignment',
+    state: 'State',
+    reason: 'Reason',
+  },
+  roles: { student: 'Student', parent: 'Parent' },
+  states: { failed: 'Failed', waiting: 'Waiting' },
+  reasons: {
+    rejected: 'Rejected by email service',
+    rate_limited: 'Email service busy',
+    server_error: 'Email service error',
+    network: "Couldn't reach email service",
+    no_address: 'Recipient address missing',
+    max_attempts: 'Gave up after 3 tries',
+    config_missing: 'Set-up error',
+    daily_limit: 'Daily limit',
+    retrying: 'Retrying',
+    not_attempted: 'Not attempted',
+  },
+  empty: 'No failed or waiting emails',
 } as const;
 
 export const DAYS_OF_WEEK = [1, 2, 3, 4, 5, 6, 7] as const; // ISO: 1 = Monday

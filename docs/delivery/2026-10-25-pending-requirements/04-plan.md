@@ -135,7 +135,7 @@ Rules:
    `migration new` stamps the **UTC** time: `20261025110000` is 25 Oct 22:00 AEDT, so a file made
    earlier than that sorts before item 3's. **Check and act:** run `ls supabase/migrations | tail -2`.
    If the new file isn't last, `git mv` it to a timestamp one minute after the newest file on
-   `develop` (e.g. `20261025110100_assignment_files.sql`), then `pnpm db:reset`. Do the same check
+   `develop` (e.g. `20261025110200_assignment_files.sql`), then `pnpm db:reset`. Do the same check
    again at release time against every migration on `develop` and on hosted, and rename again if
    items 4–9 added newer ones meanwhile.
 4. **When B3 is approved (item 2 release):** merge the latest `develop` into the branch, apply
@@ -249,8 +249,8 @@ Design: 03 §3 (31 files). Migration `20261025110000_work_returned_email.sql` (0
 function `notifications` (03 §3.4). All email goes to the local Mailpit
 (`http://127.0.0.1:55324`). Nothing in this item runs against the hosted project.
 
-- [ ] **T3.0 Branch.** `git checkout develop && git pull --ff-only && git checkout -b feature/work-returned-email && pnpm db:start`.
-- [ ] **T3.1 Switch, outbox and trigger.** Files: 03 §3.1 #1 migration steps 1–5 (extensions,
+- [x] **T3.0 Branch.** `git checkout develop && git pull --ff-only && git checkout -b feature/work-returned-email && pnpm db:start`.
+- [x] **T3.1 Switch, outbox and trigger.** Files: 03 §3.1 #1 migration steps 1–5 (extensions,
   `notification_settings` + RLS, `email_outbox`, helpers, `queue_work_returned_email` trigger) with
   their grants; #2 `email_outbox.test.sql` (starts with `delete from public.email_outbox`). Tests:
   AC-3.1 (paper and online returns queue student + both parents), AC-3.2 (every no-recipient case
@@ -260,7 +260,7 @@ function `notifications` (03 §3.4). All email goes to the local Mailpit
   item 2's; then the rule 3 `ls … | tail -2` check) instead of `20261025110000`, and add the file hand-in return case here (former
   T2.11). Visible: return work as
   `tutor@local.test` in the local portal → rows appear in Studio. Run: `pnpm db:reset && pnpm db:test`.
-- [ ] **T3.2 Worker RPCs, cron kick, admin list.** Files: #1 steps 6–9 (`notify_claim_emails`,
+- [x] **T3.2 Worker RPCs, cron kick, admin list.** Files: #1 steps 6–9 (`notify_claim_emails`,
   `notify_record_result`, `notify_flag_config_missing`, `kick_email_worker` + both cron jobs,
   `admin_email_problems`, grants); #8 `seed.sql` (local Vault entries, 03 §3.6). Confirm container
   hostnames with `select net.http_get('http://supabase_kong_aj_classes:8000/functions/v1/notifications')`
@@ -269,13 +269,13 @@ function `notifications` (03 §3.4). All email goes to the local Mailpit
   AC-3.8 (refused for non-admins and aal1; failed/waiting rows with every reason; no email/body
   column; newest first), AC-3.2 (after each no-recipient return from T3.1, `admin_email_problems`
   returns 0 rows), AC-3.10 (`authenticated` can't execute `notify_*`). Run: `pnpm db:reset && pnpm db:test`.
-- [ ] **T3.3 Transport, template and copy.** Files: #4 `transport.ts`, #5 `template.ts`, #6
+- [x] **T3.3 Transport, template and copy.** Files: #4 `transport.ts`, #5 `template.ts`, #6
   `copy.ts`; #9 `test-notifications.mjs` with the Node unit block at the top. Tests: `pickTransport`
   null for unset / `''` / `smtp` / `Resend` / resend without key (AC-3.11); `resendRequest` headers
   (`Idempotency-Key`, `Authorization`); `outcomeForStatus` 200/429/409/500/422; `shouldStopBatch`;
   `renderWorkReturned` subject/body/button, no mark (AC-3.3), links (AC-3.4), footer link
   (AC-3.6). Run: `node supabase/scripts/test-notifications.mjs`.
-- [ ] **T3.4 Worker function and end-to-end script.** Files: #3 `functions/notifications/index.ts`,
+- [x] **T3.4 Worker function and end-to-end script.** Files: #3 `functions/notifications/index.ts`,
   #7 `config.toml` (`verify_jwt = false`, local secrets), #12 `/package.json` (`test:functions`
   appends the script); #9 end-to-end part, in this order (03 §3.10 steps 0–6):
   1. print the recovery command;
@@ -294,34 +294,34 @@ function `notifications` (03 §3.4). All email goes to the local Mailpit
   work in the portal → email in Mailpit within 5 minutes; signed out, open its **View feedback**
   link → sign-in → lands on the student's (and, from the parent email, the parent's) assignment
   page (AC-3.4 browser leg). Run: `pnpm test:functions`.
-- [ ] **T3.5 Account → Notifications.** Files: #13 `notifications.service.ts` (get; save as
+- [x] **T3.5 Account → Notifications.** Files: #13 `notifications.service.ts` (get; save as
   update-then-insert, **no upsert**, review-3 finding 2), #14 `types.ts`, #15 `services/index.ts`,
   #16 `database.types.ts` (`pnpm db:types`), #17 `account.tsx`, #18 `account.module.css` (only if
   needed), #23 `portal.constants.ts` (`ACCOUNT_PAGE.notifications`). Test (browser, AC-3.6):
   shown to student and parent, not staff; on by default; first Save **and** second Save show
   "Saved…"; survives sign-out. Run: `pnpm db:types && pnpm typecheck && pnpm test`.
-- [ ] **T3.6 Admin Emails page.** Files: #19 `admin-emails.tsx`, #20 `routes.ts`, #21
+- [x] **T3.6 Admin Emails page.** Files: #19 `admin-emails.tsx`, #20 `routes.ts`, #21
   `admin-dashboard.tsx` (`SHORTCUTS`), #22 `routes.constants.ts`, #23 (`PORTAL_SEO.adminEmails`,
   `ADMIN_DASHBOARD.shortcuts.emails`, `EMAILS_PAGE`), #24 `lib/email-problems.ts`, #25 its test.
   Tests: `email-problems.test.ts` (every state, reason and role labelled, AC-3.8); browser:
   empty state "No failed or waiting emails"; tutor return with
   `docker stop supabase_edge_runtime_aj_classes` shows no error (AC-3.7). Run:
   `pnpm --filter web exec vitest run src/lib/email-problems.test.ts`.
-- [ ] **T3.7 `deploy.sh`.** File: #10 (03 §3.6 steps 1–4: require a non-local
+- [x] **T3.7 `deploy.sh`.** File: #10 (03 §3.6 steps 1–4: require a non-local
   `NOTIFY_WORKER_SECRET`, append only `notifications` to `FUNCTIONS`, one `secrets set` then
   `unset` last with `MAILPIT_URL` in `local_only`, digest check skipped under `--dry-run`, print the
   Vault SQL). Test: `bash -n supabase/scripts/deploy.sh`;
   `supabase/scripts/deploy.sh --dry-run` prints the new steps in order;
   `NOTIFY_WORKER_SECRET=local-notify-secret supabase/scripts/deploy.sh --dry-run` exits non-zero.
   **Never run it without `--dry-run`**: the real run is Saurabh's (§6.3).
-- [ ] **T3.8 Privacy sentence and docs.** Files: #26 `PRIVACY` (the 03 §3.8 sentence only;
+- [x] **T3.8 Privacy sentence and docs.** Files: #26 `PRIVACY` (the 03 §3.8 sentence only;
   `[TBC: B17]` is a marker in the docs, never in code: no literal "[TBC…]" and no TODO in the
   constant, per KINET `no-todo-without-ticket`; the B17 approval is tracked as Q7 and in §6.3),
   #31 `privacy.test.tsx` (sentence renders), #11 `supabase/README.md` (local email flow, Vault
   runbook, kill switch, recovery command, AC-3.11 check), #27 `arch.md`, #28 `budget.md`, #29
   `release-5/PRP.md`, #30 `release-2/go-live.md` (item 3 release steps as unticked boxes; Saurabh
   ticks them on release). Run: `pnpm --filter web exec vitest run src/routes/privacy.test.tsx && pnpm format:check`.
-- [ ] **T3.9 Full check.** Run:
+- [x] **T3.9 Full check.** Run:
   `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && VITE_APP_ENV=production pnpm build && pnpm db:test && pnpm test:functions`.
   Plus the item 1 bundle check (03 §1.6) still prints only `done`.
 - [ ] **T3.10 Pipeline.** `review-5-item-3.md` → `06-test-plan-item-3.md` + `06-security-item-3.md`
@@ -340,8 +340,8 @@ Design: 03 §2 (48 files). Migration created in T2.0 (name per §2 rule 3), edge
 
 - [ ] **T2.0 Branch and migration file.** `git checkout develop && git pull --ff-only && git checkout -b feature/homework-file-uploads && supabase migration new assignment_files`.
   Then `ls supabase/migrations | tail -2`: if the new file isn't last (UTC stamp earlier than
-  `20261025110000`), `git mv` it to one minute after the newest file on `develop` (e.g.
-  `20261025110100_assignment_files.sql`) and `pnpm db:reset` (§2 rule 3).
+  `20261025110100`, item 3's posts migration), `git mv` it to one minute after the newest file on `develop` (e.g.
+  `20261025110200_assignment_files.sql`) and `pnpm db:reset` (§2 rule 3).
 - [ ] **T2.1 The flag (DB).** Files: 03 §2.1 #1 migration steps 1–3 only (flag, flag guards,
   `is_online_assignment`) with their step 12 grants (keep 03 §2.2's step order in the file;
   steps 4–11 slot in at T2.2); #2 `assignment_files.test.sql` (first cases); #8 `seed.sql` (the
@@ -491,8 +491,9 @@ item 3 Privacy sentence; B1 done first, or released together at this SHA. Releas
 2. `git fetch && git checkout -b release/work-returned-email <item-3 SHA>`; from that branch:
    `supabase/scripts/deploy.sh` (migration, enables `pg_cron`/`pg_net`, the `notifications`
    function, secrets). Confirm the digest check passed.
-3. Merge `release/work-returned-email` (the same SHA, not `develop`) into `main` through a PR.
-4. Run the Vault SQL that `deploy.sh` prints, in Dashboard → SQL Editor.
+3. Straight after the deploy, before merging: run the Vault SQL that `deploy.sh` prints, in
+   Dashboard → SQL Editor (review-5 R2-3).
+4. Merge `release/work-returned-email` (the same SHA, not `develop`) into `main` through a PR.
 5. AC-3.11 check (03 §3.7): test family, a test tutor returns one paper assignment, both emails
    arrive within 5 minutes, `/portal/admin/emails` is empty. Delete the test class.
 6. Tick the item 3 boxes in `docs/requirements/release-2/go-live.md`.
@@ -508,7 +509,10 @@ item 3 Privacy sentence; B1 done first, or released together at this SHA. Releas
    admin storage-usage view, HEIC support if testing needs it, orphan-file sweep.
 3. **Item 3:** "new assignment" and "due tomorrow" emails (item 8), daily digest, SMS, push
    (mobile), tutor-side alerts, `List-Unsubscribe` header, emails for auto-returned MCQ quizzes,
-   a "release" outcome that keeps the attempt count on 429.
+   a "release" outcome that keeps the attempt count on 429 or a network stop, keeping the
+   `#notifications` hash through sign-in (`safeNextPath` drops it; review-5 D6), a no-login
+   unsubscribe link before any promotional email (Security item 3, finding 5), and moving the
+   local function values to a git-ignored `supabase/functions/.env` (Security finding 2c).
 4. **Programme:** items 4–9 (§1.1), everything blocked in §1.2, the Later bucket, mobile.
 5. **Next migration batch (from item 1 review and security):** item 1 stays migration-free, so
    these ride with the next item that ships a migration (item 3 or 2):

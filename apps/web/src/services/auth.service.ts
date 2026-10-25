@@ -109,9 +109,17 @@ export async function changePassword(newPassword: string, emailedCode?: string):
   });
 }
 
+// The member layout, the area layout and the page's own loader all ask at once (React Router runs
+// a page's loaders in parallel), so a read still in progress is shared: one profile read per page
+// instead of one per loader, and family reads can check the role for free (BUG-9). Only an
+// unfinished read is shared, and only for the same access token, so anything that asks after it
+// finishes (the next page, or straight after finishing setup) always reads afresh.
+let readInProgress: { token: string; state: Promise<AccessState> } | null = null;
+
 /**
  * Who is signed in, their role, and how strongly (password only, or password + code).
- * Read fresh on every private page, so a role change or deactivation applies straight away.
+ * Read fresh on every private page (only a read in progress is shared, above), so a role change
+ * or deactivation applies straight away.
  * Throws if the server can't be reached, so a network blip shows an error rather than
  * signing the person out.
  */
@@ -123,12 +131,22 @@ export async function getAccessState(): Promise<AccessState> {
   const session = sessionData.session;
   if (!session) return SIGNED_OUT;
 
+  if (readInProgress?.token === session.access_token) return readInProgress.state;
+
+  const state = readAccessState(session.user.id, session.user.email ?? '');
+  const current = { token: session.access_token, state };
+  readInProgress = current;
+  const finished = () => {
+    if (readInProgress === current) readInProgress = null;
+  };
+  state.then(finished, finished);
+  return state;
+}
+
+async function readAccessState(userId: string, email: string): Promise<AccessState> {
+  const supabase = await getSupabase();
   const [profileResult, levelResult] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('full_name, role, is_active')
-      .eq('id', session.user.id)
-      .maybeSingle(),
+    supabase.from('profiles').select('full_name, role, is_active').eq('id', userId).maybeSingle(),
     supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
   ]);
   if (profileResult.error) throw profileResult.error;
@@ -141,8 +159,8 @@ export async function getAccessState(): Promise<AccessState> {
 
   return {
     signedIn: true,
-    userId: session.user.id,
-    email: session.user.email ?? '',
+    userId,
+    email,
     profile,
     onboarding,
     aal: levelResult.data?.currentLevel === 'aal2' ? 'aal2' : 'aal1',
