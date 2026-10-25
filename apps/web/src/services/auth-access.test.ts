@@ -32,7 +32,6 @@ vi.mock('./supabase.client', () => ({
 
 beforeEach(() => {
   vi.resetModules();
-  vi.useRealTimers();
   fake.token = 'token-1';
   fake.profileReads = 0;
 });
@@ -53,11 +52,9 @@ describe('getAccessState is shared by one page load (BUG-9: no extra request)', 
     expect(fake.profileReads).toBe(2);
   });
 
-  it('reads afresh on the next page (after the short sharing window)', async () => {
-    vi.useFakeTimers();
+  it('reads afresh once a read has finished (the next page, or straight after finishing setup)', async () => {
     const { getAccessState } = await import('./auth.service');
     await getAccessState();
-    vi.advanceTimersByTime(1500);
     await getAccessState();
     expect(fake.profileReads).toBe(2);
   });
