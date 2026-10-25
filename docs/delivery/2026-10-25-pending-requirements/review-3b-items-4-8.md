@@ -44,3 +44,23 @@ The DST and Melbourne-date SQL was run, rolled back, on the local DB.
     - §14's closing line is stale: it should say "already in AC-8.4".
 
 **Next steps:** fix 1–3 (4–11 optional, same pass), then re-check §6.4/§6.5 and §8.10.
+
+---
+
+APPROVED
+
+# Review 3 — items 4–8 design (03b), round 2
+
+Reviewed `52902e5` (+83/−29) against the 11 findings from round 1.
+
+All 11 are resolved:
+- **Finding 1, `config.ts`:** the CSP sweep no longer imports it. `hosted-guard.ts` imports only `@playwright/test`, and an import rule covers the whole chain.
+- **Finding 2, the AC-8.6 boundary:** it matches `< today`.
+- **Finding 3, `fair_results`:** its assertions filter by `kind`, and the file is listed in §8.1 row 3a, §8.10 and §15.
+- **Findings 4–11:** done as asked. The October DST false cases were re-run on the local DB.
+
+## New (non-blocking)
+
+1. **Fixtures in the AC-8.7/8.14 rows can be wrongly skipped.** The claim's skip step runs first, so a hand-made `due_tomorrow` row whose assignment has `due_on <> melbourne_date(send_before)` is marked skipped. Add a note to the set-up: such rows use an online assignment that isn't handed in, with a matching `due_on`, and every recipient is still eligible. The team lead applied this note in §8.10.
+
+The design is ready for the Manager.

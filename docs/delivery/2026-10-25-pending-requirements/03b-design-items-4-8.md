@@ -1862,6 +1862,9 @@ to `private.melbourne_date(now())`. It starts with `delete from public.email_out
 again after set-up. Publishing is done as tutor b1 (`tests.authenticate_as`). The cap is replaced
 inside the transaction as item 3's tests do. Time-dependent rows are created with explicit
 `send_before`/`created_at` values; nothing waits on the clock.
+Hand-made rows must still be relevant, so that the claim's skip step leaves them pending:
+- every recipient is still eligible: published assignment, enrolled student, switch on;
+- a hand-made `due_tomorrow` row uses an online assignment with `due_on = melbourne_date(send_before)`, not handed in (review-3b round 2).
 
 | AC | How it's tested | Type / file |
 |---|---|---|
