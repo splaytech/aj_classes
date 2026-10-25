@@ -35,3 +35,19 @@
 .body {
   white-space: pre-wrap;
 }
+
+/* Loading, empty and error lines (ADR-0001): same spacing as the list they stand in for. */
+.status {
+  margin: var(--space-8) 0 0;
+}
+
+.status p {
+  margin: 0;
+}
+
+.status .statusLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
