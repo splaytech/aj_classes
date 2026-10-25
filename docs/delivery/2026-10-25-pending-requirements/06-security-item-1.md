@@ -6,7 +6,9 @@
 > **Method:** I read the code, scanned the committed files and `apps/web/build/` for secrets, and probed the **local** stack
 > only (`127.0.0.1:55321`) with the local publishable and anon keys. I didn't touch the hosted Supabase.
 
-**Verdict: no blocking findings.** Two minor findings and five info notes. One of the info notes (6) is wording for the owner to approve with B1.
+**Verdict: no blocking findings.** Two minor findings (1, and 6, which is resolved) and six info notes.
+
+> **Revised after review-6b** (`review-6b-item-1.md`): F2 re-tagged info, F6 re-tagged minor and marked resolved by `6a03de1`, the env-rule exception named in F4, and the column-privileges query added to F1's evidence.
 
 ---
 
@@ -19,7 +21,25 @@
   (`03-design.md:149`). `routes/posts.tsx:22-27` renders only `publishedAt`, `title` and `body`.
 - **Database side:** the existing migration (`supabase/migrations/20261024120000_posts.sql`, not in this diff) gives
   `anon` a table-wide `SELECT` with `using (true)`. Local `information_schema.column_privileges` confirms that anon
-  can read all 6 columns. So anyone with the publishable key gets the same data from `select=*`, whatever the client sends.
+  can read all 6 columns (query and output below; local DB only). So anyone with the publishable key gets the same data from `select=*`, whatever the client sends.
+  ```sql
+  -- local stack only, run via: docker exec -i supabase_db_aj_classes psql -U postgres -X
+  select column_name, privilege_type
+  from information_schema.column_privileges
+  where grantee = 'anon' and table_schema = 'public' and table_name = 'posts'
+  order by column_name;
+  ```
+  ```
+   column_name | privilege_type
+  -------------+----------------
+   author_id   | SELECT
+   body        | SELECT
+   created_at  | SELECT
+   id          | SELECT
+   title       | SELECT
+   updated_at  | SELECT
+  (6 rows)
+  ```
 - **Exploit scenario:** `GET /rest/v1/posts?select=author_id` returns the admin's `auth.users` UUID. On its own that
   leaks nothing: anon gets 401 on `profiles` and every other table, and anon can't embed `author_id` (curl output below). It is
   still an internal identifier with no public purpose. If a later migration ever adds a public FK or view, it becomes
@@ -30,7 +50,7 @@
   2. New migration: `revoke select on public.posts from anon; grant select (id, created_at, updated_at, title, body) on public.posts to anon;`
      `authenticated` (admin page) is unaffected. Apply it with the next migration batch, after the change in step 1, because a `select=*` from anon would then fail with 401.
 
-### 2. [minor] Every post is public; nothing in the schema stops an unfinished post from going live
+### 2. [info] Every post is public; nothing in the schema stops an unfinished post from going live
 
 - **Evidence:** `posts` has no `published`/`status` column, and the anon policy is `using (true)`. Local probe: anon
   `select=*` returns every row. This matches the requirement ("an admin publishes, shown to every visitor"), so
@@ -55,6 +75,8 @@
 - `apps/web/.env.production` (tracked on purpose) holds `VITE_SUPABASE_URL`, an `sb_publishable_…` key, the
   Turnstile **site** key and a feature flag. All are public by design. Its only `sb_secret_`/`service_role` match is a
   warning comment (line 3).
+- **Accepted exception to rule `env/env-files-should-not-be-tracked`:** public values only, see the file header.
+  It predates this diff. If a secret is ever added to this file, it must move out and be rotated.
 - `apps/web/build/client`: the only `sb_secret_` string is supabase-js's key-prefix check
   (``Ki=e=>e.startsWith(`sb_publishable_`)||e.startsWith(`sb_secret_`)``, `assets/dist-*.js`). It has no token after it.
   The `sb_publishable_` key appears in `assets/constants-*.js`, as expected.
@@ -80,7 +102,7 @@
 - Supabase answers with `Access-Control-Allow-Origin: *` (local probe with `Origin: https://evil.example`). That's expected
   for a public read, and it's why the RLS/grants, not CORS, are the control (see finding 1).
 
-### 6. [info] Privacy-text accuracy: "We don't store it" is not quite true
+### 6. [minor, resolved in `6a03de1`] Privacy-text accuracy: "We don't store it" was not true
 
 - **Evidence:** `apps/web/src/constants/content.constants.ts`, the `PRIVACY` "Who handles it" text (the sentence added in this diff):
   "...shares your IP address and browser type with our database provider (Supabase, Sydney). We don't store it or use
@@ -89,7 +111,9 @@
   the connecting-IP headers (`cf-connecting-ip`, `x-real-ip`) among the request headers attached to API logs. The owner can
   see these logs in the dashboard. "We don't store it" is true of AJ Classes' own tables, but Supabase does keep it for a while, on our behalf.
   Supabase's gateway runs behind Cloudflare, so the request may also pass through Cloudflare's network.
-- **Suggested wording for B1 (owner to approve; I haven't edited the file):**
+- **Why minor:** a privacy policy that makes a wrong public statement is a compliance issue, not just a note.
+- **Resolved:** `6a03de1` applied the wording below. It still needs the owner's B1 approval.
+- **Suggested wording for B1 (owner to approve):**
   > "When you visit a page, your browser asks our database provider (Supabase, Sydney) whether there is any news to show.
   > Like any web request, this sends your IP address and browser type. Supabase keeps these in short-lived
   > technical logs for security and troubleshooting. We don't save them in our own records or use them to identify you."
@@ -148,11 +172,11 @@ columns), and anon can execute no `public` functions.
 | # | Finding | Tag |
 |---|---------|-----|
 | 1 | Public list selects, and anon can read, `author_id` (admin UUID) | minor |
-| 2 | No draft state: every saved post is public at once (by design) | minor |
+| 2 | No draft state: every saved post is public at once (by design) | info |
 | 3 | No XSS or injection path | info |
-| 4 | Only the publishable key ships; no secrets committed or bundled | info |
+| 4 | Only the publishable key ships; no secrets committed or bundled (tracked `.env.production` is an accepted env-rule exception) | info |
 | 5 | Headers unchanged; `connect-src` list for item 5 | info |
-| 6 | Privacy sentence: "We don't store it" should mention Supabase's short-lived logs | info (B1 wording) |
+| 6 | Privacy sentence: "We don't store it" should mention Supabase's short-lived logs | minor, resolved (`6a03de1`; B1 approval pending) |
 | 7 | Request flooding is an availability risk, not a cost risk, on Free; usage alerts advised | info |
 | 8 | No new dependencies | info |
 

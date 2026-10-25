@@ -8,12 +8,15 @@
 > **Next:** `/test-and-ship docs/delivery/2026-10-25-pending-requirements/06-test-plan-item-1.md`
 > freezes this list and runs it. IDs are stable: add new cases at the end, never renumber.
 
-**Build under test:** the `feature/pending-requirements` HEAD at freeze time, which must include
-the 3 review-5 fixes (`1143859`, `a8eb395`, `54b3058` at the time of writing). Record the SHA in
-the TSR.
+**Build under test:** the `feature/pending-requirements` HEAD at freeze time, which must be
+`0e03c5c` or a descendant of it (`git merge-base --is-ancestor 0e03c5c HEAD` exits 0). That covers
+the review-5 fixes (`1143859`, `a8eb395`, `54b3058`), `de58c40`, and the follow-ups `5abe49c`,
+`686bfe5` (AC-1.14 fix), `68460ec` and `6a03de1` (Security). Record the SHA in the TSR.
 
 **Hard rule: local stack only.** Every build runs after the two `export` lines in §1. The hosted
-Supabase project is never read or written. N-01 and N-02 enforce this before anything else runs.
+Supabase project is never read or written. N-01 and N-02 enforce this before anything else runs. N-01 also checks the
+E2E repo's own `.env`, because that suite writes with the service-role key and a direct Postgres
+connection (N-51, N-53, N-61).
 
 ---
 
@@ -86,15 +89,16 @@ the case that needs them, and restored right after:
 Phases run in this order: **1** repo checks, **2** production build with 1 post, **3** portal on
 the dev server, **4** fixtures (0 posts, 201 posts, DB down), **5** other builds. Within a phase,
 run in table order (not ID order). The smoke and regression table runs inside phase 2 (after
-N-20), except N-61, which runs in phase 3.
+N-20), except N-61, which runs in phase 3. In the follow-up table, N-64 and N-65 run in phase 2 and
+N-66 in phase 3 (after N-50).
 
 ### Phase 1 — repo checks and safety guards
 
 | ID | AC | Area | Case | Steps | Expected (measurable) | Env |
 |---|---|---|---|---|---|---|
-| N-01 | §0.3 | Safety | Build env points at local stack | `echo $VITE_SUPABASE_URL; pnpm db:status \| grep -i publishable` | URL is exactly `http://127.0.0.1:55321`; exported key equals the `db:status` key | DB |
+| N-01 | §0.3 | Safety | Build env and E2E env point at the local stack | 1. `echo $VITE_SUPABASE_URL; pnpm db:status \| grep -i publishable`. 2. `grep -E '^(SUPABASE_REST_URL\|PG_HOST\|PG_PORT\|WEB_BASE_URL\|MAILPIT_URL)=' ~/dev/work/aj_classes-e2e/.env`. 3. `grep -c 'supabase.co' ~/dev/work/aj_classes-e2e/.env`. 4. `env \| grep -E '^(SUPABASE_REST_URL\|PG_HOST\|PG_PORT\|WEB_BASE_URL\|MAILPIT_URL)='` (dotenv never overrides shell variables) | 1: URL is exactly `http://127.0.0.1:55321`; exported key equals the `db:status` key. 2: `SUPABASE_REST_URL=http://127.0.0.1:55321`; `PG_HOST` is `127.0.0.1` or `localhost`; `PG_PORT=55322`; `WEB_BASE_URL=http://localhost:5173`; `MAILPIT_URL=http://127.0.0.1:55324`. 3: **0**. 4: no output. **If any check fails, stop the whole run** (no case below may start) and report it | DB |
 | N-02 | §0.3 | Safety | No hosted ref in built JS | After N-03's build: `grep -l unzjnxctkyahtmrkinyr apps/web/build/client/assets/*.js \| wc -l`; `grep -c 127.0.0.1:55321 -r apps/web/build/client/assets \| grep -v ':0' \| wc -l` | First = **0**; second ≥ 1 | P |
-| N-03 | 1.1, 1.15 | Full check | Repo full check | `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && VITE_APP_ENV=production pnpm build && pnpm db:test` | Every step exit 0; lint 0 problems; `pnpm test` 0 failed, ≥ 41 files / ≥ 304 tests (record counts); `db:test` 0 failed (`posts.test.sql` included); `apps/web/build/client/posts/index.html` exists | DB |
+| N-03 | 1.1, 1.15 | Full check | Repo full check | `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && VITE_APP_ENV=production pnpm build && pnpm db:test` | Every step exit 0; lint 0 problems; `pnpm test` 0 failed, ≥ 44 files / ≥ 326 tests (HEAD `0e03c5c`; fewer means a test file was dropped, so fail; record counts); `db:test` 0 failed (`posts.test.sql` included); `apps/web/build/client/posts/index.html` exists | DB |
 | N-04 | 1.12 | Bundle | Public pages preload no supabase-js / MUI | From `apps/web`, run the 03 §1.6 bundle script verbatim | Output is exactly `done`; `$SB` and `$MUI` each non-empty (else the grep found nothing and the check is void) | P |
 | N-05 | 1.1, 1.2, 1.4 | Hosting guard | `vercel.json` / `serve.railway.json` untouched | `git diff c4e9447..HEAD --stat -- apps/web/vercel.json apps/web/serve.railway.json` | Empty output | — |
 
@@ -131,11 +135,11 @@ Precondition: `q "select count(*) from public.posts"` = 1. Start **P**, **R** an
 | N-42 | 1.13 | Permissions | Tutor at admin compose | Sign in `tutor@`, open `/portal/admin/posts` | Text "You don't have access to this page"; 0 Publish buttons; 0 `#post-title` | D |
 | N-43 | 1.13 | Permissions | Student and parent at admin compose | As `student@`, then `parent@`, open `/portal/admin/posts` | Same as N-42 for both (no compose form, no post list) | D |
 | N-44 | 1.13 | Permissions | Admin without two-step can't write | Sign in `newadmin@` | Two-step set-up screen shown; `/portal/admin/posts` not reachable with a working form; `pnpm db:test` (N-03) covers the RLS side | D |
-| N-45 | 1.14 | Invalid input | Empty title and body | As `admin@` on `/portal/admin/posts`: Publish with both empty; then title only; then body only | Nothing inserted (count unchanged each time). **Per AC-1.14 as worded:** an inline message next to the empty field. See ruling §4: today's page-level "Some details aren't valid…" **fails** this case | D |
-| N-46 | 1.14 | Invalid input | Over-long title and body (typed and pasted) | Type 121 chars in title; paste 5,100 chars into body; Publish | Field length stops at 120 / 5000 and the saved row has exactly 120 / 5000 chars (`q "select char_length(title), char_length(body) …"`). **Per AC-1.14 as worded:** an inline message tells the admin. See §4: no message today, so this **fails** the message half | D |
+| N-45 | 1.14 | Invalid input | Empty title and body | As `admin@` on `/portal/admin/posts`, Publish three times: (a) both empty; (b) title filled, body empty; (c) title empty, body filled | Each time: under every empty field its inline message, title "Please enter a title (1–120 characters)." (`POSTS_PAGE.titleLength`), body "Please write the post (1–5000 characters)." (`POSTS_PAGE.bodyLength`); that field has `aria-invalid="true"` and its `aria-describedby` points at the message; on the filled field `aria-invalid` is not `"true"` (the component always sets it, so `"false"` is correct) and `aria-describedby` is absent; **no** page-level alert ("Some details aren't valid…" absent); `q "select count(*) from public.posts"` unchanged | D |
+| N-46 | 1.14 | Invalid input | Over-long title and body (typed and pasted) | Type 121 chars in title; paste 5,100 chars into body; read the body counter; Publish | Title value length 120 and body 5000 (`maxLength`); the body counter reads `5000 / 5000 characters` (`POSTS_PAGE.bodyCount`) after the paste; the save succeeds and the row is exactly 120 / 5000 (`q "select char_length(title), char_length(body) from public.posts order by created_at desc limit 1"`). No inline length message is expected: `maxLength` makes the over-long branch unreachable from the UI, and the counter is the signal. Delete the post afterwards | D |
 | N-47 | 1.14 | Invalid input | DB backstop for over-long | `q "insert into public.posts(title,body) values (repeat('a',121),'x')"`; same with `repeat('a',5001)` body | Both fail with `check constraint` (SQLSTATE 23514); count unchanged | DB |
 | N-48 | 1.14 | Invalid input | Boundary lengths accepted | Publish title of exactly 1 char + body 1 char; then title 120 + body 5000 | Both saved; both show on `localhost:4173/posts` after reload; delete both afterwards | D + P |
-| N-49 | — | Observation | Whitespace-only title | Publish title `   ` (3 spaces), body `x` | Record result. DB allows it (`char_length` = 3, no trim). If saved, raise as a separate **Low** bug against the admin page (not item 1's diff); does not gate item 1. Delete it afterwards | D |
+| N-49 | 1.14 | Invalid input | Spaces-only values refused; outer spaces trimmed | (a) title `   ` (3 spaces), body `x` → Publish. (b) title `x`, body `   ` plus a line break → Publish. (c) title `  e2e-trim x  `, body `  y  ` → Publish; `q "select '['\|\|title\|\|']', '['\|\|body\|\|']' from public.posts where title like 'e2e-trim%'"` | (a) title's inline `titleLength` message, `aria-invalid="true"`, nothing inserted. (b) body's inline `bodyLength` message, nothing inserted. (c) stored as `[e2e-trim x]` and `[y]`. Delete the (c) post afterwards. Known limit, not a bug: the DB check has no trim, so a spaces-only post sent straight to the API by a two-step admin is still accepted (05 §7, migration deferred) | D |
 | N-50 | 3 (N3) | Duplicate action | Double-click Publish | Fill a valid post, double-click Publish quickly | Exactly 1 new row; button shows "Publishing…" and is disabled while busy. Delete afterwards | D |
 | N-51 | Regr. | E2E | Full E2E suite | `cd ~/dev/work/aj_classes-e2e && pnpm test` | All specs pass (admin posts, invite onboarding, Our Approach, Register Interest, admin 2FA). **Watch:** `admin-posts.spec.ts` "newest-first" reads `li h2` without waiting, and `/posts` now loads its list after mount. If it fails with titles `[]`, re-run once and check manually (N-52). A timing failure is an E2E-repo fix, not an app bug, but must be written up | D |
 | N-52 | Regr. | Admin posts | Create, edit, delete → `/posts` | As `admin@`: publish `T-new`; reload `localhost:4173/posts`; edit to `T-edited`; reload; delete; reload | `T-new` first in the list; then `T-edited` replaces it (count +1 only); then gone; DB count back to 1 | D + P |
@@ -181,6 +185,14 @@ Precondition: `q "select count(*) from public.posts"` = 1. Start **P**, **R** an
 | N-62 | 1.8 | Keyboard | News link reachable by keyboard | 1280 on `/`: Tab from the logo through the nav | Focus reaches News right after the 5th nav link, with a visible focus ring. Ring visibility is **human judgement** | P |
 | N-63 | UI | Colour scheme | Public site under dark preference | `page.emulateMedia({ colorScheme: 'dark' })` on `/` and `/posts` at 1280; compare computed `color` of the News link and the first nav link | Same colour as in light; the public site has one colour scheme (05 §5 item 5), so nothing changes. Not a fail if both schemes look identical | P |
 
+### Follow-up code (review-6a finding 3; IDs N-64 onwards)
+
+| ID | AC | Area | Case | Steps | Expected (measurable) | Env |
+|---|---|---|---|---|---|---|
+| N-64 | 1.12 (Security #1) | Network | Public list asks only for public columns | On `localhost:4173/posts`, record the list request (the one with `order=`) | Query string is exactly `select=id,created_at,title,body&order=created_at.desc&limit=200`; no `author_id`, no `updated_at`; response 200; the list renders | P |
+| N-65 | — (Security #6) | Privacy | Privacy wording is Security's | `grep -c 'Supabase keeps these in short-lived technical logs' apps/web/build/client/privacy/index.html`; `grep -cE "We don(&#x27;\|')t store it" apps/web/build/client/privacy/index.html` | First **1**; second **0** | P |
+| N-66 | 1.14 | Invalid input | Edit to a spaces-only title | As `admin@` on **D**: note the post with `q "select id, title, updated_at from public.posts"`; Edit it, set the title to `   `, Save; record network requests during Save | Inline `titleLength` message under the edit title field, `aria-invalid="true"`; **0** PATCH requests to `/rest/v1/posts`; `q` shows the same title and `updated_at` as before; Cancel restores the read view | D |
+
 ---
 
 ## 3. Case count
@@ -194,43 +206,23 @@ Precondition: `q "select count(*) from public.posts"` = 1. Start **P**, **R** an
 | No-Supabase and sitemap builds (N-25 to N-27) | 3 |
 | Permissions (N-40 to N-44) | 5 |
 | Invalid input and duplicate action (N-19, N-45 to N-50) | 7 |
+| Follow-up code: public columns, Privacy wording, edit to spaces (N-64 to N-66) | 3 |
 | UI evidence for Saurabh and theme (N-20, N-33, N-56, N-63) | 4 |
 | Smoke (N-54, N-55, N-57) | 3 |
 | Regression (N-51 to N-53, N-58 to N-61) | 7 |
-| **Total** | **59** |
+| **Total** | **62** |
 
 AC coverage: 1.1 N-03/06/07 · 1.2 N-05/08 · 1.3 N-09 · 1.4 N-05/10/24 · 1.5 N-11 · 1.6 N-30–33 ·
 1.7 N-21–23 · 1.8 N-12–15/17/62 · 1.9 N-16 · 1.10 N-18/34/35 · 1.11 N-25–27 · 1.12 N-04/18 ·
-1.13 N-03/40–44 · 1.14 N-19/45–48 · 1.15 N-03.
+1.13 N-03/40–44 · 1.14 N-19/45–49/66 · 1.15 N-03. Security follow-ups: N-64, N-65.
 
 ---
 
-## 4. Ruling on AC-1.14 ("refused with an inline message")
+## 4. AC-1.14 ruling: resolved
 
-**Ruling: does not meet the AC as worded. Not PASS-as-is.**
-
-| Part | Today (`routes/portal/admin-posts.tsx`) | Meets AC-1.14? |
-|---|---|---|
-| Empty title or body | The insert goes to the DB, the check constraint fails, and a page-level `Alert` at the top shows "Some details aren't valid. Please check them and try again." It doesn't say which field. | **No.** It's refused, but the message isn't inline and doesn't name the field |
-| Over-long title or body | `maxLength` stops typing at 120 / 5000. A longer paste is cut off with no message. No `counter` is passed to the body field. | **Half.** It's refused (the value can't be entered, DB check is the backstop, N-47), but there's no message, so a cut paste goes unnoticed |
-| `<script>` in title/body | Shows as text | Yes (N-19, unit test) |
-
-Other portal forms already show inline field errors (e.g. `ASSIGNMENT_LIMITS` / `titleLength`), so
-the house pattern exists. The admin posts page just doesn't use it.
-
-**What would need to change (small, admin page only, not in item 1's 21 files):**
-1. In `publish()` and `saveEdit()`, check the trimmed title (1–120) and body (1–5000) before calling
-   the service, and pass `error` to `TextInput` / `TextAreaInput`, with new `POSTS_PAGE` constants
-   (e.g. `titleLength`, `bodyLength`) built from `POST_LIMITS`.
-2. Pass `counter` to the body `TextAreaInput` ("n / 5000 characters") so a cut paste is visible.
-   Keep `maxLength`.
-3. One `admin-posts` test for each message.
-
-A trim check would also close N-49 (whitespace-only title).
-
-**Or** the Product Owner rewrites AC-1.14 to match today's behaviour ("empty is refused with an
-on-page message; over-long can't be entered"). Then N-45 and N-46 pass as-is. One of the two must
-happen before freeze, or N-45/N-46 fail and the gate can't reach 100%.
+Round 1 ruled that the admin page didn't meet "inline message". `686bfe5` fixed it (05 §7):
+inline `titleLength` / `bodyLength` messages, a body counter, and trimming on save. N-45, N-46,
+N-49 and N-66 test the fixed behaviour.
 
 ---
 
@@ -251,8 +243,9 @@ happen before freeze, or N-45/N-46 fail and the gate can't reach 100%.
 
 ## 6. ACs I think are untestable as written
 
-1. **AC-1.14 "inline message"**: testable, but fails today (§4). The AC needs either the small
-   fix or new wording.
+1. **AC-1.14 over-long "inline message"**: `maxLength` stops typing at the limit, so the
+   over-long message can't appear from the UI. The counter is the signal (N-46); the message
+   itself is covered by `post-validation.test.ts`.
 2. **AC-1.1 step 2 "the same rewrite and header rules as `vercel.json`"**: the mirror is a
    `serve` config that copies Railway's rules. Equivalence to Vercel is argued, not proven
    (`hosting-config.test.ts` checks the configs, not Vercel's runtime). The real proof is the

@@ -149,3 +149,64 @@ comments explain why, not what.
 2. Saurabh, at `/test-and-ship`: look at the blank space on an empty or 1-post `/posts` (D3) and
    approve the Privacy sentence with B1.
 3. Developer (optional, non-blocking): findings 1 to 3.
+
+---
+
+## Round 2: follow-ups (`git diff ed8a1bc..HEAD -- apps/`)
+
+> **Date:** 25 Oct 2026 · **Commits:** `5abe49c`, `686bfe5`, `68460ec`, `6a03de1`
+> **Check:** `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test` is green
+> (44 files, 326 tests).
+
+The round-1 findings 1 to 3 were fixed before this round (`1143859`, `de58c40`, `a8eb395`,
+`54b3058`). The sitemap and the client now share one "configured" rule, `useHasNews` has
+real-hook tests, and the setup comment says to stub globals in `beforeEach`.
+
+**Verdict for round 2: still APPROVED.** I found no blocking findings.
+
+### What I checked
+
+- **AC-1.14 inline validation** (`routes/portal/admin-posts.tsx`, `lib/post-validation.ts`).
+  `publish()` and `saveEdit()` work the same way: trim, validate, show errors on the fields, and
+  return before calling the service.
+  - It reuses the existing `error` and `counter` props of `PortalField`, the same pattern as
+    `ProfileForm`'s `bioCount`. Fields get `aria-invalid` and `aria-describedby` for free.
+  - Messages are `POSTS_PAGE` constants built from `POST_LIMITS`, so there are no magic numbers.
+  - The `POSTS_MAX_ROWS` duplicate of 200 is gone (`POST_LIMITS.listCap`).
+  - Tests are real: `post-validation.test.ts` covers empty, spaces-only, over the limit, at the
+    limit with outer spaces, and trimming. `admin-posts.test.tsx` renders the real page through
+    `createRoutesStub` with only the services mocked. It asserts the inline text, `aria-invalid`,
+    the accessible description, no service call when invalid, and trimmed saves on both publish
+    and edit.
+- **Public columns** (`services/post-rows.ts`, `public-posts.client.ts`, `types.ts`).
+  - `PUBLIC_POST_COLUMNS = 'id, created_at, title, body'`, mapped to a new
+    `PublicPost = Pick<Post, …>`.
+  - The admin read keeps `POST_COLUMNS` and `toPost`, so admin behaviour is unchanged.
+  - The URL test now pins `select=id,created_at,title,body`.
+  - The type change means `/posts` can't render a field it no longer fetches: typecheck would
+    catch it.
+- **Privacy wording** (`content.constants.ts`). This is Security's suggested text, verbatim.
+  - It's accurate: Supabase keeps short-lived logs, and AJ Classes doesn't store them.
+  - `privacy.test.tsx` asserts the new sentences and that "We don't store it" is gone.
+  - 01, 03 and 04 quote the same text in the B1 question, so Saurabh approves exactly what ships.
+- **Repo rules.**
+  - No HTTP outside `services/`, no inline styles, no `console.log`, no un-ticketed TODO, and no
+    dead code (`toPost` and `POST_COLUMNS` are still used by the admin service).
+  - Functions are small. The comments explain why (for example, "the database counts
+    untrimmed").
+
+### Findings
+
+6. [minor] `05-dev-notes-item-1.md:236-241` and §8 defer two database changes but don't record
+   them anywhere a later stage will pick them up. These are the `btrim` check constraints (the
+   database still accepts a spaces-only post sent straight to the API by an admin) and the anon
+   column grant (Security F1 step 2). Add both to `04-plan.md`'s later bucket or next migration
+   batch. Review-6b finding 4 asks for the same.
+7. [minor] `lib/post-validation.ts:15` counts length with `.length` (UTF-16 code units). The
+   database's `char_length` counts characters.
+   - For text with emoji, the client limit is stricter than the database: 120 emoji count as
+     240. It's never looser, and it matches how the browser's `maxLength` counts.
+   - No change needed. A short comment would stop someone "fixing" it later.
+
+The test plan (review-6a) still needs its expected results for N-45, N-46 and N-49 updated to
+match this code.

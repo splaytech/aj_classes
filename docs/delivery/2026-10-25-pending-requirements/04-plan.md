@@ -510,6 +510,13 @@ item 3 Privacy sentence; B1 done first, or released together at this SHA. Releas
    (mobile), tutor-side alerts, `List-Unsubscribe` header, emails for auto-returned MCQ quizzes,
    a "release" outcome that keeps the attempt count on 429.
 4. **Programme:** items 4–9 (§1.1), everything blocked in §1.2, the Later bucket, mobile.
+5. **Next migration batch (from item 1 review and security):** item 1 stays migration-free, so
+   these ride with the next item that ships a migration (item 3 or 2):
+   1. Column-level read for anon on `posts`: `revoke select on public.posts from anon;
+      grant select (id, created_at, updated_at, title, body) on public.posts to anon;`. Safe
+      because the public client already asks only for those columns (`68460ec`).
+   2. `posts` title/body checks use `char_length(btrim(...))`, so a spaces-only post sent
+      straight to the API is refused too (the admin page already refuses it, `686bfe5`).
 
 ---
 
