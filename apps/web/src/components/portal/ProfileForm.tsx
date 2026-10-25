@@ -1,4 +1,4 @@
-// Edit name, subjects, bio and qualifications (R2a story US12).
+// Edit name, phone, subjects, bio and qualifications (R2a story US12; item 4 for the phone).
 // Takes the save function as a prop, so admins can reuse it for other staff (story US18).
 
 import { useState } from 'react';
@@ -6,9 +6,10 @@ import type { FormEvent } from 'react';
 
 import { Button } from '@/components/ui';
 import { PORTAL_ERRORS, PROFILE_LIMITS, PROFILE_PAGE, SUBJECTS } from '@/constants';
+import { formatPhone } from '@/lib/format';
 import { cleanQualifications, subjectsToSave, validateProfile } from '@/lib/profile-validation';
 import type { ProfileErrors } from '@/lib/profile-validation';
-import type { ProfileChanges, Result, StaffProfile } from '@/services';
+import type { ErrorKey, ProfileChanges, Result, StaffProfile } from '@/services';
 
 import { FormAlert, FormStatus, TextAreaInput, TextInput } from './PortalField';
 import { QualificationsEditor } from './QualificationsEditor';
@@ -17,11 +18,15 @@ import styles from './PortalForm.module.css';
 
 const FIELD_IDS = {
   fullName: 'profile-full-name',
+  phone: 'profile-phone',
   bio: 'profile-bio',
   qualifications: 'profile-qualifications',
 } as const;
 
 const OFFERED_SUBJECTS = SUBJECTS.map((subject) => subject.key);
+
+// The server refused a phone the browser let through: show it on the field, not the form (AC-4.3).
+const PHONE_ERROR_KEYS: readonly ErrorKey[] = ['invalidPhone', 'phoneRequired'];
 
 type ProfileFormProps = {
   profile: StaffProfile;
@@ -31,6 +36,7 @@ type ProfileFormProps = {
 
 export function ProfileForm({ profile, onSave, onSaved }: ProfileFormProps) {
   const [fullName, setFullName] = useState(profile.fullName);
+  const [phone, setPhone] = useState(formatPhone(profile.phone));
   const [subjects, setSubjects] = useState(
     profile.subjects.filter((key) => OFFERED_SUBJECTS.includes(key as never)),
   );
@@ -47,11 +53,12 @@ export function ProfileForm({ profile, onSave, onSaved }: ProfileFormProps) {
 
     const changes: ProfileChanges = {
       fullName,
+      phone,
       bio,
       qualifications: cleanQualifications(qualifications),
       subjects: subjectsToSave(subjects, profile.subjects, OFFERED_SUBJECTS),
     };
-    const found = validateProfile(changes);
+    const found = validateProfile(changes, profile.phone);
     setErrors(found);
     if (Object.keys(found).length > 0) {
       document.getElementById(FIELD_IDS[Object.keys(found)[0] as keyof ProfileErrors])?.focus();
@@ -63,11 +70,17 @@ export function ProfileForm({ profile, onSave, onSaved }: ProfileFormProps) {
     const result = await onSave(changes);
     setSaving(false);
 
+    // Every field keeps what was typed on a failure, so nothing has to be entered again (AC-4.5).
     if (!result.ok) {
-      setFormError(PORTAL_ERRORS[result.error]);
+      if (PHONE_ERROR_KEYS.includes(result.error)) {
+        setErrors({ phone: PORTAL_ERRORS[result.error] });
+      } else {
+        setFormError(PORTAL_ERRORS[result.error]);
+      }
       return;
     }
     setQualifications(result.data.qualifications);
+    setPhone(formatPhone(result.data.phone));
     setStatus(PROFILE_PAGE.saved);
     onSaved();
   }
@@ -82,6 +95,17 @@ export function ProfileForm({ profile, onSave, onSaved }: ProfileFormProps) {
         value={fullName}
         onChange={setFullName}
         error={errors.fullName}
+      />
+      <TextInput
+        id={FIELD_IDS.phone}
+        type="tel"
+        inputMode="tel"
+        autoComplete="tel"
+        label={PROFILE_PAGE.labels.phone}
+        hint={PROFILE_PAGE.hints.phone}
+        value={phone}
+        onChange={setPhone}
+        error={errors.phone}
       />
       <SubjectPicker
         legend={PROFILE_PAGE.labels.subjects}

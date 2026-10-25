@@ -465,11 +465,15 @@ export const PROFILE_PAGE = {
   emailHint: 'To change your email, contact an admin.',
   labels: {
     fullName: 'Full name',
+    phone: JOIN_PAGE.labels.phone,
     subjects: 'Subjects I teach',
     bio: 'Bio',
     qualifications: 'Qualifications',
   },
   hints: {
+    // The page intro says the profile may appear on the website; the phone never does (AC-4.1).
+    phone:
+      "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
     subjects: 'Tick all that apply.',
     bio: 'A few sentences about your teaching. Plain text only.',
     qualifications: 'One per line, for example "B.Ed (Secondary Maths), Monash University".',
