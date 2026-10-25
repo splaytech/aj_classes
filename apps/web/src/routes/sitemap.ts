@@ -1,16 +1,20 @@
 // Generates /sitemap.xml at build time from the list of public pages (PRP F6.5.2).
 
-import { GUIDE_PATHS, PROGRAMME_PATHS, ROUTES } from '@/constants';
+import { APP_CONFIG, GUIDE_PATHS, PROGRAMME_PATHS, ROUTES } from '@/constants';
 import { absoluteUrl } from '@/lib/seo';
 
-const PUBLIC_PAGES = [
+const ALWAYS_LISTED = [
   ROUTES.home,
   ...PROGRAMME_PATHS,
   ROUTES.resources,
   ...GUIDE_PATHS,
   ROUTES.privacy,
-  ROUTES.posts,
 ];
+
+/** /posts reads live from Supabase, so a build without Supabase leaves it out (AC-1.11). */
+export function publicSitemapPaths(supabaseConfigured: boolean): string[] {
+  return supabaseConfigured ? [...ALWAYS_LISTED, ROUTES.posts] : [...ALWAYS_LISTED];
+}
 
 function urlEntry(path: string, lastModified: string): string {
   return `  <url><loc>${absoluteUrl(path)}</loc><lastmod>${lastModified}</lastmod></url>`;
@@ -18,7 +22,8 @@ function urlEntry(path: string, lastModified: string): string {
 
 export function loader() {
   const today = new Date().toISOString().slice(0, 10);
-  const entries = PUBLIC_PAGES.map((path) => urlEntry(path, today)).join('\n');
+  const paths = publicSitemapPaths(APP_CONFIG.supabase.url !== '');
+  const entries = paths.map((path) => urlEntry(path, today)).join('\n');
 
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
