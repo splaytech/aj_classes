@@ -1,12 +1,14 @@
 // Your account (stories US6, US9; R3b FS4): change password, appearance, your choices (parents'
-// optional permissions) and two-step sign-in for staff.
+// optional permissions), email notifications (students and parents; ADR-0004) and two-step
+// sign-in for staff.
 
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
-import { useState } from 'react';
+import Switch from '@mui/material/Switch';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, useLoaderData, useRevalidator } from 'react-router';
+import { Link, useLoaderData, useLocation, useRevalidator } from 'react-router';
 
 import {
   CodeInput,
@@ -36,12 +38,14 @@ import {
   canAddAuthenticator,
   changePassword,
   getMyConsents,
+  getMyNotificationSettings,
   listAuthenticators,
   removeAuthenticator,
+  saveMyNotificationSettings,
   sendReauthCode,
   setMyConsents,
 } from '@/services';
-import type { Authenticator, Consents } from '@/services';
+import type { Authenticator, Consents, NotificationSettings } from '@/services';
 
 import { usePortalAccess } from './member-layout';
 import styles from './account.module.css';
@@ -52,17 +56,24 @@ const FIELD_IDS = {
   confirm: 'change-confirm',
   appearance: 'appearance-heading',
   consents: 'account-consent',
+  notificationsHeading: 'notifications-heading',
+  workReturned: 'notify-work-returned',
 };
 
 export function meta() {
   return buildPortalMeta(PORTAL_SEO.account);
 }
 
-// Access is checked by the member layout. Loads the authenticator list (staff) and the optional
-// permissions (parents; invite-onboarding.md, "Consents").
+// Access is checked by the member layout. Loads the authenticator list (staff), the optional
+// permissions (parents; invite-onboarding.md, "Consents") and the email switches (students and
+// parents; a staff member just gets the default, never shown).
 export async function clientLoader() {
-  const [authenticators, consents] = await Promise.all([listAuthenticators(), getMyConsents()]);
-  return { authenticators, consents };
+  const [authenticators, consents, notifications] = await Promise.all([
+    listAuthenticators(),
+    getMyConsents(),
+    getMyNotificationSettings(),
+  ]);
+  return { authenticators, consents, notifications };
 }
 
 export default function AccountPage() {
@@ -81,6 +92,7 @@ export default function AccountPage() {
       <ChangePasswordSection />
       <AppearanceSection />
       {asksForConsents(role) && <ChoicesSection />}
+      {!isStaffRole(role) && <NotificationsSection />}
       {isStaffRole(role) && <TwoStepSection isAdmin={role === 'admin'} />}
     </div>
   );
@@ -253,6 +265,72 @@ function ChoicesSection() {
         {saved && <FormStatus message={ACCOUNT_PAGE.choices.saved} />}
         <Button type="submit" disabled={saving}>
           {saving ? ACCOUNT_PAGE.choices.saving : ACCOUNT_PAGE.choices.save}
+        </Button>
+      </form>
+    </section>
+  );
+}
+
+/** The "work returned" email switch (AC-3.6). On by default; every email links here. */
+function NotificationsSection() {
+  const loaded = useLoaderData<typeof clientLoader>().notifications;
+  const [values, setValues] = useState<NotificationSettings>(
+    loaded.ok ? loaded.data : { workReturned: true },
+  );
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
+  const words = ACCOUNT_PAGE.notifications;
+  const { hash } = useLocation();
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // Every email links to #notifications. The section only exists once the loader has run, after
+  // the browser's own jump to the anchor, so scroll to it here.
+  useEffect(() => {
+    if (hash === `#${words.id}`) sectionRef.current?.scrollIntoView();
+  }, [hash, words.id]);
+
+  if (!loaded.ok) return <FormAlert message={PORTAL_ERRORS[loaded.error]} />;
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaving(true);
+    setError('');
+    setSaved(false);
+    const result = await saveMyNotificationSettings(values);
+    setSaving(false);
+    if (result.ok) setSaved(true);
+    else setError(PORTAL_ERRORS[result.error]);
+  }
+
+  return (
+    <section
+      ref={sectionRef}
+      id={words.id}
+      className={styles.section}
+      aria-labelledby={FIELD_IDS.notificationsHeading}
+    >
+      <h2 id={FIELD_IDS.notificationsHeading}>{words.heading}</h2>
+      <p className={formStyles.hint}>{words.intro}</p>
+      <form className={formStyles.form} onSubmit={handleSubmit} noValidate>
+        <FormControlLabel
+          control={
+            <Switch
+              id={FIELD_IDS.workReturned}
+              checked={values.workReturned}
+              disabled={saving}
+              onChange={(event) => {
+                setSaved(false);
+                setValues({ workReturned: event.target.checked });
+              }}
+            />
+          }
+          label={words.workReturned}
+        />
+        <FormAlert message={error} />
+        {saved && <FormStatus message={words.saved} />}
+        <Button type="submit" disabled={saving}>
+          {saving ? words.saving : words.save}
         </Button>
       </form>
     </section>

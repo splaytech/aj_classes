@@ -294,7 +294,7 @@ function `notifications` (03 §3.4). All email goes to the local Mailpit
   work in the portal → email in Mailpit within 5 minutes; signed out, open its **View feedback**
   link → sign-in → lands on the student's (and, from the parent email, the parent's) assignment
   page (AC-3.4 browser leg). Run: `pnpm test:functions`.
-- [ ] **T3.5 Account → Notifications.** Files: #13 `notifications.service.ts` (get; save as
+- [x] **T3.5 Account → Notifications.** Files: #13 `notifications.service.ts` (get; save as
   update-then-insert, **no upsert**, review-3 finding 2), #14 `types.ts`, #15 `services/index.ts`,
   #16 `database.types.ts` (`pnpm db:types`), #17 `account.tsx`, #18 `account.module.css` (only if
   needed), #23 `portal.constants.ts` (`ACCOUNT_PAGE.notifications`). Test (browser, AC-3.6):

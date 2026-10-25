@@ -22,6 +22,11 @@ export {
 } from './auth.service';
 export { completeOnboarding } from './onboarding.service';
 export { getMyConsents, setMyConsents } from './consents.service';
+export {
+  getMyNotificationSettings,
+  listEmailProblems,
+  saveMyNotificationSettings,
+} from './notifications.service';
 export { listActivity } from './activity.service';
 export { deleteEnquiry, listEnquiries, resyncEnquiry } from './enquiries.service';
 export { createPost, deletePost, listPosts, updatePost } from './posts.service';
@@ -121,6 +126,9 @@ export type {
   Consents,
   DayOfWeek,
   Delivery,
+  EmailProblem,
+  EmailProblemReason,
+  EmailProblemState,
   RosterStudent,
   SessionInput,
   StudentInput,
@@ -132,6 +140,7 @@ export type {
   FamilyAssignment,
   FamilyAssignmentView,
   FamilyQuestion,
+  NotificationSettings,
   OnboardingInfo,
   OnboardingInput,
   ParentInviteOutcome,

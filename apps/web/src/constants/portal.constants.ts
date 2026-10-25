@@ -250,6 +250,16 @@ export const ACCOUNT_PAGE = {
     saving: 'Saving…',
     saved: 'Your choices are saved.',
   },
+  // Students and parents only (AC-3.6). The id is the target of the link in every email.
+  notifications: {
+    id: 'notifications',
+    heading: 'Notifications',
+    intro: 'Emails we send about schoolwork.',
+    workReturned: 'Email me when work is marked and returned',
+    save: 'Save',
+    saving: 'Saving…',
+    saved: "Saved. We'll remember this choice.",
+  },
   signedInAs: 'Signed in as',
   role: 'Role',
   password: {
