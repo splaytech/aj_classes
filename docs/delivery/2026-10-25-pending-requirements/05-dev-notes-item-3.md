@@ -147,8 +147,9 @@ together at this SHA. Release SHA = item 3's `develop` merge commit, named at cl
    Dashboard → Database → Extensions and run it again. Confirm it printed "Hosted function
    settings checked". First run only: confirm `supabase secrets list -o json` shows SHA-256 hex
    digests.
-3. Merge `release/work-returned-email` (the same SHA, not `develop`) into `main` through a PR.
-4. Run the two Vault lines the script prints, in Dashboard → SQL Editor.
+3. Straight after the deploy, before merging: run the two Vault lines the script prints, in
+   Dashboard → SQL Editor, then delete that query from the editor.
+4. Merge `release/work-returned-email` (the same SHA, not `develop`) into `main` through a PR.
 5. AC-3.11 check (`supabase/README.md` → "Work returned emails"):
    - set up the test family, using your own aliases;
    - a test tutor returns one paper assignment;
@@ -233,3 +234,30 @@ Deviation: the daily job's name changed from `cron-history-trim` (03 §3.2 step 
 | Cron | `email-worker-kick` and `daily-history-trim` both active |
 
 Local state as in §7. `db:reset` removed the local post again, so I re-added it.
+
+### Round 2 minors (review-5 round 2, plus the Tester's kill-switch requirement)
+
+| Finding | Fix | Proof |
+|---|---|---|
+| R2-1 Mailpit exempt on hosted | `config.ts`: `isHostedProject(SUPABASE_URL)` treats anything except a local address as hosted. I checked the local runtime first: it gets `http://kong:8000`. Anything unreadable also counts as hosted. On hosted, `EMAIL_TRANSPORT=mailpit`, the committed local worker secret or a non-https `SITE_URL` is a set-up error: rows flagged `config_missing`, 503, nothing claimed. Locally nothing changes | Unit: hosted + mailpit, hosted + local secret, hosted + http `SITE_URL` are refused; local Mailpit with the local secret and http://localhost is fine; hosted/local detection, including missing `SUPABASE_URL` |
+| Tester: kill switch | `gateRequest()` is one pure function, run in this order. (1) No usable `EMAIL_TRANSPORT` → `config_missing` **before** the secret check. (2) A wrong, missing or unset secret → 401. (3) Local-only values on hosted, or no `SITE_URL` → `config_missing`. So unsetting `EMAIL_TRANSPORT` always gives "Set-up error", never a 401 that leaves rows "Not attempted". This holds locally and on hosted. Trade-off: a caller without the secret can learn that sending is off (503 rather than 401). It can't claim or send anything, and the flag it triggers is true | Unit: unset transport → `config_missing` with no, a wrong, and the right secret, hosted and local; wrong or unset secret with a transport → 401; end-to-end 401 checks still pass locally. README kill-switch line now gives the hosted `secrets unset` command (an `unset` copies nothing from `config.toml`), and the "Set-up error" line covers local-only values on hosted |
+| R2-2 90-day limit | Accepted by the team lead. 01 change-log row and the migration comment: AC-3.5's "at most once" holds while the outbox row exists, so a re-return more than 90 days later may send one more email. `[ASSUMPTION]` | Docs |
+| R2-3 Vault order | The Vault step now comes straight after the deploy and before the merge to `main`, in go-live §7a, 04 §6.3 and §5 above | Docs |
+
+Not verified: the kill switch end to end on the local runtime. That needs `EMAIL_TRANSPORT` removed from the running edge runtime, which means a `config.toml` change and a stack restart. It's covered by the `gateRequest` unit checks.
+
+**Commits:**
+1. `6aeb734` fix(email): refuse local-only settings on hosted and honour the kill switch first
+2. `15d7e97` docs(email): accept the 90-day limit on at-most-once and run Vault before merge
+3. This update (docs commit)
+
+**Checks** (local exports, after `pnpm db:reset`): full check exit 0.
+
+| Step | Result |
+|---|---|
+| `test` | 47 files, 352 tests |
+| `db:test` | 13 files, 450 tests, PASS |
+| `test:functions` | 169 `ok`, 0 failed (account-admin 49, leads 30, notifications 90) |
+| Cron | Both jobs active |
+
+The local post was re-added after the reset.
