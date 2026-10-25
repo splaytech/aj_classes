@@ -16,7 +16,7 @@ export default [
   route(ROUTES.resources, 'routes/resources.tsx'),
   route(GUIDE_PAGE, 'routes/resource.tsx'),
   route(ROUTES.subscribed, 'routes/subscribed.tsx'),
-  route(ROUTES.posts, 'routes/posts.tsx'), // client-rendered: reads live, never pre-rendered (R4)
+  route(ROUTES.posts, 'routes/posts.tsx'), // pre-rendered shell; posts load live in the browser (ADR-0001)
   route(ROUTES.sitemap, 'routes/sitemap.ts'),
   route(ROUTES.robots, 'routes/robots.ts'),
 
