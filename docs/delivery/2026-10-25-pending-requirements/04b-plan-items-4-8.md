@@ -9,8 +9,9 @@
 > **Next stage:** Developer builds item 4 on this branch, ticking this file as each task is tested.
 
 How to use this file (same as 04-plan):
+
 - Tick a task (`- [x]`) only after its test passes. The app must still work at the end of every task.
-- Make one or more conventional commits per task. Commit locally; only `/test-and-ship` pushes. Item 6's T6.6 is the one exception, and it waits on Q22.
+- Make one or more conventional commits per task. Commit locally; only `/test-and-ship` pushes. Item 6 has the one exception: if Q28 = yes, T6.6 pushes the feature branch and the T6.7 proof runs go to its draft PR. If Q28 = no, nothing is pushed, and T6.6–T6.7 run locally with `act` instead (path B). Neither path ever commits a deliberate failure to `develop`.
 - "03b #n" means row n of that item's "Files to touch" table in 03b.
 - Stage 5–6 artifacts use the item suffix: `05-dev-notes-item-<n>.md`, `review-5-item-<n>.md`,
   `06-test-plan-item-<n>.md`, `06-security-item-<n>.md`, `TSR-item-<n>.md`, `bugs/item-<n>/BUG-<k>.md`.
@@ -23,16 +24,42 @@ How to use this file (same as 04-plan):
 **Finding (checked 26 Oct 2026).** All checkouts share one local Supabase stack, because
 `project_id = "aj_classes"`. That stack was last started and reset from the **held item 2
 checkout** (`/Users/sjain/dev/work/aj_classes`):
+
 - The newest applied migration is item 2's `20261025134709`.
 - The edge runtime mounts `/Users/sjain/dev/work/aj_classes/supabase/functions`.
 
 So if you build here without a restart:
+
 - `pnpm db:types` would write item 2's schema into this branch;
 - `pnpm test:functions` would test the item 2 checkout's function code, not this branch's. That matters for item 8.
 
+**Every checkout that shares the stack** (from `git worktree list`, 26 Oct 2026):
+
+| Checkout | Branch | State |
+|---|---|---|
+| `/Users/sjain/dev/work/aj_classes` | `feature/homework-file-uploads` | Held item 2. The stack was last started and reset here |
+| `/Users/sjain/dev/work/aj_classes-items-4-9` | `feature/staff-phone-privacy`, then items 5–8 | This plan |
+| `/Users/sjain/dev/work/aj_classes/.claude/worktrees/magical-liskov-6b3b72` | `chore/dependabot-fixes` | Stale: last commit 3 days ago, uncommitted package changes, nothing running |
+
 T4.0 fixes this. `[ASSUMPTION]` Restarting and resetting the shared **local** stack from this
-worktree is fine. It wipes local data only. Item 2's checkout gets its schema back with its own
-`pnpm db:reset` at T2.15. No file in `/Users/sjain/dev/work/aj_classes` is touched.
+worktree is fine.
+
+- It wipes local data only: the local database rows, item 2's local Storage objects and every
+  Mailpit message.
+- Item 2's checkout gets its schema back with its own `pnpm db:reset` at T2.15. Its test uploads
+  are lost, but T2.15 re-runs every case from scratch anyway.
+- The restart and reset change only the Docker stack. No file in any of the three checkouts is
+  touched, `magical-liskov-6b3b72` and its uncommitted changes included.
+
+**Stack checks, repeated in every `T*.0` task** (run from this worktree):
+
+- **Check 1, functions mount:**
+  `docker inspect supabase_edge_runtime_aj_classes --format '{{range .Mounts}}{{.Source}}{{"\n"}}{{end}}' | grep -c aj_classes-items-4-9`
+  must print `1`. If it doesn't, run `pnpm db:stop && pnpm db:start` from this worktree.
+- **Check 2, newest migration:**
+  `docker exec supabase_db_aj_classes psql -U postgres -Atc "select max(version) from supabase_migrations.schema_migrations"`
+  must print the newest file on the branch (`ls supabase/migrations | tail -1`). Before item 4's
+  migration exists, that's `20261025110100`.
 
 **Every build terminal** (03b §0.3; never build browser-test copies against the hosted project):
 
@@ -43,6 +70,7 @@ export VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA   # Cloudflare's public 
 ```
 
 **The full check**, the same for every item. All of it was run once on this branch at `182e44a`:
+
 - Results: format, lint, typecheck all clean; 398 unit tests; the build; 0 hosted refs; pgTAP 13 files and 454 tests; all function checks; E2E 9/9.
 - The commands, in order:
 
@@ -81,12 +109,13 @@ won't pull in unrelated reformatting.
 |---|---|---|---|---|---|---|
 | 1st | 4 Staff phone + Privacy | `feature/staff-phone-privacy` (this one, already holds the 01b–04b docs) | `develop` @ `fb738ea` | `20261026100000_staff_phone_edit.sql` | full `/test-and-ship` | merged to `develop`, pushed |
 | 2nd | 5 Public CSP (+ item 9 docs) | `feature/public-csp` | `develop` after item 4's merge | none | full `/test-and-ship` | merged, pushed |
-| 3rd | 6 CI quality gates | `feature/ci-quality-gates` | `develop` after item 5's merge | none | full `/test-and-ship` (plus CI runs on a draft PR, Q22) | merged, pushed |
+| 3rd | 6 CI quality gates | `feature/ci-quality-gates` | `develop` after item 5's merge | none | full `/test-and-ship`, plus CI on a draft PR (path A, Q28 = yes) or `act` locally (path B) | merged, pushed |
 | 4th | 7 Fair results | `feature/fair-results` | `develop` after item 6's merge | `20261027100000_fair_results.sql` | full `/test-and-ship` | merged, pushed |
 | 5th | 8 More email alerts | `feature/more-email-alerts` | `develop` after item 7's merge | `20261028100000_more_email_alerts.sql` | full `/test-and-ship` | merged, pushed |
 | held | 2 Homework uploads | `feature/homework-file-uploads` (in `/Users/sjain/dev/work/aj_classes`) | — | renamed at T2.15 | T2.15 (§7) | only after B3 (Q3) |
 
 Rules (they add to 04-plan §2; they don't replace it):
+
 1. **One item at a time, in this worktree.** Each new branch is cut here with
    `git checkout develop && git pull --ff-only && git checkout -b feature/<slug>`. It's cut only
    after the previous item's `/test-and-ship` has merged and pushed. `develop` isn't checked out
@@ -102,7 +131,7 @@ Rules (they add to 04-plan §2; they don't replace it):
    - A `release/<item>` branch cut at a later item's SHA ships every earlier merged item too, with
      their migrations, functions and secrets.
    - So each item's release below has a **precondition**: every earlier merged item has been
-     released, or is released in the same run with all of its own steps. Q23 asks how to batch them.
+     released, or is released in the same run with all of its own steps. Q29 asks how to batch them.
 5. **Item 6 has no release of its own.** Its workflow and `e2e/` reach `main` inside the next
    release branch (item 7's, or whichever comes first).
 
@@ -199,7 +228,8 @@ Design: 03b §5 (16 files), ADR-0005. No migration, no runtime code, no new depe
 
 - [ ] **T5.0 Branch.**
   - **Run:** `git checkout develop && git pull --ff-only && git checkout -b feature/public-csp && pnpm install --frozen-lockfile && pnpm db:reset`.
-  - **Test:** the newest migration is item 4's (the T4.0 check 2 query).
+  - **Test:** §0 stack checks 1 and 2. Check 1 prints `1`; check 2 prints item 4's
+    `20261026100000`.
 - [ ] **T5.1 Hosted-ref tool.**
   - **Files:** 03b #3 `scripts/hosting-constants.ts`, #6 `scripts/hosted-ref.ts`, #7 its test, #8 `scripts/check-hosted-ref.ts`, #10 `"check:hosted-ref"` in `apps/web/package.json`.
   - **Tests:** the temp-dir fixtures (`['a.js', 'sub/c.html']`, empty → `[]`); a path that doesn't exist exits 1.
@@ -265,7 +295,7 @@ Design: 03b §5 (16 files), ADR-0005. No migration, no runtime code, no new depe
 
 | # | Risk | Mitigation |
 |---|---|---|
-| 1 | Vercel's negative-lookahead `source` behaves differently from local `serve`, so `/portal/*` gets two CSPs, or public pages get none | `hosting-csp.test.ts` check 6 (the regex); Saurabh's preview check before `main` (Q26); live `curl` count after release; the fallback is to revert (config only) and list public paths explicitly |
+| 1 | Vercel's negative-lookahead `source` behaves differently from local `serve`, so `/portal/*` gets two CSPs, or public pages get none | `hosting-csp.test.ts` check 6 (the regex); Saurabh's preview check before `main` (Q32); live `curl` count after release; the fallback is to revert (config only) and list public paths explicitly |
 | 2 | A public feature silently breaks under the policy (News check, enquiry, Kit) | T5.6 sweep with 0 violations; item 6 automates it in CI (T6.3) |
 | 3 | The mirror serves something other than the committed policy | `buildMirrorConfig` throws without the hosted origin; consistency test keeps both files equal |
 | 4 | A gate build or sweep reaches the hosted project | `check:hosted-ref` before serving; `serve-mirror` refuses on a hit; HAR count 0 |
@@ -277,15 +307,52 @@ Design: 03b §5 (16 files), ADR-0005. No migration, no runtime code, no new depe
 
 Design: 03b §6 (36 files), ADR-0006. No runtime change, no migration. It adds five dev
 dependencies: `@playwright/test`, `pg`, `@types/pg`, `dotenv` (in `e2e/` only) and `@lhci/cli`
-(in `apps/web`). Each gets a one-line reason in the PR description (AC-6.13, KINET
-dependency-approval). AC-6.1–6.14.
+(in `apps/web`). AC-6.1–6.14.
 
-- [ ] **T6.0 Branch.** `git checkout develop && git pull --ff-only && git checkout -b feature/ci-quality-gates && pnpm db:reset`.
+- **AC-6.13 (where the dependency reasons go):** a one-line reason per dependency goes in the
+  dev notes (T6.10) and in the `develop` merge-commit body (T6.14). If Q28 = yes, they also go in
+  the draft PR description. They're repeated in the description of the `release/*` PR that
+  carries item 6 to `main` (§8.3).
+
+**Two paths, decided by Q28.** Both build the same files (T6.0–T6.5, T6.8). They differ only in
+where the workflow is proven:
+
+- **Path A (Q28 = yes): GitHub.**
+  - The feature branch is pushed with a draft PR to `develop`.
+  - The deliberate failures go on a **throwaway** branch, `ci-proof/item-6`, cut from the feature
+    branch, with its own draft PR. That PR is closed and the branch deleted afterwards.
+  - The failing commits never enter `feature/ci-quality-gates`, so the `--no-ff` merge can't
+    bring them into `develop`.
+- **Path B (Q28 = no): local, with `act`.**
+  - `act` runs the workflow's jobs in the local Docker. The Developer installs it as a dev tool on
+    the laptop: `brew install act`. It is **not** a repo dependency, and nothing is added to
+    `package.json`.
+  - Deliberate failures are made as **uncommitted** edits in the working tree, because `act` runs
+    the working tree as it is. They're then undone with `git restore`. Nothing is pushed.
+  - The GitHub-side evidence (the check names on GitHub, the run logs, the three durations, the
+    7-day artifact retention) is collected on the first `develop` push after the merge. Until
+    then, `TSR-item-6.md` lists it under **"Not covered"**.
+  - If `act` can't run a job, the fallback for that job is the same: verify it on `develop` after
+    the merge, listed under "Not covered". The local by-hand runs of its steps (T6.3–T6.5) stay as
+    the pre-merge evidence.
+  - `act` isn't installed yet, so none of the `act` commands below have been run.
+- **Never on either path:** a deliberate failure committed to `develop` or to the feature branch.
+
+- [ ] **T6.0 Branch.**
+  - **Run:** `git checkout develop && git pull --ff-only && git checkout -b feature/ci-quality-gates && pnpm db:reset`.
+  - **Test:** §0 stack checks 1 and 2. Check 2 prints item 4's `20261026100000` (item 5 adds no
+    migration).
 - [ ] **T6.1 Move the E2E suite in.**
-  - **Copy:** `mkdir e2e && git -C ~/dev/work/aj_classes-e2e archive 488dde1 setup src tests playwright.config.ts tsconfig.json .env.example | tar -x -C e2e`. That's 28 tracked files, with no `.env`, no `node_modules` and no lockfile. `488dde1` is the E2E repo's current HEAD on `feature/playwright-e2e-harness`.
+  - **Copy:** `mkdir e2e && git -C ~/dev/work/aj_classes-e2e archive 488dde1 setup src tests playwright.config.ts tsconfig.json .env.example | tar -x -C e2e`.
+    - That's 20 tracked files (`tar -t` lists 28 entries, including directories).
+    - There's no `.env`, no `node_modules` and no lockfile.
+    - `488dde1` is the E2E repo's current HEAD on `feature/playwright-e2e-harness`.
   - **Files:**
     - 03b #1 `pnpm-workspace.yaml`;
-    - #2 `e2e/package.json`;
+    - #2 `e2e/package.json`. Besides the dev dependencies above, it declares `typescript`
+      (`^6.0.3`), `@types/node` (`^26.6.3`, replacing the old repo's `^20`) and
+      `@supabase/supabase-js`, all at `apps/web`'s ranges (review-3b finding 10), so the
+      workspace has one version of each;
     - #3 `tsconfig.json`;
     - #4 `playwright.config.ts` (trace, video, reporter, `outputDir`);
     - #6 `.env.example` (placeholders for every key; `AJ_CLASSES_DIR=..`);
@@ -317,22 +384,69 @@ dependency-approval). AC-6.1–6.14.
 - [ ] **T6.6 Workflow.**
   - **Files:** #35 `ci.yml`: the five jobs, the header comment, and the Supabase CLI pinned at `2.120.0`.
   - **Local test:** `pnpm --filter web check:hosted-ref ../../.github/workflows ../../e2e` → `0 files`.
-  - **CI (Q22 = yes):** push the branch and open a **draft** PR to `develop`. The run shows the "E2E smoke", "Lighthouse" and "Structured data" checks, all green (AC-6.1, 6.2, 6.6).
-  - **If Q22 = no:** these CI ACs move to the first `develop` push after merge, and the TSR lists them under "Not covered" until then.
-- [ ] **T6.7 CI proof runs.** Each one is a commit plus a revert commit on the branch; no force-push.
-  1. A broken heading in `our-approach.spec.ts` fails only "E2E smoke" and uploads `e2e-report`, kept 7 days (AC-6.1, 6.5).
-  2. A Lighthouse build with `VITE_SUPABASE_URL=https://example.supabase.co` fails the report step (AC-6.14).
-  3. Three recorded green runs, using `gh run rerun`. Record the durations: E2E ≤ 15 min, the other two ≤ 10 min, the workflow ≤ 20 min (AC-6.4). If E2E goes over, add `--grep-invert "Invite onboarding"` (03b §6.8).
-  4. The JS size decision (AC-6.8): if every page's median is ≤ 102,400 bytes, add the `resource-summary:script:size` assertion. Otherwise put the baseline in the dev notes and the gate in Later.
+  - **Path A:** push the branch and open a **draft** PR to `develop`. The run shows the "E2E
+    smoke", "Lighthouse" and "Structured data" checks, all green (AC-6.1, 6.2, 6.6).
+  - **Path B:**
+    1. Install and list: `brew install act && act --version && act -l`. The list shows the five
+       jobs.
+    2. Then run, with `ART=$TMPDIR/act-artifacts`:
+       `act pull_request -j <job> -P ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path "$ART"`
+       for `web`, `database`, `e2e`, `lighthouse` and `structured-data`. Each one passes.
+    3. **Before the `database` and `e2e` jobs, run `pnpm db:stop`.** Their `supabase start`
+       uses the same `aj_classes` container names and ports as the local stack, through the
+       host's Docker. Afterwards, run `pnpm db:start` and the §0 stack checks.
+    4. A job `act` can't run (for example, Supabase's bind mounts failing inside the `act`
+       container) goes to the fallback above. Record the error in the dev notes.
+- [ ] **T6.7 CI proof runs.** These never touch `develop` or the feature branch's history.
+  1. **Broken spec** (AC-6.1, 6.5): a wrong heading in `our-approach.spec.ts` fails only the E2E
+     job, and the report and trace are uploaded.
+     - **Path A:** a commit on `ci-proof/item-6` with its own draft PR. Check the `e2e-report`
+       artifact and its 7-day retention.
+     - **Path B:** an uncommitted edit, then `act pull_request -j e2e … --artifact-server-path "$ART"`
+       fails, and `$ART` holds `e2e-report` with the HTML report and a trace. Then
+       `git restore e2e/tests/our-approach.spec.ts`. The 7-day retention is a GitHub setting, so it
+       goes to "Not covered".
+  2. **Hosted-URL proof** (AC-6.14): a Lighthouse build with `VITE_SUPABASE_URL=https://example.supabase.co`
+     fails the report step.
+     - **Path A:** a second commit on `ci-proof/item-6`.
+     - **Path B:** an uncommitted edit to the job's build `env` in `ci.yml`, then
+       `act pull_request -j lighthouse …` fails at "No Supabase requests". Then
+       `git restore .github/workflows/ci.yml`.
+     - Either way, `git status --porcelain` is clean afterwards.
+  3. **Durations** (AC-6.4): E2E ≤ 15 min, the other two ≤ 10 min, the workflow ≤ 20 min. If E2E
+     goes over, add `--grep-invert "Invite onboarding"` (03b §6.8).
+     - **Path A:** three green runs on the feature PR, using `gh run rerun`.
+     - **Path B:** the `act` timings go in the dev notes as indicative only. The three GitHub runs
+       come from the first `develop` push and reruns of it (`gh run rerun <id>`), recorded in the
+       TSR. Until then they're under "Not covered".
+  4. **JS size decision** (AC-6.8): if every page's median is ≤ 102,400 bytes, add the
+     `resource-summary:script:size` assertion. Otherwise put the baseline in the dev notes and the
+     gate in Later.
+     - **Path A:** the figures come from the PR's step summary.
+     - **Path B:** they come from `pnpm --filter web lighthouse:report`, run locally in T6.4.
+  5. **Path A clean-up:** close the `ci-proof/item-6` PR, then
+     `git push origin --delete ci-proof/item-6 && git branch -D ci-proof/item-6`.
 - [ ] **T6.8 Docs.**
   - **Files:** `docs/testing/ci-gates.md` (new, every gate's exact commands), the README "Checks" link, `arch.md` §2 (the five jobs).
   - **Test (AC-6.12):** follow `ci-gates.md` from a clean `git worktree add $TMPDIR/ci-check HEAD` and run each gate. Then `git worktree remove $TMPDIR/ci-check`.
   - **Run:** `pnpm format:check`.
-- [ ] **T6.9 Full check.** §0 steps 1–3, then E2E with the **in-repo** commands (`test:smoke`, and `test:csp` after the no-Supabase build). The structured-data check and Lighthouse run too, and the CI run on the draft PR is green.
-- [ ] **T6.10 Dev notes.** `05-dev-notes-item-6.md`: the run URLs, the durations, the JS baseline and the size-gate decision.
+- [ ] **T6.9 Full check.** §0 steps 1–3, then E2E with the **in-repo** commands (`test:smoke`,
+  and `test:csp` after the no-Supabase build). The structured-data check and Lighthouse run too.
+  - **Path A:** the latest CI run on the draft PR is green.
+  - **Path B:** every `act` job from T6.6 is green, or is under the fallback.
+- [ ] **T6.10 Dev notes.** `05-dev-notes-item-6.md`. It records:
+  - the path taken (A or B);
+  - the run URLs (A) or the `act` commands and output (B), and any `act` fallback with its error;
+  - the durations;
+  - the JS baseline and the size-gate decision;
+  - the five dev dependencies, each with its one-line reason (AC-6.13);
+  - **one deviation:** Q30 recommends required checks on `main` only, while 03b §6.11 says
+    `develop` and `main`. The reason: `/test-and-ship` pushes merge commits straight to
+    `develop`, and a required check there would block that push.
 - [ ] **T6.11 Reviewer pass.** `review-5-item-6.md`, until it's APPROVED. The reviewer checks:
   - the thresholds are 0.9 / 0.9 / 0.9 / 1 and live only in `lighthouserc.json` (AC-6.7);
-  - the PR description lists the dev dependencies.
+  - the dependency reasons (AC-6.13): in the dev notes on both paths, and in the draft PR description on path A;
+  - no deliberate-failure commit in `git log develop..HEAD`.
 - [ ] **T6.12 Test plan.** `06-test-plan-item-6.md`: every AC-6.x, plus the local runbook.
 - [ ] **T6.13 Security review.** `06-security-item-6.md`. It covers:
   - no keys or hosted values in the workflow or in `e2e/`;
@@ -341,7 +455,17 @@ dependency-approval). AC-6.1–6.14.
   - `filesystem` upload, never `temporary-public-storage`;
   - the `permissions: contents: read` setting is kept.
 - [ ] **T6.14 `/test-and-ship`.**
-  - **Run:** `/test-and-ship …/06-test-plan-item-6.md`. It writes `TSR-item-6.md`, merges and pushes. Close the draft PR once the merge to `develop` is pushed.
+  - **Run:** `/test-and-ship …/06-test-plan-item-6.md`. It writes `TSR-item-6.md`, merges and
+    pushes. The `--no-ff` merge commit's body lists the five dev dependencies with their reasons
+    (AC-6.13).
+  - **Path A:** close the feature draft PR once the merge to `develop` is pushed.
+  - **Path B:** straight after the push, collect the GitHub-side evidence from the `develop` run
+    (the three named checks, the logs, and three durations using `gh run rerun`). Append it to
+    `TSR-item-6.md` and clear those "Not covered" lines. That's a docs-only commit, made on a fresh
+    `docs/*` branch and merged the same way.
+  - **If the `develop` CI run goes red** (on either path): fix forward on a fresh
+    `fix/ci-quality-gates` branch from `develop`, with its own gate, **before T7.0**. Never revert
+    or re-break on `develop` itself.
   - **Close-out:** the SHA. There's no release of its own (§1 rule 5).
 
 **15 tasks.**
@@ -350,7 +474,8 @@ dependency-approval). AC-6.1–6.14.
 
 | # | Risk | Mitigation |
 |---|---|---|
-| 1 | The CI-only ACs can't be verified before merge, because the branch is local-only | Q22: a pushed draft PR. Otherwise "Not covered" until the first `develop` run |
+| 1 | The CI-only ACs can't be verified before merge, because the branch is local-only | Path A (Q28): a pushed draft PR, with failures on a throwaway `ci-proof/item-6` branch. Path B: `act` locally, with uncommitted failures. The GitHub-only evidence is "Not covered" until the first `develop` run; a red `develop` run is fixed forward before T7.0 |
+| 1a | `act`'s `supabase start` clashes with the running local stack (same container names and ports), or can't bind-mount inside the `act` container | `pnpm db:stop` first, then restart and run the §0 stack checks afterwards; a job that can't run takes the fallback, recorded in the dev notes |
 | 2 | Flaky E2E from a cold Supabase start, Mailpit timing or a Cloudflare outage | Pinned CLI; existing poll budgets; `retries: 0` so flakes show; 7-day traces; the 3 recorded runs |
 | 3 | The CSP spec imports the E2E config and throws in the Lighthouse job | The `hosted-guard.ts` split and the T6.3 grep. The CSP step runs with no E2E env |
 | 4 | A gate quietly talks to the hosted project | `check:hosted-ref` on both builds and on the workflow and `e2e/`; the guard fixture in every spec; `lighthouse:report` fails on `supabase.co`; the T6.7 proof run |
@@ -367,8 +492,12 @@ AC-7.1–7.17. The file half of AC-7.2 and all of AC-7.15 move to T2.15. Every n
 filters `kind = 'work_returned'` from the start (review-3b finding 3).
 
 - [ ] **T7.0 Branch and migration file.**
+  - **Precondition:** the latest `develop` CI run is green:
+    `gh run list -R splaytech/aj_classes -b develop -e push -L 1 --json conclusion,headSha -q '.[0].conclusion + " " + .[0].headSha'`
+    prints `success <SHA>`, where the SHA is `develop` HEAD. If it's red, finish the T6.14
+    fix-forward first.
   - **Run:** `git checkout develop && git pull --ff-only && git checkout -b feature/fair-results && pnpm db:reset`.
-  - **Test:** create `supabase/migrations/20261027100000_fair_results.sql`, or a fresh `supabase migration new fair_results` stamp per §1 rule 2. `ls supabase/migrations | tail -2` shows it last.
+  - **Test:** §0 stack checks 1 and 2 (check 2: item 4's `20261026100000`). Then create `supabase/migrations/20261027100000_fair_results.sql`, or a fresh `supabase migration new fair_results` stamp per §1 rule 2. `ls supabase/migrations | tail -2` shows it last.
 - [ ] **T7.1 Hold flag and its guard (DB).**
   - **Files:** 03b #1 steps 1–2 (column, grant, `check_hold_results`, trigger); #2 `fair_results.test.sql` (fixtures from 03b §7.7, starting with `delete from public.email_outbox`).
   - **Tests:**
@@ -423,6 +552,8 @@ filters `kind = 'work_returned'` from the start (review-3b finding 3).
   - AC-7.4 browser leg: a held submission is returned with a comment, and the email reaches Mailpit within 5 minutes.
   - AC-7.7 and AC-7.16: the switch and the chip at 360 px, light and dark.
   - AC-7.14: the Mailpit "View feedback" link opens after the student has been removed.
+  - AC-7.12: after removal, the "Past class" tag shows in the student's list and on the
+    assignment page. With no returned work, student home shows "Nothing returned yet."
 - [ ] **T7.9 Full check.** §0 steps 1–3, plus the in-repo `test:smoke` and `test:csp`.
 - [ ] **T7.10 Dev notes.** `05-dev-notes-item-7.md`. It names every function body that was copied, with its source file and lines, for T2.15.
 - [ ] **T7.11 Reviewer pass.** `review-5-item-7.md`, until it's APPROVED. The reviewer diffs each rebuilt body against its cited source.
@@ -457,8 +588,10 @@ email goes to Mailpit.
 - [ ] **T8.0 Branch, migration file, constraint names.**
   - **Run:** `git checkout develop && git pull --ff-only && git checkout -b feature/more-email-alerts && pnpm db:reset`.
   - **File:** create `20261028100000_more_email_alerts.sql`, or a fresh stamp later than item 7's (§1 rule 2).
+  - **Precondition:** the latest `develop` CI run is green (the T7.0 command).
   - **Tests:**
-    1. The T4.0 edge-mount check still prints `1`. If not, run `pnpm db:stop && pnpm db:start`.
+    1. §0 stack checks 1 and 2. Check 2 prints item 7's stamp before this item's file is created.
+       Check 1 matters most here, because item 8 changes the `notifications` function.
     2. `docker exec supabase_db_aj_classes psql -U postgres -Atc "select conname from pg_constraint where conrelid='public.email_outbox'::regclass"` lists `email_outbox_kind_check`, `email_outbox_reason_check` and `email_outbox_once`. They were already confirmed on 26 Oct 2026; re-check on the branch.
 - [ ] **T8.1 Switches, outbox columns, Melbourne helpers (DB).**
   - **Files:** 03b #1 steps 1–3; #2 `email_alerts.test.sql` (fixture block copied from `email_outbox.test.sql`, the 03b §8.10 set-up rules).
@@ -526,7 +659,7 @@ email goes to Mailpit.
   - **Files:**
     - #8 `supabase/README.md`: "Portal emails"; three kinds; the job and its kill switch `select cron.unschedule('due-tomorrow-reminders');`; migration first, then the function;
     - #20 `arch.md`;
-    - #21 `budget.md`: §2, plus the §5 trigger as Q21's answer, or "pending Q21";
+    - #21 `budget.md`: §2, plus the §5 trigger as Q27's answer, or "pending Q27";
     - #22 `release-5/PRP.md`;
     - #23 `release-2/go-live.md`: §6.5's steps as unticked boxes.
   - **Run:** `pnpm format:check`.
@@ -553,8 +686,8 @@ email goes to Mailpit.
 | # | Risk | Mitigation |
 |---|---|---|
 | 1 | The function is deployed before the migration, so `PGRST202` stops **all** email, item 3's included | `supported_kinds` default, so the old worker works with the new DB (T8.4 proof); release step: `deploy.sh` pushes migrations then functions; never the function first |
-| 2 | Real families are emailed during testing (one DB for staging and prod) | All tests run local, in Mailpit; the release check uses only the seeded fake family; Q25 tells Saurabh that the first 15:10 run reaches real families |
-| 3 | Volume beyond the 70-a-day cap delays or drops "new work" emails | Reminders first, then oldest; `too_late` expiry shown to admins; Q21's upgrade trigger; watch Admin → Emails for a fortnight |
+| 2 | Real families are emailed during testing (one DB for staging and prod) | All tests run local, in Mailpit; the release check uses only the seeded fake family; Q31 tells Saurabh that the first 15:10 run reaches real families |
+| 3 | Volume beyond the 70-a-day cap delays or drops "new work" emails | Reminders first, then oldest; `too_late` expiry shown to admins; Q27's upgrade trigger; watch Admin → Emails for a fortnight |
 | 4 | DST or time-zone mistakes send reminders at the wrong hour or twice | Hourly job with the Melbourne-hour guard; pgTAP pins both DST changes and `melbourne_day_start` |
 | 5 | Tests pass against stale function code on the shared stack | T8.0 edge-mount check |
 | 6 | Item 3's and item 7's tests break on the new shapes | Named regressions in T8.2–T8.4 (`email_outbox.test.sql`, `fair_results.test.sql` row 3a) |
@@ -572,6 +705,9 @@ have merged. It follows 03b §9 exactly.
   1. **Migration check first (Saurabh).** He runs `supabase migration list` against the hosted
      project and confirms `20261025134709` was **never applied** there (ADR-0007 decision 4).
      Rename nothing before he confirms.
+     - **If it _was_ applied on hosted:** stop. Don't rename, merge or deploy. Escalate to the
+       Architect, because renaming would leave hosted with an applied migration that no file
+       matches. The refresh only continues on the Architect's written decision.
   2. **Bring in `develop`:** `git fetch && git merge origin/develop` into the branch. Then
      `git mv` the migration to a fresh stamp later than every file on `develop`, including
      `20261028100000` or its renamed stamp. Check with `ls supabase/migrations | tail -2`.
@@ -606,18 +742,21 @@ rule, plus step 5's pinned suites.
 ## 8. Release steps for Saurabh (per item, migration first)
 
 Every release follows 04-plan §2 rule 5:
+
 1. Cut `release/<item>` at the item's `develop` merge SHA, named in its close-out message.
 2. Run `supabase/scripts/deploy.sh` from that branch, when the release carries a migration or a function.
 3. Merge **that branch** into `main` through a PR. Never `develop` HEAD.
 4. Live fixes go on the release branch and are merged back to `develop`.
 
 **Every release needs these first:**
+
 - Items 1 and 3 released, through Q1 and Q2 and their 04-plan §6.1 and §6.3 steps, or included in this run with all of their steps (§1 rule 4);
 - `NOTIFY_WORKER_SECRET` in `supabase/.env.deploy`, because `deploy.sh` has required it since item 3.
 
 ### 8.0 B17 Privacy wording: one batched review (Q7)
 
 Saurabh approves this set together. Each item releases only once its own sentence is approved.
+
 1. Item 1: the news-check sentence (Q1 wording).
 2. Item 2: 03 §2.8 (released with item 2 only).
 3. Item 3: 03 §3.8. If item 8 releases before it's approved, Saurabh approves item 8's §8.9 replacement instead.
@@ -627,6 +766,7 @@ Saurabh approves this set together. Each item releases only once its own sentenc
 ### 8.1 Item 4 (release `release/staff-phone-privacy`)
 
 **Preconditions:** the item 4 wording in §8.0 is approved; the items above it have been released.
+
 1. `git fetch && git checkout -b release/staff-phone-privacy <item-4 SHA>`.
 2. Check `PRIVACY.lastUpdated` names the release month. If it doesn't, the team commits the fix
    on the release branch, and that becomes the SHA used in the next steps.
@@ -638,7 +778,7 @@ Saurabh approves this set together. Each item releases only once its own sentenc
 
 ### 8.2 Item 5 (release `release/public-csp`)
 
-1. **Before the merge to `main` (Saurabh, Q26).** Item 5's push to `develop` builds a Vercel preview.
+1. **Before the merge to `main` (Saurabh, Q32).** Item 5's push to `develop` builds a Vercel preview.
    - Open the `develop` preview behind Vercel's login, then DevTools → Network.
    - The `/portal/login` document has exactly **one** `content-security-policy`, the portal one.
    - `/` has the public one.
@@ -656,8 +796,10 @@ Saurabh approves this set together. Each item releases only once its own sentenc
 
 ### 8.3 Item 6 (no release of its own)
 
-1. Nothing to deploy. The workflow and `e2e/` reach `main` in the next release branch.
-2. Optional, after the merge (Q24): make the five checks required on `main` in GitHub settings.
+1. Nothing to deploy. The workflow and `e2e/` reach `main` in the next release branch. That
+   `release/*` PR's description lists item 6's five dev dependencies with their reasons, copied
+   from `05-dev-notes-item-6.md` (AC-6.13).
+2. Optional, after the merge (Q30): make the five checks required on `main` in GitHub settings.
 3. Within a week of the next production release (team): run Google Rich Results and Schema
    Markup Validator on live `/`, `/programmes/vce` and one guide. Record "no errors" with the
    date in `TSR-item-6.md` (AC-6.11).
@@ -674,10 +816,11 @@ Saurabh approves this set together. Each item releases only once its own sentenc
 ### 8.5 Item 8 (release `release/more-email-alerts`)
 
 **Preconditions:**
-- **Q21 answered** (Resend volume rule). This gates item 8 only.
+
+- **Q27 answered** (Resend volume rule). This gates item 8 only.
 - The item 8 wording in §8.0 is approved.
 - Item 3 released and its AC-3.11 check done.
-- Q25 accepted.
+- Q31 accepted.
 
 1. `git fetch && git checkout -b release/more-email-alerts <item-8 SHA>`.
 2. From that branch: `supabase/scripts/deploy.sh`. One run pushes the migration and **then**
@@ -690,9 +833,9 @@ Saurabh approves this set together. Each item releases only once its own sentenc
    - set up one online assignment due tomorrow, published 2 or more days earlier, and after 15:10 Melbourne both inboxes get "Due tomorrow";
    - `/portal/admin/emails` is empty. Delete the test class afterwards.
 5. On the first 15:10 run, already-published online work due the next day sends reminders to
-   real families. That's by design (Q25).
+   real families. That's by design (Q31).
 6. For the first fortnight, watch Admin → Emails for "Daily limit" and "Too late to send". This is
-   Q21's trigger. Tick the item 8 boxes in `go-live.md`.
+   Q27's trigger. Tick the item 8 boxes in `go-live.md`.
 7. Kill switch if needed: `select cron.unschedule('due-tomorrow-reminders');` in the SQL Editor.
 
 ### 8.6 Item 2: see §7 and 04-plan §6.2. Its release steps are unchanged.
@@ -713,7 +856,7 @@ Saurabh approves this set together. Each item releases only once its own sentenc
    - visual regression;
    - E2E against hosted staging;
    - the JS size gate, if T6.7 records a gap (with the MUI chunk split);
-   - required checks (Q24 is the owner step).
+   - required checks (Q30 is the owner step).
 4. **Item 7:**
    - "Return all submitted" for held quizzes;
    - turning hold off after publishing;
@@ -743,9 +886,10 @@ Saurabh approves this set together. Each item releases only once its own sentenc
 ## 10. Definition of done
 
 Common to items 4–8 (as 04-plan §8):
+
 1. Every task in the item's section is ticked, and each tick means its test ran and passed.
 2. Every AC has a passing test: unit, pgTAP, script, CI run, or a recorded manual result in the TSR. Hosted-only parts are written as §8 release steps, and ACs moved to T2.15 are named in the TSR's "Not covered".
-3. The full check in §0 is green, with 0 hosted refs, `pnpm db:test`, `pnpm test:functions` and E2E. From item 6 on, CI is green as well.
+3. The full check in §0 is green, with 0 hosted refs, `pnpm db:test`, `pnpm test:functions` and E2E. From item 6 on, CI is green as well: on the PR or `act` before the merge, and on `develop` after it. Any GitHub-only evidence still missing is named under "Not covered" until the `develop` run supplies it.
 4. `review-5-item-<n>.md` is APPROVED, and `06-security-item-<n>.md` has no open blocking finding.
 5. `TSR-item-<n>.md` is at 100%, with "Not covered" filled in.
 6. The close-out message names the release SHA and its `release/<item>` branch, and repeats the item's §8 steps and preconditions.
@@ -754,7 +898,7 @@ Common to items 4–8 (as 04-plan §8):
 |---|---|---|
 | 4 | `invite-onboarding.md`; `PRIVACY` | Merged to `develop`, pushed |
 | 5 | `arch.md` §3; `release-1/PRP.md` (item 9, 3 lines); `03-design.md` §1.6 line | Merged, pushed |
-| 6 | `docs/testing/ci-gates.md`, README "Checks", `arch.md` §2; PR description lists the dev dependencies | Merged, pushed; draft PR closed |
+| 6 | `docs/testing/ci-gates.md`, README "Checks", `arch.md` §2; dependency reasons in the dev notes and the merge-commit body (and the draft PR on path A) | Merged, pushed; path A: draft PR closed and `ci-proof/item-6` deleted; path B: `develop`-run evidence appended to the TSR |
 | 7 | `r3b/review.md` F8/F28, `r3b/design.md` §4 and D8 | Merged, pushed |
 | 8 | `supabase/README.md`, `arch.md` §4, `budget.md` §2 and §5, `release-5/PRP.md`, `go-live.md` boxes | Merged, pushed |
 | 2 | 03b §9 carry list applied | Done again only after B3, through T2.15 |
@@ -763,11 +907,11 @@ Common to items 4–8 (as 04-plan §8):
 
 ## 11. Questions for Saurabh (continue from Q20; answer by number)
 
-01b's conditional Q21 (a private E2E repo) was never asked, because ADR-0006 chose option (a),
-and its Q22 was dropped. Those numbers are **reused here** for new questions. None of them blocks
-building items 4–8.
+The new questions start at Q27 (review-4b finding 3), to stay clear of 01b's Q21 (a private
+E2E repo, never asked, because ADR-0006 chose option (a)). 02b and ADR-0006 still cite that Q21.
+01b's Q22 was dropped. Q23–Q26 are unused. None of these questions blocks building items 4–8.
 
-21. **[Item 8 release: Resend volume, 02b Decision 1]** "Item 8 roughly doubles app email. On
+27. **[Item 8 release: Resend volume, 02b Decision 1]** "Item 8 roughly doubles app email. On
     Resend Free the app can send 70 a day, which covers about 30 active portal students. Do you
     approve this rule:
     - we stay on Free;
@@ -776,32 +920,38 @@ building items 4–8.
 
     Or would you rather upgrade before item 8 goes live?" **Recommendation:** approve the rule and
     stay on Free.
-22. **[Item 6: CI before merge]** "To prove the new CI checks before merging, can we push
+
+28. **[Item 6: CI before merge]** "To prove the new CI checks before merging, can we push
     `feature/ci-quality-gates` to GitHub and open a **draft** PR to `develop`? It deploys
     nothing to Supabase, but Vercel may build a preview of it." **Recommendation:** yes. If you'd
-    rather not, the CI checks are first proven on the `develop` push after the merge.
-23. **[Release cadence]** "Every release from now on also ships items 1 and 3, which are merged
+    rather not, we prove the jobs locally with `act` before the merge, including the deliberate
+    failures. Only the GitHub-side evidence (check names, logs and three durations) waits for the
+    `develop` push after the merge.
+29. **[Release cadence]** "Every release from now on also ships items 1 and 3, which are merged
     but not yet live (`main` is 85 commits behind). How do you want to release?
     1. One at a time, as each item merges.
-    2. Batched: 1 + 3 first (Q1, Q2), then 4 + 5 together after the B17 wording, then 7 (item 6 rides along), then 8 after Q21.
+    2. Batched: 1 + 3 first (Q1, Q2), then 4 + 5 together after the B17 wording, then 7 (item 6 rides along), then 8 after Q27.
     3. Everything at once after item 8."
 
     **Recommendation:** 2. It needs fewer release runs, and each batch is still small enough to
     check.
-24. **[Item 6, optional]** "After item 6 merges, do you want the five checks made **required** in
+
+30. **[Item 6, optional]** "After item 6 merges, do you want the five checks made **required** in
     GitHub? **Recommendation:** on `main` only. `/test-and-ship` pushes merge commits straight to
-    `develop`, and a required check there would block that push."
-25. **[Item 8 go-live]** "After item 8 is released, the first 3:10 pm run will email real
+    `develop`, and a required check there would block that push." (03b §6.11 says `develop` and
+    `main`. T6.10 records this deviation.)
+31. **[Item 8 go-live]** "After item 8 is released, the first 3:10 pm run will email real
     families about already-published online work due the next day, and from then on publishing
     emails families straight away. OK?" **Recommendation:** yes. That's the feature. Release
     checks use only the fake test family.
-26. **[Item 5 preview check]** "After item 5 merges, can you open the `develop` preview on Vercel
+32. **[Item 5 preview check]** "After item 5 merges, can you open the `develop` preview on Vercel
     (behind your login) and check the header count on `/portal/login` and `/` (§8.2 step 1, about
     2 minutes)? Or should we rely on the live `curl` check straight after release, with a
     config-only revert if it's wrong?" **Recommendation:** do the preview check. The Vercel rule
     form hasn't been proven on this project yet.
 
 Still open from 04-plan and leaned on here (not re-asked):
+
 - Q1 and Q2: release items 1 and 3. Every item 4–8 release depends on them.
 - Q3 (B3): item 2's gate.
 - Q7 (B17): the §8.0 wording batch.
@@ -823,7 +973,6 @@ Still open from 04-plan and leaned on here (not re-asked):
 4. `[ASSUMPTION]` Item 5's release skips `deploy.sh` when item 4 is already live, because there's
    no migration or function change in between. If they release together, item 4's §8.1 steps
    cover it.
-5. `[ASSUMPTION]` Q21–Q26 reuse the numbers of 01b's retired Q21 and Q22 (§11).
 
 ---
 
@@ -832,3 +981,18 @@ Still open from 04-plan and leaned on here (not re-asked):
 | Date | Change | Why |
 |---|---|---|
 | 26 Oct 2026 | First version, items 4–8 | /deliver stage 4 for 01b, 02b and 03b |
+| 26 Oct 2026 | Revised after [review-4b](review-4b-items-4-8.md) round 1 (findings 1–7) | See below |
+
+**Review-4b changes (26 Oct 2026):**
+
+1. **Item 6 without a pushed PR** (header, §4 intro, T6.6, T6.7, T6.9–T6.11, T6.14, risks 1 and 1a, §8.3, §10):
+   - path A uses a throwaway `ci-proof/item-6` branch for the deliberate failures;
+   - path B runs the jobs with `act` and uncommitted failures, and lists GitHub-only evidence under "Not covered" until the `develop` run;
+   - AC-6.13's reasons go in the dev notes, the merge-commit body and the `release/*` PR;
+   - a red `develop` run is fixed forward before T7.0, and T7.0 and T8.0 require a green `develop` run first.
+2. **Shared stack** (§0, T5.0–T8.0): §0 names all three checkouts, including the stale `magical-liskov-6b3b72`, and says its files aren't touched. The reset also wipes item 2's local Storage objects and Mailpit. Stack checks 1–2 are repeated in every T*.0.
+3. **Questions renumbered** Q21–Q26 → Q27–Q32 (§11), and assumption 5 removed.
+4. **T6.1:** the archive holds 20 files, not 28. `e2e/package.json` declares `typescript`, `@types/node` and `@supabase/supabase-js` at `apps/web`'s ranges.
+5. **T2.15 step 1:** if the migration was applied on hosted, stop and escalate to the Architect.
+6. **T7.8:** AC-7.12's manual leg added.
+7. **Q30:** the deviation from 03b §6.11 is recorded in T6.10.
