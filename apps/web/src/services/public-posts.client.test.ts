@@ -1,11 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  checkPublishedPosts,
-  fetchPublicPosts,
-  hasPublicSupabaseConfig,
-} from './public-posts.client';
-import type { PublicSupabaseConfig } from './public-posts.client';
+import { checkPublishedPosts, fetchPublicPosts } from './public-posts.client';
+import { hasPublicSupabaseConfig } from './public-supabase-config';
+import type { PublicSupabaseConfig } from './public-supabase-config';
 
 const CONFIG: PublicSupabaseConfig = { url: 'http://db.test', publishableKey: 'sb_publishable_x' };
 const UNCONFIGURED: PublicSupabaseConfig = { url: '', publishableKey: '' };

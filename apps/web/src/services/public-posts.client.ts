@@ -5,18 +5,13 @@
 import { APP_CONFIG } from '@/constants';
 
 import { POST_COLUMNS, POSTS_MAX_ROWS, toPost } from './post-rows';
+import { hasPublicSupabaseConfig, publicSupabaseConfig } from './public-supabase-config';
+import type { PublicSupabaseConfig } from './public-supabase-config';
 import type { PostRow } from './post-rows';
 import { fail, succeed } from './result';
 import type { Post, Result } from './types';
 
-export type PublicSupabaseConfig = { url: string; publishableKey: string };
-
 type Fetcher = typeof fetch;
-
-/** Public reads need both the URL and the publishable key. The sitemap uses the same rule. */
-export function hasPublicSupabaseConfig(config: PublicSupabaseConfig): boolean {
-  return config.url !== '' && config.publishableKey !== '';
-}
 
 function getPublic(config: PublicSupabaseConfig, query: string, fetcher: Fetcher) {
   return fetcher(`${config.url}${APP_CONFIG.supabase.postsRestPath}?${query}`, {
@@ -61,24 +56,15 @@ export async function fetchPublicPosts(
   }
 }
 
-function publicConfig(): PublicSupabaseConfig {
-  return { url: APP_CONFIG.supabase.url, publishableKey: APP_CONFIG.supabase.publishableKey };
-}
-
-/** True when this build can read news at all (used by the sitemap, AC-1.11). */
-export function isPublicSupabaseConfigured(): boolean {
-  return hasPublicSupabaseConfig(publicConfig());
-}
-
 // One check per page load, shared by the header and the footer. A full page load starts a new
 // module, so deleting or publishing a post shows on the next load with no rebuild (AC-1.10).
 let newsCheck: Promise<boolean> | null = null;
 
 export function hasPublishedPosts(): Promise<boolean> {
-  newsCheck ??= checkPublishedPosts(publicConfig());
+  newsCheck ??= checkPublishedPosts(publicSupabaseConfig());
   return newsCheck;
 }
 
 export function listPublicPosts(): Promise<Result<Post[]>> {
-  return fetchPublicPosts(publicConfig());
+  return fetchPublicPosts(publicSupabaseConfig());
 }
