@@ -177,15 +177,15 @@ export VITE_SUPABASE_PUBLISHABLE_KEY=<from pnpm db:status>
 
 Single test file: `pnpm --filter web exec vitest run <path>`.
 
-- [ ] **T1.1 Share post rows.** Files: 03 §1.1 #1 `services/post-rows.ts` (new), #2
+- [x] **T1.1 Share post rows.** Files: 03 §1.1 #1 `services/post-rows.ts` (new), #2
   `posts.service.ts` (imports from it; comment updated). Test: existing tests stay green; admin can
   still publish at `/portal/admin/posts` (`pnpm dev`, `admin@local.test`). Run: `pnpm typecheck && pnpm test`.
-- [ ] **T1.2 Public posts client.** Files: #3 `services/public-posts.client.ts`, #4 its test, #5
+- [x] **T1.2 Public posts client.** Files: #3 `services/public-posts.client.ts`, #4 its test, #5
   `services/index.ts`, `constants/error.constants.ts` (`PORTAL_ERRORS.notConfigured`). Test
   `public-posts.client.test.ts`: AC-1.7 (reject, 500, 5 s timeout → false / `ok: false`), AC-1.10
   (two calls, one fetch), AC-1.11 (empty url → false, no fetch). Run:
   `pnpm --filter web exec vitest run src/services/public-posts.client.test.ts`.
-- [ ] **T1.3 `/posts` page states.** Files: #6 `lib/use-has-news.ts`, #7 `lib/use-public-posts.ts`,
+- [x] **T1.3 `/posts` page states.** Files: #6 `lib/use-has-news.ts`, #7 `lib/use-public-posts.ts`,
   #8 `routes/posts.tsx` (no `clientLoader`, four states, `ErrorBoundary`), #9 `routes/posts.test.tsx`,
   #10 `posts.module.css`, #11 `posts.constants.ts` (exact wording 03 §1.4). Test `posts.test.tsx`:
   one `h1` in every state (AC-1.3), empty shows `empty` + 2 links (AC-1.6), error shows `error`
@@ -195,31 +195,33 @@ Single test file: `pnpm --filter web exec vitest run <path>`.
   `succeed([])` → `ready` with `[]` (AC-1.7). Visible: `pnpm dev` → `/posts` shows loading, then
   the list. Run:
   `pnpm --filter web exec vitest run src/routes/posts.test.tsx src/lib/use-public-posts.test.ts`.
-- [ ] **T1.4 Pre-render `/posts` and guard the hosting config.** Files: #19
+- [x] **T1.4 Pre-render `/posts` and guard the hosting config.** Files: #19
   `react-router.config.ts`, #20 `src/hosting-config.test.ts`, #21 `routes.ts:19` comment. Test
   `hosting-config.test.ts` (AC-1.1, 1.2, 1.4 unit parts). Visible:
   `VITE_APP_ENV=production pnpm build && ls apps/web/build/client/posts/index.html`.
   Run: `pnpm --filter web exec vitest run src/hosting-config.test.ts`.
-- [ ] **T1.5 Header News link.** Files: #12 `content.constants.ts` (`NAV.newsLink`), #13
+- [x] **T1.5 Header News link.** (Done; the gap fix needed two more gaps, see 05 D2.)
+  Files: #12 `content.constants.ts` (`NAV.newsLink`), #13
   `Header.tsx`, #14 `Header.test.tsx`. Test: link is the last `.links > li`, `href="/posts"`,
   `aria-current="page"` only on `/posts`, 6 items (AC-1.8); none when `useHasNews` is false
   (AC-1.6). Manual: desktop bar on one row at 1024 px and 1280 px. **Only if it wraps:**
   `Header.module.css` gap change (03 §1.1, conditional). Run:
   `pnpm --filter web exec vitest run src/components/layout/header/Header.test.tsx`.
-- [ ] **T1.6 Footer News link.** Files: #12 (`FOOTER.newsLink`), #15 `Footer.tsx` (first in
+- [x] **T1.6 Footer News link.** Files: #12 (`FOOTER.newsLink`), #15 `Footer.tsx` (first in
   `.legal`), #16 `Footer.test.tsx` (new). Test: present when true, absent when false (AC-1.9). Run:
   `pnpm --filter web exec vitest run src/components/layout/footer/Footer.test.tsx`.
-- [ ] **T1.7 Sitemap.** Files: #17 `routes/sitemap.ts`, #18 `sitemap.test.ts`. Test: `(false)`
+- [x] **T1.7 Sitemap.** Files: #17 `routes/sitemap.ts`, #18 `sitemap.test.ts`. Test: `(false)`
   excludes `/posts`, `(true)` includes it (AC-1.11). Manual:
   `VITE_SUPABASE_URL= VITE_APP_ENV=production pnpm build` succeeds and
   `grep -c /posts apps/web/build/client/sitemap.xml` = 0. Run:
   `pnpm --filter web exec vitest run src/routes/sitemap.test.ts`.
-- [ ] **T1.8 Privacy sentence.** Files: #12 (`PRIVACY`, wording 03 §1.4; approved through Q1).
+- [x] **T1.8 Privacy sentence.** Files: #12 (`PRIVACY`, wording 03 §1.4; approved through Q1).
   Test: add one assertion to the existing `routes/privacy.test.tsx` that the sentence renders
   (same pattern items 2 and 3 use). Run: `pnpm --filter web exec vitest run src/routes/privacy.test.tsx`.
-- [ ] **T1.9 Docs.** `docs/architecture/arch.md` (one line, 03 §1.7), `docs/requirements/blog.md`
+- [x] **T1.9 Docs.** `docs/architecture/arch.md` (one line, 03 §1.7), `docs/requirements/blog.md`
   status note. (`routes.ts` comment done in T1.4.) Run: `pnpm format:check`.
-- [ ] **T1.10 Local production gate (manual, scripted).** With the exports above and ≥ 1 local post:
+- [x] **T1.10 Local production gate (manual, scripted).** (Done; step 6 simulated, see 05 D4.
+  Measurements in [05-dev-notes-item-1.md](05-dev-notes-item-1.md).) With the exports above and ≥ 1 local post:
   1. `VITE_APP_ENV=production pnpm build`; run the bundle check (03 §1.6) → only `done` (AC-1.12).
   2. Vercel mirror (03 §1.6 box) on :4173: `/posts` = 200, list renders, hard refresh OK (AC-1.1);
      `curl -s` shows title, description, canonical, one `h1` (AC-1.3); `curl -sI` shows no
@@ -232,7 +234,7 @@ Single test file: `pnpm --filter web exec vitest run <path>`.
   7. CLS on `/` at 1024 × 600 < 0.1, recorded for the TSR (AC-1.8).
   8. `tutor@local.test` at `/portal/admin/posts` sees "You don't have access to this page"
      (AC-1.13); admin compose refuses empty/over-long title and body (AC-1.14).
-- [ ] **T1.11 Full check.** Run:
+- [x] **T1.11 Full check.** Run:
   `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && VITE_APP_ENV=production pnpm build && pnpm db:test`
   (`db:test` proves `posts.test.sql` is unchanged, AC-1.13; AC-1.15 is `pnpm lint`).
 - [ ] **T1.12 Pipeline.** Reviewer on `develop...HEAD` → `review-5-item-1.md`; Tester →
