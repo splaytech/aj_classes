@@ -1,6 +1,6 @@
 // The hosted-request guard every spec runs under (AC-6.14, 03b §6.4). It imports only
 // @playwright/test on purpose: the CSP sweep runs where the E2E stack env isn't set, and
-// src/config.ts throws at import time without it.
+// the stack config module throws at import time without it.
 
 import { expect, test as base } from '@playwright/test';
 
