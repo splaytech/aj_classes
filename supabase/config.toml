@@ -417,6 +417,13 @@ ZOHO_CLIENT_ID = "local-client"
 ZOHO_CLIENT_SECRET = "local-secret"
 ZOHO_REFRESH_TOKEN = "local-refresh"
 ZOHO_LEAD_SOURCE = "Website"
+# LOCAL ONLY: "work returned" emails go to the local Mailpit, never out (ADR-0004). `supabase
+# secrets set` copies these to the hosted project, so scripts/deploy.sh overrides EMAIL_TRANSPORT,
+# SITE_URL and the secret, and unsets MAILPIT_URL. deploy.sh refuses to run with this secret value.
+NOTIFY_WORKER_SECRET = "local-notify-secret"
+EMAIL_TRANSPORT = "mailpit"
+MAILPIT_URL = "http://supabase_inbucket_aj_classes:8025"
+SITE_URL = "http://localhost:5173"
 
 [analytics]
 enabled = true
@@ -453,6 +460,11 @@ verify_jwt = true
 # leads (completion-todo §3, leads-and-crm.md): the website's enquiry form calls `submit` without
 # signing in, so the gateway doesn't check a token; the function checks admins itself for `resync`.
 [functions.leads]
+verify_jwt = false
+
+# notifications (ADR-0004): called only by pg_cron through pg_net with a shared secret header,
+# so the gateway doesn't check a token; the function checks the secret itself.
+[functions.notifications]
 verify_jwt = false
 
 # ---------------------------------------------------------------------------

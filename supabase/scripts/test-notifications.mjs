@@ -5,7 +5,7 @@
 //      local secret instead of waiting for cron. Nothing here can reach a real inbox.
 // Run: pnpm db:start && pnpm test:functions   (or: node supabase/scripts/test-notifications.mjs)
 
-import { check, finish } from './local-test-helpers.mjs';
+import { API, MAILPIT, api, check, finish, signIn, sql } from './local-test-helpers.mjs';
 import { processBatch } from '../functions/notifications/batch.ts';
 import { secretMatches } from '../functions/notifications/secret.ts';
 import { escapeHtml, renderWorkReturned } from '../functions/notifications/template.ts';
@@ -247,5 +247,234 @@ async function unitChecks() {
   check('Right secret passes', secretMatches('local-notify-secret', 'local-notify-secret'));
 }
 
+// ---------------------------------------------------------------------------
+// End-to-end (local stack + Mailpit)
+// ---------------------------------------------------------------------------
+
+// No SQL passed to sql() may contain a dollar-quote: the helper wraps the query in double quotes
+// for /bin/sh, which would expand it to its process id (design 03 §3.10).
+const CRON_JOB = "from cron.job where jobname = 'email-worker-kick'";
+const setCronActive = (active) =>
+  sql(`select cron.alter_job(jobid, active := ${active}) ${CRON_JOB}`);
+const RECOVERY_COMMAND = `docker exec supabase_db_aj_classes psql -U postgres -c "select cron.alter_job(jobid, active := true) ${CRON_JOB}"`;
+
+const LOCAL_SECRET = 'local-notify-secret'; // config.toml [edge_runtime.secrets], local only
+const STUDENT = 'student@local.test';
+const PARENT = 'parent@local.test';
+const ANSWER_FEEDBACK = 'E2E answer feedback zebra';
+const OVERALL_COMMENT = 'E2E overall comment quokka';
+
+const callWorker = (secret = LOCAL_SECRET) =>
+  api('/functions/v1/notifications', {
+    body: {},
+    headers: secret === null ? {} : { 'x-notify-secret': secret },
+  });
+
+async function mailpit(path, { method = 'GET' } = {}) {
+  const response = await fetch(`${MAILPIT}${path}`, { method });
+  const isJson = response.headers.get('content-type')?.includes('application/json');
+  return isJson ? response.json() : response.text(); // DELETE answers a plain "ok"
+}
+const messagesTo = async (address) =>
+  (await mailpit(`/api/v1/search?query=${encodeURIComponent(`to:${address}`)}`)).messages;
+
+// Aarav's seeded "Word problems set 1" (seed.sql v_word): handed in, waiting for marking.
+function seededIds() {
+  const [assignment, student] = sql(
+    "select a.id || '|' || s.id from public.assignments a, public.students s where a.title = 'Word problems set 1' and s.full_name = 'Aarav Demo'",
+  ).split('|');
+  return { assignment, student };
+}
+
+// Puts v_word back as the seed left it, so the script can run again. As postgres with no session,
+// the marking trigger treats this as a system change, not a staff one.
+function restoreSeededWork({ assignment, student }) {
+  const where = `assignment_id = '${assignment}' and student_id = '${student}'`;
+  sql(`update public.assignment_results set status = 'submitted', feedback = '' where ${where}`);
+  sql(
+    `update public.assignment_answers set awarded_marks = null, feedback = '' where ${where} and question_id in (select id from public.assignment_questions where kind = 'written')`,
+  );
+  sql(`delete from public.email_outbox where assignment_id = '${assignment}'`);
+}
+
+const outboxFor = (assignment) =>
+  sql(
+    `select id || ':' || status from public.email_outbox where assignment_id = '${assignment}' order by id`,
+  )
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => {
+      const [id, status] = line.split(':');
+      return { id, status };
+    });
+
+async function returnAsTutor({ assignment, student }) {
+  const tutor = await signIn('tutor@local.test');
+  const written = sql(
+    `select string_agg(id::text, ',' order by position) from public.assignment_questions where assignment_id = '${assignment}' and kind = 'written'`,
+  ).split(',');
+  const marks = [2.5, 1.5];
+  for (const [index, question] of written.entries()) {
+    await api(
+      `/rest/v1/assignment_answers?assignment_id=eq.${assignment}&student_id=eq.${student}&question_id=eq.${question}`,
+      {
+        method: 'PATCH',
+        token: tutor.access_token,
+        body: { awarded_marks: marks[index], feedback: ANSWER_FEEDBACK },
+      },
+    );
+  }
+  return api(
+    `/rest/v1/assignment_results?assignment_id=eq.${assignment}&student_id=eq.${student}`,
+    {
+      method: 'PATCH',
+      token: tutor.access_token,
+      headers: { Prefer: 'return=representation' },
+      body: { status: 'returned', feedback: OVERALL_COMMENT },
+    },
+  );
+}
+
+async function endToEndChecks(ids) {
+  console.log('\nnotifications: end-to-end (local stack, Mailpit)\n');
+
+  // Drain what the seed queued (Aarav's returned "patterns" work), then start with an empty inbox.
+  await callWorker();
+  await mailpit('/api/v1/messages', { method: 'DELETE' });
+
+  const returned = await returnAsTutor(ids);
+  check(
+    'The tutor returns Aarav’s online work through the API',
+    returned.status === 200 && returned.json?.[0]?.status === 'returned',
+    JSON.stringify(returned.json),
+  );
+  const queued = outboxFor(ids.assignment);
+  check(
+    'Two emails are queued: Aarav and his parent (AC-3.1)',
+    queued.length === 2 && queued.every((row) => row.status === 'pending'),
+    JSON.stringify(queued),
+  );
+
+  // AC-3.7: a wrong or missing secret sends nothing and loses nothing
+  check('Worker with a wrong secret → 401', (await callWorker('wrong-secret')).status === 401);
+  check('Worker with no secret header → 401', (await callWorker(null)).status === 401);
+  check(
+    'and the rows are still pending, nothing in Mailpit',
+    outboxFor(ids.assignment).every((row) => row.status === 'pending') &&
+      (await mailpit('/api/v1/messages')).total === 0,
+  );
+  check(
+    'Worker refuses GET → 405',
+    (await api('/functions/v1/notifications', { method: 'GET' })).status === 405,
+  );
+
+  const run = await callWorker();
+  check(
+    'The worker sends both',
+    run.status === 200 && run.json?.data?.sent === 2 && run.json?.data?.failed === 0,
+    JSON.stringify(run.json),
+  );
+  const sent = outboxFor(ids.assignment);
+  check(
+    'Each row is marked sent',
+    sent.every((row) => row.status === 'sent'),
+    JSON.stringify(sent),
+  );
+
+  const toStudent = await messagesTo(STUDENT);
+  const toParent = await messagesTo(PARENT);
+  check(`Exactly one email to ${STUDENT} (AC-3.1)`, toStudent.length === 1, `${toStudent.length}`);
+  check(`Exactly one email to ${PARENT} (AC-3.1)`, toParent.length === 1, `${toParent.length}`);
+  check('No other emails were sent', (await mailpit('/api/v1/messages')).total === 2);
+
+  const sentIds = new Set(sent.map((row) => row.id));
+  for (const [who, summary] of [
+    ['student', toStudent[0]],
+    ['parent', toParent[0]],
+  ]) {
+    if (!summary) continue;
+    const message = await mailpit(`/api/v1/message/${summary.ID}`);
+    const headers = await mailpit(`/api/v1/message/${summary.ID}/headers`);
+    check(
+      `The ${who} email is from AJ Classes <hello@ajclasses.com.au> (AC-3.9)`,
+      message.From.Address === 'hello@ajclasses.com.au' && message.From.Name === 'AJ Classes',
+    );
+    check(
+      `The ${who} email has the AJ Classes header and brand colours (AC-3.9)`,
+      message.HTML.includes('<strong>AJ</strong> Classes') && message.HTML.includes('#172554'),
+    );
+    check(
+      `The ${who} email's Idempotency-Key is its outbox row id`,
+      sentIds.has(headers['Idempotency-Key']?.[0]),
+      JSON.stringify(headers['Idempotency-Key']),
+    );
+    // What a reader sees: the text version, and the HTML without tags (styles) or entities. Once
+    // the links and the title are taken out, no number is left, so no mark appears (AC-3.3).
+    const visibleHtml = message.HTML.replaceAll(/<[^>]*>/g, ' ').replaceAll(/&#?\w+;/g, ' ');
+    const readable = [message.Text, visibleHtml].map((body) =>
+      body.replaceAll(/https?:\/\/[^\s"<]+/g, '').replaceAll('Word problems set 1', ''),
+    );
+    check(
+      `The ${who} email has no mark and no feedback text (AC-3.3)`,
+      readable.every(
+        (body) =>
+          !/\d/.test(body) && !body.includes(ANSWER_FEEDBACK) && !body.includes(OVERALL_COMMENT),
+      ),
+      readable.map((body) => body.match(/.{0,20}\d.{0,20}/)?.[0]).join(' | '),
+    );
+  }
+  check(
+    "The student's link opens their assignment page (AC-3.4)",
+    toStudent[0] &&
+      (await mailpit(`/api/v1/message/${toStudent[0].ID}`)).Text.includes(
+        `/portal/student/assignments/${ids.assignment}`,
+      ),
+  );
+  check(
+    "The parent's link opens the child's assignment page (AC-3.4)",
+    toParent[0] &&
+      (await mailpit(`/api/v1/message/${toParent[0].ID}`)).Text.includes(
+        `/portal/parent/children/${ids.student}/assignments/${ids.assignment}`,
+      ),
+  );
+
+  // AC-3.5: calling the worker again sends nothing
+  const again = await callWorker();
+  check(
+    'A second worker call sends nothing (AC-3.5)',
+    again.status === 200 &&
+      again.json?.data?.claimed === 0 &&
+      (await mailpit('/api/v1/messages')).total === 2,
+    JSON.stringify(again.json),
+  );
+}
+
 await unitChecks();
+
+// Cron is paused, never removed, so a kick can't land mid-test (review-3 R2-1). The signal handlers
+// come first, so a Ctrl-C at any point after this resumes it (review-3 R3-1).
+console.log(
+  `\nIf this run is interrupted, re-enable the email cron job with:\n  ${RECOVERY_COMMAND}\n(pnpm db:reset also restores it.)`,
+);
+for (const [signal, code] of [
+  ['SIGINT', 130],
+  ['SIGTERM', 143],
+]) {
+  process.on(signal, () => {
+    setCronActive(true);
+    console.log(`\nInterrupted: the email cron job is active again.`);
+    process.exit(code);
+  });
+}
+setCronActive(false);
+const ids = seededIds();
+try {
+  restoreSeededWork(ids); // in case an earlier run was interrupted
+  await endToEndChecks(ids);
+} finally {
+  restoreSeededWork(ids);
+  setCronActive(true);
+}
+check('The email cron job is active again', sql(`select active ${CRON_JOB}`) === 't');
+console.log(`(${API} local stack only)`);
 finish();
