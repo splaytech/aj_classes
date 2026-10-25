@@ -1,14 +1,14 @@
 import { isAbsolute, resolve } from 'node:path';
 import dotenv from 'dotenv';
 
+import { assertLocalHost, assertLocalUrl } from './local-hosts.js';
+
 const E2E_DIR = resolve(import.meta.dirname, '..');
 const REPO_ROOT = resolve(E2E_DIR, '..');
 
 // Load e2e/.env whatever the working directory. Values already in the environment (CI job env)
 // win over the file.
 dotenv.config({ path: resolve(E2E_DIR, '.env'), quiet: true });
-
-const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1']);
 
 export interface E2EConfig {
   web: { baseUrl: string };
@@ -40,26 +40,6 @@ export interface E2EConfig {
   stack: {
     ajClassesDir: string;
   };
-}
-
-/**
- * Refuses any host but this machine's loopback, so a mistyped or copied setting can never point
- * the suite at the hosted Supabase project (AC-6.14).
- */
-export function assertLocalUrl(name: string, url: string): void {
-  let host: string;
-  try {
-    host = new URL(url).hostname;
-  } catch {
-    throw new Error(`Config error: ${name}="${url}" is not a valid URL`);
-  }
-  assertLocalHost(name, host);
-}
-
-function assertLocalHost(name: string, host: string): void {
-  if (!LOCAL_HOSTS.has(host)) {
-    throw new Error(`Config error: ${name} must be localhost or 127.0.0.1, not "${host}"`);
-  }
 }
 
 function resolveStackDir(): string {

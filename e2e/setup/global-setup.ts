@@ -2,6 +2,8 @@ import { spawn } from 'node:child_process';
 import { chromium } from '@playwright/test';
 import { config } from '../src/config.js';
 import { query, closePgPool } from '../src/db/pg-client.js';
+import { abortHostedSupabase } from '../src/fixtures/hosted-guard.js';
+import { assertLocalDevServerEnv } from '../src/local-hosts.js';
 
 interface Probe {
   name: string;
@@ -102,7 +104,11 @@ async function warmUpWebServer(): Promise<void> {
   const routes = ['/', '/posts', '/portal/login'];
   const browser = await chromium.launch();
   try {
-    const page = await browser.newPage();
+    // The same hosted-request guard the specs run under: a reused dev server we didn't start
+    // could still be pointed at the hosted project.
+    const context = await browser.newContext();
+    const hostedAttempts = await abortHostedSupabase(context);
+    const page = await context.newPage();
     for (const route of routes) {
       await page
         .goto(`${config.web.baseUrl}${route}`, {
@@ -111,12 +117,21 @@ async function warmUpWebServer(): Promise<void> {
         })
         .catch(() => undefined);
     }
+    if (hostedAttempts.length > 0) {
+      throw new Error(
+        `[global-setup] The dev server at ${config.web.baseUrl} requested a hosted Supabase ` +
+          `project (${hostedAttempts[0]}); stop it and re-run with the local settings.`,
+      );
+    }
   } finally {
     await browser.close();
   }
 }
 
 export default async function globalSetup(): Promise<void> {
+  // Before any dev server or browser starts: the dev server inherits this env (AC-6.14).
+  assertLocalDevServerEnv(process.env);
+
   const webProbe = probes()[0];
   if (!(await webProbe.check())) {
     await tryStartWebDevServer();
@@ -142,7 +157,7 @@ export default async function globalSetup(): Promise<void> {
   if (failures.length > 0) {
     throw new Error(
       `[global-setup] aj_classes local stack is not fully reachable:\n${failures.join('\n')}\n` +
-        'See README.md for preconditions.',
+        'See docs/testing/ci-gates.md ("E2E smoke") for preconditions.',
     );
   }
 

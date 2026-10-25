@@ -5,7 +5,8 @@
   "scripts": {
     "test:smoke": "playwright test",
     "test:csp": "playwright test -c playwright.csp.config.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:unit": "node --test \"src/**/*.test.ts\""
   },
   "devDependencies": {
     "@playwright/test": "1.64.0",
