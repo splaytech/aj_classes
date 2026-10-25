@@ -298,3 +298,11 @@ begin
   where assignment_id = v_patterns and student_id = v_aarav;
 end;
 $$;
+
+-- "Work returned" email worker (ADR-0004), LOCAL ONLY: where pg_cron's kick reaches the local
+-- notifications function, and the local-only shared secret (matches NOTIFY_WORKER_SECRET in
+-- config.toml). Hosted values are a release step (supabase/README.md), never committed.
+-- The tutor's return above queued emails for Aarav and his parent; the worker sends them to the
+-- local Mailpit within 5 minutes of `db reset`.
+select vault.create_secret('http://supabase_kong_aj_classes:8000/functions/v1/notifications', 'notify_worker_url');
+select vault.create_secret('local-notify-secret', 'notify_worker_secret');

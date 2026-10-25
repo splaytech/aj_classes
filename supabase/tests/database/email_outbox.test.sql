@@ -278,5 +278,301 @@ select throws_ok($$ select profile_id from public.notification_settings $$, '425
 select throws_ok($$ select id from public.email_outbox $$, '42501', null, 'Visitors can''t read the outbox');
 reset role;
 
+
+-- AC-3.2 (continued): no-recipient returns leave the admin list empty ----------------------
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select is_empty($$ select id from public.admin_email_problems() $$,
+  'After the no-recipient returns the admin list is empty (AC-3.2)');
+reset role;
+
+
+-- AC-3.10: only the worker (service role) can run the worker RPCs -------------------------
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
+select throws_ok($$ select public.notify_claim_emails() $$, '42501', null,
+  'A student can''t claim emails');
+select throws_ok($$ select public.notify_record_result(gen_random_uuid(), 'sent') $$, '42501', null,
+  'A student can''t record a send');
+select throws_ok($$ select public.notify_flag_config_missing() $$, '42501', null,
+  'A student can''t flag rows');
+select throws_ok($$ select private.kick_email_worker() $$, '42501', null,
+  'A student can''t kick the worker');
+reset role;
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select throws_ok($$ select public.notify_claim_emails() $$, '42501', null,
+  'Not even an admin can claim emails');
+reset role;
+select tests.authenticate_as_anon();
+select throws_ok($$ select public.notify_claim_emails() $$, '42501', null, 'Visitors can''t claim emails');
+select throws_ok($$ select public.admin_email_problems() $$, '42501', null,
+  'Visitors can''t list email problems');
+reset role;
+
+
+-- Claim: re-checks eligibility, returns what the email needs and nothing more --------------
+-- Since the return: parent2 turned the email off and parent1's account was deactivated.
+insert into public.notification_settings (profile_id, work_returned)
+values ('00000000-0000-0000-0000-0000000006a2', false);
+update public.profiles set is_active = false where id = '00000000-0000-0000-0000-0000000006a1';
+
+set local role service_role;
+create temporary table claimed on commit drop as select * from public.notify_claim_emails();
+reset role;
+
+select results_eq(
+  $$ select recipient_role, email, recipient_first_name, child_first_name, assignment_title, class_name
+     from claimed order by assignment_title, recipient_role $$,
+  $$ values ('student', 'kid1@test.local', 'Test', 'Kid', 'Online one', 'Class one'),
+            ('parent', 'parent4@test.local', 'Test', 'Kid', 'Paper one', 'Class one'),
+            ('student', 'kid1@test.local', 'Test', 'Kid', 'Paper one', 'Class one') $$,
+  'The claim returns only still-eligible rows, with the email''s details');
+select is(
+  (select array_agg(n order by n) from unnest(
+     (select proargnames[1:] from pg_proc where proname = 'notify_claim_emails')) n
+   where n not in ('id')),
+  array['assignment_id', 'assignment_title', 'child_first_name', 'class_name', 'email',
+        'recipient_first_name', 'recipient_role', 'student_id'],
+  'The claim has no mark, score or feedback column (AC-3.3)');
+select results_eq(
+  $$ select status, count(*)::int from public.email_outbox
+     where recipient_id in ('00000000-0000-0000-0000-0000000006a1', '00000000-0000-0000-0000-0000000006a2')
+     group by status $$,
+  $$ values ('skipped', 4) $$,
+  'A recipient who turned the switch off or was deactivated since the return is skipped');
+select results_eq(
+  $$ select distinct status, attempts::int, claimed_at = now() from public.email_outbox
+     where id in (select id from claimed) $$,
+  $$ values ('sending', 1, true) $$,
+  'Claimed rows are sending, with one attempt used');
+
+-- Restore the family for the rest of the file.
+delete from public.notification_settings where profile_id = '00000000-0000-0000-0000-0000000006a2';
+update public.profiles set is_active = true where id = '00000000-0000-0000-0000-0000000006a1';
+
+
+-- Recording each send ----------------------------------------------------------------------
+create function pg_temp.claimed_id(title text, role text) returns uuid language sql as $$
+  select id from claimed where assignment_title = title and recipient_role = role
+    and email <> 'parent4@test.local'
+$$;
+
+set local role service_role;
+select public.notify_record_result(pg_temp.claimed_id('Paper one', 'student'), 'sent');
+select public.notify_record_result(pg_temp.claimed_id('Online one', 'student'), 'retry', 'server_error');
+select public.notify_record_result(
+  (select id from claimed where email = 'parent4@test.local'), 'failed', 'rejected');
+reset role;
+select results_eq(
+  $$ select status, reason, sent_at is not null from public.email_outbox
+     where id = pg_temp.claimed_id('Paper one', 'student') $$,
+  $$ values ('sent', null::text, true) $$,
+  'A sent row is sent, with the time');
+select results_eq(
+  $$ select status, reason, attempts::int from public.email_outbox
+     where id = pg_temp.claimed_id('Online one', 'student') $$,
+  $$ values ('pending', 'server_error', 1) $$,
+  'A retry goes back to pending, keeping the attempt and the reason code');
+select results_eq(
+  $$ select status, reason from public.email_outbox
+     where id = (select id from claimed where email = 'parent4@test.local') $$,
+  $$ values ('failed', 'rejected') $$,
+  'A rejected send fails');
+
+set local role service_role;
+select public.notify_record_result(pg_temp.claimed_id('Paper one', 'student'), 'retry', 'network');
+reset role;
+select is(
+  (select status from public.email_outbox where id = pg_temp.claimed_id('Paper one', 'student')), 'sent',
+  'A row no longer sending can''t be changed by a late worker');
+
+set local role service_role;
+select throws_ok($$ select public.notify_record_result(gen_random_uuid(), 'sent', 'network') $$,
+  'P0001', 'invalid_input', 'sent with a reason is refused');
+select throws_ok($$ select public.notify_record_result(gen_random_uuid(), 'retry', 'rejected') $$,
+  'P0001', 'invalid_input', 'retry with rejected is refused');
+select throws_ok($$ select public.notify_record_result(gen_random_uuid(), 'failed', 'network') $$,
+  'P0001', 'invalid_input', 'failed with network is refused');
+select throws_ok($$ select public.notify_record_result(gen_random_uuid(), 'bounced') $$,
+  'P0001', 'invalid_input', 'an unknown outcome is refused');
+select throws_ok($$ select public.notify_record_result(gen_random_uuid(), 'retry') $$,
+  'P0001', 'invalid_input', 'retry without a reason is refused');
+select throws_ok($$ select public.notify_record_result(gen_random_uuid(), 'failed') $$,
+  'P0001', 'invalid_input', 'failed without a reason is refused');
+select throws_ok($$ select public.notify_record_result(gen_random_uuid(), null) $$,
+  'P0001', 'invalid_input', 'a null outcome is refused');
+reset role;
+
+update public.email_outbox set status = 'sending', attempts = 3
+where id = pg_temp.claimed_id('Online one', 'student');
+set local role service_role;
+select public.notify_record_result(pg_temp.claimed_id('Online one', 'student'), 'retry', 'network');
+reset role;
+select results_eq(
+  $$ select status, reason from public.email_outbox where id = pg_temp.claimed_id('Online one', 'student') $$,
+  $$ values ('failed', 'max_attempts') $$,
+  'A retry on the third attempt fails as "gave up after 3 tries"');
+
+set local role service_role;
+select public.notify_flag_config_missing();
+reset role;
+select is(
+  (select count(*)::int from public.email_outbox where status = 'pending' and reason is distinct from 'config_missing'), 0,
+  'A missing transport flags every pending row config_missing...');
+select is(
+  (select count(*)::int from public.email_outbox where status = 'pending' and attempts > 0), 0,
+  '...without using an attempt');
+
+
+-- Cap (replaced by 2 here) and reclaim ------------------------------------------------------
+delete from public.email_outbox;
+create or replace function private.email_daily_cap()
+returns int language sql immutable set search_path = '' as $$ select 2 $$;
+
+-- Rows for Kid One: (assignment, recipient) pairs are unique, so spread them over the assignments.
+create function pg_temp.add_row(
+  target_assignment uuid, recipient uuid, row_status text, row_attempts int default 0,
+  row_created timestamptz default now(), row_claimed timestamptz default null,
+  row_sent timestamptz default null, row_reason text default null)
+returns uuid language sql as $$
+  insert into public.email_outbox
+    (kind, assignment_id, student_id, recipient_id, recipient_role, status, attempts,
+     created_at, claimed_at, sent_at, reason)
+  values ('work_returned', target_assignment, '00000000-0000-0000-0000-00000000d001', recipient,
+          case when recipient = '00000000-0000-0000-0000-0000000005a1' then 'student' else 'parent' end,
+          row_status, row_attempts, row_created, row_claimed, row_sent, row_reason)
+  returning id
+$$;
+
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e001', '00000000-0000-0000-0000-0000000005a1', 'sent',
+  1, now() - interval '2 hours', now() - interval '1 hour', now() - interval '1 hour');
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e001', '00000000-0000-0000-0000-0000000006a1', 'sending',
+  1, now() - interval '2 hours', now() - interval '1 minute');
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e003', '00000000-0000-0000-0000-0000000005a1', 'pending');
+
+set local role service_role;
+select is_empty($$ select id from public.notify_claim_emails() $$,
+  'With 1 sent + 1 still sending in 24 h and a cap of 2, nothing is claimed');
+reset role;
+
+update public.email_outbox set status = 'sent', sent_at = now() - interval '25 hours'
+where status = 'sending';
+set local role service_role;
+select is((select count(*)::int from public.notify_claim_emails()), 1,
+  'A send older than 24 hours no longer counts, so one row is claimed');
+reset role;
+
+-- Reclaim: a worker died 11 minutes after claiming.
+delete from public.email_outbox;
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e001', '00000000-0000-0000-0000-0000000005a1', 'sending',
+  1, now() - interval '20 minutes', now() - interval '11 minutes');
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e001', '00000000-0000-0000-0000-0000000006a1', 'sending',
+  3, now() - interval '40 minutes', now() - interval '11 minutes');
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e001', '00000000-0000-0000-0000-0000000006a2', 'sending',
+  1, now() - interval '5 minutes', now() - interval '2 minutes');
+select private.kick_email_worker();
+select results_eq(
+  $$ select recipient_id, status, attempts::int, reason from public.email_outbox order by recipient_id $$,
+  $$ values ('00000000-0000-0000-0000-0000000005a1'::uuid, 'pending', 1, null::text),
+            ('00000000-0000-0000-0000-0000000006a1'::uuid, 'failed', 3, 'max_attempts'),
+            ('00000000-0000-0000-0000-0000000006a2'::uuid, 'sending', 1, null::text) $$,
+  'The kick reclaims rows stuck in sending > 10 min (attempt kept; the third fails); a recent claim is left alone');
+
+-- The kick calls the worker through pg_net with the secret from Vault.
+delete from vault.secrets where name in ('notify_worker_url', 'notify_worker_secret');
+select vault.create_secret('http://worker.test/functions/v1/notifications', 'notify_worker_url');
+select vault.create_secret('test-worker-secret', 'notify_worker_secret');
+create function pg_temp.worker_calls() returns int language sql as $$
+  select count(*)::int from net.http_request_queue where url = 'http://worker.test/functions/v1/notifications'
+$$;
+
+select private.kick_email_worker();
+select is(pg_temp.worker_calls(), 1, 'With a row pending and room under the cap, the kick calls the worker once');
+select is(
+  (select headers ->> 'x-notify-secret' from net.http_request_queue
+   where url = 'http://worker.test/functions/v1/notifications'),
+  'test-worker-secret', 'carrying the shared secret header');
+
+delete from net.http_request_queue where url = 'http://worker.test/functions/v1/notifications';
+update public.email_outbox set status = 'sent', sent_at = now() where status <> 'failed';
+select private.kick_email_worker();
+select is(pg_temp.worker_calls(), 0, 'Nothing pending: no call');
+
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e003', '00000000-0000-0000-0000-0000000005a1', 'pending');
+select private.kick_email_worker();
+select is(pg_temp.worker_calls(), 0, 'Cap reached (2 sent in 24 h): no call');
+
+-- AC-3.7: with no worker secret, rows just wait.
+update public.email_outbox set sent_at = now() - interval '25 hours' where status = 'sent';
+delete from vault.secrets where name = 'notify_worker_secret';
+select private.kick_email_worker();
+select is(pg_temp.worker_calls(), 0, 'No worker secret in Vault: no call (AC-3.7)');
+select is(
+  (select status from public.email_outbox where assignment_id = '00000000-0000-0000-0000-00000000e003'), 'pending',
+  'and the row stays pending, nothing lost');
+
+
+-- AC-3.8: the admin Failed / Waiting list ---------------------------------------------------
+delete from public.email_outbox;
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e006', '00000000-0000-0000-0000-0000000005a1', 'failed',
+  1, now() - interval '30 minutes', row_reason => 'rejected');
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e006', '00000000-0000-0000-0000-0000000006a1', 'pending',
+  0, now() - interval '3 hours');
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e006', '00000000-0000-0000-0000-0000000006a2', 'pending',
+  0, now() - interval '1 hour');
+
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000b1');
+select throws_ok($$ select * from public.admin_email_problems() $$, '42501', 'not_admin', 'A tutor is refused');
+reset role;
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
+select throws_ok($$ select * from public.admin_email_problems() $$, '42501', 'not_admin', 'A student is refused');
+reset role;
+select tests.authenticate_as('00000000-0000-0000-0000-0000000006a1');
+select throws_ok($$ select * from public.admin_email_problems() $$, '42501', 'not_admin', 'A parent is refused');
+reset role;
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal1');
+select throws_ok($$ select * from public.admin_email_problems() $$, '42501', 'not_admin',
+  'An admin without two-step is refused');
+reset role;
+
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select results_eq(
+  $$ select recipient_role, assignment_title, state, reason from public.admin_email_problems() $$,
+  $$ values ('student', 'Paper one', 'failed', 'rejected'),
+            ('parent', 'Paper one', 'waiting', 'not_attempted') $$,
+  'Newest first: a failed row with its code, and a 3-hour-old pending row as Waiting / Not attempted; a 1-hour-old one isn''t listed');
+reset role;
+select is(
+  (select array_agg(n order by n) from unnest(
+     (select proargnames from pg_proc where proname = 'admin_email_problems')) n),
+  array['assignment_title', 'created_at', 'id', 'max_rows', 'reason', 'recipient_role', 'state'],
+  'The admin list returns no address, name or body (AC-3.8)');
+
+update public.email_outbox set attempts = 1, reason = 'network'
+where recipient_id = '00000000-0000-0000-0000-0000000006a1';
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select is((select reason from public.admin_email_problems() where state = 'waiting'), 'retrying',
+  'A waiting row that has been tried shows Retrying');
+reset role;
+
+update public.email_outbox set reason = 'config_missing'
+where recipient_id = '00000000-0000-0000-0000-0000000006a1';
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select is((select reason from public.admin_email_problems() where state = 'waiting'), 'config_missing',
+  'A waiting row flagged by the worker shows Set-up error');
+reset role;
+
+update public.email_outbox set reason = null, attempts = 0
+where recipient_id = '00000000-0000-0000-0000-0000000006a1';
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e001', '00000000-0000-0000-0000-0000000005a1', 'sent',
+  1, now() - interval '1 hour', now() - interval '1 hour', now() - interval '1 hour');
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e001', '00000000-0000-0000-0000-0000000006a1', 'sent',
+  1, now() - interval '1 hour', now() - interval '1 hour', now() - interval '1 hour');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select is((select reason from public.admin_email_problems() where state = 'waiting'), 'daily_limit',
+  'With the cap reached, a waiting row shows Daily limit');
+select is((select count(*)::int from public.admin_email_problems() where state not in ('failed', 'waiting')), 0,
+  'Sent rows are never listed');
+select is((select count(*)::int from public.admin_email_problems(1)), 1, 'max_rows limits the list');
+reset role;
+
 select * from finish();
 rollback;

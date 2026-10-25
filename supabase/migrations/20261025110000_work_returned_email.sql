@@ -178,3 +178,227 @@ revoke execute on function
   private.work_returned_recipients(uuid, uuid),
   private.queue_work_returned_email()
 from public, anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Step 6. Worker RPCs (service role only)
+-- ---------------------------------------------------------------------------
+
+-- Claims what the cap allows, oldest first. Skips rows whose recipient is no longer eligible and
+-- fails rows with no address. One claim at a time (advisory lock), so the cap is exact. Returns no
+-- mark or feedback, so the email has nothing to leak (AC-3.3).
+create function public.notify_claim_emails()
+returns table (
+  id uuid, recipient_role text, email text, recipient_first_name text,
+  child_first_name text, assignment_id uuid, student_id uuid,
+  assignment_title text, class_name text)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  room int;
+begin
+  perform pg_advisory_xact_lock(hashtext('email_outbox_claim'));
+
+  update public.email_outbox o set status = 'skipped'
+  where o.status = 'pending'
+    and not exists (select 1 from private.work_returned_recipients(o.assignment_id, o.student_id) r
+                    where r.profile_id = o.recipient_id);
+
+  update public.email_outbox o set status = 'failed', reason = 'no_address'
+  from public.profiles p
+  where o.status = 'pending' and p.id = o.recipient_id and trim(p.email) = '';
+
+  room := private.email_daily_cap() - private.emails_sent_last_day();
+  if room <= 0 then
+    return;
+  end if;
+
+  return query
+  with claimed as (
+    update public.email_outbox o
+    set status = 'sending', claimed_at = now(), attempts = o.attempts + 1, reason = null
+    where o.id in (select x.id from public.email_outbox x
+                   where x.status = 'pending'
+                   order by x.created_at
+                   limit room
+                   for update skip locked)
+    returning o.*
+  )
+  select c.id, c.recipient_role, p.email,
+         split_part(trim(p.full_name), ' ', 1), split_part(trim(s.full_name), ' ', 1),
+         c.assignment_id, c.student_id, a.title, cl.name
+  from claimed c
+  join public.profiles p on p.id = c.recipient_id
+  join public.students s on s.id = c.student_id
+  join public.assignments a on a.id = c.assignment_id
+  join public.classes cl on cl.id = a.class_id
+  order by c.created_at;
+end;
+$$;
+
+-- One row's outcome, written straight after its send (review-2 round 2, finding 1b). Only a row
+-- still 'sending' changes, so a reclaimed row can't be overwritten by a late worker.
+-- Valid pairs (anything else raises 'invalid_input' and changes nothing):
+--   'sent'   + null                                   → sent, sent_at = now(), reason null
+--   'retry'  + 'rate_limited' | 'server_error' | 'network'
+--                                                     → pending with that reason; at attempts = 3
+--                                                       → failed, reason 'max_attempts'
+--   'failed' + 'rejected'                             → failed, reason 'rejected'
+create function public.notify_record_result(target uuid, outcome text, failure_reason text default null)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+begin
+  -- coalesce: a null reason makes the comparisons null, and "not null" would let it through.
+  if not coalesce((outcome = 'sent' and failure_reason is null)
+                  or (outcome = 'retry' and failure_reason in ('rate_limited', 'server_error', 'network'))
+                  or (outcome = 'failed' and failure_reason = 'rejected'), false) then
+    raise exception 'invalid_input';
+  end if;
+
+  update public.email_outbox o
+  set status = case
+                 when outcome = 'sent' then 'sent'
+                 when outcome = 'failed' or o.attempts >= 3 then 'failed'
+                 else 'pending'
+               end,
+      reason = case
+                 when outcome = 'sent' then null
+                 when outcome = 'retry' and o.attempts >= 3 then 'max_attempts'
+                 else failure_reason
+               end,
+      sent_at = case when outcome = 'sent' then now() end
+  where o.id = target and o.status = 'sending';
+end;
+$$;
+
+-- The worker has no usable transport or site URL: mark waiting rows so admins see "Set-up error".
+-- No attempt is used up (03 §4 choice 8).
+create function public.notify_flag_config_missing()
+returns void
+language sql
+volatile
+security definer
+set search_path = ''
+as $$
+  update public.email_outbox set reason = 'config_missing'
+  where status = 'pending' and reason is distinct from 'config_missing'
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Step 7. Cron kick (every 5 minutes) and cron history trim (daily)
+-- ---------------------------------------------------------------------------
+
+-- The worker URL and secret live in Vault, never in a migration: seed.sql adds local values, and
+-- the hosted values are a release step (supabase/README.md, "Work returned emails").
+create function private.kick_email_worker()
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  worker_url text;
+  worker_secret text;
+begin
+  -- Reclaim rows from a worker that died (10 min > the 150 s / 400 s function limit). The attempt
+  -- stays counted; the third one ends as failed.
+  update public.email_outbox
+  set status = case when attempts >= 3 then 'failed' else 'pending' end,
+      reason = case when attempts >= 3 then 'max_attempts' else reason end
+  where status = 'sending' and claimed_at < now() - interval '10 minutes';
+
+  if not exists (select 1 from public.email_outbox where status = 'pending') then
+    return;
+  end if;
+  if private.emails_sent_last_day() >= private.email_daily_cap() then
+    return;
+  end if;
+
+  select decrypted_secret into worker_url from vault.decrypted_secrets where name = 'notify_worker_url';
+  select decrypted_secret into worker_secret from vault.decrypted_secrets where name = 'notify_worker_secret';
+  if coalesce(worker_url, '') = '' or coalesce(worker_secret, '') = '' then
+    return; -- rows wait; after ~2 h admins see "Not attempted" (02 item 3, risk 3)
+  end if;
+
+  perform net.http_post(
+    url := worker_url,
+    body := '{}'::jsonb,
+    headers := jsonb_build_object('Content-Type', 'application/json', 'x-notify-secret', worker_secret),
+    timeout_milliseconds := 10000);
+end;
+$$;
+
+-- cron.schedule replaces a job of the same name, so re-running this is safe. Kill switch:
+-- select cron.unschedule('email-worker-kick');  (supabase/README.md)
+select cron.schedule('email-worker-kick', '*/5 * * * *', $$select private.kick_email_worker()$$);
+select cron.schedule('cron-history-trim', '30 17 * * *',
+  $$delete from cron.job_run_details where end_time < now() - interval '7 days'$$);
+
+-- ---------------------------------------------------------------------------
+-- Step 8. Admin list of Failed and Waiting emails (AC-3.8)
+-- ---------------------------------------------------------------------------
+
+-- No address, body or recipient name is returned.
+create function public.admin_email_problems(max_rows int default 100)
+returns table (
+  id uuid, created_at timestamptz, recipient_role text, assignment_title text,
+  state text,  -- 'failed' | 'waiting'
+  reason text) -- failed: the stored code; waiting: 'config_missing' | 'daily_limit' | 'retrying' | 'not_attempted'
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  cap_reached boolean;
+begin
+  if not private.is_admin() then
+    raise exception 'not_admin' using errcode = '42501';
+  end if;
+  cap_reached := private.emails_sent_last_day() >= private.email_daily_cap();
+  return query
+    select o.id, o.created_at, o.recipient_role, a.title,
+           case when o.status = 'failed' then 'failed' else 'waiting' end,
+           case
+             when o.status = 'failed' then o.reason
+             when o.reason = 'config_missing' then 'config_missing' -- "Set-up error"
+             when cap_reached then 'daily_limit'
+             when o.attempts > 0 then 'retrying'
+             else 'not_attempted' -- what a missing cron job or Vault secret looks like
+           end
+    from public.email_outbox o
+    join public.assignments a on a.id = o.assignment_id
+    where o.status = 'failed'
+       or (o.status in ('pending', 'sending') and o.created_at < now() - interval '2 hours')
+    order by o.created_at desc
+    limit least(greatest(coalesce(max_rows, 100), 1), 500);
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Step 9. Grants
+-- ---------------------------------------------------------------------------
+
+revoke execute on function private.kick_email_worker() from public, anon, authenticated;
+
+revoke execute on function
+  public.notify_claim_emails(),
+  public.notify_record_result(uuid, text, text),
+  public.notify_flag_config_missing(),
+  public.admin_email_problems(int)
+from public, anon, authenticated;
+
+grant execute on function
+  public.notify_claim_emails(),
+  public.notify_record_result(uuid, text, text),
+  public.notify_flag_config_missing()
+to service_role;
+
+grant execute on function public.admin_email_problems(int) to authenticated;

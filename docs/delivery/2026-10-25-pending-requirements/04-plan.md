@@ -260,7 +260,7 @@ function `notifications` (03 §3.4). All email goes to the local Mailpit
   item 2's; then the rule 3 `ls … | tail -2` check) instead of `20261025110000`, and add the file hand-in return case here (former
   T2.11). Visible: return work as
   `tutor@local.test` in the local portal → rows appear in Studio. Run: `pnpm db:reset && pnpm db:test`.
-- [ ] **T3.2 Worker RPCs, cron kick, admin list.** Files: #1 steps 6–9 (`notify_claim_emails`,
+- [x] **T3.2 Worker RPCs, cron kick, admin list.** Files: #1 steps 6–9 (`notify_claim_emails`,
   `notify_record_result`, `notify_flag_config_missing`, `kick_email_worker` + both cron jobs,
   `admin_email_problems`, grants); #8 `seed.sql` (local Vault entries, 03 §3.6). Confirm container
   hostnames with `select net.http_get('http://supabase_kong_aj_classes:8000/functions/v1/notifications')`
