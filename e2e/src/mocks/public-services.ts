@@ -27,7 +27,12 @@ export function mockKit(page: Page): Promise<MockCapture> {
   return fulfilWithJson(page, 'https://app.convertkit.com/**', { status: 'success' });
 }
 
-/** The enquiry form also posts to the `leads` function when lead capture is on. */
+// The local stack's API, which the mirror's CSP allows (apps/web/scripts/hosting-constants.ts
+// LOCAL_SUPABASE_ORIGIN; e2e imports nothing from apps/web). Only this origin is mocked: a page
+// route wins over the hosted guard's context route, so a wildcard would hide a hosted call.
+const LOCAL_LEADS_URL = 'http://127.0.0.1:55321/functions/v1/leads';
+
+/** The enquiry form also posts to the local `leads` function when lead capture is on. */
 export function mockLeads(page: Page): Promise<MockCapture> {
-  return fulfilWithJson(page, '**/functions/v1/leads', { ok: true });
+  return fulfilWithJson(page, LOCAL_LEADS_URL, { ok: true });
 }
