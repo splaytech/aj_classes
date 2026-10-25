@@ -47,6 +47,8 @@ export const APP_CONFIG = {
     url: env.VITE_SUPABASE_URL || '',
     publishableKey: env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
     leadsFunctionPath: '/functions/v1/leads',
+    postsRestPath: '/rest/v1/posts', // public news reads, plain fetch (ADR-0001)
+    publicReadTimeoutMs: 5000, // a slow database hides the News link rather than holding it
   },
 
   // Cloudflare Turnstile "I am human" check on staff sign-in and password reset.
