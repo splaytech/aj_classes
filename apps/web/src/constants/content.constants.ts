@@ -5,7 +5,7 @@
 import { BUSINESS } from './business.constants';
 import type { SocialPlatform } from './business.constants';
 import { PROGRAMMES, PROGRAMME_SLUGS } from './programmes.constants';
-import { SECTION_IDS, programmePath } from './routes.constants';
+import { ROUTES, SECTION_IDS, programmePath } from './routes.constants';
 
 export const TAGLINE = 'Every student can rise.';
 
@@ -47,6 +47,9 @@ export const NAV = {
     { label: 'FAQ', sectionId: SECTION_IDS.faq },
     { label: 'Contact', sectionId: SECTION_IDS.contact },
   ],
+  // A page, not a home-page section, so it sits outside `links`. Shown last, and only once at
+  // least one post exists (ADR-0001). Becomes "What's On" when Events ship (B11).
+  newsLink: { label: 'News', href: ROUTES.posts },
   cta: 'Register Interest',
   // One link for everyone: the portal sends each person to their own home by role.
   signIn: 'Sign in',
