@@ -13,7 +13,8 @@ export type PublicSupabaseConfig = { url: string; publishableKey: string };
 
 type Fetcher = typeof fetch;
 
-function isConfigured(config: PublicSupabaseConfig): boolean {
+/** Public reads need both the URL and the publishable key. The sitemap uses the same rule. */
+export function hasPublicSupabaseConfig(config: PublicSupabaseConfig): boolean {
   return config.url !== '' && config.publishableKey !== '';
 }
 
@@ -30,7 +31,7 @@ export async function checkPublishedPosts(
   config: PublicSupabaseConfig,
   fetcher: Fetcher = fetch,
 ): Promise<boolean> {
-  if (!isConfigured(config)) return false;
+  if (!hasPublicSupabaseConfig(config)) return false;
   try {
     const response = await getPublic(config, 'select=id&limit=1', fetcher);
     if (!response.ok) return false;
@@ -46,7 +47,7 @@ export async function fetchPublicPosts(
   config: PublicSupabaseConfig,
   fetcher: Fetcher = fetch,
 ): Promise<Result<Post[]>> {
-  if (!isConfigured(config)) return fail('notConfigured');
+  if (!hasPublicSupabaseConfig(config)) return fail('notConfigured');
   const columns = POST_COLUMNS.replace(/\s/g, '');
   const query = `select=${columns}&order=created_at.desc&limit=${POSTS_MAX_ROWS}`;
   try {
@@ -62,6 +63,11 @@ export async function fetchPublicPosts(
 
 function publicConfig(): PublicSupabaseConfig {
   return { url: APP_CONFIG.supabase.url, publishableKey: APP_CONFIG.supabase.publishableKey };
+}
+
+/** True when this build can read news at all (used by the sitemap, AC-1.11). */
+export function isPublicSupabaseConfigured(): boolean {
+  return hasPublicSupabaseConfig(publicConfig());
 }
 
 // One check per page load, shared by the header and the footer. A full page load starts a new

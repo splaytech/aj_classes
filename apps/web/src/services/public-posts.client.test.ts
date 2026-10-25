@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { checkPublishedPosts, fetchPublicPosts } from './public-posts.client';
+import {
+  checkPublishedPosts,
+  fetchPublicPosts,
+  hasPublicSupabaseConfig,
+} from './public-posts.client';
 import type { PublicSupabaseConfig } from './public-posts.client';
 
 const CONFIG: PublicSupabaseConfig = { url: 'http://db.test', publishableKey: 'sb_publishable_x' };
@@ -43,6 +47,15 @@ function useFakeTimeoutSignal() {
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
+});
+
+describe('hasPublicSupabaseConfig (shared with the sitemap)', () => {
+  it('needs both the URL and the publishable key', () => {
+    expect(hasPublicSupabaseConfig(CONFIG)).toBe(true);
+    expect(hasPublicSupabaseConfig({ ...CONFIG, publishableKey: '' })).toBe(false);
+    expect(hasPublicSupabaseConfig({ ...CONFIG, url: '' })).toBe(false);
+    expect(hasPublicSupabaseConfig(UNCONFIGURED)).toBe(false);
+  });
 });
 
 describe('checkPublishedPosts', () => {
@@ -89,6 +102,12 @@ describe('checkPublishedPosts', () => {
     await vi.advanceTimersByTimeAsync(5001);
     expect(timeout).toHaveBeenCalledWith(5000);
     expect(await pending).toBe(false);
+  });
+
+  it('makes no request when only the URL is set', async () => {
+    const fetcher = vi.fn(async () => jsonResponse([{ id: 'p1' }]));
+    expect(await checkPublishedPosts({ ...CONFIG, publishableKey: '' }, fetcher)).toBe(false);
+    expect(fetcher).not.toHaveBeenCalled();
   });
 
   it('makes no request when Supabase is not configured (AC-1.11)', async () => {
