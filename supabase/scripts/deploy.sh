@@ -96,8 +96,10 @@ check_hosted_secrets() {
       fail "$name is still set on the hosted project (a local-only value). Run again after removing it: supabase secrets unset $name."
     fi
   done
-  if [[ "$(hosted_digest NOTIFY_WORKER_SECRET "$listing")" == "$(sha256 "$LOCAL_NOTIFY_SECRET")" ]]; then
-    fail "NOTIFY_WORKER_SECRET on the hosted project is the local value. Set a real one and run again."
+  # The value just deployed, so a missing secret or a config.toml copy that won both fail
+  # (review-5 finding 3). The script already refused the local value before deploying.
+  if [[ "$(hosted_digest NOTIFY_WORKER_SECRET "$listing")" != "$(sha256 "$NOTIFY_WORKER_SECRET")" ]]; then
+    fail "NOTIFY_WORKER_SECRET on the hosted project isn't the value you deployed (missing, or the local one)."
   fi
   if [[ "$(hosted_digest EMAIL_TRANSPORT "$listing")" != "$(sha256 resend)" ]]; then
     fail "EMAIL_TRANSPORT on the hosted project isn't 'resend'."
@@ -105,7 +107,7 @@ check_hosted_secrets() {
   if [[ "$(hosted_digest SITE_URL "$listing")" != "$(sha256 "$SITE_URL")" ]]; then
     fail "SITE_URL on the hosted project isn't $SITE_URL."
   fi
-  printf '  Hosted function settings checked: no local values, EMAIL_TRANSPORT=resend, SITE_URL=%s\n' "$SITE_URL"
+  printf '  Hosted function settings checked: no local values, NOTIFY_WORKER_SECRET as deployed, EMAIL_TRANSPORT=resend, SITE_URL=%s\n' "$SITE_URL"
 }
 
 # Reads the hosted project's public sign-in settings (no secret needed).
@@ -169,7 +171,7 @@ local_only=(ZOHO_ACCOUNTS_URL ZOHO_API_URL MAILPIT_URL)
 [[ -z "${ZOHO_LEAD_SOURCE:-}" ]] && local_only+=(ZOHO_LEAD_SOURCE)
 run supabase secrets unset --project-ref "$PROJECT_REF" "${local_only[@]}"
 if $DRY_RUN; then
-  printf '  (dry run) would check `supabase secrets list -o json`: no %s, EMAIL_TRANSPORT=resend, SITE_URL=%s, NOTIFY_WORKER_SECRET not the local value\n' \
+  printf '  (dry run) would check `supabase secrets list -o json`: no %s, EMAIL_TRANSPORT=resend, SITE_URL=%s, NOTIFY_WORKER_SECRET as deployed\n' \
     "${local_only[*]}" "$SITE_URL"
 else
   check_hosted_secrets
@@ -199,5 +201,7 @@ cat <<VAULT
     manager, then run:
       select vault.create_secret('${PROJECT_URL}/functions/v1/notifications', 'notify_worker_url');
       select vault.create_secret('<NOTIFY_WORKER_SECRET>', 'notify_worker_secret');
-    Then do the test-family check (README) before telling families.
+    Then delete that query from the SQL Editor's saved snippets and history, so the secret is
+    only in Vault and your password manager. Then do the test-family check (README) before
+    telling families.
 VAULT
