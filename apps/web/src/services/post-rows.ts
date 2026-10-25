@@ -2,10 +2,12 @@
 // (supabase-js) and the public client (plain fetch), so the public pages can map rows without
 // importing the supabase-js service (ADR-0001).
 
+import { POST_LIMITS } from '@/constants';
+
 import type { Post } from './types';
 
 /** Most rows either page shows. */
-export const POSTS_MAX_ROWS = 200;
+export const POSTS_MAX_ROWS = POST_LIMITS.listCap;
 
 export const POST_COLUMNS = 'id, created_at, updated_at, title, body, author_id';
 
