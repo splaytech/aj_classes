@@ -1,0 +1,42 @@
+
+▶ Checking what's needed
+
+▶ 1/6 Linking the project
+  (dry run) supabase link --project-ref unzjnxctkyahtmrkinyr --password …
+
+▶ 2/6 Sign-in settings (invite only, captcha, email): supabase/config.toml
+  (dry run) supabase config push --project-ref unzjnxctkyahtmrkinyr
+
+▶ 3/6 Confirming public sign-ups are off before creating any tables
+  (dry run) would check https://unzjnxctkyahtmrkinyr.supabase.co/auth/v1/settings for "disable_signup":true
+
+▶ 4/6 Database tables, access rules and functions (supabase/migrations)
+  (dry run) supabase db push --password …
+
+▶ 5/6 Edge functions: account-admin leads notifications
+  (dry run) supabase functions deploy account-admin --project-ref unzjnxctkyahtmrkinyr
+  (dry run) supabase functions deploy leads --project-ref unzjnxctkyahtmrkinyr
+  (dry run) supabase functions deploy notifications --project-ref unzjnxctkyahtmrkinyr
+
+▶ 6/6 Function settings
+  (dry run) supabase secrets set --project-ref unzjnxctkyahtmrkinyr ALLOWED_ORIGINS=… EMAIL_TRANSPORT=… SITE_URL=… NOTIFY_WORKER_SECRET=… RESEND_API_KEY=…
+  (dry run) supabase secrets unset --project-ref unzjnxctkyahtmrkinyr ZOHO_ACCOUNTS_URL ZOHO_API_URL MAILPIT_URL ZOHO_LEAD_SOURCE
+  (dry run) would check `supabase secrets list -o json`: no ZOHO_ACCOUNTS_URL ZOHO_API_URL MAILPIT_URL ZOHO_LEAD_SOURCE, EMAIL_TRANSPORT=resend, SITE_URL=https://ajclasses.com.au, NOTIFY_WORKER_SECRET as deployed
+  Zoho CRM not configured: enquiries are saved but not sent to Zoho CRM (leads-and-crm.md §4).
+
+✔ Supabase is set up. What's left (go-live.md):
+  • Vercel → Settings → Environment Variables (Production and Preview):
+      VITE_TURNSTILE_SITE_KEY = the Turnstile site key   → switches the portal on
+      VITE_LEAD_CAPTURE       = on                        → enquiries saved + sent to Zoho CRM
+    then redeploy.
+  • First admins: supabase/README.md → "First admin on a new environment" (do it twice).
+  • Dashboard → Authentication → Users: should list only people you invited.
+
+  • "Work returned" emails, once per project (supabase/README.md → "Work returned emails"):
+    Dashboard → SQL Editor, replace the placeholder with NOTIFY_WORKER_SECRET from your password
+    manager, then run:
+      select vault.create_secret('https://unzjnxctkyahtmrkinyr.supabase.co/functions/v1/notifications', 'notify_worker_url');
+      select vault.create_secret('<NOTIFY_WORKER_SECRET>', 'notify_worker_secret');
+    Then delete that query from the SQL Editor's saved snippets and history, so the secret is
+    only in Vault and your password manager. Then do the test-family check (README) before
+    telling families.
