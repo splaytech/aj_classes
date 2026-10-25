@@ -27,6 +27,13 @@ Applies to every invited account: tutors, students and parents.
 No date of birth is collected. A student's year level starts from their roster value and is saved
 back to the roster (`students.year_level`). Sending a field the role doesn't have is refused.
 
+After setup, staff can change their phone on **My profile**, and an admin (with two-step) can
+correct it on **Admin → Staff → person**. Both use the same Australian rule and store `+61…`. A
+saved number can be changed but not removed, and families can never hold one. An admin's change is
+recorded in Admin → Activity by field name only, never the number. See item 4 in
+[01b-requirement-items-4-9.md](../delivery/2026-10-25-pending-requirements/01b-requirement-items-4-9.md)
+and the migration `20261026100000_staff_phone_edit.sql`.
+
 ## Flow
 
 1. Admin invites → account created `invited`, Supabase sends the invite e-mail.
