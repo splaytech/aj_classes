@@ -104,10 +104,10 @@ the portal section (`PRIVACY.sections`, heading "Student and parent portal accou
   pages, and in `admin_list_staff()`. It isn't in any public page, sitemap, JSON-LD or
   family-facing RPC. A grep of the production build's public HTML finds no staff number.
 - AC-4.9 **Privacy Policy.** `/privacy` gets one new sentence saying:
-  - we keep a phone number for each tutor and staff member, given at account setup and kept up
-    to date by them or an admin;
+  - we keep a phone number for each tutor and staff member, given at account setup or added
+    later on My profile, and kept up to date by them or an admin;
   - we use it to contact them about classes;
-  - only AJ Classes admins can see it;
+  - only they and AJ Classes admins can see it;
   - it's never published.
 
   `[ASSUMPTION]` The section heading "Student and parent portal accounts" becomes "Portal
@@ -878,6 +878,7 @@ Existing questions that items 4–9 lean on (not re-asked):
 | 26 Oct 2026 | First version: items 4–9 elaborated; item 9 dropped | /deliver stage 1 for the rest of the build queue (04-plan §1.1) |
 | 26 Oct 2026 | Revised after [review-1b](review-1b-items-4-9.md) | See below |
 | 26 Oct 2026 | PO confirmations for [03b](03b-design-items-4-8.md) §14, all three accepted. AC-8.4: no "new assignment" email is queued for work published after its due date, and an unsent one expires at the end of the due date (Melbourne time), or 7 days after publishing when there's no due date, then shows as Failed, "Too late to send". AC-6.9: the `https://ajclasses.com.au` rule covers `url`, `item`, `logo`, `image` and `@id`; `sameAs` only needs absolute `https://` | Solution Designer asked for PO confirmation; a late "new work" email is noise under the 70/day cap, and the business's own social links aren't on our domain |
+| 26 Oct 2026 | AC-4.9 bullets: the number may be "added later on My profile", and "only they and AJ Classes admins" can see it. `[ASSUMPTION]` still pending Saurabh's B17 / Q7 approval | [06-security-item-4](06-security-item-4.md) S3: the first wording was slightly broad |
 
 **Review-1b changes (26 Oct 2026):**
 1. **Finding 1 (blocking).** Hosted-request safety:

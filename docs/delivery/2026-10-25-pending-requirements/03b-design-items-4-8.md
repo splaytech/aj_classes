@@ -345,7 +345,7 @@ created only by invitation"):
 
 - `heading`: `'Student and parent portal accounts'` → `'Portal accounts'`.
 - Insert after "For each account we keep your name, email address and sign-in times.":
-  **"For tutors and other staff we also keep a phone number, given when they set up their account and kept up to date by them or an admin. We use it to contact them about classes; only AJ Classes admins can see it, and it is never published."**
+  **"For tutors and other staff we also keep a phone number, given at account setup or added later on My profile, and kept up to date by them or an admin. We use it to contact them about classes; only they and AJ Classes admins can see it, and it is never published."**
 - `PRIVACY.lastUpdated`: the month the release goes to `main` (`'Last updated: <Month> 2026'`).
   The Developer sets the build month; if the release slips a month, the release step updates it.
 - The section's existing code comment ("Wording for the owner to review") gains "and the staff
@@ -373,7 +373,7 @@ tutor `c1`, invited tutor `c2` (`p_joined => false`), student `s1` and parent `p
 | 4.6 | pgTAP as a1 aal2: update b1 phone → exactly one `profile_edited_by_admin` row, `details->'fields' ? 'phone'`, `details::text !~ '[0-9]'`; `admin_list_staff(b1).phone` is the new value; b1 editing own phone → 0 new audit rows; a1 editing own phone → 0. Manual: Admin → Staff → b1: change, the header link and the list's Phone column show it; Admin → Activity shows "profile edited" with no number | DB + manual |
 | 4.7 | pgTAP: b1 updating b2's phone `returning id` → empty, b2 unchanged; b1 `select phone from profiles where id = b2` → empty; s1 and p1 updating their own `phone` → empty (0 rows, RLS); a1 setting s1's phone → `invalid_input`; c1 and c2 updating their own → empty; a1 at aal1 updating b1 → empty; b1 setting `status`, `terms_accepted_at`, `password_set_at` → `42501`. `onboarding.test.sql` unchanged and green (invited tutor's `complete_onboarding` still stores `+61…`; a student's phone still `invalid_input`) | DB |
 | 4.8 | After the local-Supabase gate build (§0.3): `grep -rlE` for every form (`+61…`, digits only, formatted) of the numbers actually stored on local staff profiles → nothing in `apps/web/build/client`. Don't use `0412 345 678`: it is the example in the invalid-phone error text (dev notes item 4, D2). Code check: `grep -rn "phone" apps/web/src/services/public-*.ts apps/web/src/services/*.client.ts apps/web/src/routes/sitemap.ts apps/web/src/lib/seo.ts` finds no profile phone. The only `phone` in JSON-LD is `BUSINESS.phone` | Manual (scripted) |
-| 4.9 | `privacy.test.tsx`: the "Portal accounts" section contains "For tutors and other staff we also keep a phone number", "kept up to date by them or an admin", "only AJ Classes admins can see it, and it is never published"; no section is still called "Student and parent portal accounts"; the existing duplicate-heading test still passes | Unit |
+| 4.9 | `privacy.test.tsx`: the "Portal accounts" section contains "For tutors and other staff we also keep a phone number", "given at account setup or added later on My profile", "kept up to date by them or an admin", "only they and AJ Classes admins can see it, and it is never published"; no section is still called "Student and parent portal accounts"; the existing duplicate-heading test still passes | Unit |
 | 4.10 | Manual at 360 px, light and dark, on My profile and Admin → Staff → person: the field, its hint and its error are legible and the phone keypad opens (iOS Safari or Chrome device mode). Unit: covered in 4.1 (`type`, `inputMode`) | Manual + unit |
 | Audit and `updated_at` | pgTAP: b1's `updated_at` increases after a phone change | DB |
 
@@ -2058,6 +2058,7 @@ design and the requirement now agree.
 |---|---|---|
 | 26 Oct 2026 | First version, items 4–8 | /deliver stage 3 for 01b and 02b |
 | 26 Oct 2026 | Revised after [review-3b](review-3b-items-4-8.md) round 1 (findings 1–11); §14 marked confirmed | See below; PO confirmations in 01b (`283d5c6`) |
+| 26 Oct 2026 | §4.6 Privacy sentence and §4.7 AC-4.9 phrases: "given at account setup or added later on My profile" and "only they and AJ Classes admins can see it". `[ASSUMPTION]` still pending Saurabh's B17 / Q7 approval | [06-security-item-4](06-security-item-4.md) S3: some staff add their number after setup, and staff can see their own number |
 
 **Review-3b changes (26 Oct 2026):**
 1. **CSP sweep loads without the E2E env** (§6.1 rows 5, 10, 10a; §6.4; §6.5): the guard moves to `e2e/src/fixtures/hosted-guard.ts` (imports only `@playwright/test`); `test-fixtures.ts` extends it; the CSP spec imports only it and `src/mocks/*`; nothing on the CSP config path imports `src/config.ts`.

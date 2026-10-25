@@ -53,9 +53,12 @@ describe('Privacy Policy content', () => {
   it('says staff phone numbers are kept, why, and who can see them (item 4, AC-4.9)', () => {
     const section = PRIVACY.sections.find((item) => item.heading === PORTAL_HEADING);
     expect(section?.text).toContain('For tutors and other staff we also keep a phone number');
+    expect(section?.text).toContain('given at account setup or added later on My profile');
     expect(section?.text).toContain('kept up to date by them or an admin');
     expect(section?.text).toContain('We use it to contact them about classes');
-    expect(section?.text).toContain('only AJ Classes admins can see it, and it is never published');
+    expect(section?.text).toContain(
+      'only they and AJ Classes admins can see it, and it is never published',
+    );
   });
 
   it('no longer calls the portal section student and parent only', () => {
