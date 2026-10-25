@@ -30,6 +30,13 @@ Staging and prod share one hosted Supabase project, so no gate, locally or in CI
   test. `lighthouse:report` fails if any Lighthouse run requested, or tried to request, a
   `supabase.co` URL.
 - No key is committed. `e2e/.env` is gitignored and generated from `supabase status`.
+- **Local keys in public CI output are accepted only while `supabase/config.toml` keeps the
+  Supabase CLI's default keys** (security S4). The repo is public, so the E2E job's log and its
+  `e2e-report` traces (local keys, the seed admin's password and TOTP seed, session JWTs) can be
+  read by any signed-in GitHub user for 7 days. That's harmless for the CLI's fixed public
+  defaults on a throwaway runner. Setting `signing_keys_path` or `jwt_secret`, or feeding real
+  values through CI `env(...)`, would publish them: don't, without redoing this review. CI also
+  drops `supabase start`'s stdout, the status table with the keys.
 
 ## E2E smoke
 
@@ -106,7 +113,8 @@ pnpm --filter aj-classes-e2e test:csp
 - Reports go to `apps/web/lighthouse-report/` (the `lighthouse-report` artifact in CI), never to
   LHCI's public temporary storage. Raw results are in `apps/web/.lighthouseci/`.
 - `lighthouse:report` prints the median JavaScript per page and fails on any `supabase.co`
-  request. Locally LHCI uses your installed Chrome. CI uses Playwright's Chromium instead
+  request, or on a run whose `network-requests` audit has no list (it can't be checked). In CI
+  it and the CSP sweep run even when a Lighthouse threshold fails, so all three results show. Locally LHCI uses your installed Chrome. CI uses Playwright's Chromium instead
   (`CHROME_PATH`) with `--collect.settings.chromeFlags=--no-sandbox`; add both to match CI
   exactly.
 - `test:csp` starts the mirror itself if 4173 is free. It needs none of the E2E settings.
@@ -128,7 +136,9 @@ pnpm --filter web check:structured-data
 - The check reads every `.html` file in `build/client`. It fails on JSON-LD that doesn't parse, on
   a missing type or required property, on a `url`/`item`/`logo`/`image`/`@id` that isn't an
   absolute `https://ajclasses.com.au` URL, on a `sameAs` that isn't absolute `https://`, and on
-  any `Review` or `AggregateRating` (AC-6.9). Its unit tests run in the `web` job.
+  any `Review` or `AggregateRating` (AC-6.9). It also fails unless the folder has the home page,
+  a programme page and a guide page, so a partial build can't switch their rules off. Its unit
+  tests run in the `web` job.
 - Google's Rich Results Test has no API, so it stays a manual check on the live site after each
   production release (AC-6.11).
 
@@ -145,12 +155,15 @@ act pull_request -j structured-data -P ubuntu-latest=catthehacker/ubuntu:act-lat
 - `--env pnpm_config_store_dir=…` keeps pnpm's store out of the copied workspace. Without it,
   `act` puts the store in `.pnpm-store/` and `pnpm format:check` fails on it. GitHub's runners
   don't need this.
-- Before `database` or `e2e`, stop the local stack: they start containers with the same names
-  and ports. Afterwards, clear what the job left and start the stack again:
+- Before `database` or `e2e`, stop the local stack and delete its volume: the jobs start
+  containers with the same names and ports, and with the old volume they'd skip the migrations
+  and test old data (a false green). `pnpm db:stop` keeps the volume, so don't use it here.
 
   ```bash
-  pnpm db:stop
+  supabase stop --no-backup
   ```
+
+- Afterwards, clear what the job left and start the stack again:
 
   ```bash
   supabase stop --no-backup
@@ -161,4 +174,4 @@ act pull_request -j structured-data -P ubuntu-latest=catthehacker/ubuntu:act-lat
   ```
 
   `supabase stop --no-backup` deletes the local database volume: local data only, as
-  `pnpm db:reset` does.
+  `pnpm db:reset` does. Anything you added to the local database by hand is lost.
