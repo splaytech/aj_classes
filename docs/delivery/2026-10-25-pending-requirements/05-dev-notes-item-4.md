@@ -169,3 +169,149 @@ The screenshots are in the session scratchpad, not the repo: `phone-field-error-
    the same run.
 4. Read-only check: `curl -s https://ajclasses.com.au/privacy | grep -c "For tutors and other staff"`
    should print `1`.
+
+## 7. Security fixes (round 2, after review 5 and the security review)
+
+Review 5 was APPROVED. [06-security-item-4](06-security-item-4.md) had one blocking finding (S1).
+This section also covers the Tester's E-60, from the item 4 test plan.
+
+### Commits
+
+1. `dfcd372` fix(profiles): require two-step for an admin to change their own phone (S1)
+2. `beb59f0` fix(profiles): explain a refused admin phone change as needing two-step (S1, web)
+3. `7fb4c31` refactor(profiles): define the phone-required message once (review 5 nits)
+4. `9711224` fix(privacy): say staff may add their phone later and can see it themselves (S3)
+5. `1996c62` fix(portal): skip admin and staff-profile reads for the wrong role (E-60)
+6. This section (docs commit).
+
+### S1: an admin at aal1 could change their own phone (blocking), fixed
+
+- **Migration edited in place.** I edited `20261026100000_staff_phone_edit.sql` rather than adding
+  a new migration. It exists only on this unmerged branch and has never been applied anywhere
+  hosted, so editing it is simpler and leaves no second migration that recreates the function.
+  The usual rule (never edit an applied migration) starts once it's merged or deployed.
+- **The rule** in `private.check_profile_phone()`: an admin phone change raises
+  `insufficient_aal` unless the session is `aal2`. It applies only when all of these hold:
+  - the row's role is `admin`;
+  - there is a signed-in caller (`auth.uid() is not null`);
+  - the account isn't `invited`.
+- **Why the two exceptions:**
+  - **No signed-in user:** `seed.sql` and the test fixtures set admin phones as superuser, and a
+    service-role call has no user either. Without this exception, `db:reset` fails at the seed.
+  - **Invited accounts:** `complete_onboarding()` sets an invited admin's first number in the
+    same update that makes them `active`, before any two-step factor exists. The trigger sees
+    `old.status = 'invited'`.
+- **Design fix found by the new test.** The suggested place for the check, straight after the
+  first "unchanged" return, compared raw text. So the form's normal re-send of a stored number in
+  display format (`0400 111 222` over `+61400111222`) counted as a change, and an aal1 admin
+  couldn't save their bio. The check now runs **after** normalising, behind a second "unchanged"
+  return.
+- **Web.** Security's note assumed `insufficient_aal → needsTwoStep` was already mapped. It
+  wasn't, for this path: that entry is in the Auth-code table, but the trigger raises the key as
+  the message, with code `P0001`. A probe returned `unknown` ("Something went wrong"). I added
+  `insufficient_aal: 'needsTwoStep'` to the own-key table, with a test.
+- **pgTAP** (`staff_phone.test.sql`, +6):
+  - a1 at aal1 changing their own phone throws `insufficient_aal`;
+  - at aal1, a bio save that re-sends the same number in display format still works;
+  - the phone is unchanged after the refusal;
+  - at aal2, the change succeeds;
+  - an invited admin at aal1 completes `complete_onboarding()` with a phone;
+  - that admin's number is stored as `+61…`.
+- **Proof the test bites.** With the function rebuilt without the aal block, test 46 ("An admin
+  without two-step cannot change their own phone") fails. Restored by `db:reset`.
+- **Runbook.** Break-glass identity is now confirmed by calling a number held outside the portal,
+  never the profile phone:
+  - `docs/requirements/release-2/r2a/design.md` §16, step 3;
+  - the same step in `supabase/README.md`, which is the runbook people actually follow and said
+    the same thing.
+
+### S3: Privacy wording, Security's draft adopted
+
+`[ASSUMPTION]` still pending Saurabh's B17 / Q7 approval. `PRIVACY` now says:
+
+> For tutors and other staff we also keep a phone number, given at account setup or added later on
+> My profile, and kept up to date by them or an admin. We use it to contact them about classes; only
+> they and AJ Classes admins can see it, and it is never published.
+
+- `privacy.test.tsx` checks the new phrases.
+- 01b AC-4.9 (bullets), 03b §4.6 (the sentence) and 03b §4.7 (the phrases) are updated, each with
+  a change-log row.
+- The release step 4 `curl … "For tutors and other staff"` check still holds.
+
+### Review 5 nits
+
+- The browser-side blank test asserts `PROFILE_VALIDATION.phoneRequired`.
+- The sentence is defined once (`PHONE_REQUIRED` in `error.constants.ts`) and used by both
+  `PORTAL_ERRORS.phoneRequired` and `PROFILE_VALIDATION.phoneRequired`.
+
+### E-60: wrong-role loaders sent refused requests. It was real, and it's fixed
+
+**Before.** In the browser on the dev server, signed in as each role, I navigated client-side and
+counted REST requests to `:55321`:
+
+| Role | Page | Requests the page sent |
+|---|---|---|
+| Tutor, parent, student | `/portal/admin/staff` | `rpc/admin_list_staff` → **403** |
+| Tutor, parent, student | `/portal/admin/staff/<id>` | `rpc/admin_list_staff` → **403**, plus a `profiles` read |
+| Tutor, parent, student | `/portal/admin/activity` | `rpc/admin_list_activity` → **403** |
+| Parent, student | `/portal/profile` | a `profiles` read (200, always empty) |
+
+**Fix.** BUG-9's shape: a new `services/staff-client.ts`.
+- `getAdminClient()` needs an admin with two-step, as the admin layout does. `listStaff`,
+  `getStaffMember` and `listActivity` use it.
+- `getProfileClient(userId)` allows your own row as active staff, or anyone's as an admin with
+  two-step. `getProfile` uses it, which covers My profile and the staff page.
+- Either way, the role comes from `getAccessState`, the read the layouts already make, so the
+  right person pays no extra request. A wrong role gets `notAllowed`, and the layout shows its own
+  page.
+
+**After.** For every one of those role and page pairs, the only request left is the layout's own
+access read (`profiles?select=full_name,role,is_active`, 200).
+- One case still sends a read: a tutor opening `/portal/admin/staff/<their own id>` reads their own
+  profile, 200 with data. It's allowed and not refused. With anyone else's id, nothing is sent.
+- The admin pass (§3 script, 8 runs) is unchanged: staff page, list, `tel:` link and Activity all
+  work. 0 `supabase.co` requests, 0 audit rows with digits.
+
+**Test.** `services/staff-access.test.ts` (27 tests):
+- each admin read with each non-admin role, signed out, at aal1, and with a failed access read →
+  no call;
+- My profile as a student or parent → no call;
+- someone else's profile as a tutor, or as an aal1 admin → no call;
+- the right person → one call.
+
+Mutation check: with both helpers always returning the client, 18 of the 27 fail.
+
+**Not covered.** E-60 names the admin staff list and detail at minimum, and I added Activity,
+because AC-4.6 shows there. The other admin pages (classes, emails, posts and the rest) weren't
+checked and may have the same pattern. Worth a follow-up ticket, using the same helper.
+
+### Full check (round 2)
+
+| Step | Result |
+|---|---|
+| format, lint, typecheck | clean |
+| `test` | **51 files, 439 tests** (412 before this round; +27 from `staff-access.test.ts`) |
+| `VITE_APP_ENV=production pnpm build`, local exports | Pass. Hosted refs **0**. Stored test numbers in the build **0** |
+| `db:test` | **14 files, 507 tests, PASS** (501 before; +6) |
+| `test:functions` | **169 `ok`, 0 failed** (49 / 30 / 90) |
+| E2E (external repo, 04b §0) | **9 passed** |
+
+The dev server is stopped (port 5173 is free).
+
+## 8. Later (deferred from the security review)
+
+- **S2: staff changes to their own phone leave no trace.** This is a product decision. Options: a
+  field-names-only `profile_edited` audit row for self-edits, or a "phone changed <date>" line on
+  the staff page.
+- **S4: no in-app way to remove a leaver's phone.** This needs a retention rule, for example
+  clearing the phone on deactivation. Until then, note for the runbook: a plain superuser
+  `update public.profiles set phone = null …` is refused with `phone_required`, because the trigger
+  applies to every caller (checked locally, rolled back). A manual removal has to skip triggers for
+  that one statement:
+  ```sql
+  begin; set local session_replication_role = replica; update public.profiles set phone = null where id = '<user id>'; commit;
+  ```
+  Checked locally inside a rolled-back transaction. That also skips the audit and `updated_at`
+  triggers, so the retention rule should come with its own function that writes an audit row.
+- **O1** (first-error focus doesn't scroll) and O2 (hint length) from §3 still stand.
+- **E-60 follow-up:** the other admin pages, as above.
