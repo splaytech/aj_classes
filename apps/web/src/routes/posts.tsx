@@ -64,9 +64,11 @@ export default function PostsPage() {
   return (
     <SiteLayout>
       <Section>
-        <h1>{POSTS_PUBLIC_PAGE.heading}</h1>
-        <p className={styles.intro}>{POSTS_PUBLIC_PAGE.intro}</p>
-        <PostsContent />
+        <div className={styles.page}>
+          <h1>{POSTS_PUBLIC_PAGE.heading}</h1>
+          <p className={styles.intro}>{POSTS_PUBLIC_PAGE.intro}</p>
+          <PostsContent />
+        </div>
       </Section>
     </SiteLayout>
   );

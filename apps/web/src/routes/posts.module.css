@@ -1,3 +1,9 @@
+/* The posts arrive after the page shows. Filling the first screen keeps the footer below the
+   fold, so the list arriving doesn't push a visible footer down (layout shift, CLS < 0.1). */
+.page {
+  min-height: calc(100svh - var(--header-height) - 2 * var(--section-gap));
+}
+
 .intro {
   font-size: var(--font-size-lg);
 }
