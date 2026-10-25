@@ -16,6 +16,11 @@ unless `git merge-base --is-ancestor 33c8573 HEAD` exits 0. If the T4.11 Reviewe
 Security pass leads to fix commits, the TSR names that fix SHA too, and the run uses the HEAD that
 contains it. Record both SHAs in the TSR.
 
+**Freeze SHA: not yet set.** The Developer is landing the Security S1 and S3 fixes (and possibly
+an E-60 fix, ruling 2 below). The coordinator sends the SHA to freeze on. Until then this plan is a
+draft. At freeze, write it here as `FIX=<sha>`, and the run also needs
+`git merge-base --is-ancestor $FIX HEAD` to exit 0. E-92 to E-96 test the S1 fix.
+
 **Environment (local only).**
 
 | Name | What | Address |
@@ -71,18 +76,27 @@ exceptions, both requests the test itself forces or the user must make:
 - **A2.** E-51 and E-53: the one line for the request the test breaks with `page.route` (rewritten
   to a bad phone, or aborted). Nothing else.
 
-Any other line fails the case. If the team lead strikes A1 or A2 at freeze, those legs fail by
-design, so the plan must change before it's frozen, not during the run.
+Any other line fails the case.
+
+**Team-lead rulings (26 Oct 2026, recorded before freeze).**
+1. **A1 and A2 are accepted, narrowly** (the same as item 2's R1 ruling). A1 is a request the
+   server must refuse; the app can't know in advance that the account is deactivated. A2 covers
+   only lines caused by the test's own `page.route` rewrites or aborts. Everything else must be 0
+   on every leg, including the app's own `console.error` calls and `pageerror` events.
+2. **E-60 stays strict and unchanged.** A request the app should never have sent fails the case.
+   The Developer is checking now, and will add a role pre-check if the bug is real.
+3. **The Privacy text changes** after Security S3 (`06-security-item-4.md`) found it too broad.
+   The new text is an `[ASSUMPTION]` that still needs B17. E-84 tests it word for word. AC-4.9's
+   "one new sentence" counts as met by this two-sentence B17 draft.
 
 **No hosted requests.** Every browser leg also counts requests whose host ends in `supabase.co`.
 Expected is **0** on every leg. E-91 adds them up.
 
 **For Saurabh** (not cases; none of these blocks a case's pass or fail):
-1. **B17 / Q7:** approve the Privacy wording and the heading change (03b §4.6), batched with items
-   2 and 3. It's a release step, not a test. E-84 tests the text exactly as 03b approved it.
-   Note: AC-4.9 says "one new sentence", but the 03b text is two sentences ("…or an admin. We use
-   it…"). The plan tests 03b's wording word for word, so whether two sentences are fine is part of
-   B17.
+1. **B17 / Q7:** approve the Privacy wording and the heading change, batched with items 2 and 3.
+   It's a release step, not a test. E-84 tests the post-S3 draft word for word (ruling 3). The
+   draft is two sentences, and the team lead ruled that this meets AC-4.9's "one new sentence". If
+   Saurabh changes the wording at B17, E-84's expected text changes with it, on a new build.
 2. **Looks:** the E-70 and E-71 screenshots (8 legs) and the E-72 emulator screenshots are in
    `$EVD`. Legibility is measured (contrast, overflow, line counts), so the cases pass or fail on
    numbers. Whether it *looks* right is his call, after the run.
@@ -204,7 +218,7 @@ the snapshot that E-90 compares against. Phone values are measured per case, and
 
 Phases run in this order: **0** safety, **1** repo checks, **2** DB and API (no browser), **3**
 portal on **D**, **4** UI matrix and device, **5** exposure and Privacy on the build, **6**
-close-out. Within a phase, run in table order. Phase 1 runs the E2E suite, which starts and leaves
+close-out. Phase 7 (Security S1) runs right after phase 2, keeping its IDs. Within a phase, run in table order. Phase 1 runs the E2E suite, which starts and leaves
 its own server on :5173, so kill it before starting **D**.
 
 ### Phase 0 — safety guards (stop the run if any fails)
@@ -222,7 +236,7 @@ its own server on :5173, so kill it before starting **D**.
 | E-04 | DoD, all | Full check | Repo full check (header, lines 1–3) | Run with the §1 exports, `VITE_LOCAL_ADMIN_TWO_STEP_KEY` unset; save the log to `$EVD/E-04-fullcheck.log` | Every step exit 0. Lint 0 problems. `pnpm test` 0 failed, **≥ 50 files / ≥ 412 tests**, and the list includes `ProfileForm.test.tsx`, `profile-validation.test.ts`, `auth-errors.test.ts`, `privacy.test.tsx`. `db:test` 0 failed, **≥ 14 files / ≥ 501 tests**, with `staff_phone.test.sql` and `onboarding.test.sql` listed. `test:functions` **≥ 169 `ok`, 0 `NOT OK`** (dev notes §2 counts). Fewer means a test was dropped: fail. Record the counts | DB |
 | E-05 | §0.3, 4.8 | Hosted refs | The build has no hosted ref and no local-only key | After E-04's build: `grep -rl unzjnxctkyahtmrkinyr apps/web/build/client \| wc -l`; `grep -rl 'supabase\.co' apps/web/build/client \| wc -l`; `grep -rl 127.0.0.1:55321 apps/web/build/client \| wc -l`; `grep -rlF "$(sed -n 's/^--   \([A-Z]\{32\}\)$/\1/p' supabase/seed.sql)" apps/web/build/client \| wc -l` | **0**, **0**, **≥ 1** (the build really is the local-Supabase one), **0** | P build |
 | E-06 | 4.7 (regr.) | E2E | External E2E suite (header, line 4) | Run it; then `lsof -t -nP -iTCP:5173 -sTCP:LISTEN \| xargs kill`; then `q "select count(*) from public.profiles where email like 'e2e-%'"`; same for `public.posts` (title) and `public.enquiries` (email) | **9 passed**, 0 failed (it includes invite onboarding with a phone, so `complete_onboarding()` works with the new trigger, and admin 2FA login). All three counts **0**. Port 5173 free | DB, D (own) |
-| E-07 | 03b §4.1 | Scope guard | Only the 03b files changed; the untouched list is untouched | `git diff --name-only develop...HEAD -- apps supabase`; `git diff --quiet develop...HEAD -- apps/web/src/routes/portal/profile.tsx apps/web/src/routes/portal/admin-staff-member.tsx apps/web/src/routes/portal/admin-staff.tsx apps/web/src/services/database.types.ts; echo $?`; `git diff develop...HEAD -- supabase/migrations \| grep -c 'complete_onboarding'` | The name list is exactly 03b §4.1 #1–#15 (15 files: the migration, `staff_phone.test.sql` and the 13 web files). `0`. **0** (onboarding not redefined) | — |
+| E-07 | 03b §4.1 | Scope guard | Only the 03b files changed; the untouched list is untouched | `git diff --name-only develop...HEAD -- apps supabase`; `git diff --quiet develop...HEAD -- apps/web/src/routes/portal/profile.tsx apps/web/src/routes/portal/admin-staff-member.tsx apps/web/src/routes/portal/admin-staff.tsx apps/web/src/services/database.types.ts; echo $?`; `git diff develop...HEAD -- supabase/migrations \| grep -c 'complete_onboarding'` | The name list is exactly 03b §4.1 #1–#15 (15 files: the migration, `staff_phone.test.sql` and the 13 web files), plus `supabase/README.md` (the Security S4 manual-removal note), plus only the files that the S1/S3/E-60 fix commits name in the dev notes. Any other file fails. `0`. **0** (onboarding not redefined) | — |
 | E-08 | Repo rules | Code rules | Added lines follow the repo rules | `git diff develop...HEAD -- apps/web/src \| grep -E '^\+' \| grep -nE 'console\.(log\|debug)\|style=\{\{\|: any\b\|TODO(?! \[)\|fetch\(\|axios\|document\.(querySelector\|getElementById)\|innerHTML'` (use `grep -P` for the lookahead) | **0** lines. (The existing `getElementById(...).focus()` in `ProfileForm.tsx` is an unchanged line, so it isn't a `+` line) | — |
 | E-09 | 03b §4.1 | Types | Generated types match the migrated schema | `pnpm db:types && git diff --exit-code apps/web/src/services/database.types.ts; echo $?` | `0` (`phone` was already a column; no RPC changed) | DB |
 
@@ -315,8 +329,8 @@ with an empty `200` script).
 | E-81 | 4.8 | Code grep | No profile phone in public services, the sitemap or SEO code | `grep -rn "phone" apps/web/src/services/public-*.ts apps/web/src/services/*.client.ts apps/web/src/routes/sitemap* apps/web/src/lib/seo.ts`; `grep -rn "phone" apps/web/src/services/family-client.ts apps/web/src/services/*family* 2>/dev/null` | First grep: only `leads.client.ts` (the enquiry form's own field) and `seo.ts`'s `BUSINESS.phone` (`telephone`). Second: **0** lines (no family service reads a phone) | — |
 | E-82 | 4.8 | JSON-LD | The only `telephone` on public pages is the business number | For every `.html` file under `apps/web/build/client`: extract every `<script type="application/ld+json">` block; `jq` every `telephone` value | Every value equals `+61 469 800 685` (`BUSINESS.phone`); count of other values **0** | P build |
 | E-83 | 4.8 | Network exposure | Family pages and public pages never receive a staff phone | On **D** (restart it for this case, then stop it): as `student@` open home, an assignment, timetable, Account; as `parent@` open home, each child, a child assignment, Account; signed out open `/`, `/privacy`, `/portal/login`. Keep every `127.0.0.1:55321` response body. Search all bodies for every line of `$SCR/staff-phones.txt` | Matches **0** across all bodies (record the response count searched, ≥ 10). Console errors 0, hosted 0 on every leg | D |
-| E-84 | 4.9 | Privacy page | `/privacy` has the new heading and the exact staff sentence | On **P** and on **D**, `/privacy` at 1280: `h2` texts; `document.body.innerText` checks; `lastUpdated` line; `h1` count; `<meta name="robots">` count | `h2` "Portal accounts" exactly **1**; "Student and parent portal accounts" **0**; all `h2` texts unique. The "Portal accounts" section contains exactly once: `For tutors and other staff we also keep a phone number, given when they set up their account and kept up to date by them or an admin. We use it to contact them about classes; only AJ Classes admins can see it, and it is never published.` It sits right after `For each account we keep your name, email address and sign-in times.` The rest of the section is unchanged from `develop` (diff of the `text` with the sentence removed is empty). `Last updated: October 2026` (D3). 1 `h1`; 1 robots meta; console errors 0, hosted 0 | P, D |
-| E-85 | 4.9 | Privacy in the build | The prerendered HTML has the sentence and not the old heading | `grep -c 'For tutors and other staff we also keep a phone number' apps/web/build/client/privacy/index.html`; `grep -rl 'Student and parent portal accounts' apps/web/build/client \| wc -l`; `curl -s http://localhost:4173/privacy \| grep -c 'Portal accounts'` | `1`; `0`; `≥ 1` | P |
+| E-84 | 4.9 | Privacy page | `/privacy` has the new heading and the exact staff sentence | On **P** and on **D**, `/privacy` at 1280: `h2` texts; `document.body.innerText` checks; `lastUpdated` line; `h1` count; `<meta name="robots">` count | `h2` "Portal accounts" exactly **1**; "Student and parent portal accounts" **0**; all `h2` texts unique. The "Portal accounts" section contains exactly once (ruling 3, post-S3 B17 draft): `For tutors and other staff we also keep a phone number, given at account setup or added later on My profile, and kept up to date by them or an admin. We use it to contact them about classes; only they and AJ Classes admins can see it, and it is never published.` The old wording (`given when they set up their account`, `only AJ Classes admins can see it`) is found **0** times. It sits right after `For each account we keep your name, email address and sign-in times.` The rest of the section is unchanged from `develop` (diff of the `text` with the sentence removed is empty). `Last updated: October 2026` (D3). 1 `h1`; 1 robots meta; console errors 0, hosted 0 | P, D |
+| E-85 | 4.9 | Privacy in the build | The prerendered HTML has the sentence and not the old heading | `grep -c 'For tutors and other staff we also keep a phone number' apps/web/build/client/privacy/index.html`; `grep -rl 'Student and parent portal accounts' apps/web/build/client \| wc -l`; `curl -s http://localhost:4173/privacy \| grep -c 'Portal accounts'` | `1`; `0`; `≥ 1`. Also `grep -c 'given at account setup or added later on My profile' apps/web/build/client/privacy/index.html` = `1`, and `grep -rl 'given when they set up their account' apps/web/build/client \| wc -l` = `0` | P |
 | E-86 | 4.9 | No draft marker | This branch adds no draft, approval, TBC or TODO text to `PRIVACY`; approval is tracked in the docs | `git diff develop...HEAD -- apps/web/src/constants/content.constants.ts \| grep -E '^\+' \| grep -ciE 'draft\|approv\|review\|\[TBC\|TODO'`; `grep -rc '\[TBC' apps/web/build/client \| grep -v ':0' \| wc -l`; `grep -nE 'B17\|Q7' docs/delivery/2026-10-25-pending-requirements/04b-plan-items-4-8.md \| grep -ci 'item 4\|privacy'` | `0`; `0`; `≥ 1` | P build |
 | E-87 | Regr. (addendum) | Public sweep | Every sitemap URL at 375 and 1280 px | For every `<loc>` in `apps/web/build/client/sitemap.xml`, mapped to `http://localhost:4173`: open at 375 × 812 and 1280 × 800. Also `cat apps/web/build/client/robots.txt` | Every URL: **200**; console errors 0; overflow 0; exactly 1 `h1`; exactly 1 robots meta; hosted 0. `robots.txt` has the production rules (`Disallow: /portal`, the `Sitemap:` line). Record the URL count | P |
 
@@ -325,7 +339,28 @@ with an empty `200` script).
 | ID | AC | Area | Case | Steps | Expected (measurable) | Env |
 |---|---|---|---|---|---|---|
 | E-90 | All | Data restore | The local data is back to the seed | Restore X6 (`q "$R0"`). Delete X3 as the E2E spec's cleanup (audit rows by `actor_id` or `target_id`, `profiles`, `auth.users`). Re-run E-02 step 4 into `$SCR/snapshot-end.txt`; `diff $SCR/snapshot-start.txt $SCR/snapshot-end.txt`; `q "select count(*) from public.profiles where email like 'e2e-%'"`; `q "select banned_until > now() from auth.users where email='inactive@local.test'"`; `q "select is_active from public.profiles where email='tutor@local.test'"`; stop D and P; stop the emulator | `diff` empty (phones, names, bios, photos, flags); `e2e-%` **0**; `t`; `t`; ports 5173 and 4173 free | DB |
-| E-91 | §0.3, all | Console and hosted total | Every browser leg was clean | Sum the harness counters over every leg of E-40 to E-87 (list the legs and their counts in the TSR) | Console errors **0** and `pageerror` **0** on every leg, except the pre-declared A1 (E-42, 1 line) and A2 (E-51, 2 lines; E-53, 1 line). Hosted (`supabase.co`) requests **0** in total | D, P, A |
+| E-91 | §0.3, all | Console and hosted total | Every browser leg was clean | Sum the harness counters over every leg of E-40 to E-87, E-94 and E-95 (list the legs and their counts in the TSR) | Console errors **0** and `pageerror` **0** on every leg, except the pre-declared A1 (E-42, 1 line) and A2 (E-51, 2 lines; E-53, 1 line). Hosted (`supabase.co`) requests **0** in total | D, P, A |
+
+### Phase 7 — Security S1 (added before freeze; run after phase 2, before phase 3)
+
+S1 (`06-security-item-4.md`): someone with only an admin's password gets an aal1 session, changes
+the admin's own phone with no audit row, then asks for a factor reset, and the identity call goes
+to their number. The fix makes `check_profile_phone()` raise `insufficient_aal` when an admin
+changes their own phone without aal2. Invited accounts are exempt, so onboarding still works.
+These cases run in **phase 2's slot** (they need no browser, except E-94 and E-95), but keep their
+IDs. Restore every phone with `q "$R0"`.
+
+| Fixture | What | Applied right before | Restored by |
+|---|---|---|---|
+| X8 | Invited, unfinished admin `e2e-item4-adm@local.test` ("Item Four Admin"): the real admin UI invite (as X3), then `q "update public.profiles set role='admin' where email='e2e-item4-adm@local.test'"` (superuser, because the role control only shows for joined staff) | E-95 | E-95 last step: delete as X3 |
+
+| ID | AC | Area | Case | Steps | Expected (measurable) | Env |
+|---|---|---|---|---|---|---|
+| E-92 | S1, 4.7 | aal1 admin, own phone | An admin without two-step can't change their own phone through the API | `aud` → N. 1. `pp admin-aal1 $ADM '"0491 570 156"'`; `ph admin@local.test`. 2. As `newadmin@` (no authenticator, so aal1 is all it can get): `pp newadmin@local.test $NADM '"0491 570 157"'`; `ph newadmin@local.test`. 3. `pp admin-aal1 $ADM '"03 5550 4321"'`. 4. `aud`. 5. Record only: `node $SCR/as.mjs admin-aal1 PATCH "/rest/v1/profiles?id=eq.$ADM&select=id,full_name" '{"full_name":"Local Admin B"}'`, then restore the name by SQL (security residual 1: aal1 own-row edits of other fields are pre-existing and accepted) | 1–3: each **400** with message `insufficient_aal`; **never 200**, never 500. `admin@` and `newadmin@` both still `+61400000000`. 4: audit still **N**. 5: status and body recorded in the TSR, not pass/fail; name restored | DB |
+| E-93 | S1, 4.6 | aal2 admin, own phone | With two-step, the same change succeeds | `aud` → N. `pp admin-aal2 $ADM '"0491 570 156"'`; `ph admin@local.test`; `aud`. Then `q "$R0"` | **200**, `+61491570156`; audit still **N** (a self-edit) | DB |
+| E-94 | S1, 4.6 | Fix doesn't block real paths | The aal2 admin's UI saves still work, and the aal1 admin can't reach the form | 1. As `admin@` on D (two-step entered): `/portal/profile`, save `0491 570 157`; then `/portal/admin/staff/$ADM`, save `0491 570 158`. Read the status each time; `ph admin@local.test`. 2. As `newadmin@`: open `/portal/profile`; read the URL, `h1` and `#profile-phone` count. Then `q "$R0"` | 1: "Profile saved." both times, no field error; `+61491570158`. 2: the two-step set-up screen, `#profile-phone` count **0**. Console errors 0 and hosted 0 on both legs (strict; a refused `profiles` request fails) | D |
+| E-95 | S1, 4.7 (regr.) | Invited admin onboarding | An invited admin still finishes setup with a phone at aal1 (X8) | Apply X8. In the invitee context: Continue → `/portal/join`: name, phone `0491 570 159`, password, terms, Finish setup. `q "select role, status, phone from public.profiles where email='e2e-item4-adm@local.test'"`. Restore X8 | Join completes, with no `insufficient_aal` error shown; `admin\|active\|+61491570159`. Next screen recorded (the two-step set-up screen is expected for a new admin). Console errors 0, hosted 0. After the restore, the count of `e2e-item4-adm@` rows is 0 | D, DB |
+| E-96 | S1 (c) | Runbook and pgTAP | The break-glass runbook no longer trusts the profile phone; pgTAP covers both levels | `grep -n 'Break-glass' docs/requirements/release-2/r2a/design.md`; on that line: `grep -c 'a number held outside the portal'` and `grep -c 'never the phone on their portal profile'`; `grep -cE 'insufficient_aal' supabase/tests/database/staff_phone.test.sql`; `grep -c 'insufficient_aal' supabase/migrations/20261026100000_staff_phone_edit.sql` (or the S1 fix's migration, if it's a new file) | The break-glass line (§16.3, item 3, around line 643) says to confirm identity by calling a number held outside the portal, never the portal profile phone: both counts **1**. pgTAP mentions `insufficient_aal` **≥ 1** time, and E-04 shows `staff_phone.test.sql` passing (it must hold the aal1 refusal and the aal2 success). The migration raises it: **≥ 1** | — |
 
 ---
 
@@ -341,14 +376,15 @@ with an empty `200` script).
 | 4.6 Admin correction, list, tap-to-call, audit without digits | E-24 to E-29, E-32, E-54 to E-58, E-62, E-63 |
 | 4.7 Permissions (tutor, families, deactivated, invited, aal1, signed out, ungranted columns, onboarding) | E-06, E-15 to E-23, E-30, E-32, E-59, E-60, E-61 |
 | 4.8 Not exposed anywhere new | E-05, E-31, E-55, E-60, E-80 to E-83 |
-| 4.9 Privacy (heading, exact text, no draft marker) | E-84, E-85, E-86 (B17 is Saurabh's, "For Saurabh" 1) |
+| 4.9 Privacy (heading, exact text, no draft marker) | E-84, E-85, E-86 (B17 is Saurabh's, "For Saurabh" 1; ruling 3) |
+| Security S1 (aal1 admin can't change their own phone; break-glass runbook) | E-92 to E-96 |
 | 4.10 360 px, keypad, light and dark, admin page too | E-43, E-70, E-71, E-72 |
 | Smoke and sign-in | E-40, E-41, E-42, E-64 |
 | Regression (onboarding, admin staff list, photo, other fields, public pages) | E-06, E-23, E-54, E-58, E-61, E-62, E-63, E-87 |
 | Safety, console and hosted | E-01 to E-05, E-91 |
 
-**Total: 70 cases** (phase 0: 3, phase 1: 6, phase 2: 23, phase 3: 25, phase 4: 3, phase 5: 8,
-phase 6: 2). The TSR's pass rate counts every case; BLOCKED counts as not passed.
+**Total: 75 cases** (phase 0: 3, phase 1: 6, phase 2: 23, phase 3: 25, phase 4: 3, phase 5: 8,
+phase 6: 2, phase 7: 5). The TSR's pass rate counts every case; BLOCKED counts as not passed.
 
 ## 4. Not covered by this plan
 
