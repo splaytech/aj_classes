@@ -29,7 +29,8 @@ function mirrorRule(rule: HeaderRule, localOrigin: string): HeaderRule {
     .filter((header) => rule.source !== GLOBAL_SOURCE || header.key !== RAILWAY_ONLY_GLOBAL_HEADER)
     .map((header) => ({
       key: header.key,
-      value: header.value.replaceAll(HOSTED_SUPABASE_ORIGIN, localOrigin),
+      // A function, so a `$` in the origin is never read as a replacement pattern (S7).
+      value: header.value.replaceAll(HOSTED_SUPABASE_ORIGIN, () => localOrigin),
     }));
   return { source: rule.source, headers };
 }

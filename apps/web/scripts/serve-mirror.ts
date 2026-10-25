@@ -2,16 +2,17 @@
 //   node scripts/serve-mirror.ts [--port 4173] [--origin http://127.0.0.1:55321]
 //                                [--stub-analytics] [--write-only <file>]
 // Serves build/client with serve.railway.json's headers, the local Supabase origin in place of
-// the hosted one. Refuses to serve a build that contains the hosted project ref (AC-5.11).
+// the hosted one, on 127.0.0.1 only. Refuses to serve a build that contains the hosted project
+// ref, or one with no file to scan (AC-5.11).
 
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
-import { findHostedRefs } from './hosted-ref.ts';
+import { hostedRefProblem, scanForHostedRefs } from './hosted-ref.ts';
 import { LOCAL_SUPABASE_ORIGIN, MIRROR_PORT } from './hosting-constants.ts';
 import { buildMirrorConfig } from './mirror-config.ts';
 import type { ServeConfig } from './mirror-config.ts';
@@ -46,9 +47,9 @@ function checkBuild(): void {
   if (!existsSync(BUILD_DIR)) {
     fail(`no build at ${BUILD_DIR}; run the gate build first (03b §0.3)`);
   }
-  const hits = findHostedRefs(BUILD_DIR);
-  if (hits.length > 0) {
-    fail(`the build contains the hosted project ref in ${hits.length} files, e.g. ${hits[0]}`);
+  const problem = hostedRefProblem(BUILD_DIR, scanForHostedRefs(BUILD_DIR));
+  if (problem) {
+    fail(problem);
   }
 }
 
@@ -59,30 +60,37 @@ function stubAnalytics(): void {
   }
 }
 
-function writeConfig(file: string, origin: string): void {
+/** `exclusive` refuses to overwrite: used for the mirror's own temp file (S4). */
+function writeConfig(file: string, origin: string, exclusive: boolean): void {
   const railway = JSON.parse(
     readFileSync(join(WEB_DIR, 'serve.railway.json'), 'utf8'),
   ) as ServeConfig;
   const config = buildMirrorConfig(railway, { localOrigin: origin, publicDir: BUILD_DIR });
-  writeFileSync(file, `${JSON.stringify(config, null, 2)}\n`);
+  writeFileSync(file, `${JSON.stringify(config, null, 2)}\n`, {
+    flag: exclusive ? 'wx' : 'w',
+    mode: 0o600,
+  });
 }
 
 function serve(configFile: string, port: string): void {
   const child = spawn(
     join(WEB_DIR, 'node_modules', '.bin', 'serve'),
-    ['--config', configFile, '-l', port, '--no-clipboard'],
+    // Loopback only: the mirror is for this laptop, never the local network (S3).
+    ['--config', configFile, '-l', `tcp://127.0.0.1:${port}`, '--no-clipboard'],
     { cwd: WEB_DIR, stdio: 'inherit' },
   );
   for (const signal of ['SIGINT', 'SIGTERM'] as const) {
     process.on(signal, () => child.kill(signal));
   }
-  child.on('exit', (code) => process.exit(code ?? 0));
+  child.on('error', (error) => fail(`couldn't start serve: ${error.message}`));
+  // A null code means serve was ended by a signal, which isn't a clean exit.
+  child.on('exit', (code) => process.exit(code ?? 1));
 }
 
 const options = readOptions();
 
 if (options['write-only']) {
-  writeConfig(options['write-only'], options.origin);
+  writeConfig(options['write-only'], options.origin, false);
   process.stdout.write(`serve-mirror: wrote ${options['write-only']}\n`);
   process.exit(0);
 }
@@ -91,9 +99,10 @@ checkBuild();
 if (options['stub-analytics']) {
   stubAnalytics();
 }
-const configFile = join(tmpdir(), `aj-classes-mirror-${options.port}.json`);
-writeConfig(configFile, options.origin);
+// A fresh private folder per run, so the config path can't be guessed or pre-created (S4).
+const configFile = join(mkdtempSync(join(tmpdir(), 'aj-classes-mirror-')), 'serve.json');
+writeConfig(configFile, options.origin, true);
 process.stdout.write(
-  `serve-mirror: http://localhost:${options.port} (Supabase ${options.origin})\n`,
+  `serve-mirror: http://127.0.0.1:${options.port} (Supabase ${options.origin})\n`,
 );
 serve(configFile, options.port);

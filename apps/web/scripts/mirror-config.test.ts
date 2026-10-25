@@ -57,6 +57,13 @@ describe('buildMirrorConfig', () => {
     expect(text.split(LOCAL_SUPABASE_ORIGIN)).toHaveLength(4);
   });
 
+  it('inserts the local origin literally, even if it holds a $ pattern', () => {
+    const config = buildMirrorConfig(railwayConfig(), { ...OPTIONS, localOrigin: 'http://a$&b' });
+
+    expect(JSON.stringify(config.headers)).toContain('http://a$&b');
+    expect(JSON.stringify(config.headers)).not.toContain(HOSTED_SUPABASE_ORIGIN);
+  });
+
   it('makes the public folder absolute and keeps the rewrites', () => {
     const config = buildMirrorConfig(railwayConfig(), OPTIONS);
 

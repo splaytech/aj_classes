@@ -1,10 +1,11 @@
 // CLI: node scripts/check-hosted-ref.ts <path> [<path> …]
-// Exits 1 if any path contains the hosted Supabase project ref, or doesn't exist (AC-5.11).
+// Exits 1 if any path contains the hosted Supabase project ref, doesn't exist, or holds no file
+// to scan (AC-5.11).
 
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { findHostedRefs } from './hosted-ref.ts';
+import { hostedRefProblem, scanForHostedRefs } from './hosted-ref.ts';
 
 const paths = process.argv.slice(2);
 if (paths.length === 0) {
@@ -12,18 +13,30 @@ if (paths.length === 0) {
   process.exit(1);
 }
 
-const missing = paths.filter((path) => !existsSync(path));
-for (const path of missing) {
-  console.error(`check-hosted-ref: no such path: ${path}`);
+let failed = false;
+let scanned = 0;
+const hits: string[] = [];
+
+for (const path of paths) {
+  if (!existsSync(path)) {
+    console.error(`check-hosted-ref: no such path: ${path}`);
+    failed = true;
+    continue;
+  }
+  const scan = scanForHostedRefs(path);
+  scanned += scan.scanned;
+  // Hits inside a folder come back relative to it; print them with the folder so they can be opened.
+  hits.push(...scan.hits.map((hit) => (hit === path ? hit : join(path, hit))));
+  const problem = hostedRefProblem(path, scan);
+  if (problem) {
+    console.error(`check-hosted-ref: ${problem}`);
+    failed = true;
+  }
 }
 
-// Hits inside a folder come back relative to it; print them with the folder so they can be opened.
-const hits = paths
-  .filter((path) => existsSync(path))
-  .flatMap((path) => findHostedRefs(path).map((hit) => (hit === path ? hit : join(path, hit))));
-process.stdout.write(`check-hosted-ref: ${hits.length} files\n`);
+process.stdout.write(`check-hosted-ref: ${hits.length} files (of ${scanned} scanned)\n`);
 for (const hit of hits) {
   process.stdout.write(`  ${hit}\n`);
 }
 
-process.exit(hits.length > 0 || missing.length > 0 ? 1 : 0);
+process.exit(failed ? 1 : 0);
