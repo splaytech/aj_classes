@@ -14,6 +14,13 @@ the same commands CI runs, from the repo root. The design is in
 | `Lighthouse` | mobile Lighthouse budget, no `supabase.co` requests, CSP sweep | about 4 min |
 | `Structured data` | the JSON-LD on every pre-rendered page | under 1 min |
 
+First install the workspace once (Node 24 and pnpm; see the README's
+[Getting started](../../README.md#getting-started)). It installs `apps/web` and `e2e/` together:
+
+```bash
+pnpm install
+```
+
 ## The one rule: no hosted requests
 
 Staging and prod share one hosted Supabase project, so no gate, locally or in CI, may reach it
@@ -74,6 +81,11 @@ pnpm --filter aj-classes-e2e test:smoke
   is in `e2e/playwright-report/`; open it with
   `pnpm --filter aj-classes-e2e exec playwright show-report`. In CI both folders are uploaded as
   the `e2e-report` artifact, kept for 7 days.
+- Global setup refuses to start anything unless `VITE_SUPABASE_URL` is set and local (it, and
+  any other `VITE_SUPABASE_*URL`, is what the dev server inherits). Its warm-up browser runs
+  under the same hosted guard as the specs, so a reused dev server that calls a `supabase.co`
+  host fails setup. Its pure checks have unit tests: `pnpm --filter aj-classes-e2e test:unit`
+  (part of root `pnpm test`).
 - **Adding a spec:** put it in `e2e/tests/`, import `test` and `expect` from
   `../src/fixtures/test-fixtures.js` (so it runs under the hosted guard), and assert both the UI
   and the database row (the suite's dual-surface rule).

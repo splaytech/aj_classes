@@ -32,7 +32,7 @@ Copy `apps/web/.env.example` to `apps/web/.env.local` and add the Web3Forms acce
 
 ## Checks
 
-CI (`.github/workflows/ci.yml`) runs five checks on every pull request and every push to `develop` and `main`: `web` (`pnpm check`), `database` (pgTAP), `E2E smoke` (the Playwright suite in [`e2e/`](e2e/)), `Lighthouse` (mobile budget and CSP sweep) and `Structured data` (JSON-LD). None of them may reach the hosted Supabase project. How to run each one locally, with the same commands: [docs/testing/ci-gates.md](docs/testing/ci-gates.md).
+CI (`.github/workflows/ci.yml`) runs five checks on every pull request and every push to `develop` and `main`: `web` (`pnpm check`, with the build run as `VITE_APP_ENV=production pnpm build`, as Vercel builds it), `database` (pgTAP), `E2E smoke` (the Playwright suite in [`e2e/`](e2e/)), `Lighthouse` (mobile budget and CSP sweep) and `Structured data` (JSON-LD). None of them may reach the hosted Supabase project. How to run each one locally, with the same commands: [docs/testing/ci-gates.md](docs/testing/ci-gates.md).
 
 ## House rules
 
