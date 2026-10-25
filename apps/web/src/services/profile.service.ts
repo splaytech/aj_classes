@@ -6,6 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 import { toErrorKey } from './auth-errors';
 import { attempt, fail, succeed } from './result';
+import { getProfileClient } from './staff-client';
 import { getSupabase } from './supabase.client';
 import type { ProfileChanges, Result, StaffProfile } from './types';
 
@@ -51,7 +52,8 @@ export async function removeMyPhoto(): Promise<Result<StaffProfile>> {
 
 export async function getProfile(userId: string): Promise<Result<StaffProfile>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getProfileClient(userId);
+    if (!supabase) return fail('notAllowed'); // not staff, or someone else's without admin two-step
     const { data, error } = await supabase
       .from('profiles')
       .select(PROFILE_COLUMNS)
