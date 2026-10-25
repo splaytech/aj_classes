@@ -37,6 +37,7 @@ export const PORTAL_ROUTES = {
   adminActivity: '/portal/admin/activity',
   adminEnquiries: '/portal/admin/enquiries', // website enquiries and Zoho CRM status
   adminPosts: '/portal/admin/posts', // compose and manage the public daily posts
+  adminEmails: '/portal/admin/emails', // "work returned" emails that failed or are waiting
   student: '/portal/student',
   studentTimetable: '/portal/student/timetable',
   parent: '/portal/parent',

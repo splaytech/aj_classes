@@ -96,7 +96,7 @@ function renderHtml(row: ClaimedRow, feedbackUrl: string, accountUrl: string): s
             <a href="${safe.feedbackUrl}" style="display: inline-block; padding: 12px 24px; background: #2563eb; color: #ffffff; border-radius: 8px; font-weight: 700; text-decoration: none">${safe.button}</a>
           </p>
           <p style="margin: 24px 0 0; color: #4b5563; font-size: 14px">
-            ${safe.footerReason} ${safe.footerStop} <a href="${safe.accountUrl}" style="color: #2563eb">${safe.accountUrl}</a>
+            ${safe.footerReason} ${safe.footerStop} <a href="${safe.accountUrl}" style="color: #2563eb; word-break: break-all">${safe.accountUrl}</a>
           </p>
         </td>
       </tr>

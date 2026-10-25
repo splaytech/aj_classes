@@ -275,7 +275,7 @@ function `notifications` (03 §3.4). All email goes to the local Mailpit
   (`Idempotency-Key`, `Authorization`); `outcomeForStatus` 200/429/409/500/422; `shouldStopBatch`;
   `renderWorkReturned` subject/body/button, no mark (AC-3.3), links (AC-3.4), footer link
   (AC-3.6). Run: `node supabase/scripts/test-notifications.mjs`.
-- [ ] **T3.4 Worker function and end-to-end script.** Files: #3 `functions/notifications/index.ts`,
+- [x] **T3.4 Worker function and end-to-end script.** Files: #3 `functions/notifications/index.ts`,
   #7 `config.toml` (`verify_jwt = false`, local secrets), #12 `/package.json` (`test:functions`
   appends the script); #9 end-to-end part, in this order (03 §3.10 steps 0–6):
   1. print the recovery command;
@@ -300,7 +300,7 @@ function `notifications` (03 §3.4). All email goes to the local Mailpit
   needed), #23 `portal.constants.ts` (`ACCOUNT_PAGE.notifications`). Test (browser, AC-3.6):
   shown to student and parent, not staff; on by default; first Save **and** second Save show
   "Saved…"; survives sign-out. Run: `pnpm db:types && pnpm typecheck && pnpm test`.
-- [ ] **T3.6 Admin Emails page.** Files: #19 `admin-emails.tsx`, #20 `routes.ts`, #21
+- [x] **T3.6 Admin Emails page.** Files: #19 `admin-emails.tsx`, #20 `routes.ts`, #21
   `admin-dashboard.tsx` (`SHORTCUTS`), #22 `routes.constants.ts`, #23 (`PORTAL_SEO.adminEmails`,
   `ADMIN_DASHBOARD.shortcuts.emails`, `EMAILS_PAGE`), #24 `lib/email-problems.ts`, #25 its test.
   Tests: `email-problems.test.ts` (every state, reason and role labelled, AC-3.8); browser:
