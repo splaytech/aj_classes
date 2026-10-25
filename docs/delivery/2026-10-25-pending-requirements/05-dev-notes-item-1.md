@@ -195,3 +195,86 @@ so the link or list arrives well after first paint.
 | Production build | Lists `/posts` in the sitemap; no hosted ref in the built JS |
 | Build with the URL set and the key empty | Succeeds, 0 `/posts` in the sitemap |
 | AC-1.12 bundle check | `done` over 13 pages |
+
+## 7. AC-1.14 fix (Tester ruling in 06-test-plan-item-1.md; team lead: fix the page)
+
+The fix changes the admin posts page (`routes/portal/admin-posts.tsx`).
+
+- **Validation before sending.** `publish()` and `saveEdit()` now trim the title and body, then
+  check 1–120 and 1–5000 characters with `lib/post-validation.ts` (`trimPost`, `validatePost`).
+  The service is called only if both pass.
+- **Inline messages.** Each failure shows under its field through the `error` prop. The field is
+  `aria-invalid` and linked to its message. The messages are new `POSTS_PAGE` constants built from
+  `POST_LIMITS` (`titleLength`, `bodyLength`), the same pattern as `ASSIGNMENT_VALIDATION.titleLength`.
+- **Counter and caps.** The body shows a counter, `POSTS_PAGE.bodyCount` ("n / 5000 characters").
+  Both fields keep `maxLength`.
+- **Trimming on save (N-49).** A title or body of only spaces (or line breaks) is refused inline.
+  Leading and trailing spaces are never stored; inner line breaks are kept.
+- **Row cap.** `POST_LIMITS` gains `titleMin` and `bodyMin`. `POSTS_MAX_ROWS` now comes from
+  `POST_LIMITS.listCap`, which used to be a second copy of 200.
+
+**Tests**
+
+| File | Tests | What they cover |
+|---|---|---|
+| `lib/post-validation.test.ts` | 10 | Each message: empty, spaces only, over the limit; at the limit with outer spaces; the counter; trimming; a valid post |
+| `routes/portal/admin-posts.test.tsx` | 7 | Run through `createRoutesStub` (see below) |
+
+The 7 page tests check:
+- empty and spaces-only are refused inline with no service call;
+- `aria-invalid` and the description link;
+- `maxLength` and the counter;
+- a trimmed save on publish;
+- an edit cleared to spaces is refused;
+- a trimmed edit is saved.
+
+**Browser check** (dev server, `admin@local.test`):
+- Empty and spaces-only both show the two inline messages, and no page-level alert.
+- The counter reads "11 / 5000 characters".
+- `"  e2e-trim check  "` was stored as `e2e-trim check`. I deleted that post afterwards.
+
+**Known limit (no migration in item 1).** The database check is
+`char_length(title) between 1 and 120` and `char_length(body) between 1 and 5000`, without a
+trim. So the database itself still accepts a spaces-only post sent directly through the API by
+an admin with two-step. Closing that needs a migration, for example
+`check (char_length(btrim(title)) between 1 and 120)` and the same for the body. That's deferred
+to the next migration batch.
+
+**Small UX note.** A field's message stays until the next Publish or Save. It doesn't clear while
+typing. This is the same as the portal's other dialogs.
+
+## 8. Security follow-ups (06-security-item-1.md)
+
+- **Finding 1.** The public client now asks for `select=id,created_at,title,body`
+  (`PUBLIC_POST_COLUMNS`) and maps rows to a new `PublicPost` type, so `/posts` never asks for
+  `author_id` or `updated_at`. The admin list keeps `POST_COLUMNS`. I checked the narrowed query
+  on the local stack (200, rows returned) and `/posts` still renders. The column-grant migration
+  (revoke the table-wide `select` from anon) is deferred.
+- **Finding 6.** The Privacy text now uses Security's wording, verbatim:
+
+  > When you visit a page, your browser asks our database provider (Supabase, Sydney) whether
+  > there is any news to show. Like any web request, this sends your IP address and browser type.
+  > Supabase keeps these in short-lived technical logs for security and troubleshooting. We don't
+  > save them in our own records or use them to identify you.
+
+  - `privacy.test.tsx` checks the new sentences and that "We don't store it" is gone.
+  - The B1 question in `01-requirement.md` §2.2 and `04-plan.md` Q1 quotes it, as does 03 §1.4.
+    01 has a new change-log row.
+  - The built `privacy/index.html` contains it.
+
+**Commits (§7–§8):**
+1. `5abe49c` refactor(news): take the posts row cap from POST_LIMITS.listCap
+2. `686bfe5` fix(news): refuse empty, spaces-only and over-long posts inline on the admin page
+3. `68460ec` fix(news): stop the public posts read from requesting author_id
+4. `6a03de1` fix(news): use Security's accurate wording for the news check in the Privacy Policy
+5. `dd6eec4` docs(delivery): put the new Privacy wording in the B1 question
+
+**Checks after §7–§8** (local exports):
+
+| Check | Result |
+|---|---|
+| Full check | Green |
+| `test` | 44 files, 326 tests |
+| `db:test` | 12 files, 349 tests, PASS |
+| AC-1.12 bundle check | `done` over 13 pages |
+| Production build | No hosted ref in the built JS; `/posts` in the sitemap |
