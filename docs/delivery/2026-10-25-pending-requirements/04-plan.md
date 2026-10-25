@@ -249,8 +249,8 @@ Design: 03 §3 (31 files). Migration `20261025110000_work_returned_email.sql` (0
 function `notifications` (03 §3.4). All email goes to the local Mailpit
 (`http://127.0.0.1:55324`). Nothing in this item runs against the hosted project.
 
-- [ ] **T3.0 Branch.** `git checkout develop && git pull --ff-only && git checkout -b feature/work-returned-email && pnpm db:start`.
-- [ ] **T3.1 Switch, outbox and trigger.** Files: 03 §3.1 #1 migration steps 1–5 (extensions,
+- [x] **T3.0 Branch.** `git checkout develop && git pull --ff-only && git checkout -b feature/work-returned-email && pnpm db:start`.
+- [x] **T3.1 Switch, outbox and trigger.** Files: 03 §3.1 #1 migration steps 1–5 (extensions,
   `notification_settings` + RLS, `email_outbox`, helpers, `queue_work_returned_email` trigger) with
   their grants; #2 `email_outbox.test.sql` (starts with `delete from public.email_outbox`). Tests:
   AC-3.1 (paper and online returns queue student + both parents), AC-3.2 (every no-recipient case
