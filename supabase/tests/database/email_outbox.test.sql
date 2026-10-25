@@ -574,5 +574,57 @@ select is((select count(*)::int from public.admin_email_problems() where state n
 select is((select count(*)::int from public.admin_email_problems(1)), 1, 'max_rows limits the list');
 reset role;
 
+
+-- A recipient with no address fails as no_address (migration step 6) ------------------------
+delete from public.email_outbox;
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e007', '00000000-0000-0000-0000-0000000006a2', 'pending',
+  0, now() - interval '3 hours');
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e007', '00000000-0000-0000-0000-0000000005a1', 'pending');
+update public.profiles set email = '' where id = '00000000-0000-0000-0000-0000000006a2';
+set local role service_role;
+select results_eq(
+  $$ select email from public.notify_claim_emails() $$,
+  $$ values ('kid1@test.local') $$,
+  'The claim doesn''t return a recipient with no email address');
+reset role;
+select results_eq(
+  $$ select status, reason, attempts::int from public.email_outbox
+     where recipient_id = '00000000-0000-0000-0000-0000000006a2' $$,
+  $$ values ('failed', 'no_address', 0) $$,
+  'That row fails as no_address, without using an attempt');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select results_eq(
+  $$ select recipient_role, state, reason from public.admin_email_problems() $$,
+  $$ values ('parent', 'failed', 'no_address') $$,
+  'and admins see it as Failed / Recipient address missing');
+reset role;
+update public.profiles set email = 'parent2@test.local' where id = '00000000-0000-0000-0000-0000000006a2';
+
+
+-- Daily trim: finished emails go after 90 days, waiting ones stay (Security finding 7) ------
+delete from public.email_outbox;
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e001', '00000000-0000-0000-0000-0000000005a1', 'sent',
+  1, now() - interval '91 days', now() - interval '91 days', now() - interval '91 days');
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e001', '00000000-0000-0000-0000-0000000006a1', 'skipped',
+  0, now() - interval '91 days');
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e001', '00000000-0000-0000-0000-0000000006a2', 'failed',
+  3, now() - interval '91 days', row_reason => 'max_attempts');
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e003', '00000000-0000-0000-0000-0000000005a1', 'pending',
+  0, now() - interval '91 days');
+select pg_temp.add_row('00000000-0000-0000-0000-00000000e003', '00000000-0000-0000-0000-0000000006a1', 'sent',
+  1, now() - interval '89 days', now() - interval '89 days', now() - interval '89 days');
+select private.trim_history();
+select results_eq(
+  $$ select status, (now() - created_at) > interval '90 days' from public.email_outbox order by status $$,
+  $$ values ('pending', true), ('sent', false) $$,
+  'The daily trim deletes sent, skipped and failed emails older than 90 days, and keeps waiting ones');
+select is(
+  (select command from cron.job where jobname = 'daily-history-trim'),
+  'select private.trim_history()',
+  'The daily cron job runs the trim');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
+select throws_ok($$ select private.trim_history() $$, '42501', null, 'Nobody else can run the trim');
+reset role;
+
 select * from finish();
 rollback;

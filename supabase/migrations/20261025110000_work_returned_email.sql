@@ -291,7 +291,7 @@ as $$
 $$;
 
 -- ---------------------------------------------------------------------------
--- Step 7. Cron kick (every 5 minutes) and cron history trim (daily)
+-- Step 7. Cron kick (every 5 minutes) and history trim (daily)
 -- ---------------------------------------------------------------------------
 
 -- The worker URL and secret live in Vault, never in a migration: seed.sql adds local values, and
@@ -335,11 +335,25 @@ begin
 end;
 $$;
 
+-- Daily, 04:30 Melbourne: keeps the cron log to 7 days, and drops finished emails (sent, skipped,
+-- failed) after 90 days, so the outbox doesn't grow for ever (Security item 3, finding 7). Waiting
+-- rows are kept: they still have to go out, and admins see them.
+create function private.trim_history()
+returns void
+language sql
+volatile
+security definer
+set search_path = ''
+as $$
+  delete from cron.job_run_details where end_time < now() - interval '7 days';
+  delete from public.email_outbox
+  where status in ('sent', 'skipped', 'failed') and created_at < now() - interval '90 days';
+$$;
+
 -- cron.schedule replaces a job of the same name, so re-running this is safe. Kill switch:
 -- select cron.unschedule('email-worker-kick');  (supabase/README.md)
 select cron.schedule('email-worker-kick', '*/5 * * * *', $$select private.kick_email_worker()$$);
-select cron.schedule('cron-history-trim', '30 17 * * *',
-  $$delete from cron.job_run_details where end_time < now() - interval '7 days'$$);
+select cron.schedule('daily-history-trim', '30 17 * * *', $$select private.trim_history()$$);
 
 -- ---------------------------------------------------------------------------
 -- Step 8. Admin list of Failed and Waiting emails (AC-3.8)
@@ -386,7 +400,8 @@ $$;
 -- Step 9. Grants
 -- ---------------------------------------------------------------------------
 
-revoke execute on function private.kick_email_worker() from public, anon, authenticated;
+revoke execute on function private.kick_email_worker(), private.trim_history()
+from public, anon, authenticated;
 
 revoke execute on function
   public.notify_claim_emails(),
