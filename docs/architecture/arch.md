@@ -38,6 +38,14 @@ Railway config — `railway.json`, `apps/web/serve.railway.json`, the `start:rai
 from an earlier staging host; it is not part of the current deployment and should not be read as
 active infrastructure.)
 
+Public pages send an enforcing CSP (ADR-0005). It allows only our own origin plus `connect-src` to
+Supabase (`unzjnxctkyahtmrkinyr.supabase.co`), Web3Forms (`api.web3forms.com`) and Kit
+(`app.convertkit.com`). Adding any third-party script, image, font, frame or API to a public page
+means editing the public CSP in **both** `apps/web/vercel.json` and `apps/web/serve.railway.json`;
+`src/hosting-csp.test.ts` fails if they differ. The portal keeps its own CSP on `/portal/*`, and the
+two rules never overlap. Locally, `pnpm mirror` serves a gate build with these headers, the local
+Supabase origin in place of the hosted one.
+
 **4. Backend (hosted Supabase, Sydney)**
 
 One hosted Supabase project (`unzjnxctkyahtmrkinyr`, Sydney region) serves both staging and
