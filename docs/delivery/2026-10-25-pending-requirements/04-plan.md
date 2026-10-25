@@ -491,8 +491,9 @@ item 3 Privacy sentence; B1 done first, or released together at this SHA. Releas
 2. `git fetch && git checkout -b release/work-returned-email <item-3 SHA>`; from that branch:
    `supabase/scripts/deploy.sh` (migration, enables `pg_cron`/`pg_net`, the `notifications`
    function, secrets). Confirm the digest check passed.
-3. Merge `release/work-returned-email` (the same SHA, not `develop`) into `main` through a PR.
-4. Run the Vault SQL that `deploy.sh` prints, in Dashboard → SQL Editor.
+3. Straight after the deploy, before merging: run the Vault SQL that `deploy.sh` prints, in
+   Dashboard → SQL Editor (review-5 R2-3).
+4. Merge `release/work-returned-email` (the same SHA, not `develop`) into `main` through a PR.
 5. AC-3.11 check (03 §3.7): test family, a test tutor returns one paper assignment, both emails
    arrive within 5 minutes, `/portal/admin/emails` is empty. Delete the test class.
 6. Tick the item 3 boxes in `docs/requirements/release-2/go-live.md`.

@@ -338,6 +338,8 @@ $$;
 -- Daily, 04:30 Melbourne: keeps the cron log to 7 days, and drops finished emails (sent, skipped,
 -- failed) after 90 days, so the outbox doesn't grow for ever (Security item 3, finding 7). Waiting
 -- rows are kept: they still have to go out, and admins see them.
+-- Accepted limit (01 change log, review-5 R2-2): the unique key gives AC-3.5's "at most once" only
+-- while the row exists, so a re-return more than 90 days later may send one more email.
 create function private.trim_history()
 returns void
 language sql

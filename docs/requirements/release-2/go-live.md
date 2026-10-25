@@ -102,9 +102,9 @@ approved (Q7 / B17); B1 done first, or released together at the same SHA.
 - [ ] Step 0, before deploying: in Dashboard → SQL Editor (read only) this returns 0, or the posts migration will fail: `select count(*) from public.posts where btrim(title, E' \t\n\r') = '' or btrim(body, E' \t\n\r') = '' or char_length(title) > 120 or char_length(body) > 5000;`
 - [ ] Put a new long random `NOTIFY_WORKER_SECRET` and the Resend key in the password manager and in `supabase/.env.deploy` (git-ignored).
 - [ ] `git fetch && git checkout -b release/work-returned-email <item 3 develop merge SHA>`, then from that branch run `supabase/scripts/deploy.sh`. It applies the migration (enables `pg_cron` and `pg_net`; if `db push` refuses, enable both in Dashboard → Database → Extensions and run it again), deploys `notifications` and sets the function settings.
+- [ ] Straight after the deploy (before merging to `main`), run the two Vault lines the script printed, in Dashboard → SQL Editor (supabase/README.md → "Work returned emails"), then delete that query from the editor's snippets and history.
 - [ ] Confirm the script printed "Hosted function settings checked". First run only: confirm `supabase secrets list -o json` shows SHA-256 hex digests; if not, fix the check before relying on it.
 - [ ] Merge `release/work-returned-email` (the same SHA, not `develop`) into `main` through a PR.
-- [ ] Straight after the deploy, run the two Vault lines the script printed, in Dashboard → SQL Editor (supabase/README.md → "Work returned emails"), then delete that query from the editor's snippets and history.
 - [ ] Dashboard → Project Settings → API → Exposed schemas is still only `public` and `graphql_public` (never `net`).
 - [ ] AC-3.11 test-family check (same README section): both emails arrive within 5 minutes; Admin → Emails is empty; delete the test class.
 
