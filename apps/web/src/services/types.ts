@@ -86,10 +86,16 @@ export type StaffProfile = {
   subjects: string[]; // keys, see SUBJECTS
   photoPath: string | null;
   photoUrl: string | null;
+  phone: string | null; // staff only, as +61…; shown to the person and to admins (item 4)
 };
 
 /** The text parts of a profile a person can change themselves. */
-export type ProfileChanges = Pick<StaffProfile, 'fullName' | 'bio' | 'qualifications' | 'subjects'>;
+export type ProfileChanges = Pick<
+  StaffProfile,
+  'fullName' | 'bio' | 'qualifications' | 'subjects'
+> & {
+  phone: string; // the field's text as typed; the database normalises it
+};
 
 // --- Staff management (R2a step 7) -----------------------------------------------
 

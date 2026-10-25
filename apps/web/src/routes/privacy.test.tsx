@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { PRIVACY } from '@/constants';
 
+const PORTAL_HEADING = 'Portal accounts';
+
 describe('Privacy Policy content', () => {
   it('explains the optional permissions and how to withdraw them', () => {
     const section = PRIVACY.sections.find((item) => item.heading === 'Optional permissions');
@@ -34,9 +36,7 @@ describe('Privacy Policy content', () => {
   });
 
   it('says families get a "work returned" email and where to turn it off (ADR-0004)', () => {
-    const section = PRIVACY.sections.find(
-      (item) => item.heading === 'Student and parent portal accounts',
-    );
+    const section = PRIVACY.sections.find((item) => item.heading === PORTAL_HEADING);
     expect(section?.text).toContain(
       "When your child's work is marked and returned, we email you and your child (if they have their own account).",
     );
@@ -44,11 +44,25 @@ describe('Privacy Policy content', () => {
   });
 
   it('names Resend as the overseas service that sends portal emails (APP 1.4)', () => {
-    const section = PRIVACY.sections.find(
-      (item) => item.heading === 'Student and parent portal accounts',
-    );
+    const section = PRIVACY.sections.find((item) => item.heading === PORTAL_HEADING);
     expect(section?.text).toContain(
       'Resend (United States) sends our sign-in and portal emails; all of these may process data outside Australia.',
     );
+  });
+
+  it('says staff phone numbers are kept, why, and who can see them (item 4, AC-4.9)', () => {
+    const section = PRIVACY.sections.find((item) => item.heading === PORTAL_HEADING);
+    expect(section?.text).toContain('For tutors and other staff we also keep a phone number');
+    expect(section?.text).toContain('given at account setup or added later on My profile');
+    expect(section?.text).toContain('kept up to date by them or an admin');
+    expect(section?.text).toContain('We use it to contact them about classes');
+    expect(section?.text).toContain(
+      'only they and AJ Classes admins can see it, and it is never published',
+    );
+  });
+
+  it('no longer calls the portal section student and parent only', () => {
+    const headings = PRIVACY.sections.map((section) => section.heading);
+    expect(headings).not.toContain('Student and parent portal accounts');
   });
 });

@@ -103,6 +103,10 @@ const ERROR_KEYS_BY_OWN_KEY: Record<string, ErrorKey> = {
   password_not_set: 'passwordNotSet',
   terms_required: 'termsRequired',
   invalid_phone: 'invalidPhone',
+  // My profile (item 4). insufficient_aal is also an Auth code above, but the phone trigger
+  // raises it as a message with code P0001, so it needs mapping here too (security review S1).
+  phone_required: 'phoneRequired',
+  insufficient_aal: 'needsTwoStep',
   invalid_year_level: 'invalidYearLevel',
 };
 

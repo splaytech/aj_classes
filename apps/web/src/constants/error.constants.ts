@@ -25,6 +25,10 @@ export const NOT_FOUND = {
 } as const;
 
 // Every problem the staff portal can show (R2a, R3a). Keys match ErrorKey in src/services/types.ts.
+// A saved staff phone can be changed but not removed (item 4): the browser check and the
+// server refusal say the same thing.
+const PHONE_REQUIRED = "Please enter a phone number. You can change it, but you can't remove it.";
+
 export const PORTAL_ERRORS = {
   // Same message for a wrong email, wrong password or a deactivated account (design §11.4).
   invalidCredentials: 'Email or password is incorrect.',
@@ -86,6 +90,8 @@ export const PORTAL_ERRORS = {
   passwordNotSet: "Your password wasn't saved. Please try again.",
   termsRequired: 'Please agree to the Terms & Conditions and Privacy Policy.',
   invalidPhone: 'Please enter an Australian phone number, like 0412 345 678.',
+  // My profile (item 4): a saved staff phone can be changed but not removed.
+  phoneRequired: PHONE_REQUIRED,
   invalidYearLevel: 'Please choose your year level.',
   notConfigured: "Sign-in isn't available right now.",
   unknown: 'Something went wrong. Please try again.',
@@ -115,6 +121,7 @@ export const PROFILE_VALIDATION = {
   bioTooLong: `Please keep your bio under ${PROFILE_LIMITS.bioMax} characters.`,
   qualificationTooLong: `Please keep each qualification under ${PROFILE_LIMITS.qualificationMax} characters.`,
   tooManyQualifications: `Please list at most ${PROFILE_LIMITS.qualificationsMax} qualifications.`,
+  phoneRequired: PHONE_REQUIRED,
   photoType: 'Please choose a JPEG, PNG or WebP image.',
   photoTooLarge: `That file is too large. Please choose one under ${PHOTO_LIMITS.maxInputBytes / 1024 / 1024} MB.`,
   photoUnreadable: "That image couldn't be opened. Please try another one.",

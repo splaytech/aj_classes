@@ -1,0 +1,196 @@
+{
+ "E-43": {
+  "name": "E-43 tutor field",
+  "consoleErrors": 0,
+  "errors": [],
+  "hosted": 0,
+  "patches": 0,
+  "fourxx": [],
+  "labels": [
+   "Phone number"
+  ],
+  "order": [
+   "profile-full-name",
+   "profile-phone",
+   "profile-bio"
+  ],
+  "saveBtns": 1,
+  "value": "0400 000 000",
+  "type": "tel",
+  "inputmode": "tel",
+  "autocomplete": "tel",
+  "invalid": "false",
+  "described": [
+   "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website."
+  ],
+  "active": "",
+  "alerts": [],
+  "status": [],
+  "savedCount": 0
+ },
+ "E-44": {
+  "name": "E-44 admin field",
+  "consoleErrors": 0,
+  "errors": [],
+  "hosted": 0,
+  "patches": 0,
+  "fourxx": [],
+  "labels": [
+   "Phone number"
+  ],
+  "order": [
+   "profile-full-name",
+   "profile-phone",
+   "profile-bio"
+  ],
+  "saveBtns": 1,
+  "value": "0400 000 000",
+  "type": "tel",
+  "inputmode": "tel",
+  "autocomplete": "tel",
+  "invalid": "false",
+  "described": [
+   "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website."
+  ],
+  "active": "",
+  "alerts": [],
+  "status": [],
+  "savedCount": 0
+ },
+ "E-45": {
+  "name": "E-45 save reload",
+  "consoleErrors": 0,
+  "errors": [],
+  "hosted": 0,
+  "patches": 1,
+  "fourxx": [],
+  "afterSave": "0491 570 156",
+  "status": [
+   "Profile saved."
+  ],
+  "savedCount": 1,
+  "afterReload": "0491 570 156",
+  "db": "+61491570156",
+  "audDelta": 0
+ },
+ "E-46": {
+  "res": [
+   {
+    "v": "+61 2 5550 9876",
+    "field": "(02) 5550 9876",
+    "saved": 1,
+    "reload": "(02) 5550 9876",
+    "db": "+61255509876",
+    "patches": 1
+   },
+   {
+    "v": "(08) 5550 1234",
+    "field": "(08) 5550 1234",
+    "saved": 1,
+    "reload": "(08) 5550 1234",
+    "db": "+61855501234",
+    "patches": 1
+   }
+  ]
+ },
+ "E-47": {
+  "inv": [
+   {
+    "v": "12345",
+    "described": [
+     "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
+     "Please enter an Australian phone number, like 0412 345 678."
+    ],
+    "invalid": "true",
+    "active": "profile-phone",
+    "alerts": [],
+    "saved": 0,
+    "patches": 0
+   },
+   {
+    "v": "abc",
+    "described": [
+     "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
+     "Please enter an Australian phone number, like 0412 345 678."
+    ],
+    "invalid": "true",
+    "active": "profile-phone",
+    "alerts": [],
+    "saved": 0,
+    "patches": 0
+   },
+   {
+    "v": "0512 345 678",
+    "described": [
+     "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
+     "Please enter an Australian phone number, like 0412 345 678."
+    ],
+    "invalid": "true",
+    "active": "profile-phone",
+    "alerts": [],
+    "saved": 0,
+    "patches": 0
+   },
+   {
+    "v": "+1 202 555 0100",
+    "described": [
+     "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
+     "Please enter an Australian phone number, like 0412 345 678."
+    ],
+    "invalid": "true",
+    "active": "profile-phone",
+    "alerts": [],
+    "saved": 0,
+    "patches": 0
+   },
+   {
+    "v": "0491.570.156",
+    "described": [
+     "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
+     "Please enter an Australian phone number, like 0412 345 678."
+    ],
+    "invalid": "true",
+    "active": "profile-phone",
+    "alerts": [],
+    "saved": 0,
+    "patches": 0
+   },
+   {
+    "v": "61491570156",
+    "described": [
+     "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
+     "Please enter an Australian phone number, like 0412 345 678."
+    ],
+    "invalid": "true",
+    "active": "profile-phone",
+    "alerts": [],
+    "saved": 0,
+    "patches": 0
+   }
+  ],
+  "db": "+61400000000"
+ },
+ "E-48": {
+  "bl": [
+   {
+    "v": "\"\"",
+    "described": [
+     "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
+     "Please enter a phone number. You can change it, but you can't remove it."
+    ],
+    "active": "profile-phone",
+    "patches": 0
+   },
+   {
+    "v": "\"   \"",
+    "described": [
+     "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
+     "Please enter a phone number. You can change it, but you can't remove it."
+    ],
+    "active": "profile-phone",
+    "patches": 0
+   }
+  ],
+  "db": "+61400000000"
+ }
+}

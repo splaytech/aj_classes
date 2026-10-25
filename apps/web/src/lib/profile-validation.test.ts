@@ -1,38 +1,89 @@
 import { describe, expect, it } from 'vitest';
 
-import { PROFILE_VALIDATION } from '@/constants';
+import { PORTAL_VALIDATION, PROFILE_VALIDATION } from '@/constants';
 
 import { checkPhotoFile, squareCrop } from './photo';
-import { cleanQualifications, subjectsToSave, validateProfile } from './profile-validation';
+import {
+  cleanQualifications,
+  subjectsToSave,
+  validateProfile,
+  validateProfilePhone,
+} from './profile-validation';
 
-const valid = { fullName: 'Priya Sharma', bio: '', qualifications: [], subjects: [] };
+const SAVED_PHONE = '+61412345678';
+const valid = {
+  fullName: 'Priya Sharma',
+  bio: '',
+  qualifications: [],
+  subjects: [],
+  phone: '0412 345 678',
+};
 
 describe('validateProfile', () => {
   it('accepts a normal profile', () => {
-    expect(validateProfile(valid)).toEqual({});
+    expect(validateProfile(valid, SAVED_PHONE)).toEqual({});
   });
 
   it('needs a full name of 2–100 characters', () => {
-    expect(validateProfile({ ...valid, fullName: ' A ' }).fullName).toBe(
+    expect(validateProfile({ ...valid, fullName: ' A ' }, SAVED_PHONE).fullName).toBe(
       PROFILE_VALIDATION.nameLength,
     );
-    expect(validateProfile({ ...valid, fullName: 'x'.repeat(101) }).fullName).toBe(
+    expect(validateProfile({ ...valid, fullName: 'x'.repeat(101) }, SAVED_PHONE).fullName).toBe(
       PROFILE_VALIDATION.nameLength,
     );
   });
 
   it('limits the bio to 1000 characters', () => {
-    expect(validateProfile({ ...valid, bio: 'x'.repeat(1001) }).bio).toBe(
+    expect(validateProfile({ ...valid, bio: 'x'.repeat(1001) }, SAVED_PHONE).bio).toBe(
       PROFILE_VALIDATION.bioTooLong,
     );
   });
 
   it('limits qualifications to 10 lines of 150 characters', () => {
     expect(
-      validateProfile({ ...valid, qualifications: Array(11).fill('B.Ed') }).qualifications,
+      validateProfile({ ...valid, qualifications: Array(11).fill('B.Ed') }, SAVED_PHONE)
+        .qualifications,
     ).toBe(PROFILE_VALIDATION.tooManyQualifications);
-    expect(validateProfile({ ...valid, qualifications: ['x'.repeat(151)] }).qualifications).toBe(
-      PROFILE_VALIDATION.qualificationTooLong,
+    expect(
+      validateProfile({ ...valid, qualifications: ['x'.repeat(151)] }, SAVED_PHONE).qualifications,
+    ).toBe(PROFILE_VALIDATION.qualificationTooLong);
+  });
+});
+
+describe('validateProfilePhone', () => {
+  it('accepts the setup form formats (AC-4.2)', () => {
+    for (const phone of [
+      '0412 345 678',
+      '0412-345-678',
+      '(03) 9876 5432',
+      '(08) 8123 4567',
+      '+61 2 9876 5432',
+    ]) {
+      expect(validateProfilePhone(phone, SAVED_PHONE)).toBeUndefined();
+    }
+  });
+
+  it('refuses numbers that are not Australian or have the wrong length (AC-4.3)', () => {
+    for (const phone of [
+      '0512345678',
+      '041234567',
+      '04123456789',
+      '0412abc678',
+      '+1 202 555 0100',
+    ]) {
+      expect(validateProfilePhone(phone, SAVED_PHONE)).toBe(PORTAL_VALIDATION.phoneInvalid);
+    }
+  });
+
+  it('refuses a blank field only when a number is already saved (AC-4.4)', () => {
+    expect(validateProfilePhone('', SAVED_PHONE)).toBe(PROFILE_VALIDATION.phoneRequired);
+    expect(validateProfilePhone('   ', SAVED_PHONE)).toBe(PROFILE_VALIDATION.phoneRequired);
+    expect(validateProfilePhone('', null)).toBeUndefined();
+  });
+
+  it('is part of the whole-form check', () => {
+    expect(validateProfile({ ...valid, phone: '12345' }, SAVED_PHONE).phone).toBe(
+      PORTAL_VALIDATION.phoneInvalid,
     );
   });
 });

@@ -1,4 +1,4 @@
-// Staff profiles: name, subjects, bio, qualifications and photo (R2a stories US12, US13).
+// Staff profiles: name, phone, subjects, bio, qualifications and photo (R2a stories US12, US13; item 4).
 // The database decides who may change what (RLS); this file only reads and writes.
 
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -6,11 +6,12 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 import { toErrorKey } from './auth-errors';
 import { attempt, fail, succeed } from './result';
+import { getProfileClient } from './staff-client';
 import { getSupabase } from './supabase.client';
 import type { ProfileChanges, Result, StaffProfile } from './types';
 
 const PHOTO_BUCKET = 'avatars';
-const PROFILE_COLUMNS = 'id, email, full_name, bio, qualifications, subjects, avatar_path';
+const PROFILE_COLUMNS = 'id, email, full_name, bio, qualifications, subjects, avatar_path, phone';
 const PHOTO_CACHE_SECONDS = '31536000'; // each upload gets a new name, so it can be cached for a year
 
 const FILE_EXTENSIONS: Record<string, string> = {
@@ -21,7 +22,7 @@ const FILE_EXTENSIONS: Record<string, string> = {
 type Client = SupabaseClient<Database>;
 type ProfileRow = Pick<
   Database['public']['Tables']['profiles']['Row'],
-  'id' | 'email' | 'full_name' | 'bio' | 'qualifications' | 'subjects' | 'avatar_path'
+  'id' | 'email' | 'full_name' | 'bio' | 'qualifications' | 'subjects' | 'avatar_path' | 'phone'
 >;
 
 // --- Your own profile (R2a US12, US13) ------------------------------------------
@@ -51,7 +52,8 @@ export async function removeMyPhoto(): Promise<Result<StaffProfile>> {
 
 export async function getProfile(userId: string): Promise<Result<StaffProfile>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getProfileClient(userId);
+    if (!supabase) return fail('notAllowed'); // not staff, or someone else's without admin two-step
     const { data, error } = await supabase
       .from('profiles')
       .select(PROFILE_COLUMNS)
@@ -64,7 +66,7 @@ export async function getProfile(userId: string): Promise<Result<StaffProfile>> 
   });
 }
 
-/** Saves name, subjects, bio and qualifications. Returns the profile as saved. */
+/** Saves name, subjects, bio, qualifications and phone. Returns the profile as saved. */
 export async function updateProfile(
   userId: string,
   changes: ProfileChanges,
@@ -76,6 +78,9 @@ export async function updateProfile(
       bio: changes.bio.trim(),
       qualifications: changes.qualifications,
       subjects: changes.subjects,
+      // In the same statement, so a refused phone saves none of the other fields (AC-4.3).
+      // Blank is sent as null; the database keeps "no number yet" and refuses clearing a saved one.
+      phone: changes.phone.trim() || null,
     });
   });
 }
@@ -168,5 +173,6 @@ function toStaffProfile(supabase: Client, row: ProfileRow): StaffProfile {
     subjects: row.subjects,
     photoPath: row.avatar_path,
     photoUrl,
+    phone: row.phone,
   };
 }

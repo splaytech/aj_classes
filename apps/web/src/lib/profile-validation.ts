@@ -1,22 +1,41 @@
 // Checks for the staff profile form (R2a story US12). The database enforces the same limits.
 
-import { PROFILE_LIMITS, PROFILE_VALIDATION } from '@/constants';
+import { PORTAL_VALIDATION, PROFILE_LIMITS, PROFILE_VALIDATION } from '@/constants';
 import type { ProfileChanges } from '@/services';
 
-export type ProfileErrors = Partial<Record<'fullName' | 'bio' | 'qualifications', string>>;
+import { isValidAustralianPhone } from './validation';
+
+export type ProfileErrors = Partial<
+  Record<'fullName' | 'phone' | 'bio' | 'qualifications', string>
+>;
 
 /** Trims each qualification and drops empty lines (the database refuses blank ones, V27). */
 export function cleanQualifications(lines: string[]): string[] {
   return lines.map((line) => line.trim()).filter((line) => line !== '');
 }
 
-export function validateProfile(values: ProfileChanges): ProfileErrors {
+/**
+ * Blank is fine only if nothing is saved yet (staff who joined before invite onboarding, AC-4.4);
+ * otherwise it must be Australian, the setup form's rule (AC-4.2).
+ */
+export function validateProfilePhone(phone: string, savedPhone: string | null): string | undefined {
+  if (phone.trim() === '') {
+    return savedPhone ? PROFILE_VALIDATION.phoneRequired : undefined;
+  }
+  return isValidAustralianPhone(phone) ? undefined : PORTAL_VALIDATION.phoneInvalid;
+}
+
+export function validateProfile(values: ProfileChanges, savedPhone: string | null): ProfileErrors {
   const errors: ProfileErrors = {};
   const name = values.fullName.trim();
   const qualifications = cleanQualifications(values.qualifications);
+  const phoneError = validateProfilePhone(values.phone, savedPhone);
 
   if (name.length < PROFILE_LIMITS.nameMin || name.length > PROFILE_LIMITS.nameMax) {
     errors.fullName = PROFILE_VALIDATION.nameLength;
+  }
+  if (phoneError) {
+    errors.phone = phoneError;
   }
   if (values.bio.trim().length > PROFILE_LIMITS.bioMax) {
     errors.bio = PROFILE_VALIDATION.bioTooLong;
