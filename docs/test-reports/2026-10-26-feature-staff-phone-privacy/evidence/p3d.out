@@ -1,0 +1,261 @@
+{
+ "E-59": {
+  "off": "200 {\"ok\":true,\"data\":{}}",
+  "url": "/portal/profile",
+  "alerts": [
+   "Your changes weren't saved. Please try again."
+  ],
+  "saved": 0,
+  "db": "+61400000000",
+  "requests": [
+   "GET /rest/v1/profiles?select=id%2Cemail%2Cfull_name%2Cbio%2Cqualifications%2Csubjects%2Cavatar_path%2Cphone&id=eq.2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "GET /rest/v1/profiles?select=full_name%2Crole%2Cis_active&id=eq.2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "GET /rest/v1/profiles?select=id%2Cemail%2Cfull_name%2Cbio%2Cqualifications%2Csubjects%2Cavatar_path%2Cphone&id=eq.2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "PATCH /rest/v1/profiles?id=eq.2b50f14c-e587-426a-88d7-50a79d9c744f&select=id%2Cemail%2Cfull_name%2Cbio%2Cqualifications%2Csubjects%2Cavatar_path%2Cphone"
+  ],
+  "on": "200 {\"ok\":true,\"data\":{}}"
+ },
+ "E-60": [
+  {
+   "name": "E-60 signed-out /portal/profile",
+   "consoleErrors": 0,
+   "errors": [],
+   "hosted": 0,
+   "patches": 0,
+   "fourxx": [],
+   "who": null,
+   "path": "/portal/profile",
+   "url": "/portal/login?next=%2Fportal%2Fprofile",
+   "h1": "Sign in",
+   "field": 0,
+   "phoneInDom": [],
+   "phoneInBodies": [],
+   "pageRequests": []
+  },
+  {
+   "name": "E-60 signed-out /portal/admin/staff/2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "consoleErrors": 0,
+   "errors": [],
+   "hosted": 0,
+   "patches": 0,
+   "fourxx": [],
+   "who": null,
+   "path": "/portal/admin/staff/2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "url": "/portal/login?next=%2Fportal%2Fadmin%2Fstaff%2F2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "h1": "Sign in",
+   "field": 0,
+   "phoneInDom": [],
+   "phoneInBodies": [],
+   "pageRequests": []
+  },
+  {
+   "name": "E-60 tutor /portal/admin/staff",
+   "consoleErrors": 0,
+   "errors": [],
+   "hosted": 0,
+   "patches": 0,
+   "fourxx": [],
+   "who": "tutor",
+   "path": "/portal/admin/staff",
+   "url": "/portal/admin/staff",
+   "h1": "You don't have access to this page",
+   "field": 0,
+   "phoneInDom": [],
+   "phoneInBodies": [
+    "/rest/v1/profiles?select=id%2Cemail%2Cfull_name%2Cbio%2Cqualifications%2Csubjects%2Cavatar_path%2Cphone&id=eq.2b50f14c-e587-426a-88d7-50a79d9c744f"
+   ],
+   "pageRequests": [
+    "GET /rest/v1/profiles?select=full_name%2Crole%2Cis_active&id=eq.2b50f14c-e587-426a-88d7-50a79d9c744f"
+   ]
+  },
+  {
+   "name": "E-60 tutor /portal/admin/staff/c7014e5e-63f4-45e4-b5af-8c6410e87dc3",
+   "consoleErrors": 0,
+   "errors": [],
+   "hosted": 0,
+   "patches": 0,
+   "fourxx": [],
+   "who": "tutor",
+   "path": "/portal/admin/staff/c7014e5e-63f4-45e4-b5af-8c6410e87dc3",
+   "url": "/portal/admin/staff/c7014e5e-63f4-45e4-b5af-8c6410e87dc3",
+   "h1": "You don't have access to this page",
+   "field": 0,
+   "phoneInDom": [],
+   "phoneInBodies": [
+    "/rest/v1/profiles?select=id%2Cemail%2Cfull_name%2Cbio%2Cqualifications%2Csubjects%2Cavatar_path%2Cphone&id=eq.2b50f14c-e587-426a-88d7-50a79d9c744f"
+   ],
+   "pageRequests": [
+    "GET /rest/v1/profiles?select=full_name%2Crole%2Cis_active&id=eq.2b50f14c-e587-426a-88d7-50a79d9c744f"
+   ]
+  },
+  {
+   "name": "E-60 student /portal/profile",
+   "consoleErrors": 0,
+   "errors": [],
+   "hosted": 0,
+   "patches": 0,
+   "fourxx": [],
+   "who": "student",
+   "path": "/portal/profile",
+   "url": "/portal/profile",
+   "h1": "You don't have access to this page",
+   "field": 0,
+   "phoneInDom": [],
+   "phoneInBodies": [],
+   "pageRequests": [
+    "GET /rest/v1/profiles?select=full_name%2Crole%2Cis_active&id=eq.fd259688-97ff-4078-bb00-86cf0d67beac"
+   ]
+  },
+  {
+   "name": "E-60 student /portal/admin/staff/2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "consoleErrors": 0,
+   "errors": [],
+   "hosted": 0,
+   "patches": 0,
+   "fourxx": [],
+   "who": "student",
+   "path": "/portal/admin/staff/2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "url": "/portal/admin/staff/2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "h1": "You don't have access to this page",
+   "field": 0,
+   "phoneInDom": [],
+   "phoneInBodies": [],
+   "pageRequests": [
+    "GET /rest/v1/profiles?select=full_name%2Crole%2Cis_active&id=eq.fd259688-97ff-4078-bb00-86cf0d67beac"
+   ]
+  },
+  {
+   "name": "E-60 parent /portal/profile",
+   "consoleErrors": 0,
+   "errors": [],
+   "hosted": 0,
+   "patches": 0,
+   "fourxx": [],
+   "who": "parent",
+   "path": "/portal/profile",
+   "url": "/portal/profile",
+   "h1": "You don't have access to this page",
+   "field": 0,
+   "phoneInDom": [],
+   "phoneInBodies": [],
+   "pageRequests": [
+    "GET /rest/v1/profiles?select=full_name%2Crole%2Cis_active&id=eq.cb9aea97-0100-4ee4-b06b-83ab851ba5ff"
+   ]
+  },
+  {
+   "name": "E-60 parent /portal/admin/staff/2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "consoleErrors": 0,
+   "errors": [],
+   "hosted": 0,
+   "patches": 0,
+   "fourxx": [],
+   "who": "parent",
+   "path": "/portal/admin/staff/2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "url": "/portal/admin/staff/2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "h1": "You don't have access to this page",
+   "field": 0,
+   "phoneInDom": [],
+   "phoneInBodies": [],
+   "pageRequests": [
+    "GET /rest/v1/profiles?select=full_name%2Crole%2Cis_active&id=eq.cb9aea97-0100-4ee4-b06b-83ab851ba5ff"
+   ]
+  },
+  {
+   "name": "E-60 newadmin /portal/admin/staff/2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "consoleErrors": 0,
+   "errors": [],
+   "hosted": 0,
+   "patches": 0,
+   "fourxx": [],
+   "who": "newadmin",
+   "path": "/portal/admin/staff/2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "url": "/portal/account/two-step/setup?next=%2Fportal%2Fadmin%2Fstaff%2F2b50f14c-e587-426a-88d7-50a79d9c744f",
+   "h1": "Set up two-step sign-in",
+   "field": 0,
+   "phoneInDom": [],
+   "phoneInBodies": [],
+   "pageRequests": [
+    "GET /rest/v1/profiles?select=full_name%2Crole%2Cis_active&id=eq.1b09db6f-d916-4080-8d8c-b6ecc621b994",
+    "GET /rest/v1/profiles?select=full_name%2Crole%2Cis_active&id=eq.1b09db6f-d916-4080-8d8c-b6ecc621b994"
+   ]
+  },
+  {
+   "name": "E-60 admin /portal/admin/staff/fd259688-97ff-4078-bb00-86cf0d67beac",
+   "consoleErrors": 0,
+   "errors": [],
+   "hosted": 0,
+   "patches": 0,
+   "fourxx": [],
+   "who": "admin",
+   "path": "/portal/admin/staff/fd259688-97ff-4078-bb00-86cf0d67beac",
+   "url": "/portal/admin/staff/fd259688-97ff-4078-bb00-86cf0d67beac",
+   "h1": "Not found",
+   "field": 0,
+   "phoneInDom": [],
+   "phoneInBodies": [
+    "/rest/v1/rpc/admin_list_staff"
+   ],
+   "pageRequests": [
+    "GET /rest/v1/profiles?select=full_name%2Crole%2Cis_active&id=eq.c7014e5e-63f4-45e4-b5af-8c6410e87dc3",
+    "POST /rest/v1/rpc/admin_list_staff",
+    "GET /rest/v1/profiles?select=id%2Cemail%2Cfull_name%2Cbio%2Cqualifications%2Csubjects%2Cavatar_path%2Cphone&id=eq.fd259688-97ff-4078-bb00-86cf0d67beac"
+   ]
+  },
+  {
+   "name": "E-60 tutor /portal/admin/activity",
+   "consoleErrors": 0,
+   "errors": [],
+   "hosted": 0,
+   "patches": 0,
+   "fourxx": [],
+   "who": "tutor",
+   "path": "/portal/admin/activity",
+   "url": "/portal/admin/activity",
+   "h1": "You don't have access to this page",
+   "field": 0,
+   "phoneInDom": [],
+   "phoneInBodies": [
+    "/rest/v1/profiles?select=id%2Cemail%2Cfull_name%2Cbio%2Cqualifications%2Csubjects%2Cavatar_path%2Cphone&id=eq.2b50f14c-e587-426a-88d7-50a79d9c744f"
+   ],
+   "pageRequests": [
+    "GET /rest/v1/profiles?select=full_name%2Crole%2Cis_active&id=eq.2b50f14c-e587-426a-88d7-50a79d9c744f"
+   ]
+  },
+  {
+   "name": "E-60 student /portal/admin/activity",
+   "consoleErrors": 0,
+   "errors": [],
+   "hosted": 0,
+   "patches": 0,
+   "fourxx": [],
+   "who": "student",
+   "path": "/portal/admin/activity",
+   "url": "/portal/admin/activity",
+   "h1": "You don't have access to this page",
+   "field": 0,
+   "phoneInDom": [],
+   "phoneInBodies": [],
+   "pageRequests": [
+    "GET /rest/v1/profiles?select=full_name%2Crole%2Cis_active&id=eq.fd259688-97ff-4078-bb00-86cf0d67beac"
+   ]
+  },
+  {
+   "name": "E-60 parent /portal/admin/activity",
+   "consoleErrors": 0,
+   "errors": [],
+   "hosted": 0,
+   "patches": 0,
+   "fourxx": [],
+   "who": "parent",
+   "path": "/portal/admin/activity",
+   "url": "/portal/admin/activity",
+   "h1": "You don't have access to this page",
+   "field": 0,
+   "phoneInDom": [],
+   "phoneInBodies": [],
+   "pageRequests": [
+    "GET /rest/v1/profiles?select=full_name%2Crole%2Cis_active&id=eq.cb9aea97-0100-4ee4-b06b-83ab851ba5ff"
+   ]
+  }
+ ]
+}

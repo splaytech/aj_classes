@@ -1,0 +1,16 @@
+admin@local.test|admin|active|true|+61400000000|Local Admin|c53f4ebe9b2a50bc2b52fd88a5d503e1|null
+inactive@local.test|tutor|active|false|+61400000000|Inactive Tutor|c53f4ebe9b2a50bc2b52fd88a5d503e1|null
+newadmin@local.test|admin|active|true|+61400000000|New Admin|c53f4ebe9b2a50bc2b52fd88a5d503e1|null
+parent@local.test|parent|active|true|null|Local Parent|c53f4ebe9b2a50bc2b52fd88a5d503e1|null
+student@local.test|student|active|true|null|Aarav Demo|c53f4ebe9b2a50bc2b52fd88a5d503e1|null
+tutor@local.test|tutor|active|true|+61400000000|Local Tutor|c53f4ebe9b2a50bc2b52fd88a5d503e1|null
+0
+Aarav Demo|2026-10-22 18:43:10.938072+00|parent|fd259688-97ff-4078-bb00-86cf0d67beac
+Isla Demo|null|null|null
+Leo Demo|null|null|null
+Mia Demo|null|null|null
+Noah Demo|null|null|null
+Zara Demo|null|null|null
+2
+inactive@local.test|true
+tutor@local.test|null
