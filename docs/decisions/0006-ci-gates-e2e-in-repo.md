@@ -1,6 +1,6 @@
 # ADR-0006: E2E specs live in this repo, and CI gates run only against local services
 
-- **Status:** Proposed (2026-10-26, Architect, `/deliver` pending-requirements items 4–8, Stage 2). Becomes Accepted when this stage's review approves it.
+- **Status:** Accepted (2026-10-26, Architect, `/deliver` pending-requirements items 4–8, Stage 2; proposed and accepted the same day, when [review-2b](../delivery/2026-10-25-pending-requirements/review-2b-items-4-8.md) approved the stage, with its findings applied)
 - **Source:** `docs/delivery/2026-10-25-pending-requirements/02b-architecture-items-4-8.md` item 6
 
 ## Context
@@ -30,7 +30,9 @@ share one Supabase project, so no gate may touch it.
      - `@lhci/cli` with thresholds in one committed config, median of 3, mobile;
      - a production build with no Supabase config, served by ADR-0005's mirror with an analytics
        stub written after the build;
-     - reports stay on the filesystem as artifacts, never LHCI's public storage.
+     - reports stay on the filesystem as artifacts, never LHCI's public storage;
+     - the job fails if any URL in LHCI's `network-requests` audit contains `supabase.co`
+       (AC-6.14).
    - **Structured data:** a dependency-free check over `build/client/**/*.html`. Its unit tests run
      in the existing `web` job.
 4. **Every gate build is grepped for the hosted project ref and fails on any hit.** The workflow

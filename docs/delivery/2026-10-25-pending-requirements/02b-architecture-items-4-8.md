@@ -6,11 +6,12 @@
 > the migrations up to `20261025110100`; held item 2's `20261025134709_assignment_files.sql` (read from `feature/homework-file-uploads`, not checked out);
 > `apps/web/vercel.json`, `serve.railway.json`, `.github/workflows/ci.yml`; the local E2E repo `~/dev/work/aj_classes-e2e` (read only).
 > **Next stage:** Solution Designer (contracts, migration bodies, file lists), per item.
-> **ADRs added (Proposed):** [0005](../../decisions/0005-public-csp-static-headers.md) public CSP,
+> **ADRs added (Accepted 26 Oct 2026):** [0005](../../decisions/0005-public-csp-static-headers.md) public CSP,
 > [0006](../../decisions/0006-ci-gates-e2e-in-repo.md) CI gates and E2E in this repo,
 > [0007](../../decisions/0007-returned-work-outlives-enrolment.md) returned work outlives enrolment, plus hold results,
 > [0008](../../decisions/0008-scheduled-and-multi-kind-email.md) more email kinds, extending ADR-0004.
-> Each becomes Accepted when this stage's review approves it, as 0001–0004 did. Item 4 needs no ADR.
+> **All four are Accepted (26 Oct 2026)**, after [review-2b](review-2b-items-4-8.md) approved this stage. Item 4 needs no ADR.
+> **Revision:** review-2b findings 1–9 and nits 10–12 applied (see the change log).
 > Item 9 is dropped; its only work is AC-5.9, a docs change that ships with item 5.
 
 ## Decisions for Saurabh
@@ -76,11 +77,15 @@ So the smallest change that keeps every AC-4.7 rule is to let `phone` ride on th
 
 1. **Grant.** Add `grant update (phone) on public.profiles to authenticated`.
    - `status`, `terms_accepted_at` and `password_set_at` stay ungranted (AC-4.7 last bullet).
-2. **`BEFORE UPDATE OF phone` trigger** on `profiles`, `private.check_profile_phone()`. It acts only
-   when `new.phone is distinct from old.phone`:
+2. **`BEFORE UPDATE OF phone` trigger** on `profiles`, `private.check_profile_phone()`.
+   - It's **`security definer`** with `set search_path = ''`, because execute on
+     `private.normalise_au_phone` is revoked from `authenticated` (review-2b finding 8).
+   - It first treats a blank value as no value: `new.phone := nullif(trim(new.phone), '')`, so a
+     blank field sent by the form counts as null.
+   - It then acts only when `new.phone is distinct from old.phone`:
    - `new.phone` is null and `old.phone` isn't: refuse with `phone_required` (AC-4.4).
-     - If both are null, the trigger does nothing, so an account with no phone yet can still save
-       its other fields.
+     - If both are null, including a blank field on an account with no phone yet, the trigger
+       does nothing, so that account can still save its other fields.
    - The row's role isn't `tutor` or `admin`: refuse with `invalid_input`. Families never hold a
      phone, even if an admin tries to set one (AC-4.7).
    - Otherwise it sets `new.phone := private.normalise_au_phone(new.phone)`, the same function
@@ -203,7 +208,8 @@ So the public policy uses `'unsafe-inline'` for scripts and styles, the same as 
   nothing relies on this.
 - **AC-5.8's first bullet stays the proof that the policy enforces:** a script from an unlisted
   host is blocked.
-- **Later bucket:** hash-based `script-src`, if hosting ever moves to generated headers. It goes
+- **Later bucket:** hash-based `script-src`, most likely through a build-time meta CSP with
+  per-page hashes (§5.5, rejected for v1), or generated headers if hosting moves to them. It goes
   with "tighten the portal's `'unsafe-inline'`".
 
 ### 5.3 No stacking on `/portal/*` (AC-5.5)
@@ -229,6 +235,10 @@ overlap, so no merge behaviour matters.**
 
   Vercel's preview is behind Vercel's login, so a pre-release header check there is Saurabh's
   browser step (DevTools → Network on `/portal/login`). It's listed under the release steps.
+  **Expected noise on the preview** (review-2b nit 11): Vercel injects its `vercel.live` feedback
+  toolbar into preview deployments, and the CSP blocks it. Those console violations are expected
+  there and don't happen on production. The `vercel.live` host must **not** be added to either
+  policy.
 
 ### 5.4 Local and CI enforcement with the local Supabase origin (the 01b blocker fix)
 
@@ -260,7 +270,15 @@ project.
    So "the mirror equals `vercel.json`" holds by construction: the mirror is built from Railway, and
    the test proves Railway carries the same policy as `vercel.json`.
 3. **Builds for gates are never hosted.**
-   - The item 5 gate and E2E builds use `VITE_SUPABASE_URL=http://127.0.0.1:55321`.
+   - The item 5 gate build overrides the **full set** (review-2b finding 5), all as job or shell
+     env, never a committed file:
+     - `VITE_SUPABASE_URL=http://127.0.0.1:55321`;
+     - `VITE_SUPABASE_PUBLISHABLE_KEY` = the local publishable key from `supabase status`.
+       Without it, the build keeps `.env.production`'s hosted key, and local REST calls get 401;
+     - `VITE_TURNSTILE_SITE_KEY` = Cloudflare's public always-pass **test** site key, the one
+       `config.toml` uses locally. Without it, the real site key fails on localhost, and the
+       mirror's portal sign-in (AC-5.5) can't pass.
+   - The E2E smoke runs on the dev server with the same three values (§6.2).
    - The Lighthouse and structured-data builds use **no Supabase config at all**
      (`VITE_SUPABASE_URL=` and `VITE_SUPABASE_PUBLISHABLE_KEY=`, item 1's N-25). Item 1 proved
      that blanking these overrides `.env.production`.
@@ -277,7 +295,8 @@ project.
 
 | Option | Why not |
 |---|---|
-| Per-page script hashes | Hashes change every build; static `vercel.json` can't carry them without moving to the Build Output API |
+| Per-page script hashes in headers | Hashes change every build; static `vercel.json` can't carry them without moving to the Build Output API |
+| A build-time `<meta http-equiv="Content-Security-Policy">` per page, with that page's script hashes | Rejected for v1 (review-2b finding 7). It needs a post-build step that hashes and rewrites every pre-rendered page, kept in step with React Router's inline scripts. A meta CSP also can't carry `frame-ancestors`, so the header would still be needed. It's the most likely route for the Later "hash-based `script-src`" item, and that line points here |
 | `Content-Security-Policy-Report-Only` first | AC-5.1 asks for enforcing. Reporting needs an endpoint (Sentry, B14), which is deferred |
 | One global CSP rule, with the portal rule "overriding" it | Vercel's same-key behaviour is undocumented. If both are enforced, portal sign-in breaks in production |
 | Make the public policy a superset of the portal's, so stacking is harmless | It would loosen public pages to hosts they don't use (Turnstile, Supabase images) |
@@ -301,8 +320,12 @@ project.
 
 ### Release
 
-Normal production release. Before release, Saurabh's preview check (risk 1). After release, the
-team's read-only live checks: 01b's three lines, plus the portal CSP header count.
+Normal production release. Before release, Saurabh's preview check (risk 1; `vercel.live`
+violations there are expected). After release, the team's read-only live checks:
+- 01b's three lines;
+- the portal CSP header count: `curl -sI https://ajclasses.com.au/portal/login` shows exactly one
+  `Content-Security-Policy`, the portal one;
+- the 404 page: `curl -sI https://ajclasses.com.au/nope` shows the public CSP (review-2b nit 10).
 
 ---
 
@@ -384,6 +407,10 @@ type/test/build  supabase test db      (-x unneeded svcs)   N-02 grep           
     Supabase request is possible at all. The CSP is enforced with the substituted origin anyway.
   - It **must not** use LHCI's `temporary-public-storage` upload, which sends reports to a third
     party. Use `filesystem` plus a workflow artifact.
+  - **AC-6.14 inside the job** (review-2b finding 6): a step reads every LHCI result's
+    `network-requests` audit and fails the job if any URL contains `supabase.co`. With no Supabase
+    config this should never fire; the step proves it. The optional Playwright CSP sweep (§6.2)
+    doesn't replace this check.
   - JS transfer size is reported from `resource-summary` (AC-6.8). It becomes a budget assertion
     only if the baseline already meets ≤ 100 KB.
 - **Structured data:**
@@ -476,10 +503,15 @@ isn't enrolled (`not_enrolled`).
    skipped if the student left the class before it was sent, even though they can still open the
    work.
 7. **Item 2 files (AC-7.15), once item 2 is on `develop`:** `can_read_assignment_file` uses
-   `assignment_readable_by` in its **family** branches (tutor attachments for students and parents,
-   and parents reading a hand-in). Item 2's upload, register and remove checks keep
-   `assignment_visible_to`. The storage SELECT policy calls `can_read_assignment_file`, so it
-   follows automatically.
+   `assignment_readable_by` in **every** family branch:
+   - tutor attachments, for students and parents;
+   - parents reading a hand-in;
+   - **the student reading their own hand-in** (`target_student = my_student_id() and …`).
+     Otherwise a student who has left the class loses their own files on returned work, and
+     AC-7.15 fails (review-2b finding 2).
+
+   Item 2's upload, register and remove checks keep `assignment_visible_to`. The storage SELECT
+   policy calls `can_read_assignment_file`, so it follows automatically.
 
 ### 7.2 Where the hold flag lives (decision)
 
@@ -515,25 +547,31 @@ Item 2 (`20261025134709_assignment_files.sql`) and item 7 both redefine:
 - `assignment_view`.
 
 Item 7 also changes item 2's `can_read_assignment_file`, and item 2's flag guard sits next to item
-7's hold guard. Supabase applies migrations in **filename order** on a fresh database, but in
-**push order** on hosted. If item 2 kept its October-25 timestamp and was pushed after item 7, a
-local reset would run item 2 *before* item 7, while hosted would run it *after*. The two databases
-would end up with different function bodies, and item 2's snapshot of `student_submit` would wipe
-out the hold rule on hosted.
+7's hold guard. A fresh local database applies migrations in **filename order**. If item 2 kept
+its October-25 timestamp after item 7 had shipped:
+- a local reset would run item 2 *before* item 7;
+- hosted `supabase db push` **refuses** a local migration older than the newest one already
+  applied, unless `--include-all` is passed (review-2b finding 9). With that flag, hosted would run
+  item 2 *after* item 7, and item 2's snapshot of `student_submit` would wipe out the hold rule
+  there.
+
+Either way, the two databases would end up with different function bodies.
 
 **The rule (applies to whichever of item 2 and item 7 merges second; expected: item 2):**
 1. **Re-timestamp.** When item 2 is rebased onto `develop` for release, its migration file is
    **renamed** to a fresh timestamp later than every migration on `develop`, including items 7 and
    8. This is safe only because `20261025134709` has never been applied to the hosted project.
-   Before the release, Saurabh confirms that with `supabase migration list`, as part of item 2's
-   release steps.
+   Saurabh confirms that with `supabase migration list` **when item 2 is rebased**, before the
+   file is renamed, not at release time (review-2b finding 9). If it ever had been applied, the
+   file keeps its name, and a new follow-up migration carries item 7's bodies instead.
 2. **Rebuild from the current body.** Every function item 2 replaces is rewritten from its
    **then-current** definition on `develop`, never from item 2's original snapshot, with item 2's
    change added on top:
    - `student_submit` keeps `or hold_results` and adds `handin` and `no_files`;
    - `assignments_for_student` keeps rule (b) and `is_past_class`, and adds `is_file_handin`;
    - `assignment_view` keeps `isPastClass` and adds `isFileHandin` and the files;
-   - `can_read_assignment_file` is born using `assignment_readable_by` in its family branches.
+   - `can_read_assignment_file` is born using `assignment_readable_by` in every family branch,
+     including the student's own hand-in (§7.1 point 7).
 3. **Tests pin it.** Item 7's pgTAP tests (rule (b), hold stays `submitted`) run on item 2's
    rebased branch. A rebase that loses either fails CI. Item 2's re-test (T2.15) also takes over
    AC-7.2's file half and AC-7.15 (01b).
@@ -607,15 +645,15 @@ disagree" (03 §4 choice 7), is kept. `private.work_returned_recipients` is gene
 ### 8.3 Queueing
 
 ```
-publish (draft → published, or inserted as published)        pg_cron '10 4,5 * * *' (UTC)
+publish (draft → published, or inserted as published)        pg_cron '10 * * * *' (hourly)
    │ AFTER INSERT OR UPDATE OF status ON assignments              │ private.queue_due_tomorrow_emails()
    │ when new.status = 'published'                                │   return unless Melbourne hour = 15
    │  and (insert or old.status <> 'published')                   │   today := Melbourne date
    ▼                                                              ▼
 for each student enrolled now × email_recipients('new_assignment')   published, online, due_on = today + 1,
 insert kind 'new_assignment',                                       Melbourne date(published_at) < due_on − 1,
-  send_before = start of due date (Melbourne), or published + 7 d  for each enrolled student not handed in
-  if there's no due date                                            × email_recipients('due_tomorrow')
+  send_before = end of due date (Melbourne), or published + 7 d    for each enrolled student not handed in
+  if there's no due date; nothing queued if send_before <= now()    × email_recipients('due_tomorrow')
 on conflict (email_outbox_once) do nothing                          insert kind 'due_tomorrow',
                                                                       send_before = start of due date (Melbourne)
                                                                     on conflict do nothing
@@ -625,12 +663,14 @@ on conflict (email_outbox_once) do nothing                          insert kind 
 - **The publish trigger** runs in the tutor's transaction, as item 3's does. A rolled-back publish
   queues nothing, and a send failure never reaches the tutor (AC-8.12). A student enrolled later
   gets nothing (AC-8.4).
-- **Melbourne time without depending on `cron.timezone`.** Hosted `pg_cron` schedules in UTC; item
-  3's `daily-history-trim` already works around that. 15:00 Melbourne is 04:00 UTC in daylight
-  time (AEDT) and 05:00 UTC in standard time (AEST). The job runs at **04:10 and 05:10 UTC**, and
-  the function acts only when `extract(hour from now() at time zone 'Australia/Melbourne') = 15`.
-  So it does real work exactly once a day, at 15:10 local, across both DST changes, with no
-  schedule edits. A re-run is harmless because of the unique key.
+- **Melbourne time that doesn't depend on `cron.timezone`** (review-2b finding 4). The job is
+  scheduled **hourly, at 10 past** (`'10 * * * *'`), and the function acts only when
+  `extract(hour from now() at time zone 'Australia/Melbourne') = 15`. Exactly one run a day passes
+  that guard, at 15:10 Melbourne, whatever time zone `pg_cron` schedules in and across both DST
+  changes, with no schedule edits. The other 23 runs return at once. A re-run is harmless because
+  of the unique key.
+  - Item 3's `daily-history-trim` (`'30 17 * * *'`) is simply a UTC time, which happens to be
+    04:30 in AEDT and 03:30 in AEST. It doesn't adjust for DST, and needs no change.
   - `[ASSUMPTION]` If the run is missed (an outage or a paused project), there's no catch-up that
     day. A late reminder isn't worth an extra code path, and AC-8.7 forbids late ones anyway.
 - **"Published on or after the day before"** (AC-8.6) uses `published_at`, which
@@ -652,9 +692,13 @@ on conflict (email_outbox_once) do nothing                          insert kind 
   - **Everything else stays oldest first**, so `work_returned` and `new_assignment` keep ADR-0004's
     FIFO between them.
 - `[ASSUMPTION — PO to confirm at design review]` **"New assignment" rows also expire**: at the
-  start of the due date, or 7 days after publishing if there's no due date. They then show as
-  Failed "Too late to send".
-  - This goes slightly beyond 01b, which gives only reminders a deadline.
+  **end** of the due date (midnight Melbourne at the start of the next day), or 7 days after
+  publishing if there's no due date. An unsent row then shows as Failed "Too late to send".
+  - **Never queued already expired** (review-2b finding 3): the publish trigger queues nothing when
+    `send_before <= now()`, i.e. work published after its due date has passed. So there's never a
+    false Failed row. Work published on its own due date still gets its email that day.
+  - This goes slightly beyond 01b, which gives only reminders a deadline. The PO confirmation
+    covers both points.
   - It's the safety valve for Decision 1: without it, a sustained overload would mail "new work
     set" after the work was due.
   - It changes nothing when volume fits the cap.
@@ -664,16 +708,20 @@ on conflict (email_outbox_once) do nothing                          insert kind 
 - `notify_claim_emails` returns `kind` and `due_on` as well, so the `notifications` function can
   render the right template. Its HTML and text versions, and their constants, live in the function
   folder, as item 3's do (AC-8.2, AC-8.9).
-- **Deploy-order safety.** The migration and the function deploy are two separate steps by
-  Saurabh. If the migration lands first, today's worker would claim a `new_assignment` row and send
-  it with the "work returned" template. **Decision:** the claim takes the kinds the caller can
-  render, `notify_claim_emails(supported_kinds text[] default array['work_returned'])`.
+- **Deploy order: migration first, then the function** (review-2b finding 1). The migration and
+  the function deploy are two separate steps by Saurabh. If the migration lands first, today's
+  worker would claim a `new_assignment` row and send it with the "work returned" template.
+  **Decision:** the claim takes the kinds the caller can render,
+  `notify_claim_emails(supported_kinds text[] default array['work_returned'])`.
   - Today's worker calls it with no argument, so it keeps claiming only `work_returned`.
   - The new worker passes all three kinds.
-  - Unclaimed new-kind rows wait. After about 2 hours they show as Waiting / "Not attempted", or
-    they expire, until the function is deployed.
+  - Unclaimed new-kind rows wait until the function is deployed. After about 2 hours they show as
+    Waiting / "Not attempted".
 
-  Either deploy order is then safe.
+  The **reverse order is not safe**. A new worker calling `notify_claim_emails(supported_kinds)`
+  against the old zero-argument function gets PostgREST `PGRST202`, and the run fails with a 500,
+  so *all* email, "work returned" included, stops until the migration lands. Item 8's release
+  steps therefore list: (1) the hosted migration, (2) the `notifications` function deploy.
 - **`admin_email_problems()`** also returns `kind`, for the Type column (AC-8.13), and maps
   `too_late` to its label. Both functions change their return types, so both are dropped and
   recreated with their grants.
@@ -692,8 +740,8 @@ on conflict (email_outbox_once) do nothing                          insert kind 
   sign-in email included.
 - **Overload never breaks anything:** reminders still go first, and old "new work" rows expire
   visibly.
-- Edge function calls: still at most one per 5 minutes. `pg_cron` adds 2 runs a day, so the cron log
-  grows by about 2 rows a day.
+- Edge function calls: still at most one per 5 minutes. `pg_cron` adds 24 runs a day (23 return
+  at once), so the cron log grows by about 24 rows a day, inside item 3's 7-day trim.
 
 ### 8.7 Alternatives considered
 
@@ -701,7 +749,8 @@ on conflict (email_outbox_once) do nothing                          insert kind 
 |---|---|
 | A new outbox or worker per kind | ADR-0004 was built to be reused. A second queue would split the one cap |
 | A Melbourne-time schedule through `cron.timezone` | It's a server-level setting that can't be relied on on hosted Supabase |
-| An hourly cron with a 15:00–19:00 window, for catch-up | More runs and evening emails, for a rare missed run that AC-8.7 would partly forbid anyway |
+| Two UTC slots (`'10 4,5 * * *'`) with the hour-15 guard (this doc's first version) | Correct only while `pg_cron` schedules in UTC. Hourly plus the guard is correct in any time zone, for 22 trivial extra runs a day |
+| An hourly cron with a 15:00–19:00 window, for catch-up | Evening emails, for a rare missed run that AC-8.7 would partly forbid anyway |
 | Earliest-deadline-first for every kind | If "new assignment" rows carry deadlines, they would jump ahead of "work returned" and starve it under overload |
 | A daily digest | Deferred (01b). It's the next lever after Resend Pro if volume grows |
 | Clearing the unique key on back-to-draft, so republishing notifies | 01b AC-8.3 rejects it on purpose |
@@ -712,14 +761,18 @@ on conflict (email_outbox_once) do nothing                          insert kind 
    item 3's risk 2. The release check uses only the seeded fake family (AC-8.16).
 2. **A publish storm**, for example a tutor publishing term work for 4 classes at once. It's bounded
    by the cap, and visible as Waiting "Daily limit". This is exactly Decision 1's trigger.
-3. **The deploy-order gap** is closed by `supported_kinds` (§8.5).
+3. **Deploy order.** The migration-first gap is closed by `supported_kinds` (§8.5). The
+   function-first order stops all email, so the release steps fix the order: migration, then
+   function.
 4. **DST arithmetic:** a pgTAP test pins `send_before` for a due date on each side of a DST change,
-   and the hour-15 guard at both UTC slots.
+   and the hour-15 guard at 04:10 and 05:10 UTC on each side (exactly one passes).
 
 ### Release
 
-- A hosted migration deploy: the kinds, the columns, the trigger and the cron job.
-- A `notifications` function deploy: the templates and `supported_kinds`.
+In this order (§8.5):
+1. A hosted migration deploy: the kinds, the columns, the trigger and the cron job.
+2. Then the `notifications` function deploy: the templates and `supported_kinds`. Never before
+   step 1.
 - Decision 1's watch on the Emails page.
 
 ---
@@ -745,13 +798,14 @@ on conflict (email_outbox_once) do nothing                          insert kind 
   - `docs/budget.md` §2 and §5: the Resend row (three kinds) and Decision 1's upgrade trigger;
   - `r3b/review.md` F8 and F28, and `r3b/design.md` §4 (AC-7.17);
   - `supabase/README.md`: the new cron job, and its kill switch next to item 3's;
-  - the ADR statuses: Proposed → Accepted once this stage is approved, plus the README table.
+  - the ADR statuses: done (0005–0008 Accepted after review-2b; README updated).
 
-## Decisions recorded (for `_knowledge/decisions.md`, once Accepted)
+## Decisions recorded (for `_knowledge/decisions.md`)
 
 - **DEC-PR-5 (item 4):** Staff edit `profiles.phone` through the existing profile update, using a
-  column grant and the `check_profile_phone` BEFORE trigger. The trigger normalises with
-  `normalise_au_phone`, refuses clearing a saved number, and refuses phones on family rows. The
+  column grant and the `security definer` `check_profile_phone` BEFORE trigger. The trigger treats
+  blank as null, normalises with `normalise_au_phone`, refuses clearing a saved number, and refuses
+  phones on family rows. The
   admin audit gains `phone`, recorded by field name only. No RPC.
 - **DEC-PR-6 (ADR-0005):** Public pages send an enforcing CSP with `'unsafe-inline'` for scripts
   and styles (static hosting can't do nonces, and build-varying hashes don't fit static
@@ -767,13 +821,29 @@ on conflict (email_outbox_once) do nothing                          insert kind 
   and keeps all-MCQ work Submitted until a staff return. Whichever of items 2 and 7 merges second is
   re-timestamped and rebuilt from the current function bodies.
 - **DEC-PR-9 (ADR-0008):** There are two new outbox kinds. "New assignment" is queued by a publish
-  trigger; "due tomorrow" by a cron at 04:10 and 05:10 UTC, acting only at Melbourne hour 15. Rows
-  can carry a `send_before` deadline and expire as `too_late`, swept in the kick. Reminders are
-  claimed first, everything else oldest first. Claims are limited to `supported_kinds`, so either
-  deploy order is safe.
+  trigger; "due tomorrow" by an hourly cron that acts only at Melbourne hour 15. Rows
+  can carry a `send_before` deadline and expire as `too_late`, swept in the kick; nothing is queued
+  already expired. Reminders are
+  claimed first, everything else oldest first. Claims are limited to `supported_kinds`. Deploy
+  order: migration first, then the function.
 
 ## Change log
 
 | Date | Change | Why |
 |---|---|---|
 | 26 Oct 2026 | First version, items 4–8 | /deliver stage 2 for 01b |
+| 26 Oct 2026 | Review-2b findings applied; ADRs 0005–0008 Accepted | [review-2b](review-2b-items-4-8.md) APPROVED, with 9 findings and 3 nits |
+
+**Review-2b changes (26 Oct 2026):**
+1. **Deploy order** (§8.5, §8.8 risk 3, item 8 Release, ADR-0008): migration first, then the function. A function deployed first gets `PGRST202` and stops all email.
+2. **Own hand-in** (§7.1 point 7, §7.3, ADR-0007): item 2's student-own branch of `can_read_assignment_file` also uses `assignment_readable_by`.
+3. **No false Failed rows** (§8.3, §8.4, ADR-0008): "new assignment" rows expire at the *end* of the due date, and nothing is queued when `send_before <= now()`. Both are in the PO confirmation.
+4. **Cron schedule** (§8.3, §8.6, §8.7, §8.8, ADR-0008): hourly at `:10` with the Melbourne-hour-15 guard, correct in any `pg_cron` time zone. The `daily-history-trim` remark is corrected: it's a plain UTC time.
+5. **Gate build env** (§5.4 point 3): local URL, local publishable key and the Turnstile test site key.
+6. **AC-6.14 for Lighthouse** (§6.3, ADR-0006): the job fails on any `supabase.co` URL in LHCI's `network-requests` audit.
+7. **Meta CSP** (§5.2, §5.5, ADR-0005): a build-time meta CSP with per-page hashes is rejected for v1, and the Later line points to it.
+8. **Phone trigger** (§4 point 2, DEC-PR-5): `nullif(trim(...), '')` first, and `security definer`.
+9. **Item 2 migration check** (§7.3, ADR-0007): checked when item 2 is rebased. Reason corrected: hosted `db push` refuses an older file without `--include-all`.
+10. **Nit:** the 404 page added to item 5's live check.
+11. **Nit:** `vercel.live` violations on the preview are expected, and that host is never added.
+12. **Nit:** the README marks 0004 "extended by 0008".

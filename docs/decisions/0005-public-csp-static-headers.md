@@ -1,6 +1,6 @@
 # ADR-0005: Public pages send an enforcing CSP from static headers, with rules that never overlap the portal's
 
-- **Status:** Proposed (2026-10-26, Architect, `/deliver` pending-requirements items 4–8, Stage 2). Becomes Accepted when this stage's review approves it.
+- **Status:** Accepted (2026-10-26, Architect, `/deliver` pending-requirements items 4–8, Stage 2; proposed and accepted the same day, when [review-2b](../delivery/2026-10-25-pending-requirements/review-2b-items-4-8.md) approved the stage, with its findings applied)
 - **Source:** `docs/delivery/2026-10-25-pending-requirements/02b-architecture-items-4-8.md` item 5
 
 ## Context
@@ -49,7 +49,9 @@ Two more facts shape the decision:
      - the hosted host is present and no local origin is;
      - every required directive is present;
      - the rule order and the lookahead are in place.
-5. Gate builds use local Supabase or none, and are grepped for the hosted ref before serving.
+5. Gate builds use local Supabase or none, and are grepped for the hosted ref before serving. A
+   local-Supabase gate build overrides the full set: the local URL, the local publishable key and
+   Cloudflare's Turnstile test site key.
 
 ## Consequences
 
@@ -57,13 +59,20 @@ Two more facts shape the decision:
 - Portal behaviour is unchanged. Its single CSP header is checked by `curl` locally, on the preview
   (Saurabh, behind Vercel's login) and on the live site.
 - The lookahead `source` is the one unproven piece on real Vercel. The fallback is an explicit list
-  of public paths.
+  of public paths. The live checks also `curl` the 404 page (`/nope`) for the public CSP.
+- On Vercel previews, the injected `vercel.live` toolbar is blocked by the CSP. Those violations are
+  expected, and that host is never added to the policy.
 - Violation reporting, `upgrade-insecure-requests`, Trusted Types and removing `'unsafe-inline'`
-  stay in the Later bucket.
+  stay in the Later bucket. Removing `'unsafe-inline'` would most likely use the build-time meta
+  CSP rejected below.
 
 ## Alternatives rejected
 
-- Per-page hashes, or nonces: not possible with static headers.
+- Per-page hashes in headers, or nonces: not possible with static headers.
+- A build-time `<meta http-equiv="Content-Security-Policy">` per page with that page's script
+  hashes: rejected for v1. It needs a post-build step that rewrites every pre-rendered page in step
+  with React Router's inline scripts, and a meta CSP can't carry `frame-ancestors`. It's the likely
+  route for the Later hash-based `script-src`.
 - Report-only first: AC-5.1 asks for an enforcing policy, and reporting needs Sentry (B14).
 - One global rule with the portal rule "overriding" it: undocumented on Vercel, and the risk is
   breaking portal sign-in in production.

@@ -1,6 +1,6 @@
 # ADR-0007: Returned work stays readable after leaving a class; writes still follow enrolment; results can be held
 
-- **Status:** Proposed (2026-10-26, Architect, `/deliver` pending-requirements items 4–8, Stage 2). Becomes Accepted when this stage's review approves it.
+- **Status:** Accepted (2026-10-26, Architect, `/deliver` pending-requirements items 4–8, Stage 2; proposed and accepted the same day, when [review-2b](../delivery/2026-10-25-pending-requirements/review-2b-items-4-8.md) approved the stage, with its findings applied)
 - **Source:** `docs/delivery/2026-10-25-pending-requirements/02b-architecture-items-4-8.md` item 7
 - **Changes:** R3b F8 ("visibility follows enrolment") and R3b D8 (all-MCQ work always auto-returns)
 
@@ -26,7 +26,8 @@ wrappers and `assignment_view`, and replaces `student_submit`.
      Dropped and recreated with its two wrappers and their grants.
    - `assignment_view`, through the builder: gains an `isPastClass` key.
    - item 3's `work_returned_recipients`.
-   - item 2's `can_read_assignment_file`, in its family branches, once item 2 lands.
+   - item 2's `can_read_assignment_file`, in every family branch, including the student reading
+     their own hand-in, once item 2 lands.
 3. **`assignments.hold_results boolean not null default false`**, granted for staff insert and
    update.
    - A guard trigger allows changes only on drafts, and refuses `true` without questions or on a
@@ -35,7 +36,10 @@ wrappers and `assignment_view`, and replaces `student_submit`.
    - The staff return path, the `marked_by` rules and item 3's email are unchanged.
 4. **Migration order with item 2.** Whichever of the two merges second has its migration renamed
    to a timestamp later than everything on `develop`. This is safe only while the file has never
-   been applied to hosted, which `supabase migration list` checks. Every shared function is then
+   been applied to hosted, which Saurabh checks with `supabase migration list` when the branch is
+   rebased, before the rename. The rename is needed because hosted `supabase db push` refuses a
+   migration older than the newest one applied unless `--include-all` is used, while a fresh local
+   database would run it in filename order. Every shared function is then
    rebuilt from its current body on `develop`, never from an older snapshot. Item 7's pgTAP tests
    run on the rebased branch to catch a lost rule. `db push --include-all` is never used.
 
