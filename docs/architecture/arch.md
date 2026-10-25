@@ -32,10 +32,11 @@ Runs on every push to `main`/`develop` and every pull request:
 
 Vercel builds and serves the static, pre-rendered React Router app. Public marketing pages are
 pre-rendered at build time; the `/portal` app is client-rendered behind rewrites defined in
-`apps/web/vercel.json`. (The repo also still contains a leftover Railway config —
-`railway.json`, `apps/web/serve.railway.json`, the `start:railway` script — from an earlier
-staging host; it is not part of the current deployment and should not be read as active
-infrastructure.)
+`apps/web/vercel.json`. Public pages read live data (news) through plain `fetch` in
+`services/*.client.ts`, never `supabase-js` (ADR-0001). (The repo also still contains a leftover
+Railway config — `railway.json`, `apps/web/serve.railway.json`, the `start:railway` script —
+from an earlier staging host; it is not part of the current deployment and should not be read as
+active infrastructure.)
 
 **4. Backend (hosted Supabase, Sydney)**
 
