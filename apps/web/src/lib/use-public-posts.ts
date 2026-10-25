@@ -5,11 +5,11 @@
 import { useEffect, useState } from 'react';
 
 import { listPublicPosts } from '@/services';
-import type { Post } from '@/services';
+import type { PublicPost } from '@/services';
 
 export type PublicPostsState =
   | { status: 'loading' }
-  | { status: 'ready'; posts: Post[] } // posts may be empty
+  | { status: 'ready'; posts: PublicPost[] } // posts may be empty
   | { status: 'error' };
 
 export function usePublicPosts(): PublicPostsState {

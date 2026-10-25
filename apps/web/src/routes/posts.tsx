@@ -8,7 +8,7 @@ import { POSTS_PUBLIC_PAGE, ROUTES, SECTION_IDS, sectionLink } from '@/constants
 import { formatDateTime } from '@/lib/format';
 import { buildPageMeta } from '@/lib/seo';
 import { usePublicPosts } from '@/lib/use-public-posts';
-import type { Post } from '@/services';
+import type { PublicPost } from '@/services';
 
 import styles from './posts.module.css';
 
@@ -16,7 +16,7 @@ export function meta() {
   return buildPageMeta(POSTS_PUBLIC_PAGE.seo, ROUTES.posts);
 }
 
-function PostList({ posts }: { posts: Post[] }) {
+function PostList({ posts }: { posts: PublicPost[] }) {
   return (
     <ul className={styles.posts}>
       {posts.map((post) => (

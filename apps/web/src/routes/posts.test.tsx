@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { POSTS_PUBLIC_PAGE, ROUTES, SECTION_IDS, sectionLink } from '@/constants';
 import { usePublicPosts } from '@/lib/use-public-posts';
 import type { PublicPostsState } from '@/lib/use-public-posts';
-import type { Post } from '@/services';
+import type { PublicPost } from '@/services';
 import { renderAt } from '@/test/render';
 
 import PostsPage, { ErrorBoundary } from './posts';
@@ -12,13 +12,11 @@ import PostsPage, { ErrorBoundary } from './posts';
 vi.mock('@/lib/use-public-posts', () => ({ usePublicPosts: vi.fn() }));
 vi.mock('@/lib/use-has-news', () => ({ useHasNews: () => false }));
 
-const POST: Post = {
+const POST: PublicPost = {
   id: 'p1',
   publishedAt: '2026-10-20T01:00:00Z',
-  updatedAt: '2026-10-20T01:00:00Z',
   title: 'Term 4 starts',
   body: 'Classes resume on Monday.',
-  authorId: null,
 };
 
 function renderInState(state: PublicPostsState) {

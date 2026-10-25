@@ -4,12 +4,12 @@
 
 import { APP_CONFIG } from '@/constants';
 
-import { POST_COLUMNS, POSTS_MAX_ROWS, toPost } from './post-rows';
+import { POSTS_MAX_ROWS, PUBLIC_POST_COLUMNS, toPublicPost } from './post-rows';
 import { hasPublicSupabaseConfig, publicSupabaseConfig } from './public-supabase-config';
 import type { PublicSupabaseConfig } from './public-supabase-config';
-import type { PostRow } from './post-rows';
+import type { PublicPostRow } from './post-rows';
 import { fail, succeed } from './result';
-import type { Post, Result } from './types';
+import type { PublicPost, Result } from './types';
 
 type Fetcher = typeof fetch;
 
@@ -41,16 +41,16 @@ export async function checkPublishedPosts(
 export async function fetchPublicPosts(
   config: PublicSupabaseConfig,
   fetcher: Fetcher = fetch,
-): Promise<Result<Post[]>> {
+): Promise<Result<PublicPost[]>> {
   if (!hasPublicSupabaseConfig(config)) return fail('notConfigured');
-  const columns = POST_COLUMNS.replace(/\s/g, '');
+  const columns = PUBLIC_POST_COLUMNS.replace(/\s/g, '');
   const query = `select=${columns}&order=created_at.desc&limit=${POSTS_MAX_ROWS}`;
   try {
     const response = await getPublic(config, query, fetcher);
     if (!response.ok) return fail('network');
     const rows: unknown = await response.json();
     if (!Array.isArray(rows)) return fail('network');
-    return succeed((rows as PostRow[]).map(toPost));
+    return succeed((rows as PublicPostRow[]).map(toPublicPost));
   } catch {
     return fail('network');
   }
@@ -65,6 +65,6 @@ export function hasPublishedPosts(): Promise<boolean> {
   return newsCheck;
 }
 
-export function listPublicPosts(): Promise<Result<Post[]>> {
+export function listPublicPosts(): Promise<Result<PublicPost[]>> {
   return fetchPublicPosts(publicSupabaseConfig());
 }

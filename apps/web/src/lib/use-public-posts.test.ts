@@ -2,19 +2,17 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { listPublicPosts } from '@/services';
-import type { Post } from '@/services';
+import type { PublicPost } from '@/services';
 
 import { usePublicPosts } from './use-public-posts';
 
 vi.mock('@/services', () => ({ listPublicPosts: vi.fn() }));
 
-const POST: Post = {
+const POST: PublicPost = {
   id: 'p1',
   publishedAt: '2026-10-20T01:00:00Z',
-  updatedAt: '2026-10-20T01:00:00Z',
   title: 'Term 4 starts',
   body: 'Classes resume on Monday.',
-  authorId: null,
 };
 
 describe('usePublicPosts', () => {

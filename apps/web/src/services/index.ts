@@ -137,6 +137,7 @@ export type {
   ParentInviteOutcome,
   Post,
   PostInput,
+  PublicPost,
   ProfileChanges,
   Question,
   QuestionInput,
