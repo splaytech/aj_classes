@@ -365,6 +365,7 @@ export const FOOTER = {
   contactHeading: 'Contact',
   location: LOCATION,
   privacyLink: 'Privacy Policy',
+  newsLink: 'News', // first in the legal row, only once at least one post exists (ADR-0001)
   copyright: (year: number) => `© ${year} AJ Classes. All rights reserved.`,
   // Short form of the "Accuracy of information" section in PRIVACY.
   disclaimer:
