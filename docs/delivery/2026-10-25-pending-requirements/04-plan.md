@@ -135,7 +135,7 @@ Rules:
    `migration new` stamps the **UTC** time: `20261025110000` is 25 Oct 22:00 AEDT, so a file made
    earlier than that sorts before item 3's. **Check and act:** run `ls supabase/migrations | tail -2`.
    If the new file isn't last, `git mv` it to a timestamp one minute after the newest file on
-   `develop` (e.g. `20261025110100_assignment_files.sql`), then `pnpm db:reset`. Do the same check
+   `develop` (e.g. `20261025110200_assignment_files.sql`), then `pnpm db:reset`. Do the same check
    again at release time against every migration on `develop` and on hosted, and rename again if
    items 4–9 added newer ones meanwhile.
 4. **When B3 is approved (item 2 release):** merge the latest `develop` into the branch, apply
@@ -321,7 +321,7 @@ function `notifications` (03 §3.4). All email goes to the local Mailpit
   runbook, kill switch, recovery command, AC-3.11 check), #27 `arch.md`, #28 `budget.md`, #29
   `release-5/PRP.md`, #30 `release-2/go-live.md` (item 3 release steps as unticked boxes; Saurabh
   ticks them on release). Run: `pnpm --filter web exec vitest run src/routes/privacy.test.tsx && pnpm format:check`.
-- [ ] **T3.9 Full check.** Run:
+- [x] **T3.9 Full check.** Run:
   `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && VITE_APP_ENV=production pnpm build && pnpm db:test && pnpm test:functions`.
   Plus the item 1 bundle check (03 §1.6) still prints only `done`.
 - [ ] **T3.10 Pipeline.** `review-5-item-3.md` → `06-test-plan-item-3.md` + `06-security-item-3.md`
@@ -340,8 +340,8 @@ Design: 03 §2 (48 files). Migration created in T2.0 (name per §2 rule 3), edge
 
 - [ ] **T2.0 Branch and migration file.** `git checkout develop && git pull --ff-only && git checkout -b feature/homework-file-uploads && supabase migration new assignment_files`.
   Then `ls supabase/migrations | tail -2`: if the new file isn't last (UTC stamp earlier than
-  `20261025110000`), `git mv` it to one minute after the newest file on `develop` (e.g.
-  `20261025110100_assignment_files.sql`) and `pnpm db:reset` (§2 rule 3).
+  `20261025110100`, item 3's posts migration), `git mv` it to one minute after the newest file on `develop` (e.g.
+  `20261025110200_assignment_files.sql`) and `pnpm db:reset` (§2 rule 3).
 - [ ] **T2.1 The flag (DB).** Files: 03 §2.1 #1 migration steps 1–3 only (flag, flag guards,
   `is_online_assignment`) with their step 12 grants (keep 03 §2.2's step order in the file;
   steps 4–11 slot in at T2.2); #2 `assignment_files.test.sql` (first cases); #8 `seed.sql` (the
