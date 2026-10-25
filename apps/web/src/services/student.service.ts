@@ -7,13 +7,14 @@ import { toErrorKey } from './auth-errors';
 import { toFamilyAssignment, toFamilyAssignmentView, toTimetableEntry } from './family-data';
 import type { FamilyAssignmentJson, FamilyAssignmentRow, FamilyTimetableRow } from './family-data';
 import { attempt, fail, succeed } from './result';
-import { getSignedInSupabase, getSupabase } from './supabase.client';
+import { getFamilyClient } from './family-client';
+import { getSupabase } from './supabase.client';
 import type { FamilyAssignment, FamilyAssignmentView, Result, TimetableEntry } from './types';
 
 export async function listMyAssignments(): Promise<Result<FamilyAssignment[]>> {
   return attempt(async () => {
-    const supabase = await getSignedInSupabase();
-    if (!supabase) return fail('notAllowed'); // signed out: the layout redirects to sign-in
+    const supabase = await getFamilyClient('student');
+    if (!supabase) return fail('notAllowed'); // not a student: the layout shows the right page
     const { data, error } = await supabase.rpc('student_assignments');
     if (error) return fail(toErrorKey(error));
     return succeed((data as unknown as FamilyAssignmentRow[]).map(toFamilyAssignment));
@@ -22,8 +23,8 @@ export async function listMyAssignments(): Promise<Result<FamilyAssignment[]>> {
 
 export async function getMyAssignment(assignmentId: string): Promise<Result<FamilyAssignmentView>> {
   return attempt(async () => {
-    const supabase = await getSignedInSupabase();
-    if (!supabase) return fail('notAllowed'); // signed out: the layout redirects to sign-in
+    const supabase = await getFamilyClient('student');
+    if (!supabase) return fail('notAllowed'); // not a student: the layout shows the right page
     const { data, error } = await supabase.rpc('student_assignment', { target: assignmentId });
     if (error) return fail(toErrorKey(error));
     return succeed(toFamilyAssignmentView(data as unknown as FamilyAssignmentJson));
@@ -65,8 +66,8 @@ export async function submitMyAssignment(assignmentId: string): Promise<Result<F
 
 export async function getMyTimetable(): Promise<Result<TimetableEntry[]>> {
   return attempt(async () => {
-    const supabase = await getSignedInSupabase();
-    if (!supabase) return fail('notAllowed'); // signed out: the layout redirects to sign-in
+    const supabase = await getFamilyClient('student');
+    if (!supabase) return fail('notAllowed'); // not a student: the layout shows the right page
     const { data, error } = await supabase.rpc('student_timetable');
     if (error) return fail(toErrorKey(error));
     return succeed((data as unknown as FamilyTimetableRow[]).map(toTimetableEntry));
