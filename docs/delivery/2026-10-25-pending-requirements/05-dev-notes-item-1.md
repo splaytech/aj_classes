@@ -168,3 +168,30 @@ so the link or list arrives well after first paint.
 7. **Local data.** I left one realistic post ("Term 4 classes start on Monday") in the local DB,
    so the Tester starts with news. I deleted the test posts I created (the over-long one and the
    `<script>` one).
+
+## 6. Review fixes (review-5-item-1.md, all 3 minors)
+
+| Finding | Fix | Commits |
+|---|---|---|
+| 1. The sitemap and the client disagree on "configured" | New `services/public-supabase-config.ts` holds one rule, URL **and** key (`hasPublicSupabaseConfig`, `isPublicSupabaseConfigured`). The news reads and `sitemap.ts` both use it. New tests: URL only → not configured, and no request | `1143859`, `de58c40` |
+| 2. No test of the real `useHasNews` | `lib/use-has-news.test.ts`, 3 `renderHook` cases: false then true, stays false, answer after unmount ignored | `a8eb395` |
+| 3. Setup comment | `src/test/setup.ts`: "Stub globals in beforeEach, not beforeAll or at module scope" | `54b3058` |
+
+- **Build break found and fixed.** In `1143859` the rule lived in `public-posts.client.ts`.
+  React Router empties `.client` modules in the server build, so the sitemap's build-time loader
+  got `undefined` and the prerender failed with a 500. `de58c40` moves the rule into the
+  non-`.client` file above.
+- **Gotcha for later work:** server or build-time code (loaders, the sitemap, robots) must never
+  import from a `*.client.ts` file.
+- **Not bisect-safe:** don't check out `1143859` on its own, because the build fails there.
+
+**Checks after the fixes** (local exports):
+
+| Check | Result |
+|---|---|
+| Full check | Green |
+| `test` | 42 files, 309 tests |
+| `db:test` | 12 files, 349 tests, PASS |
+| Production build | Lists `/posts` in the sitemap; no hosted ref in the built JS |
+| Build with the URL set and the key empty | Succeeds, 0 `/posts` in the sitemap |
+| AC-1.12 bundle check | `done` over 13 pages |
