@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { checkPage, extractJsonLd, pageKindFor } from './structured-data.ts';
+import { checkPage, extractJsonLd, missingPageKinds, pageKindFor } from './structured-data.ts';
 
 function fixture(name: string): string {
   return readFileSync(join(import.meta.dirname, 'fixtures', 'structured-data', name), 'utf8');
@@ -23,6 +23,22 @@ describe('pageKindFor', () => {
     ['__spa-fallback.html', 'other'],
   ])('%s is a %s page', (file, kind) => {
     expect(pageKindFor(file)).toBe(kind);
+  });
+});
+
+describe('missingPageKinds', () => {
+  const HOME = 'index.html';
+  const GUIDE = 'resources/victorian-selective-entry-exam/index.html';
+
+  it('finds nothing missing in a build with a home, a programme and a guide page', () => {
+    expect(missingPageKinds([HOME, PROGRAMME, GUIDE, 'privacy/index.html'])).toEqual([]);
+  });
+
+  it('names each kind a partial build lacks, so its rules cannot switch off silently', () => {
+    expect(missingPageKinds([HOME])).toEqual(['programme', 'guide']);
+    expect(missingPageKinds([HOME, PROGRAMME])).toEqual(['guide']);
+    expect(missingPageKinds([PROGRAMME, GUIDE])).toEqual(['home']);
+    expect(missingPageKinds([])).toEqual(['home', 'programme', 'guide']);
   });
 });
 
@@ -112,7 +128,7 @@ describe('checkPage: invalid states (AC-6.10)', () => {
     expect(checkPage(PROGRAMME, fixture('review.html'))).toEqual([
       {
         file: PROGRAMME,
-        message: 'has a AggregateRating node, which the site must not publish (R1 F6.4.3)',
+        message: 'has a node of type AggregateRating, which the site must not publish (R1 F6.4.3)',
       },
     ]);
   });

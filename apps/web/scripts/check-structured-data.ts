@@ -1,11 +1,12 @@
 // CLI: node scripts/check-structured-data.ts <build/client>
-// Checks the JSON-LD on every pre-rendered page (AC-6.9). Exits 1 on any problem, or if there's
-// no home page, so an empty or wrong folder can't pass.
+// Checks the JSON-LD on every pre-rendered page (AC-6.9). Exits 1 on any problem, or if the
+// home page, a programme page or a guide page is missing, so an empty, wrong or partial folder
+// can't pass.
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
-import { checkPage, pageKindFor } from './structured-data.ts';
+import { checkPage, missingPageKinds } from './structured-data.ts';
 
 function htmlFiles(folder: string): string[] {
   return readdirSync(folder, { withFileTypes: true }).flatMap((entry) => {
@@ -23,13 +24,15 @@ if (!root || !existsSync(root)) {
 
 const files = htmlFiles(root).map((file) => relative(root, file).split(sep).join('/'));
 const problems = files.flatMap((file) => checkPage(file, readFileSync(join(root, file), 'utf8')));
-const hasHome = files.some((file) => pageKindFor(file) === 'home');
+const missingKinds = missingPageKinds(files);
 
 process.stdout.write(`check-structured-data: ${files.length} pages, ${problems.length} problems\n`);
 for (const problem of problems) {
   console.error(`  ${problem.file}: ${problem.message}`);
 }
-if (!hasHome) {
-  console.error(`check-structured-data: no index.html in ${root}; is it a build?`);
+if (missingKinds.length > 0) {
+  console.error(
+    `check-structured-data: no ${missingKinds.join(', ')} page in ${root}; is it a full build?`,
+  );
 }
-process.exit(problems.length > 0 || !hasHome ? 1 : 0);
+process.exit(problems.length > 0 || missingKinds.length > 0 ? 1 : 0);

@@ -33,6 +33,16 @@ export function pageKindFor(relativeFile: string): PageKind {
   return 'other';
 }
 
+// A real build always has these, so a folder without one of them is a wrong or partial build:
+// its rules would otherwise switch off without a word.
+const REQUIRED_PAGE_KINDS: PageKind[] = ['home', 'programme', 'guide'];
+
+/** The page kinds a build must have that `relativeFiles` lacks, in REQUIRED_PAGE_KINDS order. */
+export function missingPageKinds(relativeFiles: string[]): PageKind[] {
+  const found = new Set(relativeFiles.map(pageKindFor));
+  return REQUIRED_PAGE_KINDS.filter((kind) => !found.has(kind));
+}
+
 /** The raw text of every JSON-LD block in the page, in order. */
 export function extractJsonLd(html: string): string[] {
   return [...html.matchAll(JSON_LD_BLOCK)].map((match) => match[1] ?? '');
@@ -82,7 +92,9 @@ function genericProblems(value: unknown, messages: string[]): void {
 
   const forbiddenType = typesOf(value).find((type) => FORBIDDEN_TYPES.has(type));
   if (forbiddenType) {
-    messages.push(`has a ${forbiddenType} node, which the site must not publish (R1 F6.4.3)`);
+    messages.push(
+      `has a node of type ${forbiddenType}, which the site must not publish (R1 F6.4.3)`,
+    );
     return;
   }
   for (const [key, child] of Object.entries(value)) {
