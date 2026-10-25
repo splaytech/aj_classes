@@ -45,3 +45,29 @@ None.
 ## Still to prove after the `develop` merge (path B)
 
 - The five check names on GitHub; three real durations (AC-6.4); 7-day retention (AC-6.5, may stay "Not covered"); `--no-sandbox` on x86-64; `::add-mask::` on a hosted runner; the `setup-cli` 2.120.0 download. If Lighthouse nears its 10-minute limit (O5), go to the PO; don't lower anything.
+
+---
+
+APPROVED
+
+# Review 5 — item 6, round 2
+
+**Scope:** fix diff `3a07a95..b15c1db` (9 commits, 25 files). Read-only run: format, lint, typecheck (web and e2e) clean; `pnpm test` 56 files / 496 tests plus 6/6 e2e `node:test`.
+
+**Status:** round 1 findings 1–8 resolved; 9 deferred to the merge commit body; 10 partly (B fixes the `act`-seen cause; the TSR states O1 closes once the first GitHub `web` runs are green). Security S2, S3, S4 resolved; S1, S5, S6 deferred as planned. Lead items A (global setup refuses an unset, unparsable, non-loopback or trick-host `VITE_SUPABASE_*URL` before anything starts, also with a reused server; warm-up under `abortHostedSupabase`), B (`setupUser()` with `delay: null`; every `expect`/`waitFor` unchanged; no timeout raised) and C resolved.
+
+## Blocking
+
+None.
+
+## Non-blocking
+
+1. `!cancelled()` also let the CSP sweep and `lighthouse:report` run after the hosted-ref step failed (`ci.yml:141-146`). Fix: `id: hosted-ref` and `&& steps.hosted-ref.outcome == 'success'` on both. **Done by the lead in 815135d.**
+2. `LOCAL_LEADS_URL` copies `LOCAL_SUPABASE_ORIGIN` by hand (`e2e/src/mocks/public-services.ts:33`). Fails safe; comment records the coupling. No change.
+3. O1 has no `bugs/` entry; carry it in the TSR.
+4. Doc nits: README `pnpm test` row; two unwrapped lines in `ci-gates.md` and `e2e/.env.example`. **Done in 815135d.**
+5. `setupUser()` return type. **Done in 815135d (`: UserEvent`).**
+
+## Still to prove after the `develop` merge (path B)
+
+Round 1's list, plus: `supabase start > /dev/null` leaves the hosted runner's log key-free; the `web` job's e2e typecheck and `test:unit` pass on GitHub's Node 24 runner.
