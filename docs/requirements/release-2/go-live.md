@@ -108,6 +108,17 @@ approved (Q7 / B17); B1 done first, or released together at the same SHA.
 - [ ] Dashboard → Project Settings → API → Exposed schemas is still only `public` and `graphql_public` (never `net`).
 - [ ] AC-3.11 test-family check (same README section): both emails arrive within 5 minutes; Admin → Emails is empty; delete the test class.
 
+## 7c. Public CSP (pending-requirements item 5, ADR-0005)
+
+Release steps for Saurabh, then the team (03b §5.8). No migration or function.
+
+- [ ] Before merging to `main`: on the `develop` preview (DevTools → Network), the `/portal/login` document has exactly one `content-security-policy`, the portal one (it names `challenges.cloudflare.com`); `/` has the public one. `vercel.live` toolbar violations on the preview are expected; never add that host.
+- [ ] After release, read-only: `curl -sI` on `/`, `/programmes/vce` and `/nope` shows the public CSP; HSTS is present.
+- [ ] `curl -sI https://ajclasses.com.au/portal/login | grep -ci '^content-security-policy:'` prints `1`, the portal one.
+- [ ] `curl -sI https://ajclasses.com.au/__spa-fallback | grep -ci '^content-security-policy:'` prints `1`, the portal one, with `X-Robots-Tag: noindex, nofollow` and `Cache-Control: no-store`.
+- [ ] `curl -sI https://ajclasses.com.au/_vercel/insights/script.js` → 200, and the live home page shows 0 CSP violations in Chrome.
+- [ ] If `/portal/*` or `/__spa-fallback` ever shows two CSPs, revert the release (config only).
+
 ## 8. Smoke test
 
 - [x] Public pages unchanged; WhatsApp button opens a chat; `/resources` and the guide load; `sitemap.xml` has no `/portal`; `robots.txt` disallows `/portal` — verified via curl (23 Oct 2026): `/` and `/resources` → 200, guide page `/resources/victorian-selective-entry-exam` → 200, `wa.me/61469800685` link present in page source, `sitemap.xml` has zero `/portal` entries, `robots.txt` has `Disallow: /portal`.

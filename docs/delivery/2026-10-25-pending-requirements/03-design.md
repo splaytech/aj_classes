@@ -298,6 +298,8 @@ VITE_APP_ENV=staging pnpm build      # "staging build" (AC-1.4)
 | 1.14 | Manual: admin compose refuses empty and over-long title/body (existing behaviour). `posts.test.tsx`: a post titled `<script>alert(1)</script>` renders as text (`getByText`), and `container.querySelector('script')` is null | Manual + unit |
 | 1.15 | `pnpm lint` | Lint |
 
+AC-1.4's "no `Content-Security-Policy` on `/posts`" is superseded by item 5: `/posts` now sends the public CSP ([03b §5](03b-design-items-4-8.md#item-5--content-security-policy-on-public-pages)).
+
 **Bundle check (AC-1.12)**, from `apps/web` after the production build:
 
 ```bash

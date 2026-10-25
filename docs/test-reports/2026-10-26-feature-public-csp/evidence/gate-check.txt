@@ -1,0 +1,3 @@
+$ node scripts/check-hosted-ref.ts build/client
+check-hosted-ref: 0 files (of 153 scanned)
+exit 0
