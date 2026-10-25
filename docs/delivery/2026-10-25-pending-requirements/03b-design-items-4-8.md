@@ -334,7 +334,7 @@ New text:
 | `PROFILE_VALIDATION.phoneRequired` | `Please enter a phone number. You can change it, but you can't remove it.` |
 | `PORTAL_ERRORS.phoneRequired` | same text as `PROFILE_VALIDATION.phoneRequired` |
 
-`PROFILE_PAGE` is defined after `JOIN_PAGE` in `portal.constants.ts` (lines 217 vs 461), so the
+`PROFILE_PAGE` is defined after `JOIN_PAGE` in `portal.constants.ts` (lines 213 vs 461), so the
 reference is safe. `[ASSUMPTION]` The admin staff page shows the same "you" hint, as it already
 does for the bio hint; it's the shared form (R2a US18).
 
@@ -619,7 +619,9 @@ No Privacy wording: the CSP collects nothing.
 ADR-0006. No runtime change, no migration. New **dev-only** dependencies, listed with reasons in
 the PR description (AC-6.13): `@playwright/test`, `pg`, `@types/pg`, `dotenv` (moved with the E2E
 suite, `e2e/` only), `@lhci/cli` (`apps/web`, Lighthouse CI). `@supabase/supabase-js` and
-`typescript` are already in the lockfile; `e2e/` declares them at the versions `apps/web` uses.
+`typescript` and `@types/node` are already in the lockfile; `e2e/` declares all three at the ranges
+`apps/web` uses (`@types/node` `^26.6.3`, replacing the old repo's `^20`), so the workspace has
+one version of each.
 
 ### 6.1 Files to touch (36)
 
@@ -631,12 +633,13 @@ suite, `e2e/` only), `@lhci/cli` (`apps/web`, Lighthouse CI). `@supabase/supabas
 | 2 | `e2e/package.json` | New | `name: "aj-classes-e2e"`, private, `type: module`; scripts `test:smoke` (`playwright test`), `test:csp` (`playwright test -c playwright.csp.config.ts`), `typecheck` (`tsc --noEmit`); dev dependencies only |
 | 3 | `e2e/tsconfig.json` | Moved | `include` gains `csp`, `scripts` |
 | 4 | `e2e/playwright.config.ts` | Moved, changed | `trace: 'retain-on-failure'` (with `retries: 0`, `on-first-retry` never records), `video: 'retain-on-failure'`, reporter `[['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]]`, `outputDir: 'test-results'` |
-| 5 | `e2e/playwright.csp.config.ts` | New | `testDir: './csp'`, `baseURL: 'http://localhost:4173'`, no global setup, `webServer: { command: 'pnpm --filter web mirror', url: 'http://localhost:4173', reuseExistingServer: true, timeout: 60_000 }` |
+| 5 | `e2e/playwright.csp.config.ts` | New | `testDir: './csp'`, `baseURL: 'http://localhost:4173'`, no global setup, imports nothing from `src/` (§6.4 import rule), `webServer: { command: 'pnpm --filter web mirror', url: 'http://localhost:4173', reuseExistingServer: true, timeout: 60_000 }` |
 | 6 | `e2e/.env.example` | Moved, changed | Placeholders only for keys (`SUPABASE_ANON_KEY=<from supabase status>` etc.); non-key settings kept, incl. the seeded admin from `supabase/seed.sql`, labelled "local seed account, not real"; `AJ_CLASSES_DIR=..` |
 | 7 | `e2e/scripts/local-env.mjs` | New | §6.3 |
 | 8 | `e2e/setup/global-setup.ts` | Moved | Unchanged apart from paths |
 | 9 | `e2e/src/config.ts` | Moved, changed | Default `AJ_CLASSES_DIR` = repo root (`path.resolve(import.meta.dirname, '../..')`); new `assertLocalUrl(name, url)`: `WEB_BASE_URL`, `SUPABASE_REST_URL`, `MAILPIT_URL` must have host `localhost` or `127.0.0.1`, and `PG_HOST` must be one of those, else throw (AC-6.14 belt and braces) |
-| 10 | `e2e/src/fixtures/test-fixtures.ts` | Moved, changed | New auto fixture `hostedSupabaseGuard` (§6.4) |
+| 10 | `e2e/src/fixtures/test-fixtures.ts` | Moved, changed | Extends `hosted-guard.ts`'s `test` instead of `@playwright/test`'s, so every smoke spec gets the guard (§6.4) |
+| 10a | `e2e/src/fixtures/hosted-guard.ts` | New | `hostedSupabaseGuard` auto fixture; imports only `@playwright/test` (§6.4) |
 | 11 | `e2e/src/mocks/public-services.ts` | New | `mockKit(page)` and `mockLeads(page)` (`route.fulfill` 200 JSON), for the CSP sweep |
 | 12–19 | `e2e/src/auth/login.ts`, `src/auth/totp.ts`, `src/db/anon-client.ts`, `src/db/pg-client.ts`, `src/db/poll.ts`, `src/fixtures/markers.ts`, `src/mail/mailpit.ts`, `src/mocks/web3forms.ts` | Moved | Unchanged |
 | 20–25 | `e2e/tests/admin-posts.spec.ts`, `admin-posts.selectors.ts`, `our-approach.spec.ts`, `register-interest.spec.ts`, `staff-login.spec.ts`, `invite-onboarding.spec.ts` | Moved | Unchanged; prettier-formatted to this repo's config |
@@ -701,9 +704,15 @@ So the workflow and `e2e/` hold no key and no hosted value (AC-6.3).
 
 ### 6.4 Hosted block-and-count (AC-6.14)
 
-In `test-fixtures.ts`:
+In its own module, `e2e/src/fixtures/hosted-guard.ts`, which imports **only** `@playwright/test`.
+It can't live in `test-fixtures.ts`: that file imports the db and mail clients, which import
+`src/config.ts`, and `loadConfig()` throws at import time when the stack's env is missing, as it
+is in the Lighthouse job (review-3b finding 1).
 
 ```ts
+import { expect, test as base } from '@playwright/test';
+
+export const test = base.extend<{ hostedSupabaseGuard: void }>({
 /** Aborts every request to a *.supabase.co host and fails the test if any was attempted. */
 hostedSupabaseGuard: [async ({ context }, use) => {
   const attempted: string[] = [];
@@ -714,14 +723,29 @@ hostedSupabaseGuard: [async ({ context }, use) => {
   await use();
   expect(attempted, 'requests to a hosted Supabase project').toEqual([]);
 }, { auto: true }],
+});
+export { expect };
 ```
 
-Every spec that imports `test` from the fixtures gets it. The CSP spec (§6.5) imports the same
-fixture file.
+- `test-fixtures.ts` builds on it: `import { test as guarded } from './hosted-guard.js'` and
+  `export const test = guarded.extend<Fixtures>({ … })`. Every smoke spec keeps importing
+  `test-fixtures.ts`, so each one gets the guard.
+- The CSP spec (§6.5) imports `test`/`expect` from `hosted-guard.ts` and helpers from
+  `src/mocks/*` only.
+- **Import rule for the CSP path:** `playwright.csp.config.ts`, `csp/public-csp.spec.ts`,
+  `src/fixtures/hosted-guard.ts`, `src/mocks/web3forms.ts` and `src/mocks/public-services.ts`
+  never import `src/config.ts`, `src/db/*`, `src/mail/*`, `src/auth/*` or `test-fixtures.ts`,
+  directly or through another file. `playwright.csp.config.ts` has no `globalSetup` and takes its
+  base URL as a literal. The CSP step in CI runs with none of the E2E env set, so a breach fails
+  at once.
 
 ### 6.5 `e2e/csp/public-csp.spec.ts` (runs in the Lighthouse job against the mirror)
 
-The build has no Supabase config, so the News check and `leads` never fire. For each page in the
+Imports: `test`, `expect` from `../src/fixtures/hosted-guard.js`; `mockWeb3Forms` and
+`mockKit` from `../src/mocks/*` (§6.4 import rule). The build has no Supabase config, so the News
+check and `leads` never fire. It does carry placeholder Web3Forms and Kit settings (§6.8), so the
+enquiry form really posts to Web3Forms and the footer subscribe is shown and posts to Kit, both
+caught by the mocks. For each page in the
 Lighthouse set plus `/posts`, `/subscribed`, `/nope`, at 360 × 740 and 1280 × 800:
 
 1. `page.addInitScript` installs a `securitypolicyviolation` listener that pushes
@@ -816,7 +840,7 @@ guards, no `any`.
 under a key `url`, `item`, `logo`, `image` or `@id` is an absolute URL starting
 `https://ajclasses.com.au/` (or equal to `https://ajclasses.com.au`); no node has `@type`
 `Review` or `AggregateRating`, and no key `review` or `aggregateRating`, anywhere (R1 F6.4.3).
-`[ASSUMPTION — PO to confirm, §14]` `sameAs` values are social profile links, off-site by
+PO-confirmed (AC-6.9, §14): `sameAs` values are social profile links, off-site by
 definition, so they only need to be absolute `https://` URLs.
 
 **`scripts/structured-data.ts`**
@@ -890,7 +914,8 @@ new Vitest tests (`scripts/*.test.ts`, `src/hosting-csp.test.ts`).
       - checkout, pnpm, node 24, pnpm install --frozen-lockfile (as above)
       - name: Build with no Supabase config (never the hosted project)
         run: pnpm build
-        env: { VITE_APP_ENV: production, VITE_SUPABASE_URL: '', VITE_SUPABASE_PUBLISHABLE_KEY: '', VITE_LEAD_CAPTURE: '' }
+        # Placeholders so the CSP sweep exercises the enquiry and subscribe code; both are mocked.
+        env: { VITE_APP_ENV: production, VITE_SUPABASE_URL: '', VITE_SUPABASE_PUBLISHABLE_KEY: '', VITE_LEAD_CAPTURE: '', VITE_FORM_ACCESS_KEY: local-placeholder, VITE_KIT_FORM_ID: '0000000' }
       - run: pnpm --filter web check:hosted-ref build/client
       - run: pnpm --filter web lighthouse
       - name: No Supabase requests; JS size per page
@@ -1265,7 +1290,7 @@ empty text `STUDENT_HOME.returned.empty` is unchanged (AC-7.12).
 | Removed, or class archived | `returned` | shown, "Past class", read-only | shown | no (`not_found`) |
 | Removed, or class archived | none, `not_submitted`, `in_progress`, `submitted`, `marked` | hidden | hidden | no |
 | Any | assignment is a draft | hidden | hidden | no |
-| Student deactivated / parent unlinked | any | `not_student` / 42501 | 42501 | no |
+| Student deactivated / parent unlinked | any | `student_assignments()`, `student_assignment()`: 42501 `not_student` | `parent_child_assignments()`: P0002 `not_found` (via `require_my_child`, ITEM3-FU-1); `parent_child_assignment()`: 42501 `not_found` | no |
 | Roster row deleted | (results cascade) | nothing | nothing | no |
 | Re-enrolled | any | rule (a), `is_past_class = false` | shown | yes |
 
@@ -1277,6 +1302,9 @@ empty text `STUDENT_HOME.returned.empty` is unchanged (AC-7.12).
 `w1` with a written question, `x1` paper (`max_mark`), `n1` all-MCQ not started, `i1` in progress,
 `u1` submitted-not-returned, `r1` returned; one draft `dr1`. Built as drafts, questions added,
 then published, as `family_portal.test.sql` does. Starts with `delete from public.email_outbox`.
+**Every outbox assertion filters `kind = 'work_returned'`** from the start, so item 8's
+`new_assignment` rows (queued when the fixtures publish) can't change its counts (review-3b
+finding 3).
 
 | AC | How it's tested | Type / file |
 |---|---|---|
@@ -1286,15 +1314,16 @@ then published, as `family_portal.test.sql` does. Starts with `delete from publi
 | 7.4 | pgTAP as b1: update h1/d1 result to `returned` → lives_ok; `marked_by` = b1; 3 `work_returned` outbox rows (s1, p1, p2); `student_assignment(h1)` now shows `correctOption`, `awardedMarks`. Manual: the tutor opens the held submission, sees the auto-marks, adds a comment and Returns; within 5 minutes the local cron kick delivers the "work returned" email to Mailpit | DB + manual |
 | 7.5 | pgTAP: `student_submit(h2)` = `'returned'`, `marked_by` null, 0 outbox rows. Existing `family_portal.test.sql` D8 tests stay green | DB |
 | 7.6 | pgTAP as p1 before return: `parent_child_assignment(d1, h1)` has no correct options or awarded marks; `parent_child_assignments(d1)` h1 `mark` null. As s1 the same through both RPCs | DB |
+| 7.7 | Manual at 360 px, light and dark, as `tutor@local.test` on a draft with an all-MCQ question: the "Hold results until I return them" checkbox, its label and its hint wrap and stay legible; on a published one the disabled state and the locked note too. `HoldResultsSetting.test.tsx` asserts the label and hint text come from `HOLD_RESULTS` | Manual + unit |
 | 7.8 | pgTAP: delete `enrolments(c1, d1)`; as s1 `student_assignments()` contains `r1` with `is_past_class = true` and `student_assignment(r1)->>'isPastClass' = 'true'`; as p1 `parent_child_assignments(d1)` and `parent_child_assignment(d1, r1)` the same. Manual: student home "Marked and returned" shows r1 with "Past class"; parent child page and assignment page too | DB + manual |
 | 7.9 | pgTAP: re-enrol, then `update classes set is_active = false where id = c1` (as superuser) → same results as 7.8 | DB |
 | 7.10 | pgTAP after removal (and after archiving): `n1`, `i1`, `u1` absent from both lists and `student_assignment(u1)` → P0002; `dr1` absent; `student_timetable()` has no `c1` session; `parent_child_timetable(d1)` neither | DB |
 | 7.11 | pgTAP as s1 after removal: `student_save_answer(r1, q, 0)` → P0002 `not_found`; `student_submit(r1)` → P0002; after archiving (still enrolled) the same. Manual: the page shows results only, no Save/Hand in | DB + manual |
 | 7.12 | Unit: `family-data.test.ts` maps `is_past_class` → `isPastClass`; `StatusChips.test.tsx` renders "Past class". Manual: tag in list and page; "Nothing returned yet." with no returned work | Unit + manual |
-| 7.13 | pgTAP: s2 never sees r1 (list, view P0002); p3 `parent_child_assignment(d1, r1)` → 42501; deactivate s1's profile → `student_assignments()` 42501 `not_student`; unlink p2 → 42501; delete roster row `d1` (cascade) → no result row, p1 sees nothing; re-enrol after 7.8 → `is_past_class = false` | DB |
-| 7.14 | pgTAP after removal: `parent_child_assignment(d1, r1)` returns JSON (the email link's RPC); `private.work_returned_recipients(r1, d1)` (as superuser) still lists s1, p1, p2. Manual: open the Mailpit "View feedback" link after removing the student → the page opens | DB + manual |
+| 7.13 | pgTAP: s2 never sees r1 (list, view P0002); p3 `parent_child_assignment(d1, r1)` → 42501; deactivate s1's profile → `student_assignments()` and `student_assignment(r1)` 42501 `not_student`; unlink p2 → as p2, `parent_child_assignments(d1)` P0002 `not_found` (raised by `require_my_child`, unchanged, ITEM3-FU-1) and `parent_child_assignment(d1, r1)` 42501 `not_found` (item 3's BUG-7 body); delete roster row `d1` (cascade) → no result row, p1 sees nothing; re-enrol after 7.8 → `is_past_class = false` | DB |
+| 7.14 | pgTAP after removal: `parent_child_assignment(d1, r1)` returns JSON (the email link's RPC); `private.work_returned_recipients(r1, d1)` (as superuser) still lists s1, p1, p2 (item 8 changes this one call to `private.email_recipients('work_returned', r1, d1)`, §8.1). Manual: open the Mailpit "View feedback" link after removing the student → the page opens | DB + manual |
 | 7.15 | Moves to T2.15 (item 2 held), §9 | — |
-| 7.16 | Manual at 360 px, light and dark: the chip on student home, parent child page and both assignment pages; the hold checkbox and hint on the assignment page | Manual |
+| 7.16 | Manual at 360 px, light and dark: the "Past class" chip on student home, the parent's child page and both assignment pages, and the read-only page around it | Manual |
 | 7.17 | Docs diff review | Review |
 | Grants | pgTAP: `function_privs_are` / `has_function_privilege`: `authenticated` can execute `student_assignments()` and `parent_child_assignments(uuid)`; `anon` can't; nobody but the owner executes `private.assignment_readable_by` and `private.check_hold_results` | DB |
 
@@ -1312,7 +1341,7 @@ linked to a student can see that student's assignments…" still holds.
 
 ADR-0008 (extends ADR-0004). One migration, one function deploy, no new dependency.
 
-### 8.1 Files to touch (24)
+### 8.1 Files to touch (25)
 
 **Database and function (`supabase/`)**
 
@@ -1321,6 +1350,7 @@ ADR-0008 (extends ADR-0004). One migration, one function deploy, no new dependen
 | 1 | `migrations/20261028100000_more_email_alerts.sql` | New | §8.2 in order |
 | 2 | `tests/database/email_alerts.test.sql` | New | §8.10 |
 | 3 | `tests/database/email_outbox.test.sql` | Changed | Item 3's tests on the new shapes (§8.10 "Item 3 regression") |
+| 3a | `tests/database/fair_results.test.sql` | Changed | Item 7's AC-7.14 call `private.work_returned_recipients(r1, d1)` becomes `private.email_recipients('work_returned', r1, d1)` (the old function is dropped). Its outbox assertions already filter `kind = 'work_returned'` (§7.7), so nothing else changes |
 | 4 | `functions/notifications/copy.ts` | Changed | `EMAIL_KINDS`, per-kind wording (§8.5) |
 | 5 | `functions/notifications/template.ts` | Changed | `ClaimedRow.kind`, `.due_on`; `renderEmail`; shared shell; `formatDueDate` (§8.4) |
 | 6 | `functions/notifications/index.ts` | Changed | Claims with `supported_kinds`; renders with `renderEmail` |
@@ -1562,7 +1592,9 @@ as $$
   cross join lateral private.email_recipients('due_tomorrow', a.id, e.student_id, today + 1) r
   where a.status = 'published'
     and a.due_on = today + 1
-    and private.melbourne_date(a.published_at) < today -- published the day before or later: "new assignment" covers it
+    -- AC-8.6: skip work published on the day before it's due (that's today) or later; its
+    -- "new assignment" email covers it. Work published yesterday or earlier gets a reminder.
+    and private.melbourne_date(a.published_at) < today
   on conflict on constraint email_outbox_once do nothing
 $$;
 
@@ -1636,7 +1668,7 @@ The `no_address` update, the advisory lock and the cap are unchanged.
 **Step 9. The kick sweeps expired rows** (AC-8.7)
 
 `create or replace function private.kick_email_worker()`: body copied from `20261025110000` lines
-299–332, plus, straight after the reclaim update and before the first early return:
+299–336, plus, straight after the reclaim update and before the first early return:
 
 ```sql
   -- Past their deadline: failed, shown to admins as "Too late to send". Here, not in the worker,
@@ -1838,20 +1870,21 @@ inside the transaction as item 3's tests do. Time-dependent rows are created wit
 | 8.3 | pgTAP: publish, back to draft before the claim → `notify_claim_emails(array[all three])` returns no `new_assignment` rows and they end `skipped`, none in `admin_email_problems`; republish → still exactly the original rows (no new ones), **within the 90-day outbox retention, as AC-3.5** (a row trimmed after 90 days can be queued again; known limit §8.12) | DB |
 | 8.4 | pgTAP: enrol a new student after publishing → no row for them | DB |
 | 8.5 | pgTAP: o1 due tomorrow (Melbourne), published 3 days ago (set `published_at` as superuser); `queue_due_tomorrow_emails_for(today)` → `due_tomorrow` rows for kid1 + parents with `send_before = melbourne_day_start(today + 1)`; with kid1 `in_progress` → still queued; recipients follow the `due_tomorrow` switch. Script: same set-up via SQL, call the function, run the worker → Mailpit reminder | DB + script |
-| 8.6 | pgTAP: no due date → none; paper x1 due tomorrow → none; kid1 `submitted` (or `returned`) at queue time → none; submitted **after** queueing → claim skips it; published yesterday (Melbourne) → none; published today → none | DB |
-| 8.7 | pgTAP: a pending `due_tomorrow` row with `send_before = now() - interval '1 minute'`: `notify_claim_emails` doesn't return it; `kick_email_worker()` → `failed` / `too_late`; `admin_email_problems` lists it as failed `too_late`. Unit: `email-problems.test.ts` labels `too_late` "Too late to send" | DB + unit |
+| 8.6 | pgTAP: no due date → none; paper x1 due tomorrow → none; kid1 `submitted` (or `returned`) at queue time → none; submitted **after** queueing → claim skips it; publish-date boundary (o1 due tomorrow, `published_at` set as superuser): published `today - 1` (Melbourne) → **queued**; published `today`, the day before it's due → **not** queued (AC-8.6, §8.2 step 6) | DB |
+| 8.7 | pgTAP: a pending `due_tomorrow` row and a pending `new_assignment` row, each with `send_before = now() - interval '1 minute'`: `notify_claim_emails(array[all three])` returns neither; `kick_email_worker()` turns both into `failed` / `too_late`; `admin_email_problems` lists both as failed `too_late`. A pending `work_returned` row (no `send_before`) is untouched. Unit: `email-problems.test.ts` labels `too_late` "Too late to send" | DB + unit |
 | 8.8 | pgTAP: queue a reminder, change `due_on` → the claim skips it; run the queue again for the new date's eve → no second row (unique key), **within the 90-day outbox retention, as AC-3.5** | DB |
 | 8.9 | Script unit: `renderDueTomorrow` for `due_on = '2026-10-30'` contains the child's first name, the title, the class, `is due tomorrow (Friday 30 October)` and "View assignment"; no instructions or marks | Script |
 | 8.10 | `notifications.service.test.ts`: select lists the three columns; no row → all true; save sends all three. pgTAP: kid1 inserts/updates own `new_assignment`, `due_tomorrow`; can't read or change parent1's; tutor refused. Manual: Account → Notifications as student and parent shows three switches, staff sees none; Save shows "Saved…"; sign out/in keeps them | Unit + DB + manual |
 | 8.11 | pgTAP: kid2 (roster only), kid3 (invited), kid4 with no active parent, every switch off → publish `lives_ok`, 0 rows; same for `queue_due_tomorrow_emails_for`; `admin_email_problems` empty; tutors, admins, other families never in the outbox | DB |
 | 8.12 | pgTAP: with the cap replaced by 0 (all "sent"), publish → `lives_ok`; with the Vault worker secret deleted → `lives_ok`, rows pending. Manual: stop the edge runtime, publish → no error | DB + manual |
 | 8.13 | pgTAP: `admin_email_problems` returns `kind` for each kind; no address/body column (`proargnames` check updated); refused for non-admins (unchanged). `email-problems.test.ts`: every kind has a label. Manual: Admin → Emails Type column, empty text unchanged, 360 px light/dark | DB + unit + manual |
-| 8.14 | pgTAP (cap replaced by 2): pending `work_returned` (older), `new_assignment` (older) and `due_tomorrow` (newest) → the claim returns `due_tomorrow` first, then `work_returned`, in that order; with room 1 only the reminder. `notify_claim_emails()` with no argument returns only `work_returned` rows (old worker compatibility) | DB |
+| 8.14 | pgTAP, three pending rows with explicit `created_at`: `work_returned` at `now() - 3 h`, `new_assignment` at `now() - 2 h`, `due_tomorrow` at `now() - 1 h`. Cap replaced by 3 → the claim returns `due_tomorrow`, then `work_returned`, then `new_assignment` (reminder first, then oldest first); cap 2 → `due_tomorrow`, `work_returned`; cap 1 → `due_tomorrow` only (each case in its own savepoint, rows reset to pending). `notify_claim_emails()` with no argument returns only `work_returned` rows (old worker compatibility) | DB |
 | 8.15 | pgTAP: b2 publishing c1's draft → 0 rows updated, 0 outbox rows; `authenticated` `insert into email_outbox` → 42501; families `select` it → 0 rows/42501; `notify_claim_emails(text[])` not executable by `authenticated` | DB |
 | 8.16 | Script: Mailpit messages have `From: hello@ajclasses.com.au` and the header block; wording only in `copy.ts` (review). Release check uses the seeded fake family (§8.11) | Script + review + release |
 | 8.17 | Manual: Account → Notifications at 360 px light/dark; both new emails in Mailpit's preview at 360 px | Manual |
-| DST and schedule | pgTAP: `is_reminder_hour` true at `2027-04-03 04:10Z` (AEDT) and `2027-04-05 05:10Z` (AEST), false at `2027-04-03 05:10Z` and `2027-04-05 04:10Z`; same pair around 4 Oct 2026 (`2026-10-03 05:10Z` true, `2026-10-05 04:10Z` true). `melbourne_day_start('2026-10-05')` = `2026-10-04 13:00Z`, `('2026-10-04')` = `2026-10-03 14:00Z`, `('2027-04-05')` = `2027-04-04 14:00Z`. `cron.job` has `due-tomorrow-reminders` with schedule `10 * * * *` | DB |
+| DST and schedule | pgTAP: `is_reminder_hour` true at `2027-04-03 04:10Z` (AEDT) and `2027-04-05 05:10Z` (AEST), false at `2027-04-03 05:10Z` and `2027-04-05 04:10Z`; around 4 Oct 2026, true at `2026-10-03 05:10Z` (AEST) and `2026-10-05 04:10Z` (AEDT), false at `2026-10-03 04:10Z` and `2026-10-05 05:10Z`. `melbourne_day_start('2026-10-05')` = `2026-10-04 13:00Z`, `('2026-10-04')` = `2026-10-03 14:00Z`, `('2027-04-05')` = `2027-04-04 14:00Z`. `cron.job` has `due-tomorrow-reminders` with schedule `10 * * * *` | DB |
 | "New assignment" deadline | pgTAP: due date set → `send_before = melbourne_day_start(due + 1)`; no due date → `published_at + 7 days`; published after the due date → no rows queued (no false Failed) | DB |
+| Item 7 regression | `fair_results.test.sql`: the AC-7.14 recipient call uses `email_recipients('work_returned', …)`; it stays green, because its outbox counts filter `kind = 'work_returned'` | DB |
 | Item 3 regression | `email_outbox.test.sql`: after its fixtures, `delete from public.email_outbox` again (publishing now queues `new_assignment` rows); the `proargnames[1:]` check of `notify_claim_emails`' output names now skips the input `supported_kinds` (compare `proargnames` filtered by `proargmodes = 't'`) and expects `kind` and `due_on` added; the `admin_email_problems` names check expects `kind`; every other item 3 assertion stays green | DB |
 
 `test-notifications.mjs` additions: unit checks for `formatDueDate`, `renderNewAssignment`,
@@ -1979,26 +2012,27 @@ Nothing goes back to the Architect.
 4. `[TBC: optional required status checks in GitHub – Saurabh]` (§6.11).
 5. `[TBC: item 5 preview header check behind Vercel's login – Saurabh]` (§5.8 step 1).
 
-## 14. For Product Owner confirmation
+## 14. Product Owner confirmations (confirmed)
 
-These are recorded and built as stated unless the PO says otherwise at design review.
+All three were **confirmed by the PO on 26 Oct 2026** (`283d5c6`) and are now in 01b: items 1–2
+in AC-8.4, item 3 in AC-6.9. They're built as stated.
 
-1. **Item 8: "new assignment" emails expire** (02b §8.4, ADR-0008 decision 2). *My choice:* keep
+1. **Item 8: "new assignment" emails expire** (02b §8.4, ADR-0008 decision 2). *Confirmed:* kept
    the Architect's rule. An unsent "new assignment" email may go out until the **end of the due
    date** (midnight Melbourne at the start of the next day), or until **7 days after publishing**
    when there's no due date. After that it shows on Admin → Emails as Failed, "Too late to send".
    *Why:* under the 70-a-day cap, a "new work set" email arriving after the work was due is
    noise; reminders go first and stay on time.
-2. **Item 8: nothing is queued already expired.** *My choice:* keep it. Work published **after**
+2. **Item 8: nothing is queued already expired.** *Confirmed:* kept. Work published **after**
    its due date has passed gets no "new assignment" email at all (no row, so no false Failed row).
    Work published **on** its due date still gets one that day.
 3. **Item 6: `sameAs` links** in the home page JSON-LD point to social profiles, so the "every URL
    starts `https://ajclasses.com.au`" rule (AC-6.9) applies to `url`, `item`, `logo`, `image` and
-   `@id`; `sameAs` only has to be an absolute `https://` URL. *My choice:* this reading; the
+   `@id`; `sameAs` only has to be an absolute `https://` URL. *Confirmed:* this reading; the
    alternative fails the check on the business's own Facebook link.
 
-Nothing here changes an approved AC's wording; items 1–2 go slightly beyond 01b, as 02b already
-flagged.
+Items 1–2 are already in AC-8.4 and item 3 in AC-6.9 (01b change log, 26 Oct 2026), so the
+design and the requirement now agree.
 
 ## 15. Self gap review (before handing to the Reviewer)
 
@@ -2013,4 +2047,24 @@ flagged.
 | No phone exposed anywhere new | §4.7 AC-4.8; no public/family read of `profiles.phone` |
 | KINET rules: services-only HTTP, constants, no inline styles, no `any`, keys, no `console.log`, TODO format | §0.2; new components use MUI `sx`; scripts use type guards |
 | Every changed behaviour has a test | Each file list pairs code with its test file |
-| Existing tests that the changes break are named | `hosting-config.test.ts` (item 5), `privacy.test.tsx` (items 4, 8), `email_outbox.test.sql` (item 8), `auth-errors.test.ts` (items 4, 7), `notifications.service.test.ts`, `email-problems.test.ts` (item 8) |
+| Existing tests that the changes break are named | `hosting-config.test.ts` (item 5), `privacy.test.tsx` (items 4, 8), `email_outbox.test.sql` (item 8), item 7's `fair_results.test.sql` under item 8 (one call renamed; outbox counts filtered by kind from the start), `auth-errors.test.ts` (items 4, 7), `notifications.service.test.ts`, `email-problems.test.ts` (item 8) |
+
+## Change log
+
+| Date | Change | Why |
+|---|---|---|
+| 26 Oct 2026 | First version, items 4–8 | /deliver stage 3 for 01b and 02b |
+| 26 Oct 2026 | Revised after [review-3b](review-3b-items-4-8.md) round 1 (findings 1–11); §14 marked confirmed | See below; PO confirmations in 01b (`283d5c6`) |
+
+**Review-3b changes (26 Oct 2026):**
+1. **CSP sweep loads without the E2E env** (§6.1 rows 5, 10, 10a; §6.4; §6.5): the guard moves to `e2e/src/fixtures/hosted-guard.ts` (imports only `@playwright/test`); `test-fixtures.ts` extends it; the CSP spec imports only it and `src/mocks/*`; nothing on the CSP config path imports `src/config.ts`.
+2. **AC-8.6 boundary** (§8.2 step 6 comment, §8.10): published `today - 1` is queued, published `today` isn't.
+3. **Item 7's test under item 8** (§7.7, §8.1 row 3a, §8.10, §15): `fair_results.test.sql` filters outbox assertions by `kind = 'work_returned'` from the start; item 8 renames its one `work_returned_recipients` call to `email_recipients('work_returned', …)`.
+4. **Unlink codes per RPC** (§7.6, §7.7 AC-7.13): `parent_child_assignments` P0002 (`require_my_child`, ITEM3-FU-1); `parent_child_assignment` 42501.
+5. **AC-7.7 row** added (§7.7); AC-7.16's row now covers the chip only.
+6. **Lighthouse build env** (§6.8): `VITE_FORM_ACCESS_KEY: local-placeholder`, `VITE_KIT_FORM_ID: '0000000'`, so the sweep runs the enquiry and subscribe code.
+7. **AC-8.14 order** (§8.10): explicit `created_at` values, three-row case with `new_assignment` third.
+8. **AC-8.7 expiry** (§8.10): a `new_assignment` row past `send_before` is swept to `too_late` too.
+9. **October DST false cases** (§8.10): `2026-10-03 04:10Z` and `2026-10-05 05:10Z`.
+10. **e2e types** (§6 intro): `e2e/` declares `@types/node` at `apps/web`'s range.
+11. **Text** (§4.5, §8.2 step 9, §14): `JOIN_PAGE` line 213; `kick_email_worker` body lines 299–336; §14's closing line says the items are already in AC-8.4 and AC-6.9.
