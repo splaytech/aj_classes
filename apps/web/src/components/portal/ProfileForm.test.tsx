@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { PORTAL_ERRORS, PORTAL_VALIDATION, PROFILE_PAGE } from '@/constants';
+import { PORTAL_ERRORS, PORTAL_VALIDATION, PROFILE_PAGE, PROFILE_VALIDATION } from '@/constants';
 import type { StaffProfile } from '@/services';
 
 import { ProfileForm } from './ProfileForm';
@@ -107,7 +107,7 @@ describe('ProfileForm phone field (item 4)', () => {
     await userEvent.click(screen.getByRole('button', { name: PROFILE_PAGE.save }));
 
     expect(onSave).not.toHaveBeenCalled();
-    expect(screen.getByText(PORTAL_ERRORS.phoneRequired)).toBeInTheDocument();
+    expect(screen.getByText(PROFILE_VALIDATION.phoneRequired)).toBeInTheDocument();
   });
 
   it('saves once, shows the saved number formatted and confirms once (AC-4.2, AC-4.5)', async () => {
