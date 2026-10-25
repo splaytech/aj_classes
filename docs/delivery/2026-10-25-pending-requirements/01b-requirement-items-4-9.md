@@ -382,7 +382,9 @@ green. Items 7 and 8 should land behind these gates.
   - Google's required properties for those types are present and non-empty. Examples: `Course`
     has `name`, `description` and `provider`; each `ListItem` has `position`, `name` and `item`;
     each `Question` has `acceptedAnswer.text`;
-  - every URL in the JSON-LD is absolute and starts `https://ajclasses.com.au`;
+  - every `url`, `item`, `logo`, `image` and `@id` value in the JSON-LD is absolute and starts
+    `https://ajclasses.com.au`. Each `sameAs` value (the business's social profiles, e.g.
+    Facebook) only needs to be an absolute `https://` URL (PO confirmation, design 03b §14 item 3);
   - there's **no** `Review` or `AggregateRating` (R1 F6.4.3).
 - AC-6.10 **Structured data, invalid states.** The check fails, naming the file and the problem,
   when a fixture has:
@@ -647,9 +649,19 @@ All of it is reusable as-is (02 cross-item notes, ADR-0004).
   - `[ASSUMPTION]` Back to draft is allowed only before any student starts, and is usually a quick
     fix by the tutor, so a second "new work" email isn't worth an exception to at-most-once.
     Families still see the work in the portal.
-- AC-8.4 **No email for later joiners.** A student enrolled after the assignment was published
-  gets no "new assignment" email for it. `[ASSUMPTION]` That's deferred; they still see the work
-  in the portal (R3b FT2).
+- AC-8.4 **No email for later joiners, and none that's out of date** (PO confirmation, design
+  03b §14, items 1–2):
+  - A student enrolled after the assignment was published gets no "new assignment" email for it.
+    `[ASSUMPTION]` That's deferred; they still see the work in the portal (R3b FT2).
+  - **Nothing is queued already expired.** Work published after its due date has passed (Melbourne
+    time) gets no "new assignment" email: no row, so no Failed row. Work published **on** its due
+    date still gets one that day.
+  - **Expiry.** An unsent "new assignment" email may go out until the end of the due date
+    (midnight Melbourne time at the start of the next day). With no due date, it may go out until
+    7 days after publishing. After that it's never sent, and it shows on the admin Emails page as
+    **Failed**, "Too late to send", with the same reason as AC-8.7.
+  - *Why:* under the shared 70-a-day cap, a "new work set" email that arrives after the work was
+    due is noise.
 
 **Acceptance criteria — "due tomorrow"**
 - AC-8.5 **Who and when.** Once a day, in the afternoon of the day before an assignment's due date
@@ -865,6 +877,7 @@ Existing questions that items 4–9 lean on (not re-asked):
 |---|---|---|
 | 26 Oct 2026 | First version: items 4–9 elaborated; item 9 dropped | /deliver stage 1 for the rest of the build queue (04-plan §1.1) |
 | 26 Oct 2026 | Revised after [review-1b](review-1b-items-4-9.md) | See below |
+| 26 Oct 2026 | PO confirmations for [03b](03b-design-items-4-8.md) §14, all three accepted. AC-8.4: no "new assignment" email is queued for work published after its due date, and an unsent one expires at the end of the due date (Melbourne time), or 7 days after publishing when there's no due date, then shows as Failed, "Too late to send". AC-6.9: the `https://ajclasses.com.au` rule covers `url`, `item`, `logo`, `image` and `@id`; `sameAs` only needs absolute `https://` | Solution Designer asked for PO confirmation; a late "new work" email is noise under the 70/day cap, and the business's own social links aren't on our domain |
 
 **Review-1b changes (26 Oct 2026):**
 1. **Finding 1 (blocking).** Hosted-request safety:
