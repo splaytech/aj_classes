@@ -53,6 +53,7 @@ describe('toErrorKey', () => {
   it('maps the phone checks raised by the profile and setup saves', () => {
     expect(toErrorKey({ code: 'P0001', message: 'phone_required' })).toBe('phoneRequired');
     expect(toErrorKey({ code: 'P0001', message: 'invalid_phone' })).toBe('invalidPhone');
+    expect(toErrorKey({ code: 'P0001', message: 'insufficient_aal' })).toBe('needsTwoStep');
   });
 
   it('falls back to a generic message', () => {
