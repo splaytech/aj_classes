@@ -1396,6 +1396,12 @@ create trigger assignment_results_queue_email
   execute function private.queue_work_returned_email();
 ```
 
+> **Added in the item 3 bug loop (BUG-5).** A staff return of work that has no recorded marker
+> (seeded or imported rows, or the marker's account was removed) now records the returner as
+> `marked_by` (`check_assignment_result`, Step 10 of the migration), so the email goes. The cost:
+> "Marked by" may show the returner, with the original marked time, on those rows. The longer-term
+> option is a separate `returned_by` column (Later).
+
 The insert runs in the tutor's transaction, so a rolled-back return queues nothing (AC-3.7
 atomicity). It isn't wrapped in an exception handler: the insert can only fail on a bug, and
 hiding that would break AC-3.8's "visible to admins" intent. The pgTAP suite covers every path.

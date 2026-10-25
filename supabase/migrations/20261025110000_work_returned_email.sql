@@ -524,9 +524,12 @@ end;
 $$;
 
 -- BUG-7: someone who isn't this child's parent (a tutor, or another parent following a forwarded
--- email link) got P0002, which PostgREST answers as HTTP 500. Refuse with 42501 (403), as the
--- other family functions do for "not yours". The message stays 'not_found', so the app shows the
--- same page as before. The work-not-visible case answers the same way.
+-- email link) got P0002 from require_my_child, which PostgREST answers as HTTP 500. This function,
+-- the email link's target, now refuses with 42501 (403), the code the family role checks
+-- (require_student, require_parent) use. The message stays 'not_found', so the app shows the same
+-- page as before. The work-not-visible case answers the same way. require_my_child itself, and so
+-- parent_child_assignments, parent_child_timetable and student_assignment, still raise P0002:
+-- follow-up ITEM3-FU-1.
 create or replace function public.parent_child_assignment(target_student uuid, target_assignment uuid)
 returns jsonb
 language plpgsql
