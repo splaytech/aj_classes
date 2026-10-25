@@ -194,16 +194,16 @@ Design: 03b §4 (16 files). One migration, no function deploy, no new dependency
 - [x] **T4.9 Full check.**
   - **Run:** §0 steps 1–4: the web check, 0 hosted refs, `pnpm db:test && pnpm test:functions`, and E2E from the external repo, 9 passed.
 - [x] **T4.10 Dev notes.** `05-dev-notes-item-4.md`: what was built, deviations from 03b, the T4.8 measurements, and the full-check output.
-- [ ] **T4.11 Reviewer pass.**
+- [x] **T4.11 Reviewer pass.**
   - **What:** Reviewer on `develop...HEAD` writes `review-5-item-4.md`.
   - **Gate:** loop to the Developer until it's APPROVED.
-- [ ] **T4.12 Test plan.** Tester writes `06-test-plan-item-4.md`. It covers every AC-4.x, the regression of onboarding, the admin staff list and the profile avatar, and E-01 (env local only).
-- [ ] **T4.13 Security review.** Security writes `06-security-item-4.md`. It covers:
+- [x] **T4.12 Test plan.** Tester writes `06-test-plan-item-4.md`. It covers every AC-4.x, the regression of onboarding, the admin staff list and the profile avatar, and E-01 (env local only).
+- [x] **T4.13 Security review.** Security writes `06-security-item-4.md`. It covers:
   - the column grant and its scope;
   - `security definer` with `search_path = ''`;
   - no phone in `audit_log` or public bundles;
   - families can't hold a phone.
-- [ ] **T4.14 `/test-and-ship`.**
+- [x] **T4.14 `/test-and-ship`.**
   - **Run:** `/test-and-ship docs/delivery/2026-10-25-pending-requirements/06-test-plan-item-4.md`. It writes `TSR-item-4.md`, merges to `develop` and pushes.
   - **Close-out:** the message names the release SHA, from `git log --merges -1 --format=%H develop`.
 
@@ -226,16 +226,16 @@ Design: 03b §4 (16 files). One migration, no function deploy, no new dependency
 
 Design: 03b §5 (16 files), ADR-0005. No migration, no runtime code, no new dependency. AC-5.1–5.11.
 
-- [ ] **T5.0 Branch.**
+- [x] **T5.0 Branch.**
   - **Run:** `git checkout develop && git pull --ff-only && git checkout -b feature/public-csp && pnpm install --frozen-lockfile && pnpm db:reset`.
   - **Test:** §0 stack checks 1 and 2. Check 1 prints `1`; check 2 prints item 4's
     `20261026100000`.
-- [ ] **T5.1 Hosted-ref tool.**
+- [x] **T5.1 Hosted-ref tool.**
   - **Files:** 03b #3 `scripts/hosting-constants.ts`, #6 `scripts/hosted-ref.ts`, #7 its test, #8 `scripts/check-hosted-ref.ts`, #10 `"check:hosted-ref"` in `apps/web/package.json`.
   - **Tests:** the temp-dir fixtures (`['a.js', 'sub/c.html']`, empty → `[]`); a path that doesn't exist exits 1.
   - **Visible:** run the local gate build, then `pnpm --filter web check:hosted-ref build/client` → `0 files`. A scratch file holding the ref, given as the path, exits 1.
   - **Run:** `pnpm --filter web exec vitest run scripts/hosted-ref.test.ts`.
-- [ ] **T5.2 Mirror config (pure).**
+- [x] **T5.2 Mirror config (pure).**
   - **Files:** #4 `scripts/mirror-config.ts`, #5 its test.
   - **Tests:**
     - `X-Robots-Tag` is dropped on `**/*` and kept on the fallback;
@@ -244,7 +244,7 @@ Design: 03b §5 (16 files), ADR-0005. No migration, no runtime code, no new depe
     - a config without the hosted origin throws `MirrorConfigError`;
     - the input isn't mutated.
   - **Run:** `pnpm --filter web exec vitest run scripts/mirror-config.test.ts`.
-- [ ] **T5.3 Mirror server.**
+- [x] **T5.3 Mirror server.**
   - **Files:** #9 `scripts/serve-mirror.ts`, #10 the `"mirror"` script, #13 root `"mirror"`.
   - **Visible:**
     - `pnpm mirror` serves :4173;
@@ -252,7 +252,7 @@ Design: 03b §5 (16 files), ADR-0005. No migration, no runtime code, no new depe
     - `--write-only $TMPDIR/m.json` writes the config and exits;
     - on a build containing the ref, it refuses to start.
   - **Run:** `pnpm typecheck && pnpm lint`.
-- [ ] **T5.4 The public CSP headers.**
+- [x] **T5.4 The public CSP headers.**
   - **Files:**
     - #1 `vercel.json`: the new rule between the global rule and the portal rule;
     - #2 `serve.railway.json`: the CSP as the last header of `**/*`;
@@ -261,13 +261,13 @@ Design: 03b §5 (16 files), ADR-0005. No migration, no runtime code, no new depe
   - **Tests:** AC-5.1, 5.2, 5.5 and 5.6 (unit parts), and 5.7.
   - **Visible:** the 03b §5.7 AC-5.1 `curl` loop on the mirror prints `1` on every line; `/portal/login` shows exactly 1 CSP.
   - **Run:** `pnpm --filter web exec vitest run src/hosting-csp.test.ts src/hosting-config.test.ts`.
-- [ ] **T5.5 Docs (AC-5.9, AC-5.10).**
+- [x] **T5.5 Docs (AC-5.9, AC-5.10).**
   - **Files:**
     - #14 `arch.md` §3: the paragraph;
     - #15 `release-1/PRP.md`: the three item 9 annotations, each with the 01b link;
     - #16 `03-design.md`: the §1.6 superseded line.
   - **Run:** `pnpm format:check`.
-- [ ] **T5.6 Manual sweep on the mirror.** Use the 03b §5.7 gate set-up: Web3Forms and Kit placeholders, DevTools request blocking, and at least one local post. Record a table of page × width × result:
+- [x] **T5.6 Manual sweep on the mirror.** Use the 03b §5.7 gate set-up: Web3Forms and Kit placeholders, DevTools request blocking, and at least one local post. Record a table of page × width × result:
   - AC-5.3: 0 CSP violations on every AC-5.1 page at 360 and 1280 px, with the menu, the News link with and without posts, enquiry and subscribe;
   - AC-5.4: JSON-LD, assets, `wa.me`, the staging marker;
   - AC-5.5: admin sign-in with two-step on the mirror, avatars, 0 violations;
@@ -275,8 +275,8 @@ Design: 03b §5 (16 files), ADR-0005. No migration, no runtime code, no new depe
   - AC-5.7: Railway on :4174;
   - AC-5.8: injected script and `fetch` blocked; inline `onclick` runs on purpose;
   - AC-5.11: HAR `grep -c supabase.co` = 0.
-- [ ] **T5.7 Full check.** §0 steps 1–4. Step 2 now uses `check:hosted-ref`. E2E is still the external repo.
-- [ ] **T5.8 Dev notes.** `05-dev-notes-item-5.md`, with the T5.6 table.
+- [x] **T5.7 Full check.** §0 steps 1–4. Step 2 now uses `check:hosted-ref`. E2E is still the external repo.
+- [x] **T5.8 Dev notes.** `05-dev-notes-item-5.md`, with the T5.6 table.
 - [ ] **T5.9 Reviewer pass.** `review-5-item-5.md`, until it's APPROVED.
 - [ ] **T5.10 Test plan.** `06-test-plan-item-5.md`. It covers every AC-5.x, item 1's `/posts` behaviour under the CSP, and the hosted-request checks.
 - [ ] **T5.11 Security review.** `06-security-item-5.md`. It covers:
