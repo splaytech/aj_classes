@@ -193,3 +193,43 @@ together at this SHA. Release SHA = item 3's `develop` merge commit, named at cl
   1 left, so I added this one back.
 - **Mailpit:** still holds this run's local emails.
 - **Dev server:** stopped.
+
+## 8. Review fixes (review-5-item-3.md round 1, 06-security-item-3.md)
+
+| Finding | Fix | Proof |
+|---|---|---|
+| R1 [blocking] cron could stay paused | `test-notifications.mjs`: seeded ids are looked up (and validated) **before** the pause; the pause is inside the `try`; the `finally` resumes cron **first**, then restores | Fault injection: a temporary trigger made every restore update fail. Script exit 1 with "injected restore failure", job `active = t`. Trigger dropped; next run "All checks passed" |
+| R2 hanging provider burns attempts | `shouldStopBatch` is true for `network` as well as `rate_limited`; the rest are released with the same reason. README explains that released rows still use an attempt | Unit: network stops the batch after one send, rest recorded as network retries |
+| R3 secret check too weak | `deploy.sh` compares the hosted digest with `sha256 "$NOTIFY_WORKER_SECRET"` | Fake CLI: as deployed → pass; missing, local or other value → exit 1. Dry run still masks: 0 sentinel values printed |
+| R4 `no_address` untested | pgTAP: blank `profiles.email` → not claimed, `failed`/`no_address`, 0 attempts, listed for admins | `db:test` |
+| R5 README manual `secrets set` | README now says hosted function secrets change only through `deploy.sh` | Docs |
+| R6 posts comment | Says the admin page's `trim()` is stricter (NBSP, `\v`, `\f`, Unicode spaces) | Comment only |
+| R7 | go-live §7a has the step 0 posts pre-check box; 04 §7 Later has "keep `#notifications` through sign-in" | Docs |
+| S1 header injection | `template.ts` `oneLine()`: C0/C1 control characters → space in the title, class and names, so in the subject and body | Unit: `Fractions\r\nBcc: x@y` → subject `…Fractions Bcc: x@y`, no control characters |
+| S2 committed local secret on hosted | New `config.ts` `isUsableConfig()`: outside Mailpit, the local worker secret or a non-https `SITE_URL` is a set-up error (rows flagged, 503, nothing claimed) | 6 unit checks. Not exercised end to end: that needs a non-Mailpit transport on the local runtime |
+| S3 Resend not named | Privacy portal section: "…and Resend (United States) sends our sign-in and portal emails; all of these may process data outside Australia." Draft for B17 | `privacy.test.tsx` (+1) |
+| S4 secret saved in SQL Editor | README and `deploy.sh`'s printed Vault step: delete the snippet and history afterwards | Docs |
+| S7 retention | Migration edited in place: daily job renamed `daily-history-trim`, runs `private.trim_history()` (cron log 7 days; sent/skipped/failed outbox rows after 90 days; waiting rows kept) | pgTAP: old finished rows gone, old pending and 89-day sent kept; job command; others refused |
+| S8 `net` schema | README and a go-live §7a box: keep `net` out of the exposed schemas | Docs |
+
+Deviation: the daily job's name changed from `cron-history-trim` (03 §3.2 step 7) to `daily-history-trim`, because it now trims the outbox too.
+
+**Commits:**
+1. `e160995` fix(email): always resume cron in the test script and harden the worker
+2. `794fe1a` feat(email): trim finished emails after 90 days and test the no-address path
+3. `eee5bd3` fix(deploy): check the hosted worker secret is the value deployed
+4. `e6b1601` fix(privacy): name Resend as the overseas service that sends portal emails
+5. `2bd6550` docs(email): tighten the runbook and release steps after review
+6. This section (docs commit)
+
+**Checks** (local exports, after `pnpm db:reset`): full check exit 0.
+
+| Step | Result |
+|---|---|
+| `test` | 47 files, 352 tests |
+| `db:test` | 13 files, 450 tests, PASS |
+| `test:functions` | 159 `ok`, 0 failed (account-admin 49, leads 30, notifications 80) |
+| AC-1.12 bundle check | Clean |
+| Cron | `email-worker-kick` and `daily-history-trim` both active |
+
+Local state as in §7. `db:reset` removed the local post again, so I re-added it.
