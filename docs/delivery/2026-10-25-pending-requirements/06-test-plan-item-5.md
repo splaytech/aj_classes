@@ -101,7 +101,7 @@ and each one is exact (the line, the count, the leg):
   `example.com`, `eval`, or the framer page), and E-51's `fetch` adds its
   `Fetch API cannot load https://example.com/…` line. Any other line fails the case.
 - **C5. K1 (pre-existing, record only).** E-45's one leg: the `img-src` refusal of the `blob:` photo
-  preview. See "Known non-bugs" 1 and ruling request 2.
+  preview. See "Known non-bugs" 1 and ruling 2 (follow-up FU-K1).
 
 Any other line fails the case. pageerror is **0** on every leg, with no exception.
 
@@ -127,7 +127,7 @@ legs allow `127.0.0.1:4173`, `127.0.0.1:55321` and the mocked hosts (`api.web3fo
    The portal CSP is byte-for-byte the one on `develop` (E-09), so this is pre-existing on the live
    site, not an item 5 change. AC-5.5 forbids changing the portal policy in this item. E-45 records
    it; the photo fixture for E-44 is made on **D** (no CSP) so that the gate legs don't hit it.
-   Ruling request 2 asks for a separate bug.
+   Ruling 2: follow-up ticket FU-K1, its own small branch, on Saurabh's list.
 2. **O1 (dev notes):** there's no `og-image.png` and no web manifest. `og:image` points at
    `https://ajclasses.com.au/og-image.png`, which the page never fetches. No web fonts are
    self-hosted (system font stack), so `font-src 'self'` has nothing to load. E-29 checks that
@@ -149,24 +149,23 @@ legs allow `127.0.0.1:4173`, `127.0.0.1:55321` and the mocked hosts (`api.web3fo
 9. Hot reload's `[react-router:hmr] No module update found` isn't an app error. No source is edited
    in this run.
 
-**Rulings requested from the team lead (before freeze).**
-1. **Accept C1 to C5 narrowly.** C1 (Chrome logs every 404 document) and C2 (a refused sign-in has
-   to be sent) are browser or server facts, not app faults. C3 and C4 are lines the test itself
-   forces. C5 is K1, recorded only. Everything else must be 0 on every leg.
-2. **K1: file a separate bug, outside item 5.** The portal CSP blocks the `blob:` photo preview on
-   My profile (and on Admin → Staff → a staff member, which uses the same editor). It's live today,
-   because the portal CSP is unchanged. The likely fix is adding `blob:` to the portal `img-src`,
-   which AC-5.5 rules out for this item. Proposed: a new ticket; E-45 stays record only here.
-3. **Upper-case portal paths on Vercel.** The mirror's `serve` matches `/PORTAL/login`
-   case-insensitively and sends the portal CSP (E-14). Vercel's behaviour is unproven (security
-   residual 2). Proposed: add §4 check 2(f) to the live `curl`s; 1 CSP means pass, 2 means revert.
-4. **Dark legs on public pages** mean a dark device, and the expected result is "stays light"
-   (non-bug 3). Confirm that's the intent of "light and dark" for the public sweep.
-5. **Shared stack while the plan was checked.** Dev notes §8 records a `--port 4199` mirror from
-   this worktree: that was the Tester's read-only verification probe for this plan. Its findings
-   that depend on the build (robots, `h1`, JSON-LD counts) come from source this item doesn't
-   change, and the header and console values were re-checked on the Developer's round 2 mirror
-   (`127.0.0.1:4173`). No action needed; noted so the coordinator can close the question.
+**Team-lead rulings (26 Oct 2026, recorded before freeze).**
+1. **C1 to C5 are accepted, narrowly.** C1 is the browser's own line for the 404 document, which the
+   server must return. C2 is the refused `inactive@` sign-in. C3 is the `500`s the test forces in
+   E-27. C4 is the lines from the injected content in E-50 to E-54, which are what those cases
+   measure. C5 is K1, recorded only. Everything else must be **0** on every leg: 0 CSP
+   violations, 0 app `console.error` and 0 `pageerror`.
+2. **K1 is a real live bug, but not item 5's.** The portal CSP has no `blob:` in `img-src`, so the
+   photo preview is blocked. AC-5.5 stays as written (the portal policy is unchanged). E-45 records
+   K1, and the E-44 photo fixture is set up on **D**. The coordinator raises it as follow-up ticket
+   **FU-K1**, to be fixed on its own small branch, and it goes on Saurabh's list.
+3. **`/PORTAL/login` goes into the live checks** as §4 check 2(f). Expected: exactly **1** CSP, and
+   it must be the portal one, or the response must be a `404`. The public CSP there is never
+   acceptable.
+4. **Dark means the device is set to dark.** The public pages stay light by design, so the expected
+   background is `rgb(255, 255, 255)`, with no contrast loss (E-21 compares each dark leg with its
+   light leg).
+5. Noted: the `:4199` mirror in dev notes §8 was the Tester's read-only probe. No action.
 
 ---
 
@@ -296,7 +295,7 @@ Build the gate build and start **P** (§1). Every `hdr` call uses GET.
 | E-11 | 5.11, 5.1 | Gate build | The sweep build is guarded, local, and served the safe way | 1. `cat $EVD/gate-check.txt $EVD/gate-n.txt` (§1, taken before the mirror started); `grep -rl unzjnxctkyahtmrkinyr apps/web/build/client \| wc -l`. 2. `head -2 "$EVD/mirror.log"`. 3. `lsof -nP -iTCP:4173 -sTCP:LISTEN \| awk 'NR>1{print $9}'`. 4. `C=$(ps -o command= -p $(lsof -t -nP -iTCP:4173 -sTCP:LISTEN) \| sed -E 's/.*--config ([^ ]+).*/\1/')`; `stat -f '%Lp' "$(dirname $C)" "$C"`; `grep -c unzjnxctkyahtmrkinyr "$C"`; `grep -o '127.0.0.1:55321' "$C" \| wc -l`. 5. `wc -c < apps/web/build/client/_vercel/insights/script.js`. 6. `grep -c 'Stay in the loop' apps/web/build/client/index.html`; `grep -rl local-placeholder apps/web/build/client \| wc -l` | 1: `0 files (of N scanned)` and `exit 0`, N = the `gate-n.txt` count; grep **0**. 2: `serve-mirror: http://127.0.0.1:4173 (Supabase http://127.0.0.1:55321)`. 3: only `127.0.0.1:4173` (loopback, S3). 4: `700` and `600` (S4); hosted ref **0**; local origin **3** (public `connect-src`, portal `img-src` and `connect-src`). 5: `0` (empty stub). 6: `1` (subscribe form built in, `VITE_KIT_FORM_ID` placeholder); `≥ 1` (placeholder Web3Forms key, not a real one) | P |
 | E-12 | 5.1 | CSP on public pages | Every public page sends exactly one enforcing public CSP | `for p in <P16>; do hdr http://127.0.0.1:4173 $p; done`; also count `content-security-policy-report-only` lines; `grep -l 'http-equiv="Content-Security-Policy"' -ri apps/web/build/client \| wc -l` | **16** lines. Status `200`, except `/nope` **`404`**. Every line `csp=1 kind=public-local` (the committed public policy, byte for byte, with only the local origin substituted). Report-only **0**. Meta CSP **0** (one policy, from the header only) | P |
 | E-13 | 5.1 | Other public responses | The SPA-fallback name, 404 variants, assets, query strings and redirects | `hdr` for `/404`, `/portalx`, `/__spa-fallbackx`, `/sitemap.xml`, `/robots.txt`, `/favicon.svg`, one `/assets/*.js` (first from `ls build/client/assets`), `/_vercel/insights/script.js`, `/?utm_source=test`, `/programmes/vce?x=1`. Redirects: for `/privacy/`, `/index.html`, `/404.html`: `curl -s -o /dev/null -D - <url> \| grep -iE '^(HTTP\|location)'`, then `curl -sIL <url>` final status and CSP count | `/404` `200`, `/portalx` `404`, `/__spa-fallbackx` `404` (the lookahead excludes exactly `__spa-fallback`); the rest `200`. Every line `csp=1 kind=public-local`. Redirects: `301` with `Location: /privacy`, `/index`, `/404` respectively; each final response `200` with exactly **1** public CSP (non-bug 4) | P |
-| E-14 | 5.5 | Portal headers | Portal paths and the fallback get only the portal policy, plus noindex and no-store | `hdr` for `/portal`, `/portal/login`, `/portal/login/verify`, `/portal/admin/staff`, `/portal/student`, `/portal/parent`, `/portal/account/two-step/setup`, `/__spa-fallback`; for each also `grep -ci '^x-robots-tag: noindex, nofollow$'` and `grep -ci '^cache-control: no-store$'` on `$SCR/h.txt`. `/portal/` and `/__spa-fallback.html`: `301` and the final response. Record only: `hdr` for `/PORTAL/login` | Every line `200 csp=1 kind=portal-local` (the policy names `challenges.cloudflare.com`; `kind=public-local` never appears); robots **1**, no-store **1** on each. Redirects: `301` → `/portal`, `/__spa-fallback`, each final `csp=1 kind=portal-local`. `/PORTAL/login`: count and kind recorded (on `9de84b3`: `csp=1 kind=portal-local`, served the fallback); its Vercel behaviour is release check 2(f) | P |
+| E-14 | 5.5 | Portal headers | Portal paths and the fallback get only the portal policy, plus noindex and no-store | `hdr` for `/portal`, `/portal/login`, `/portal/login/verify`, `/portal/admin/staff`, `/portal/student`, `/portal/parent`, `/portal/account/two-step/setup`, `/__spa-fallback`; for each also `grep -ci '^x-robots-tag: noindex, nofollow$'` and `grep -ci '^cache-control: no-store$'` on `$SCR/h.txt`. `/portal/` and `/__spa-fallback.html`: `301` and the final response. Record only: `hdr` for `/PORTAL/login` | Every line `200 csp=1 kind=portal-local` (the policy names `challenges.cloudflare.com`; `kind=public-local` never appears); robots **1**, no-store **1** on each. Redirects: `301` → `/portal`, `/__spa-fallback`, each final `csp=1 kind=portal-local`. `/PORTAL/login`: count and kind recorded (on `9de84b3`: `csp=1 kind=portal-local`, served the fallback); its Vercel behaviour is release check 2(f) (ruling 3) | P |
 | E-15 | 5.6 | Other headers | The global headers are on every response, once | For every path in E-12 and E-14: `grep -ci` on `$SCR/h.txt` for `^x-content-type-options: nosniff$`, `^x-frame-options: DENY$`, `^referrer-policy: strict-origin-when-cross-origin$`; on the E-12 paths also `^x-robots-tag` | Each **1** on every response. `X-Robots-Tag` **0** on every public page (the mirror drops Railway's global noindex, as Vercel sends none). HSTS: E-09 and release check (non-bug 5) | P |
 | E-16 | 5.7 | Railway in step | The committed Railway config sends the same public CSP, unsubstituted | Start **R**: `PORT=4174 pnpm --filter web start:railway &`. `hdr http://127.0.0.1:4174` for `/`, `/programmes/vce`, `/nope`, `/portal`, `/portal/login`, `/__spa-fallback`; `grep -ci '^x-robots-tag'` on each. Stop R (port 4174 free) | `/`, `/programmes/vce`: `200 csp=1 kind=public-hosted`; `/nope` `404 csp=1 kind=public-hosted`; the three portal paths `200 csp=1 kind=portal-hosted`. X-Robots-Tag **1** on every response (Railway's staging noindex, kept in the committed file). No browser opened against R | R |
 | E-17 | 5.7, 5.5 | Rule order | Railway's rule order is what keeps the portal on one policy | 1. `jq -r '.headers \| to_entries[] \| "\(.key) \(.value.source) \(.value.headers[-1].key)"' apps/web/serve.railway.json`. 2. `(cd apps/web && node scripts/serve-mirror.ts --write-only $SCR/mirror.json)`; `jq '.headers \|= [.[1], .[0]]' $SCR/mirror.json > $SCR/swapped.json`; `(cd apps/web && node_modules/.bin/serve --config $SCR/swapped.json -l tcp://127.0.0.1:4175 --no-clipboard &)`; `hdr http://127.0.0.1:4175 /portal/login`; stop it. 3. `jq '.headers[0].headers[].key' $SCR/mirror.json`; `jq '.headers[1].headers[].key' $SCR/mirror.json` | 1: `0 **/* Content-Security-Policy` then `1 __spa-fallback.html Cache-Control` (public rule first, its CSP last). 2: on the swapped order `/portal/login` is `csp=1 kind=public-local`: `serve` keeps the last value per key, so the committed order is load-bearing, and E-14 proves it's right. 3: `**/*` has no `X-Robots-Tag`; the fallback keeps it | — |
@@ -313,7 +312,7 @@ images ok; the document's `headersArray()` has exactly **1** `content-security-p
 | ID | AC | Area | Case | Steps | Expected (measurable) | Env |
 |---|---|---|---|---|---|---|
 | E-20 | Smoke | Start-up | P serves the key pages | `/`, `/privacy`, `/portal/login` at 1280 light: load; `h1` text | Three `200`; `h1` present once each; console 0, violations 0, hosted 0 | P |
-| E-21 | 5.3, 5.1 | Load and hydration, no posts | Every public page, 360 and 1280, light and dark (64 legs) | For each P16 page × {360, 1280} × {light, dark}: load; wait for hydration (`document.querySelector('header button[aria-controls]')` exists and `window.__reactRouterContext` is set); read the leg counters, `getComputedStyle(document.body).backgroundColor`, the marker check (`document.title` starts `[`, and any element whose text starts `STAGING` or `DEV`); screenshot to `$EVD` | **64** legs. Violations **0**, console errors **0** (C1 on the 4 `/nope` legs only), pageerror **0**, hosted **0**, unexpected hosts **0** on every leg. Background `rgb(255, 255, 255)` in light **and** dark (non-bug 3). No environment marker, and the title has no `[` prefix (production build). Plus the defaults above on every leg | P |
+| E-21 | 5.3, 5.1 | Load and hydration, no posts | Every public page, 360 and 1280, light and dark (64 legs) | For each P16 page × {360, 1280} × {light, dark}: load; wait for hydration (`document.querySelector('header button[aria-controls]')` exists and `window.__reactRouterContext` is set); read the leg counters, `getComputedStyle(document.body).backgroundColor`, the computed `color` and `background-color` of `body`, the `h1` and the header's first link, the marker check (`document.title` starts `[`, and any element whose text starts `STAGING` or `DEV`); screenshot to `$EVD` | **64** legs. Violations **0**, console errors **0** (C1 on the 4 `/nope` legs only), pageerror **0**, hosted **0**, unexpected hosts **0** on every leg. Background `rgb(255, 255, 255)` in light **and** dark (non-bug 3, ruling 4). No contrast loss: on each dark leg, the computed `color` and `background-color` of `body`, the `h1` and the header's first link equal those of the same page's light leg. No environment marker, and the title has no `[` prefix (production build). Plus the defaults above on every leg | P |
 | E-22 | 5.3 | Phone menu | The menu opens and closes at 360 on every page (32 legs) | On the 360 legs of E-21: click `Open menu`; read `aria-expanded` and whether `#` + `aria-controls` is visible; click `Close menu`; read again | Opened: `aria-expanded="true"`, the nav visible. Closed: `"false"`, the `Open menu` button back. Violations 0, console 0 (C1 on `/nope`) | P |
 | E-23 | 5.3; item 1 AC-1.6/1.7 | News, no posts | With 0 posts, the News link is hidden and `/posts` shows the empty state | From E-21's legs: count `a[href="/posts"]`; the News check request (`127.0.0.1:55321/rest/v1/posts?select=id&limit=1`) count and status per leg. On `/posts`: the status text | `a[href="/posts"]` **0** on every page. The check is sent **once** per page load, status `200`, body `[]`. `/posts` shows `There are no news posts at the moment.` (not the error text), with the two links; 0 list items. Violations 0 | P |
 | E-24 | 5.3 | Enquiry (mocked) | The Register Interest form submits under the CSP (4 legs) | On `/` at 360 and 1280, light and dark: fill `#contact-name` (`CSP Sweep`), `#contact-email` (`csp-sweep@example.test`), `#contact-message`; click `Register interest` in `#ask-a-question`; wait for `[role="status"]`. Read the mock hits, the Web3Forms request URL and its body's `access_key`; `q "select count(*) from public.enquiries"` before and after the 4 legs | Each leg: Web3Forms mock **1** hit to `https://api.web3forms.com/submit`, `access_key` `local-placeholder`; `leads` mock **1** hit to `http://127.0.0.1:55321/functions/v1/leads`; the status shows `Message sent` and `Thank you! We've received your details and will be in touch within 3 business days.` Violations 0, console 0. Enquiries delta **0** (nothing reached the local or hosted `leads`) | P, DB |
@@ -426,7 +425,7 @@ These need real Vercel. The gate doesn't run them, and doesn't wait for them. Th
    - (c) the same for `/nope` → `1`, public, on the `404`;
    - (d) `/portal/login` → `1`, the portal one;
    - (e) `/__spa-fallback` → `1`, the portal one, with `X-Robots-Tag: noindex, nofollow` and `Cache-Control: no-store`;
-   - (f) suggested addition (ruling request 3): `/PORTAL/login` → record the count; anything other than `1` is a revert;
+   - (f) `curl -sI https://ajclasses.com.au/PORTAL/login` (ruling 3): exactly `1` CSP and it's the portal one, or the status is `404`. The public CSP there, or 2 CSPs, means revert;
    - (g) `curl -sI https://ajclasses.com.au/ | grep -ci '^strict-transport-security:'` → `1` (AC-5.6).
    If `/portal/*` or `/__spa-fallback` ever shows two CSPs, revert the release (config only).
 3. **Vercel Analytics (AC-5.4).** `curl -sI https://ajclasses.com.au/_vercel/insights/script.js` →
