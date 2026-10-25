@@ -2,13 +2,14 @@
 -- review finding 1 and dev notes §7).
 --   1. Visitors read only the columns the public site shows, never author_id. The public client
 --      already asks for just these (PUBLIC_POST_COLUMNS).
---   2. A title or body of only spaces or line breaks is refused by the database too, not just by
---      the admin page. The raw length cap stays, so padding can't store an over-long value.
+--   2. A title or body of only spaces, tabs or line breaks is refused by the database too, not just
+--      by the admin page. The raw length cap stays, so padding can't store an over-long value.
 
 revoke select on public.posts from anon;
 grant select (id, created_at, updated_at, title, body) on public.posts to anon;
 
--- E' \t\n\r': the whitespace the admin page's trim() removes, so both refuse the same values.
+-- E' \t\n\r': the common whitespace the admin page's trim() removes. The page stays a little
+-- stricter: JavaScript's trim() also removes NBSP, \v, \f and other Unicode spaces.
 alter table public.posts
   drop constraint posts_title_check,
   add constraint posts_title_check

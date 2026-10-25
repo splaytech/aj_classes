@@ -508,7 +508,10 @@ item 3 Privacy sentence; B1 done first, or released together at this SHA. Releas
    admin storage-usage view, HEIC support if testing needs it, orphan-file sweep.
 3. **Item 3:** "new assignment" and "due tomorrow" emails (item 8), daily digest, SMS, push
    (mobile), tutor-side alerts, `List-Unsubscribe` header, emails for auto-returned MCQ quizzes,
-   a "release" outcome that keeps the attempt count on 429.
+   a "release" outcome that keeps the attempt count on 429 or a network stop, keeping the
+   `#notifications` hash through sign-in (`safeNextPath` drops it; review-5 D6), a no-login
+   unsubscribe link before any promotional email (Security item 3, finding 5), and moving the
+   local function values to a git-ignored `supabase/functions/.env` (Security finding 2c).
 4. **Programme:** items 4–9 (§1.1), everything blocked in §1.2, the Later bucket, mobile.
 5. **Next migration batch (from item 1 review and security):** item 1 stays migration-free, so
    these ride with the next item that ships a migration (item 3 or 2):

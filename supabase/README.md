@@ -30,7 +30,7 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 
 **Staff portal locally:** with the stack running, `pnpm dev` and open http://localhost:5173/portal/login. `apps/web/.env.local` needs `VITE_SUPABASE_URL=http://127.0.0.1:55321`, the publishable key from `pnpm db:status`, and `VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA` (see `apps/web/.env.example`). Use `pnpm dev`, not a production build: the production security policy only allows `*.supabase.co`, so a local build can't reach the local stack.
 
-**Edge functions** (`supabase/functions/`) are served by the local stack at http://127.0.0.1:55321/functions/v1/. `account-admin` (was `staff-admin` before R3b) handles staff, student and parent invites, deactivation and two-step resets; its allowed browser origins are set in `config.toml` (`[edge_runtime.secrets]`). Hosted: `supabase functions deploy account-admin` and `supabase secrets set ALLOWED_ORIGINS=...`.
+**Edge functions** (`supabase/functions/`) are served by the local stack at http://127.0.0.1:55321/functions/v1/. `account-admin` (was `staff-admin` before R3b) handles staff, student and parent invites, deactivation and two-step resets; its allowed browser origins are set in `config.toml` (`[edge_runtime.secrets]`). Hosted: run `supabase/scripts/deploy.sh`. **Hosted function secrets change only through `deploy.sh`**: never run `supabase secrets set` by hand, because it also copies the local values in `[edge_runtime.secrets]` (the Mailpit transport, `localhost` site URL and the public local worker secret) to the hosted project.
 
 **"Work returned" emails locally** (ADR-0004): when a tutor returns work, the database queues one email per active student and parent (`email_outbox`). Every 5 minutes `pg_cron` calls the local `notifications` function, which sends them to **Mailpit** (http://127.0.0.1:55324), never out. The seed's returned work queues two on every `pnpm db:reset`. The function's local settings are in `config.toml` (`[edge_runtime.secrets]`: `EMAIL_TRANSPORT=mailpit`, the local-only `NOTIFY_WORKER_SECRET`); its address and secret for the cron job are in local Vault (`seed.sql`). To send without waiting: `curl -X POST http://127.0.0.1:55321/functions/v1/notifications -H 'x-notify-secret: local-notify-secret'`. After changing `config.toml`, restart the stack (`pnpm db:stop && pnpm db:start`) so the function sees it.
 
@@ -92,7 +92,13 @@ select vault.create_secret('https://unzjnxctkyahtmrkinyr.supabase.co/functions/v
 select vault.create_secret('<NOTIFY_WORKER_SECRET>', 'notify_worker_secret');
 ```
 
+Then delete that query from the SQL Editor's saved snippets and history, so the secret is only in Vault and the password manager.
+
 To change the secret later: `select vault.update_secret(id, '<new value>') from vault.secrets where name = 'notify_worker_secret';`, then run `deploy.sh` again with the same new value.
+
+**Keep `net` out of the exposed API schemas** (Dashboard → Project Settings → API → Exposed schemas: only `public` and `graphql_public`). The migration enables `pg_net`, and Supabase lets signed-in users run `net.http_post`; exposing `net` would let anyone signed in make the server send web requests.
+
+**Retention:** the `daily-history-trim` cron job keeps the cron log to 7 days and deletes sent, skipped and failed emails after 90 days. Waiting emails are kept until they go out.
 
 **Release check (AC-3.11), on the hosted project.** Staging and prod share one database, so a return made on staging emails real families. Test only with a fake family that uses your own addresses:
 
@@ -105,7 +111,7 @@ To change the secret later: `select vault.update_secret(id, '<new value>') from 
 
 **Stop all sends at once (kill switch):** `select cron.unschedule('email-worker-kick');`. Rows wait; nothing is lost. Turn back on with the `cron.schedule('email-worker-kick', …)` line in `migrations/20261025110000_work_returned_email.sql`. Or unset `EMAIL_TRANSPORT`: rows then show as Waiting / "Set-up error".
 
-**Admin Emails page reasons:** "Not attempted" after 2 hours means the cron job or the Vault entries are missing; "Set-up error" means `EMAIL_TRANSPORT`, `RESEND_API_KEY` or `SITE_URL` is missing on the function; "Daily limit" means 70 were sent in the last 24 hours (they go out as earlier ones age out); "Gave up after 3 tries" means Resend kept failing.
+**Admin Emails page reasons:** "Not attempted" after 2 hours means the cron job or the Vault entries are missing; "Set-up error" means `EMAIL_TRANSPORT`, `RESEND_API_KEY` or `SITE_URL` is missing on the function; "Daily limit" means 70 were sent in the last 24 hours (they go out as earlier ones age out); "Gave up after 3 tries" means Resend kept failing. When Resend is busy (429) or can't be reached, the worker stops the batch and puts the unsent rows back; each of those still uses one of its 3 attempts, so a long outage can end rows as "Gave up after 3 tries" even though Resend never accepted them.
 
 **If `pnpm test:functions` was interrupted** and local emails stop: the notifications script pauses the cron job while it runs and resumes it on exit or Ctrl-C. If that ever didn't happen:
 

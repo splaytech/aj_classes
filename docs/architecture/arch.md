@@ -51,7 +51,7 @@ production — there is one database, not two. The web app talks to it via `@sup
 * **Edge Functions:** `leads` (public `submit`, admin `resync` — see below), `account-admin`, and
   `notifications` (sends the "work returned" emails; called only by `pg_cron`, see §7).
 * **Scheduled jobs:** `pg_cron` runs `email-worker-kick` every 5 minutes (calls `notifications`
-  through `pg_net` when emails are waiting) and a daily trim of the cron history.
+  through `pg_net` when emails are waiting) and a daily trim (cron log to 7 days; sent, skipped and failed emails after 90 days).
 
 **5. Lead capture (Zoho CRM Free)**
 
