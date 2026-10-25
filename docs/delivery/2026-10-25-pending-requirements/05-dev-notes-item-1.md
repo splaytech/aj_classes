@@ -278,3 +278,33 @@ typing. This is the same as the portal's other dialogs.
 | `db:test` | 12 files, 349 tests, PASS |
 | AC-1.12 bundle check | `done` over 13 pages |
 | Production build | No hosted ref in the built JS; `/posts` in the sitemap |
+
+## 9. Gate round 1 bug fixes (TSR-item-1.md, bugs/BUG-2–4)
+
+| Bug | Fix | Test | Verified |
+|---|---|---|---|
+| BUG-4: long title or URL scrolls `/posts` sideways | `posts.module.css`: `.posts` gets `grid-template-columns: minmax(0, 1fr)`; `.post` gets `min-width: 0` and `overflow-wrap: anywhere`. The admin posts list had the same problem (1931 px overflow at 375 px); its card text box now has `sx={{ minWidth: 0, overflowWrap: 'anywhere' }}` | E2E spec "long unbroken titles and URLs wrap" (jsdom can't measure layout) | Playwright: a 120-character no-space title and the BUG-4 URL body give 0 px overflow at 375 and 1280 px on `/posts` (production build and dev server) and on the admin page. Before the fix: 2264 / 1455 px on `/posts`, 1931 / 1262 px on the admin page |
+| BUG-3: dev two-step auto-entry fires twice under StrictMode | `TwoStepCodeForm.tsx`: a `loadStarted` ref lets the load and auto-entry run once per form. Production runs effects once, so nothing changes there | `TwoStepCodeForm.test.tsx`: under `<StrictMode>`, `verifyTwoStepCode` is called once. It fails without the fix ("called 2 times") | 10 repeated `admin@` sign-ins on the dev server: 0 challenge 500s, 0 console errors. Each sign-in now makes one `POST /factors/<id>/challenge` |
+| BUG-2: E2E newest-first reads the list before it loads | `aj_classes-e2e` `tests/admin-posts.spec.ts`: waits until both marker posts are visible before reading the order | The spec itself; also passed `--repeat-each=5` | Full E2E suite: **9/9** (the 8 expected plus the new BUG-4 spec) |
+
+**App commits:**
+1. `9ae81a2` fix(news): wrap long titles and links in post cards instead of scrolling sideways
+2. `f64518c` fix(portal): run the dev two-step auto-entry once under StrictMode
+
+**E2E repo commits** (`~/dev/work/aj_classes-e2e`, branch `feature/playwright-e2e-harness`, not
+pushed):
+1. `e7020d8` fix(admin-posts): wait for the /posts list before reading the order
+2. `f5b7024` test(admin-posts): guard against sideways scroll from long titles and URLs
+
+**Checks** (local exports):
+- **Full check:** green.
+
+  | Step | Result |
+  |---|---|
+  | `test` | 45 files, 327 tests |
+  | `db:test` | 12 files, 349 tests, PASS |
+  | `test:functions` | 79 `ok`, 0 failed, "All checks passed." for both scripts |
+  | AC-1.12 bundle check | `done` over 13 pages |
+- **E2E repo:** `tsc --noEmit` clean.
+- **Stack left as the Tester left it:** 1 post, 0 `e2e-%` rows in `posts`, `enquiries` and
+  `profiles`. No servers left running.
