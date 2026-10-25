@@ -44,18 +44,24 @@ export function notificationsUrl(siteUrl: string): string {
   return `${withoutTrailingSlash(siteUrl)}${PATHS.accountNotifications}`;
 }
 
+// Control characters (CR, LF, tab and the rest of C0/C1) become a space, so a typed title can't
+// break the subject line into extra headers (Security item 3, finding 1).
+export function oneLine(text: string): string {
+  return text.replace(/[\u0000-\u001f\u007f-\u009f]+/g, ' ');
+}
+
 function wordsFor(row: ClaimedRow): WorkReturnedWords {
   return {
-    childFirstName: row.child_first_name,
-    assignmentTitle: row.assignment_title,
-    className: row.class_name,
+    childFirstName: oneLine(row.child_first_name),
+    assignmentTitle: oneLine(row.assignment_title),
+    className: oneLine(row.class_name),
   };
 }
 
 function renderText(row: ClaimedRow, feedbackUrl: string, accountUrl: string): string {
   const words = wordsFor(row);
   return [
-    COPY.greeting(row.recipient_first_name),
+    COPY.greeting(oneLine(row.recipient_first_name)),
     '',
     COPY.body[row.recipient_role](words),
     '',
@@ -71,7 +77,7 @@ function renderHtml(row: ClaimedRow, feedbackUrl: string, accountUrl: string): s
   const words = wordsFor(row);
   const safe = {
     label: escapeHtml(COPY.brandLabel[row.recipient_role]),
-    greeting: escapeHtml(COPY.greeting(row.recipient_first_name)),
+    greeting: escapeHtml(COPY.greeting(oneLine(row.recipient_first_name))),
     body: escapeHtml(COPY.body[row.recipient_role](words)),
     button: escapeHtml(COPY.button),
     feedbackUrl: escapeHtml(feedbackUrl),

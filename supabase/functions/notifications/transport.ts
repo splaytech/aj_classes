@@ -91,9 +91,14 @@ export function outcomeForStatus(status: number): SendOutcome {
   return { outcome: 'failed', reason: 'rejected' };
 }
 
-/** True only for a rate_limited outcome: the worker then stops the batch (design 03 §3.4.2). */
+/** True for rate_limited (design 03 §3.4.2) and network: a hanging provider costs 10 s a row, so
+ * carrying on would hit the 150 s function limit and strand the rest as 'sending' (review-5
+ * finding 2). The worker then stops the batch. */
 export function shouldStopBatch(outcome: SendOutcome): boolean {
-  return outcome.outcome === 'retry' && outcome.reason === 'rate_limited';
+  return (
+    outcome.outcome === 'retry' &&
+    (outcome.reason === 'rate_limited' || outcome.reason === 'network')
+  );
 }
 
 function requestFor(transport: Transport, message: EmailMessage, outboxId: string): SendRequest {

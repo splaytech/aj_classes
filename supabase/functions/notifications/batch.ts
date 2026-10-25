@@ -3,8 +3,8 @@
 //   * One row at a time, recorded straight after its own send (review-2 round 2, finding 1b), so a
 //     reclaimed row is never sent twice.
 //   * A pause between sends keeps under Resend's default 2 requests a second.
-//   * A rate_limited reply stops the batch: the rest go back to pending unsent, for the next kick
-//     (review-3 finding 9).
+//   * A rate_limited or network reply stops the batch: the rest go back to pending unsent, with the
+//     same reason, for the next kick (review-3 finding 9, review-5 finding 2).
 
 import { shouldStopBatch } from './transport.ts';
 import type { EmailMessage, SendOutcome } from './transport.ts';
@@ -18,8 +18,6 @@ export type BatchSteps = {
   record: (outboxId: string, outcome: SendOutcome) => Promise<void>;
   pause: () => Promise<void>;
 };
-
-const RELEASED_UNSENT: SendOutcome = { outcome: 'retry', reason: 'rate_limited' };
 
 function count(counts: BatchCounts, outcome: SendOutcome): void {
   if (outcome.outcome === 'sent') counts.sent += 1;
@@ -37,8 +35,8 @@ export async function processBatch(rows: ClaimedRow[], steps: BatchSteps): Promi
 
     if (shouldStopBatch(outcome)) {
       for (const unsent of rows.slice(index + 1)) {
-        await steps.record(unsent.id, RELEASED_UNSENT);
-        count(counts, RELEASED_UNSENT);
+        await steps.record(unsent.id, outcome); // same reason as the row that stopped the batch
+        count(counts, outcome);
       }
       break;
     }

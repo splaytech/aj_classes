@@ -2,13 +2,15 @@
 // Called only by pg_cron's kick through pg_net, every 5 minutes when rows are waiting, with the
 // shared secret header. The gateway doesn't check a token (config.toml); the secret check is here.
 //   200 ran (counts) · 401 wrong or unset secret · 405 not POST
-//   503 no usable EMAIL_TRANSPORT or SITE_URL: rows are flagged "Set-up error" and nothing is claimed
+//   503 no usable EMAIL_TRANSPORT or SITE_URL, or local-only values on a non-Mailpit transport:
+//       rows are flagged "Set-up error" and nothing is claimed
 //   500 anything thrown (claimed rows are reclaimed by the next kicks)
 
 import { serviceClient } from '../_shared/clients.ts';
 import { fail, respond, succeed } from '../_shared/responses.ts';
 
 import { processBatch } from './batch.ts';
+import { isUsableConfig } from './config.ts';
 import { secretMatches } from './secret.ts';
 import { renderWorkReturned } from './template.ts';
 import type { ClaimedRow } from './template.ts';
@@ -30,7 +32,7 @@ Deno.serve(async (request) => {
     const service = serviceClient();
     const transport = pickTransport(env);
     const siteUrl = env('SITE_URL') ?? '';
-    if (transport === null || siteUrl === '') {
+    if (!isUsableConfig(transport, env('NOTIFY_WORKER_SECRET'), siteUrl)) {
       const { error } = await service.rpc('notify_flag_config_missing');
       if (error) throw error;
       console.error('notifications config missing');

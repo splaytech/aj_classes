@@ -8,7 +8,8 @@
 import { API, MAILPIT, api, check, finish, signIn, sql } from './local-test-helpers.mjs';
 import { processBatch } from '../functions/notifications/batch.ts';
 import { secretMatches } from '../functions/notifications/secret.ts';
-import { escapeHtml, renderWorkReturned } from '../functions/notifications/template.ts';
+import { LOCAL_WORKER_SECRET, isUsableConfig } from '../functions/notifications/config.ts';
+import { escapeHtml, oneLine, renderWorkReturned } from '../functions/notifications/template.ts';
 import {
   mailpitRequest,
   outcomeForStatus,
@@ -110,7 +111,11 @@ async function unitChecks() {
     '422 → failed rejected',
     outcomeForStatus(422).outcome === 'failed' && outcomeForStatus(422).reason === 'rejected',
   );
-  check('Only rate_limited stops the batch', shouldStopBatch(outcomeForStatus(429)));
+  check('rate_limited stops the batch', shouldStopBatch(outcomeForStatus(429)));
+  check(
+    'network stops the batch (a hanging provider would hit the 150 s limit)',
+    shouldStopBatch({ outcome: 'retry', reason: 'network' }),
+  );
   check(
     'Other outcomes don’t stop the batch',
     ![200, 409, 500, 422].some((status) => shouldStopBatch(outcomeForStatus(status))),
@@ -238,6 +243,80 @@ async function unitChecks() {
     JSON.stringify(counts),
   );
 
+  // A network error also stops the batch, releasing the rest as network retries
+  const networkLog = [];
+  const networkCounts = await processBatch(
+    ['n1', 'n2', 'n3'].map((id) => claimedRow({ id })),
+    {
+      render: (row) => ({ ...message, to: row.id }),
+      send: async (_message, id) => {
+        networkLog.push(`send ${id}`);
+        return { outcome: 'retry', reason: 'network' };
+      },
+      record: async (id, outcome) => networkLog.push(`record ${id} ${outcome.reason}`),
+      pause: async () => networkLog.push('pause'),
+    },
+  );
+  check(
+    'A network error stops the batch after one send; the rest go back as network retries',
+    networkLog.join(',') === 'send n1,record n1 network,record n2 network,record n3 network' &&
+      networkCounts.retrying === 3,
+    networkLog.join(','),
+  );
+
+  // Control characters can't reach the subject or body (Security finding 1)
+  const injected = renderWorkReturned(
+    claimedRow({
+      assignment_title: 'Fractions\r\nBcc: x@y',
+      child_first_name: 'Aa\nrav',
+      class_name: 'Year\t7\u0085Maths',
+      recipient_first_name: 'Pri\u0000ya',
+    }),
+    SITE,
+  );
+  check(
+    'CR/LF in a title becomes a space in the subject: "…Fractions Bcc: x@y"',
+    injected.subject === "Aa rav's work has been marked: Fractions Bcc: x@y",
+    JSON.stringify(injected.subject),
+  );
+  check(
+    'No control characters in the subject, and none in the text body apart from line breaks',
+    !/[\u0000-\u001f\u007f-\u009f]/.test(injected.subject) &&
+      !/[\u0000-\u0009\u000b-\u001f\u007f-\u009f]/.test(injected.text) &&
+      injected.text.includes('"Fractions Bcc: x@y" for Year 7 Maths') &&
+      injected.text.startsWith('Hi Pri ya,'),
+    JSON.stringify(injected.text.slice(0, 120)),
+  );
+  check(
+    'oneLine leaves ordinary text alone',
+    oneLine('Number patterns check') === 'Number patterns check',
+  );
+
+  // Local-only settings are refused outside Mailpit (Security finding 2)
+  const resendTransport = { kind: 'resend', apiKey: 're_x' };
+  const mailpitTransport = { kind: 'mailpit', baseUrl: 'http://mailpit:8025' };
+  check(
+    'Hosted settings are usable',
+    isUsableConfig(resendTransport, 'a-long-random-secret', SITE),
+  );
+  check(
+    'Resend with the committed local secret → set-up error',
+    !isUsableConfig(resendTransport, LOCAL_WORKER_SECRET, SITE),
+  );
+  check(
+    'Resend with a non-https SITE_URL → set-up error',
+    !isUsableConfig(resendTransport, 'a-long-random-secret', 'http://localhost:5173'),
+  );
+  check('No transport → set-up error', !isUsableConfig(null, 'a-long-random-secret', SITE));
+  check(
+    'Empty SITE_URL → set-up error',
+    !isUsableConfig(mailpitTransport, LOCAL_WORKER_SECRET, ''),
+  );
+  check(
+    'Mailpit locally may use the local secret and http://localhost',
+    isUsableConfig(mailpitTransport, LOCAL_WORKER_SECRET, 'http://localhost:5173'),
+  );
+
   // Worker secret: no default
   check('Unset NOTIFY_WORKER_SECRET refuses', !secretMatches('anything', undefined));
   check('Empty NOTIFY_WORKER_SECRET refuses even an empty header', !secretMatches('', ''));
@@ -283,6 +362,8 @@ function seededIds() {
   const [assignment, student] = sql(
     "select a.id || '|' || s.id from public.assignments a, public.students s where a.title = 'Word problems set 1' and s.full_name = 'Aarav Demo'",
   ).split('|');
+  if (!assignment || !student)
+    throw new Error('Seeded "Word problems set 1" for Aarav Demo not found');
   return { assignment, student };
 }
 
@@ -466,14 +547,16 @@ for (const [signal, code] of [
     process.exit(code);
   });
 }
-setCronActive(false);
+// Looked up before the pause, so a missing seed row fails while cron is still running.
 const ids = seededIds();
 try {
+  setCronActive(false);
   restoreSeededWork(ids); // in case an earlier run was interrupted
   await endToEndChecks(ids);
 } finally {
-  restoreSeededWork(ids);
+  // Resume first: if the restore throws, cron is already back on (review-5 finding 1).
   setCronActive(true);
+  restoreSeededWork(ids);
 }
 check('The email cron job is active again', sql(`select active ${CRON_JOB}`) === 't');
 console.log(`(${API} local stack only)`);
