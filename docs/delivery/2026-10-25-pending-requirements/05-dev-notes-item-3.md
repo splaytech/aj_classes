@@ -332,3 +332,20 @@ The local post was re-added after the reset.
 | Cron | Both jobs active |
 
 The local post was re-added after the reset. The dev server is stopped.
+
+**Known cost (review-5c finding 4).** Family RPCs now wait for the access read before they start, which adds one round trip on the right-role path. That's the price of never sending a refused call. Checking the read-sharing in a production build is follow-up `ITEM3-FU-3`.
+
+**Review-5c test fixes (findings 1–3, tests only, no runtime change).**
+- `auth-access.test.ts` now gives each token its own person (u1/parent, u2/student) and can hold reads open or fail one.
+  - New: a token switch while a read is open gives 2 reads, and each caller gets its own answer.
+  - New: token-1 finishing late doesn't clear token-2's shared read, so the third caller shares it (2 reads, not 3).
+  - New: a failed read is dropped, so the next call reads again and succeeds.
+- `family-access.test.ts`: all 7 reads return `network` with no RPC when the access read fails.
+- Mutation checks, each applied to the runtime file and then reverted with `git checkout`:
+
+  | Mutation | Result |
+  |---|---|
+  | `:134` weakened to `if (readInProgress) …` | Token-switch test fails |
+  | `:140` guard removed | Token-switch test fails |
+  | `state.then(finished)` only | Failed-read test fails |
+  | `getFamilyClient` swallows the access error | All 7 network cases fail |

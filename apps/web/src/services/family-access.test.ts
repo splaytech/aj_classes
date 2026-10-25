@@ -13,12 +13,16 @@ import type { AccessState } from './types';
 
 const fake = vi.hoisted(() => ({
   access: null as AccessState | null,
+  accessError: null as Error | null, // when set, the access read fails with it
   rpc: vi.fn(),
 }));
 
 // The layouts' access check, which the family reads share (BUG-9).
 vi.mock('./auth.service', () => ({
-  getAccessState: async () => fake.access,
+  getAccessState: async () => {
+    if (fake.accessError) throw fake.accessError;
+    return fake.access;
+  },
 }));
 vi.mock('./supabase.client', () => ({
   getSupabase: async () => ({ rpc: fake.rpc }),
@@ -50,6 +54,7 @@ const FAMILY_READS = [
 const ROLES: AppRole[] = ['student', 'parent', 'tutor', 'admin'];
 
 beforeEach(() => {
+  fake.accessError = null;
   fake.rpc.mockReset();
   fake.rpc.mockResolvedValue({ data: [], error: null });
 });
@@ -73,6 +78,15 @@ describe('family reads ask the database only for the right role (BUG-6, BUG-9)',
     expect(await read()).toEqual({ ok: false, error: 'notAllowed' });
     expect(fake.rpc).not.toHaveBeenCalled();
   });
+
+  it.each(FAMILY_READS)(
+    '%s: the access read fails (no connection) → "network", not "not allowed", and no call',
+    async (_name, _role, _rpc, read) => {
+      fake.accessError = new TypeError('Failed to fetch');
+      expect(await read()).toEqual({ ok: false, error: 'network' });
+      expect(fake.rpc).not.toHaveBeenCalled();
+    },
+  );
 
   it.each(FAMILY_READS)('%s as a %s → calls %s once', async (_name, role, rpc, read) => {
     fake.access = signedInAs(role);
