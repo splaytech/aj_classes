@@ -42,4 +42,13 @@ describe('Privacy Policy content', () => {
     );
     expect(section?.text).toContain('you can turn them off in Account → Notifications');
   });
+
+  it('names Resend as the overseas service that sends portal emails (APP 1.4)', () => {
+    const section = PRIVACY.sections.find(
+      (item) => item.heading === 'Student and parent portal accounts',
+    );
+    expect(section?.text).toContain(
+      'Resend (United States) sends our sign-in and portal emails; all of these may process data outside Australia.',
+    );
+  });
 });
