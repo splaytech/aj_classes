@@ -307,7 +307,7 @@ function `notifications` (03 §3.4). All email goes to the local Mailpit
   empty state "No failed or waiting emails"; tutor return with
   `docker stop supabase_edge_runtime_aj_classes` shows no error (AC-3.7). Run:
   `pnpm --filter web exec vitest run src/lib/email-problems.test.ts`.
-- [ ] **T3.7 `deploy.sh`.** File: #10 (03 §3.6 steps 1–4: require a non-local
+- [x] **T3.7 `deploy.sh`.** File: #10 (03 §3.6 steps 1–4: require a non-local
   `NOTIFY_WORKER_SECRET`, append only `notifications` to `FUNCTIONS`, one `secrets set` then
   `unset` last with `MAILPIT_URL` in `local_only`, digest check skipped under `--dry-run`, print the
   Vault SQL). Test: `bash -n supabase/scripts/deploy.sh`;
