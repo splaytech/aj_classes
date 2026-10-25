@@ -43,3 +43,17 @@ Checked claims against the repo: the worktrees, the newest migration (`202610251
 7. **Q24 deviation.** Q24 recommends required checks on `main` only, while 03b §6.11 says develop and main. Record it as a deviation in `05-dev-notes-item-6.md`.
 
 **Next steps:** fix finding 1, then re-check item 6 only. Items 4 and 5 can go to the Developer as written.
+
+---
+
+CHANGES_REQUESTED → fixed by the team lead → APPROVED
+
+# Review 4 — items 4–8 build plan (04b), round 2
+
+Reviewed `aa9ee18..63a0a4f`, the changed parts only. Round 1 findings 2–7 are resolved, and finding 1 is mostly resolved.
+
+1. **Blocking: Q28 didn't ask for everything path A pushes.** Path A also pushes a throwaway `ci-proof/item-6` branch, opens a second draft PR, and deletes the remote branch. **Fix (team lead):** Q28 now asks for both pushes and the deletion, and allows "yes to the first part only". In that case the failures run under `act`.
+2. **Non-blocking: T7.0/T8.0 could see a `cancelled` run.** **Fix (team lead):** they check HEAD's own run, and a `cancelled` run is rerun, not fixed forward.
+3. **Non-blocking: the T6.14 docs commit could read as a direct push.** **Fix (team lead):** it goes through `/test-and-ship` as a short docs-only gate.
+
+The reviewer said no further round is needed if the fix is wording only. These three fixes are wording only, so the plan is approved.

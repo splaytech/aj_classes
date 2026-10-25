@@ -462,7 +462,9 @@ where the workflow is proven:
   - **Path B:** straight after the push, collect the GitHub-side evidence from the `develop` run
     (the three named checks, the logs, and three durations using `gh run rerun`). Append it to
     `TSR-item-6.md` and clear those "Not covered" lines. That's a docs-only commit, made on a fresh
-    `docs/*` branch and merged the same way.
+    `docs/*` branch. It is merged and pushed to `develop` only through `/test-and-ship`, the one
+    command that authorises a `develop` push, run as a short docs-only gate; never pushed
+    directly.
   - **If the `develop` CI run goes red** (on either path): fix forward on a fresh
     `fix/ci-quality-gates` branch from `develop`, with its own gate, **before T7.0**. Never revert
     or re-break on `develop` itself.
@@ -494,8 +496,9 @@ filters `kind = 'work_returned'` from the start (review-3b finding 3).
 - [ ] **T7.0 Branch and migration file.**
   - **Precondition:** the latest `develop` CI run is green:
     `gh run list -R splaytech/aj_classes -b develop -e push -L 1 --json conclusion,headSha -q '.[0].conclusion + " " + .[0].headSha'`
-    prints `success <SHA>`, where the SHA is `develop` HEAD. If it's red, finish the T6.14
-    fix-forward first.
+    prints `success <SHA>`, where the SHA is `develop` HEAD's own run. `ci.yml` cancels
+    superseded runs, so an older run may show as `cancelled`. If HEAD's run is `cancelled`, run
+    `gh run rerun <id>` (no fix-forward). If it's red, finish the T6.14 fix-forward first.
   - **Run:** `git checkout develop && git pull --ff-only && git checkout -b feature/fair-results && pnpm db:reset`.
   - **Test:** §0 stack checks 1 and 2 (check 2: item 4's `20261026100000`). Then create `supabase/migrations/20261027100000_fair_results.sql`, or a fresh `supabase migration new fair_results` stamp per §1 rule 2. `ls supabase/migrations | tail -2` shows it last.
 - [ ] **T7.1 Hold flag and its guard (DB).**
@@ -922,8 +925,12 @@ E2E repo, never asked, because ADR-0006 chose option (a)). 02b and ADR-0006 stil
     stay on Free.
 
 28. **[Item 6: CI before merge]** "To prove the new CI checks before merging, can we push
-    `feature/ci-quality-gates` to GitHub and open a **draft** PR to `develop`? It deploys
-    nothing to Supabase, but Vercel may build a preview of it." **Recommendation:** yes. If you'd
+    `feature/ci-quality-gates` to GitHub and open a **draft** PR to `develop`? Also, can we push a
+    throwaway `ci-proof/item-6` branch with a second draft PR? It would hold two deliberately failing
+    commits, and we'd close it and delete the branch from GitHub afterwards. Neither deploys
+    anything to Supabase, but Vercel may build previews of them." You can say yes to the first
+    part only; then the deliberate failures run locally with `act`, as in path B.
+    **Recommendation:** yes to both. If you'd
     rather not, we prove the jobs locally with `act` before the merge, including the deliberate
     failures. Only the GitHub-side evidence (check names, logs and three durations) waits for the
     `develop` push after the merge.
