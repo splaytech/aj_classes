@@ -103,6 +103,8 @@ const ERROR_KEYS_BY_OWN_KEY: Record<string, ErrorKey> = {
   password_not_set: 'passwordNotSet',
   terms_required: 'termsRequired',
   invalid_phone: 'invalidPhone',
+  // My profile (item 4)
+  phone_required: 'phoneRequired',
   invalid_year_level: 'invalidYearLevel',
 };
 

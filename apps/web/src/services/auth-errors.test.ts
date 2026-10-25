@@ -50,6 +50,11 @@ describe('toErrorKey', () => {
     expect(toErrorKey({ code: 'already_exists' })).toBe('alreadyExists');
   });
 
+  it('maps the phone checks raised by the profile and setup saves', () => {
+    expect(toErrorKey({ code: 'P0001', message: 'phone_required' })).toBe('phoneRequired');
+    expect(toErrorKey({ code: 'P0001', message: 'invalid_phone' })).toBe('invalidPhone');
+  });
+
   it('falls back to a generic message', () => {
     expect(toErrorKey(undefined)).toBe('unknown');
     expect(toErrorKey({ code: 'something_new' })).toBe('unknown');
