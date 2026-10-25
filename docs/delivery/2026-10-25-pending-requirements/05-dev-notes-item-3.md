@@ -298,3 +298,37 @@ The local post was re-added after the reset.
 - "Word problems set 1" is `submitted`.
 - The local post was re-added.
 - The dev server is stopped.
+
+### Round 3 fixes (bug loop round 2 → 3, TSR at 96/97; review-5b)
+
+| Item | Fix | Proof |
+|---|---|---|
+| BUG-9 wrong role made refused RPCs | New `services/family-client.ts` `getFamilyClient(role)`. The 7 family reads ask the database only when `getAccessState()` says the person has that page's role; otherwise they return `notAllowed` with no request. Signed out is covered too (no profile, so no role), which replaces BUG-6's `getSignedInSupabase` (removed). The page shows the same layout access message as before | `family-access.test.ts` (35): every read signed out, as each of the 3 wrong roles, and as the right role (RPC called once). This also covers review-5b's optional finding 4. Browser, fresh tab from a signed-in context: parent on the student link, tutor on the parent link and student on the parent link each show "You don't have access to this page", with **0** refused `/rest/v1/rpc/` calls and **0** console errors. Right-role pages are unchanged (title, only the expected RPCs, all 200). Signed-out links still make 0 RPC calls |
+| No extra request for the right role | `getAccessState()` shares a read still in progress, for the same access token, between a page's parallel loaders (member layout, area layout, page). A finished read is never reused | `auth-access.test.ts` (3): concurrent callers make 1 profile read; a new token or a later call reads afresh. Browser: 1 profile read per page, on fresh loads and on in-app navigation. Before BUG-9 it was 2 (member and area layout each read). With sharing turned off as a check, it was 3–4 |
+| Regression found and fixed in this round | My first version (`f0ef851`) also reused a finished answer for up to 1 s. The invite-onboarding E2E failed on it: after "Finish setup" the join page navigated within that second, read the stale "still invited" answer and stayed on `/portal/join`. `d01f43b` limits sharing to a read in progress | E2E 9/9, then invite-onboarding and staff-login `--repeat-each=3`: 6/6 |
+| Review 1 | Migration comment now says `require_my_child` raises P0002, that only `parent_child_assignment` moved to 42501 (the role checks' code), and that the rest is follow-up `ITEM3-FU-1`. The 42501 change wasn't widened | Comment only; `db:reset` + `db:test` |
+| Review 2 | 03 §3.2 note: a return of work with no recorded marker records the returner as `marked_by`, so "Marked by" may show the returner on imported or orphaned rows; `returned_by` is the Later option | Docs |
+| Review 3 | No longer applies: `getSignedInSupabase` and its comment are gone (see BUG-9) | — |
+| Review 6 (E2E) | `admin-posts.spec.ts`: the anon read is typed as a new `PublicPostRow` (no `author_id`), and the comment cites the column grant in app migration `20261025110100`. `PostRow` keeps `author_id`, because the superuser DB queries read it | `tsc --noEmit` clean; E2E 9/9 |
+| Optional 4 / 5 | 4 is covered by the BUG-9 `it.each`. 5 is deferred as `ITEM3-FU-2` | — |
+
+**Not verified:** the one-read sharing in a production build. Local production builds can't reach the local stack (the portal CSP allows only `*.supabase.co`), so I measured it on the dev server only. If route modules load later in production, the page's read can miss the layouts' in-progress read. That costs one extra profile read, never a refused call or a wrong answer.
+
+**Commits:**
+1. `f0ef851` fix(portal): make no refused call when the wrong role opens a family link
+2. `39c3154` docs(email): describe the BUG-7 scope accurately and note the returner-as-marker cost
+3. `d01f43b` fix(portal): share only an unfinished access read between a page's loaders
+4. E2E `488dde1` test(admin-posts): type the anon read as the public columns and cite the grant (local, not pushed)
+5. This section (docs commit)
+
+**Checks** (local exports; `db:reset` after the migration comment change): full check exit 0.
+
+| Step | Result |
+|---|---|
+| `test` | 49 files, 390 tests |
+| `db:test` | 13 files, 454 tests, PASS |
+| `test:functions` | 169 `ok`, 0 failed |
+| E2E | 9/9 (0 `e2e-%` rows left) |
+| Cron | Both jobs active |
+
+The local post was re-added after the reset. The dev server is stopped.
