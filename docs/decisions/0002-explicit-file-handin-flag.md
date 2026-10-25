@@ -1,6 +1,6 @@
 # ADR-0002: File hand-in is an explicit flag on assignments
 
-- **Status:** Proposed (2026-10-25, Architect, `/deliver` pending-requirements Stage 2; becomes Accepted when the stage is approved)
+- **Status:** Accepted (2026-10-25, Architect, `/deliver` pending-requirements Stage 2; proposed and accepted the same day, when review-2 round 2 approved the stage)
 - **Amends:** R3b design D6 ("online work has questions; paper homework doesn't")
 - **Source:** `docs/delivery/2026-10-25-pending-requirements/02-architecture.md` §2.1
 
@@ -35,6 +35,9 @@ homework into online work.
   - `student-home.tsx:127,132,153`
   - `student-assignment.tsx:55,96,118`
   - `parent-child-assignment.tsx:90`
+  - `submission.tsx:73,98,128,156-158` and `submissions.service.ts:83`: a file hand-in gets one
+    overall mark field (when it has a maximum mark) and the file list, and the service writes
+    `mark` for it (review-2 round 2, finding 2)
 
 ## Consequences
 

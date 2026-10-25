@@ -1,6 +1,6 @@
 # ADR-0004: App email goes through an outbox table, `pg_cron` and an edge function worker
 
-- **Status:** Proposed (2026-10-25, Architect, `/deliver` pending-requirements Stage 2; becomes Accepted when the stage is approved)
+- **Status:** Accepted (2026-10-25, Architect, `/deliver` pending-requirements Stage 2; proposed and accepted the same day, when review-2 round 2 approved the stage)
 - **Source:** `docs/delivery/2026-10-25-pending-requirements/02-architecture.md` item 3
 
 ## Context
@@ -25,17 +25,20 @@ Returns happen from two web code paths (paper and online).
    A daily job deletes `cron.job_run_details` rows older than 7 days.
 3. The worker claims at most `70 − sent in the last 24 h` rows with `SKIP LOCKED` and re-checks
    eligibility. It sends through Resend's HTTP API (Mailpit locally).
-   - The **app cap is 70 in any rolling 24 hours** (`sent_at > now() - interval '24 hours'`). That
-     holds under either Resend counting rule (UTC day or rolling 24 h) and leaves ≥ 30 for
-     sign-in email.
+   - The **app cap is 70 in any rolling 24 hours**: rows `sent` or `sending` with
+     `coalesce(sent_at, claimed_at) > now() - interval '24 hours'`. That holds under either Resend
+     counting rule (UTC day or rolling 24 h), counts rows a still-running worker holds, and
+     leaves ≥ 30 for sign-in email.
+   - Each Resend call carries `Idempotency-Key: <outbox id>`, and each row is marked `sent`
+     straight after its own send, so a reclaimed row is never delivered twice.
    - Network and 5xx errors go back to `pending`, up to 3 attempts. After that the row is
      `failed`.
    - `reason` stores a fixed short code, never the provider's raw error text.
 4. Opt-out lives in `notification_settings` (one row per profile, default on).
 5. Admins see `admin_email_problems()`, which lists two kinds of row with a reason:
    - **Failed** rows;
-   - **Waiting** rows: pending or sending for more than ~2 hours, with "Daily limit",
-     "Retrying" or "Not attempted".
+   - **Waiting** rows: pending or sending for more than ~2 hours, with "Set-up error"
+     (`config_missing`), "Daily limit", "Retrying" or "Not attempted".
 
    No email address or body is stored.
 6. **No unsafe defaults.** The worker refuses requests when `NOTIFY_WORKER_SECRET` is unset. It

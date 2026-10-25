@@ -3,7 +3,7 @@
 > **Stage:** 2 of /deliver (Architect) · **Date:** 25 Oct 2026 · **Branch:** `feature/pending-requirements`
 > **Input:** [01-requirement.md](01-requirement.md) (approved) and [review-1.md](review-1.md) round 2 findings 1–3.
 > **Next stage:** Solution Designer (detailed contracts, migrations, component list).
-> **ADRs added:** [`docs/decisions/`](../../decisions/) 0001–0004 (Proposed until this stage is approved).
+> **ADRs added:** [`docs/decisions/`](../../decisions/) 0001–0004 (Accepted 25 Oct 2026, after review-2 round 2 approved this stage).
 > **Revision:** round 2, after [review-2.md](review-2.md) (blocking 1–2 and minors 3–7 fixed).
 
 ## Decisions for Saurabh
@@ -19,7 +19,9 @@ bucket; all can be migrated forward.
 
 **Release steps for Saurabh (not decisions, listed so nothing is a surprise):**
 - Item 1: B1 as written (posts migration on hosted, ≥ 1 post, merge to `main`, hosted curl).
-- Item 2: hosted migration deploy; deploy the new `assignment-files` edge function; B17 wording.
+- Item 2: hosted migration deploy; deploy the new `assignment-files` edge function; B17 wording;
+  on a phone against the hosted site, with a test class and test student only, check the file
+  picker offers camera and library and upload an iPhone photo (03 §2.10, AC-2.15).
 - Item 3: hosted migration deploy (enables `pg_cron` and `pg_net`); deploy the `notifications`
   function; set function secrets `RESEND_API_KEY` (already in `supabase/scripts/deploy.sh`, just
   not passed to functions today), `NOTIFY_WORKER_SECRET`, `SITE_URL=https://ajclasses.com.au`; put
@@ -204,10 +206,12 @@ are then mutually exclusive and explicit enough:
 | `routes/portal/student-home.tsx:153-156` | Answered-count chip | Shown for online only |
 | `routes/portal/student-assignment.tsx:55-56`, `:96`, `:118` | `questions.length > 0`; paper note | Kind from `view.isFileHandin`. Upload and Submit controls for file hand-in and online; the paper note for paper only |
 | `routes/portal/parent-child-assignment.tsx:90` | `questions.length > 0` | Uses the kind. File list for file hand-in and online |
+| `routes/portal/submission.tsx:73,98,128,156-158` and `services/submissions.service.ts:83` | Marks per question; the score line sums question marks; the service writes `feedback` and `status`, never `mark` | Uses the kind. For a file hand-in: one overall mark field (only when `totalMarks` isn't null), the student's file list, and the score line reads that mark. The service writes `mark` for file hand-in only (added by review-2 round 2, finding 2) |
 
 `SolveForm.tsx:56` and `QuestionList.tsx` count questions for their own display and stay as
-they are. A grep of `src` on 25 Oct found no other `questionCount` or `questions.length`
-checks.
+they are. `submission.tsx` has no length test, but it drives marking from
+`assignment.questions` (review-2 round 2 found it, so it is in the table above). No other
+`questionCount` or `questions.length` checks were found in `src`.
 
 Why not an enum `kind` ('paper' | 'online' | 'file_handin'): it would duplicate what the
 questions already say about online work. Every existing create/edit flow would have to set it,
@@ -266,13 +270,20 @@ browser                         Storage (RLS on storage.objects)        Postgres
   object when the folder already holds **5 or more objects in `storage.objects`, registered or
   not**. That applies to a student's `{assignment}/submissions/{student}/` folder and to an
   assignment's `attachments/` folder.
-  - With the 10 MB bucket cap, a student who bypasses the browser can store at most 50 MB per
+  - With the 10 MB bucket cap, a student uploading one file at a time can store at most 50 MB per
     assignment.
   - The student's own file list also shows their unregistered objects, with Remove, so a stuck
     orphan can't silently use up the fifth slot.
+  - **This object count is a soft cap** (revised after review-3 finding 1). Storage checks the
+    INSERT policy in a rolled-back permission transaction before the upload and writes the row
+    later as superuser, so parallel requests can all pass it. The **hard cap is on registered
+    files**: the register RPCs lock and count (≤ 5, ≤ 20 MB). Parallel extras stay unregistered,
+    show to the student as unfinished uploads, and go with the Later sweep (03 §6).
 - A sweep of orphans older than a day goes to the Later bucket.
 - RPCs: `staff_register_attachment`, `staff_remove_attachment`, `student_register_file`,
   `student_remove_file`; read lists `student_assignment_files`, `parent_child_assignment_files`.
+  *(Design: families read files through `assignment_view`'s JSON instead of these two list
+  RPCs; see 03 §5.)*
 - **Staff read `assignment_files` through RLS, with the AC-2.7 rule in the policy:**
   - attachment rows (`student_id is null`): anyone who can manage the assignment;
   - student rows: only when that student's result status is `submitted` or `returned`.
@@ -424,8 +435,12 @@ pg_cron, daily: delete from cron.job_run_details where end_time < now() - interv
   'sending' | 'sent' | 'failed' | 'skipped'), `attempts`, `reason`, `created_at`, `claimed_at`,
   `sent_at`. **No email address and no body is stored**; the address is read at send time.
 - **Rolling cap:** "sent in the last 24 hours" means
-  `count(*) where status = 'sent' and sent_at > now() - interval '24 hours'`. Both the cron kick
-  and the worker's claim size use it.
+  `count(*) where status in ('sent', 'sending') and coalesce(sent_at, claimed_at) > now() - interval '24 hours'`,
+  so rows claimed by a still-running worker count too (review-2 round 2, finding 1a). Both the
+  cron kick and the worker's claim size use it.
+- **No duplicate on reclaim (review-2 round 2, finding 1b):** the Resend call carries
+  `Idempotency-Key: <email_outbox.id>`, and the worker marks each row `sent` straight after its
+  own send, not once per batch.
   - A rolling window stays under Resend's limit whether Resend counts a UTC day or a rolling
     24 hours.
   - A Melbourne-day count would not: 70 sent late on one Melbourne day plus 70 early the next is
@@ -439,6 +454,8 @@ pg_cron, daily: delete from cron.job_run_details where end_time < now() - interv
     email service", "Recipient address missing", "Gave up after 3 tries".
   - **Waiting:** `pending` or `sending`, and created more than ~2 hours ago. The reason is
     computed:
+    - "Set-up error" when the stored reason is `config_missing` (no or unknown
+      `EMAIL_TRANSPORT`, or a missing sender setting);
     - "Daily limit" when the rolling cap is currently reached;
     - "Retrying" when `attempts > 0`;
     - otherwise **"Not attempted"**. That's what a missing cron job or Vault secret after deploy
@@ -466,7 +483,8 @@ pg_cron, daily: delete from cron.job_run_details where end_time < now() - interv
 
   **No default transport.** If `EMAIL_TRANSPORT` is unset or isn't one of the two values, the
   worker sends nothing. The claimed rows go back to `pending` with reason `config_missing` and
-  then show as Waiting.
+  then show as Waiting. *(Design: the worker doesn't claim at all; it flags pending rows
+  `config_missing`, so no attempt is used. See 03 §5.)*
 - **Secret hygiene in `deploy.sh`:** `supabase secrets set` copies `[edge_runtime.secrets]` from
   `config.toml` to the hosted project (`config.toml:407-412`). So `deploy.sh` must:
   - `require NOTIFY_WORKER_SECRET`, and refuse the committed local value;
@@ -526,9 +544,10 @@ pg_cron, daily: delete from cron.job_run_details where end_time < now() - interv
   allows. That's ≤ 8,640 a month, well under the free 500k.
 - `pg_cron` and `pg_net` are free extensions.
 - `cron.job_run_details` grows by about 290 rows a day. The daily job trims it to 7 days, so it
-  stays at a few thousand rows on the 500 MB database. Upgrade trigger
-already in `budget.md` §5 (more than 100/day → Resend Pro ≈ A$31/mo), now with the app cap in
-front of it.
+  stays at a few thousand rows on the 500 MB database.
+
+**Upgrade trigger:** already in `budget.md` §5 (more than 100/day → Resend Pro ≈ A$31/mo), now
+with the app cap in front of it.
 
 ---
 

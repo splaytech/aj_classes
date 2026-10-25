@@ -199,7 +199,10 @@ Each entry ends with the exact question for Saurabh.
 
 1. **B1 — Release to production (OD-01).** After item 1 passes its local gate: "OK to apply the
    posts migration to the hosted Supabase, publish at least one post, and merge `develop` into
-   `main`?" **Release check (Saurabh, or the team watching):** on the live site,
+   `main`? This release also adds one sentence to the Privacy Policy: 'When you visit a page,
+   your browser asks our database whether there is any news to show. Like any web request, this
+   shares your IP address and browser type with our database provider (Supabase, Sydney). We
+   don't store it or use it to identify you.' OK to publish that wording?" **Release check (Saurabh, or the team watching):** on the live site,
    `curl -s -o /dev/null -w '%{http_code}' https://ajclasses.com.au/posts` returns 200 after a hard
    refresh, the News link shows in the header and footer, and `sitemap.xml` lists `/posts`.
 2. **B2 — Hosted release checks (R2-18).** "Can you run the 6 unticked checks in go-live.md §8
@@ -529,12 +532,13 @@ Build and local tests use Mailpit and don't wait for this.
   - Every email has a link to this page.
 - AC-3.7 **Never blocks marking.** If sending fails (Resend down, the daily cap reached, or a
   missing secret), the return still succeeds and the tutor sees no error.
-- AC-3.8 **Failed sends are visible to admins.**
-  - An admin can see a list of failed sends, newest first, each showing: time, recipient role
-    (student or parent), assignment title and reason.
+- AC-3.8 **Failed and waiting sends are visible to admins.**
+  - An admin can see a list of **Failed** sends and of **Waiting** sends (not sent ~2 hours after
+    the return), newest first, each showing: time, recipient role (student or parent),
+    assignment title, state (Failed or Waiting) and reason.
   - The list shows no email body.
   - Tutors, students and parents can't see it (DB test).
-  - With no failures, the list shows "No failed emails".
+  - With none, the list shows "No failed or waiting emails".
 - AC-3.9 The email uses the AJ Classes branding and wording style of `supabase/templates/`, comes
   from the verified `ajclasses.com.au` domain, and all wording lives in constants or templates.
   Locally, emails land in Mailpit.
@@ -591,3 +595,12 @@ Build and local tests use Mailpit and don't wait for this.
     covered by the Terms, so they can be on by default with an off switch (item 3).
 14. `[ASSUMPTION]` Railway is no longer a live host (`docs/budget.md` lists Vercel only), so the
     R2a "refresh on Railway" check is dropped. `serve.railway.json` is still kept in step (AC-1.2).
+
+---
+
+## Change log
+
+| Date | Change | Why |
+|---|---|---|
+| 25 Oct 2026 | B1's question now includes item 1's Privacy Policy sentence, so it's approved with the release (team lead for the PO) | Review-3 finding 12: Privacy wording shouldn't reach production without Saurabh's explicit yes |
+| 25 Oct 2026 | AC-3.8 now lists **Failed and Waiting** sends, with a state column, and the empty state "No failed or waiting emails" | Architecture stage (02 item 3, ADR-0004) added Waiting rows so a missing cron job, secret or daily-cap backlog is visible; carried over by review-2 round 2, finding 4 |

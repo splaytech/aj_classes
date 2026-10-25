@@ -7,7 +7,7 @@ Status is Proposed, Accepted or Superseded (link the replacement). Same format a
 
 | ADR | Title | Status |
 |---|---|---|
-| [0001](0001-public-pages-live-reads-via-plain-fetch.md) | Public pages read live data with plain `fetch`; `/posts` is pre-rendered | Proposed |
-| [0002](0002-explicit-file-handin-flag.md) | File hand-in is an explicit flag on assignments | Proposed |
-| [0003](0003-assignment-files-storage.md) | Assignment files: private bucket, metadata table, upload-then-register | Proposed |
-| [0004](0004-email-outbox-cron-worker.md) | App email through an outbox table, `pg_cron` and an edge function worker | Proposed |
+| [0001](0001-public-pages-live-reads-via-plain-fetch.md) | Public pages read live data with plain `fetch`; `/posts` is pre-rendered | Accepted |
+| [0002](0002-explicit-file-handin-flag.md) | File hand-in is an explicit flag on assignments | Accepted |
+| [0003](0003-assignment-files-storage.md) | Assignment files: private bucket, metadata table, upload-then-register | Accepted |
+| [0004](0004-email-outbox-cron-worker.md) | App email through an outbox table, `pg_cron` and an edge function worker | Accepted |

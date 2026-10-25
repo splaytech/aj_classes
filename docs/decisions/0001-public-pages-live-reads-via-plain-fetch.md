@@ -1,6 +1,6 @@
 # ADR-0001: Public pages read live data with plain `fetch`; `/posts` is pre-rendered
 
-- **Status:** Proposed (2026-10-25, Architect, `/deliver` pending-requirements Stage 2; becomes Accepted when the stage is approved)
+- **Status:** Accepted (2026-10-25, Architect, `/deliver` pending-requirements Stage 2; proposed and accepted the same day, when review-2 round 2 approved the stage)
 - **Source:** `docs/delivery/2026-10-25-pending-requirements/02-architecture.md` item 1
 
 ## Context
