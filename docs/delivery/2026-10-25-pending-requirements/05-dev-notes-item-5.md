@@ -198,6 +198,93 @@ The local post, the test photo and its profile path were removed by the `db:rese
    violations on the preview are expected. Never add that host.
 2. Normal production release (`release/public-csp`). No migration or function.
 3. **After release (team, read-only):** `curl -sI` on `/`, `/programmes/vce`, `/nope` shows the
-   public CSP; `/portal/login` shows exactly 1 CSP, the portal one;
-   `/_vercel/insights/script.js` → 200; HSTS present; the live home page shows 0 CSP violations in
-   Chrome. If `/portal/*` ever shows two CSPs, revert the release (config only).
+   public CSP; `/portal/login` and `/__spa-fallback` each show exactly 1 CSP, the portal one
+   (§8, S1); `/_vercel/insights/script.js` → 200; HSTS present; the live home page shows 0 CSP
+   violations in Chrome. If `/portal/*` ever shows two CSPs, revert the release (config only).
+   The same list is in `docs/requirements/release-2/go-live.md` §7b.
+
+## 8. Review and security fixes (round 2)
+
+[Review 5](review-5-item-5.md) and [06-security-item-5](06-security-item-5.md) were both APPROVED.
+This round fixes what the coordinator picked from them, before the test plan is frozen.
+
+### Commits
+
+1. `19562bf` fix(hosting): send the portal headers on /__spa-fallback on Vercel
+2. `f5526fd` fix(hosting): make the hosted-ref guard fail closed and harden the mirror
+3. `9de84b3` chore: require Node 22.18 or later
+4. This section (docs commit).
+
+### What changed
+
+| Finding | Fix |
+|---|---|
+| **S1** (review 6): `/__spa-fallback` had no CSP, `noindex` or `no-store` on Vercel | New `vercel.json` rule `/__spa-fallback`, before the portal rule, with the identical portal CSP, `X-Robots-Tag: noindex, nofollow` and `Cache-Control: no-store`. The public lookahead is now `/((?!portal(?:/\|$)\|__spa-fallback$).*)`, so `/__spa-fallbackx` gets the public CSP. `hosting-config.test.ts` expects `['/__spa-fallback', '/portal/:path*']` for noindex/no-store and for the portal CSP. `hosting-csp.test.ts` checks the fallback CSP equals the portal one and today's value. Railway already covered the fallback (its `__spa-fallback.html` rule). Release check added to 03b §5.8 and `go-live.md` §7b (new). ADR-0005 decision 3 carries an "Amended 26 Oct 2026" line; 03b §5.2 and §5.4 show the new source. 02b §5.3 is left as written (history; the ADR is the record) |
+| Review 1, 2 / **S5**: the hosted-ref guard passed an empty folder and read only an allow-list of types | `scanForHostedRefs` reads every regular file except `.png .jpg .jpeg .gif .webp .ico .woff .woff2 .avif` (case-insensitive) with `buffer.includes`, and returns `{ scanned, hits }`. `hostedRefProblem` fails on 0 scanned or any hit; the CLI and `serve-mirror` both use it. The CLI prints `check-hosted-ref: 0 files (of 153 scanned)`, so the 04b §0 "`0 files`" check still reads the same. **D7** below |
+| Review 3: no link between the CSP and `APP_CONFIG` | `hosting-csp.test.ts`: the origins of `APP_CONFIG.form.endpoint` and `APP_CONFIG.newsletter.kitFormUrl` are in the public `connect-src` |
+| Review 4: most directives weren't pinned | `hosting-csp.test.ts` pins the whole public policy as a literal (`PUBLIC_CSP`), as the portal one is |
+| Review 5: exit code and spawn errors | `code ?? 1`; `child.on('error')` → `fail(...)` |
+| **S3**: the mirror listened on every interface | `serve -l tcp://127.0.0.1:<port>`. `lsof` shows `127.0.0.1:4173` only; the laptop's LAN address is refused. The mirror now prints `http://127.0.0.1:4173` |
+| **S4**: predictable temp path | `mkdtempSync(join(tmpdir(), 'aj-classes-mirror-'))` + `serve.json` written with `{ flag: 'wx', mode: 0o600 }`. Checked: file `-rw-------`, folder `drwx------`. `--write-only <file>` still overwrites (the path is the caller's), with mode 0600 |
+| **S7**: `$` patterns in `replaceAll` | `replaceAll(HOSTED_SUPABASE_ORIGIN, () => localOrigin)`. New test with origin `http://a$&b`; with the old string form it fails |
+| Review 7: Node version | Root `engines.node` is `>=22.18` (Node's type stripping is on by default from 22.18). `.nvmrc` is `24` and CI's `setup-node` uses `24`, so both match |
+
+**Tests that bite.** Removing the new fallback rule fails 2 test files (the CSP file can't find
+the rule; the config test sees one source). The S7 mutation fails 1 test. CLI on a scratch empty
+folder exits 1 ("scanned 0 files"); a scratch folder with the ref in `a.css` exits 1.
+
+### Deviation
+
+- **D7. The hosted-ref scan is no longer an allow-list** (03b §5.4 listed
+  `.js .mjs .cjs .ts .html .json .yml .yaml .md .toml .txt .map`). It now reads every regular file
+  except the 9 binary types above, and a scan of 0 files fails. On the gate build it reads 153
+  files (it used to skip `.css`, `.svg`, `.xml`, `.webmanifest` and `.data`). The function is now
+  `scanForHostedRefs` returning `{ scanned, hits }` rather than `findHostedRefs` returning
+  `string[]`; item 6 should import `scanForHostedRefs` and `hostedRefProblem`.
+
+### Full check (round 2)
+
+| Step | Result |
+|---|---|
+| format, lint, typecheck | clean |
+| `test` | **54 files, 462 tests** (457 before; +2 CSP, +2 hosted-ref, +1 mirror-config) |
+| `VITE_APP_ENV=production pnpm build`, local exports | Pass |
+| `check:hosted-ref build/client` | **`0 files (of 153 scanned)`**, exit 0; old grep also 0 |
+| `db:test` (after `db:reset`) | **14 files, 507 tests, PASS** |
+| `test:functions` | **169 `ok`, 0 `not ok`** |
+| E2E (external repo, 04b §0) | **9 passed** |
+| Rule grep on the changed TS files | 0 hits |
+
+### Sweep (round 2, same method as §3, mirror on `http://127.0.0.1:4173`)
+
+| Phase | Passes | CSP violations | `supabase.co` requests | Notes |
+|---|---|---|---|---|
+| 1 local post | 32 page × width + 1 asset pass | **0** | **0** | News link on 32/32; enquiry hit Web3Forms and `leads` mocks, "Message sent"; Kit mock hit on every page |
+| 0 posts | 32 | **0** | **0** | News link hidden on 32/32 |
+| Portal, admin sign-in, 360 and 1280 | 2 | **0** | **0** | Turnstile, two-step, landed on `/portal/admin`; staff photo loads from local Storage (2/2 images) |
+| AC-5.8 probes | 1 | 7 messages, as expected | 0 | Script, `fetch`, image beacon to `example.com` blocked; its route hit 0 times; inline `onclick` ran on purpose |
+
+- `curl -sI` on the mirror: `/portal/login` and `/__spa-fallback` each have exactly 1 CSP.
+- HARs: 68 files, 2,036 requests, **0** request URLs with `supabase.co`.
+- **For the Tester:** 03b §5.7's raw `grep -c supabase.co` on a HAR finds 2 files this time,
+  `portal-360.har` and `portal-1280.har`. Neither is a request. The hit is the supabase-js portal
+  chunk's own response body, which holds the literal hostname list `` `*.supabase.co`,`*.supabase.in` ``.
+  Public-page HARs have 0 such lines. So for AC-5.11, count **request URLs** (or filter DevTools
+  Network by `supabase.co`), not raw HAR text, on portal pages.
+- The local post and test photo were removed again by `db:reset`.
+
+**Shared state, for the coordinator.** While I worked, another `serve-mirror.ts --port 4199` was
+running from this worktree (not mine, probably the Tester's; I didn't touch it, and it had stopped
+by the end). My rebuilds of `apps/web/build` and the `db:reset` before `db:test` changed what it
+was serving and wiped local data under it. Any result it took during this round should be re-run.
+
+## 9. Later (deferred from review 5 and the security review)
+
+- **S2:** `connect-src` allows two multi-tenant services, Web3Forms and Kit. Narrow them by path
+  (`https://api.web3forms.com/submit`, and Kit's form-specific path once B5 is done). The real fix
+  is a hash-based `script-src`.
+- **S6:** no `Permissions-Policy` header. Its own item.
+- **Residual 1:** while `'unsafe-inline'` stays, add a lint rule banning `dangerouslySetInnerHTML`
+  and `innerHTML`. `react/no-danger` is already an error; `innerHTML` assignment isn't
+  lint-enforced yet (KINET's "no direct DOM mutation" rule names it).
+- **Review 6** is solved by S1 (this round).
