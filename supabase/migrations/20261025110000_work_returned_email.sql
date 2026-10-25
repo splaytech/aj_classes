@@ -419,3 +419,131 @@ grant execute on function
 to service_role;
 
 grant execute on function public.admin_email_problems(int) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Step 10. Older functions that the emails expose (delivery item 3, bugs 5 and 7)
+-- ---------------------------------------------------------------------------
+
+-- BUG-5: the email trigger treats marked_by as "returned by staff". A marked -> returned change
+-- kept a null marked_by, so those returns sent nothing. The body below is the one from
+-- 20261007090320_student_parent_portal.sql, unchanged except for the last elsif branch.
+create or replace function private.check_assignment_result()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  result_class     uuid;
+  assignment_state text;
+  total_marks      int;
+  is_online        boolean;
+  by_staff         boolean := private.is_active_staff();
+  status_changed   boolean := tg_op = 'INSERT' or new.status <> old.status;
+begin
+  -- A share lock waits for a publish/unpublish in progress, so work never lands on a draft.
+  select a.class_id, a.status
+  into result_class, assignment_state
+  from public.assignments a
+  where a.id = new.assignment_id
+  for share;
+
+  if assignment_state <> 'published' then
+    raise exception 'not_published';
+  end if;
+  if not exists (
+    select 1 from public.enrolments e
+    where e.class_id = result_class and e.student_id = new.student_id
+  ) then
+    raise exception 'not_enrolled';
+  end if;
+
+  total_marks := private.assignment_total_marks(new.assignment_id);
+  is_online := private.is_online_assignment(new.assignment_id);
+
+  if new.mark is not null and total_marks is null then
+    raise exception 'no_marks';
+  end if;
+  if new.mark is not null and new.mark > total_marks then
+    raise exception 'mark_too_high';
+  end if;
+
+  if status_changed then
+    if is_online and (
+         new.status = 'marked'
+         or (by_staff and not (tg_op = 'UPDATE' and old.status = 'submitted' and new.status = 'returned'))
+       ) then
+      raise exception 'invalid_status';
+    end if;
+    if not is_online and new.status = 'in_progress' then
+      raise exception 'invalid_status';
+    end if;
+
+    -- Handed in: keeps the first hand-in time. Marked or returned paper homework that was
+    -- never marked as handed in has no hand-in time (so it is never "late").
+    if new.status in ('not_submitted', 'in_progress') then
+      new.submitted_at := null;
+    elsif new.status = 'submitted' then
+      new.submitted_at := coalesce(new.submitted_at, now());
+    end if;
+    new.returned_at := case when new.status = 'returned' then now() end;
+  end if;
+
+  if is_online and new.status = 'returned' and status_changed then
+    if new.submitted_at is null then
+      raise exception 'not_submitted';
+    end if;
+    if exists (
+      select 1
+      from public.assignment_questions q
+      left join public.assignment_answers ans
+        on ans.question_id = q.id and ans.student_id = new.student_id
+      where q.assignment_id = new.assignment_id and ans.awarded_marks is null
+    ) then
+      raise exception 'unmarked_answers';
+    end if;
+  end if;
+
+  if new.status not in ('marked', 'returned') then
+    new.marked_by := null;
+    new.marked_at := null;
+  elsif tg_op = 'INSERT'
+     or old.status not in ('marked', 'returned')
+     or old.mark is distinct from new.mark
+     or old.feedback <> new.feedback then
+    new.marked_by := case when by_staff then (select auth.uid()) end;
+    new.marked_at := now();
+  elsif by_staff and status_changed and new.status = 'returned' and new.marked_by is null then
+    -- Item 3, BUG-5: staff return work nobody is recorded as marking (seeded or imported rows,
+    -- or the marker's account was removed). Record the returner, so the email goes.
+    new.marked_by := (select auth.uid());
+    new.marked_at := coalesce(new.marked_at, now());
+  end if;
+  return new;
+end;
+$$;
+
+-- BUG-7: someone who isn't this child's parent (a tutor, or another parent following a forwarded
+-- email link) got P0002, which PostgREST answers as HTTP 500. Refuse with 42501 (403), as the
+-- other family functions do for "not yours". The message stays 'not_found', so the app shows the
+-- same page as before. The work-not-visible case answers the same way.
+create or replace function public.parent_child_assignment(target_student uuid, target_assignment uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  found_view jsonb;
+begin
+  if not private.is_my_child(target_student) then
+    raise exception 'not_found' using errcode = '42501';
+  end if;
+  found_view := private.assignment_view(target_student, target_assignment, true);
+  if found_view is null then
+    raise exception 'not_found' using errcode = '42501';
+  end if;
+  return found_view;
+end;
+$$;

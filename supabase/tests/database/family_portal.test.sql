@@ -509,13 +509,21 @@ select throws_ok(
   'P0002', 'not_found', 'A parent can''t see other children''s work (F6)');
 select throws_ok(
   $$ select public.parent_child_assignment('00000000-0000-0000-0000-00000000d003', '00000000-0000-0000-0000-00000000e004') $$,
-  'P0002', 'not_found', 'A parent can''t open other children''s assignments');
+  '42501', 'not_found', 'A parent can''t open other children''s assignments');
 select throws_ok(
   $$ select * from public.parent_child_timetable('00000000-0000-0000-0000-00000000d003') $$,
   'P0002', 'not_found', 'A parent can''t see other children''s timetables');
 select throws_ok(
   $$ select public.parent_child_assignment('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-00000000e004') $$,
-  'P0002', 'not_found', 'A parent can''t open work from a class their child isn''t in');
+  '42501', 'not_found', 'A parent can''t open work from a class their child isn''t in');
+-- BUG-7: 42501 (HTTP 403), not P0002 (HTTP 500), for anyone who isn't this child's parent
+reset role;
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000b1');
+select throws_ok(
+  $$ select public.parent_child_assignment('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-00000000e001') $$,
+  '42501', 'not_found', 'A tutor opening a parent''s assignment link is refused with 42501');
+reset role;
+select tests.authenticate_as('00000000-0000-0000-0000-0000000006a1');
 select lives_ok(
   $$ select public.parent_give_consent('00000000-0000-0000-0000-00000000d002') $$,
   'A parent can allow their child to use the portal (FP3)');

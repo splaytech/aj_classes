@@ -626,5 +626,32 @@ select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
 select throws_ok($$ select private.trim_history() $$, '42501', null, 'Nobody else can run the trim');
 reset role;
 
+
+-- BUG-5: a marked result nobody is recorded as marking, then returned by the tutor --------
+delete from public.email_outbox;
+insert into public.assignments (id, class_id, title, max_mark) values
+  ('00000000-0000-0000-0000-00000000e011', '00000000-0000-0000-0000-00000000c001', 'Imported paper', 10);
+update public.assignments set status = 'published' where id = '00000000-0000-0000-0000-00000000e011';
+select set_config('request.jwt.claims', '', true); -- no signed-in staff: like a seed or an import
+insert into public.assignment_results (assignment_id, student_id, status, mark)
+values ('00000000-0000-0000-0000-00000000e011', '00000000-0000-0000-0000-00000000d001', 'marked', 6);
+select is(
+  (select marked_by from public.assignment_results where assignment_id = '00000000-0000-0000-0000-00000000e011'),
+  null, 'Set-up: a marked result with no marker');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000b1');
+update public.assignment_results set status = 'returned'
+where assignment_id = '00000000-0000-0000-0000-00000000e011' and student_id = '00000000-0000-0000-0000-00000000d001';
+reset role;
+select results_eq(
+  $$ select marked_by, marked_at is not null from public.assignment_results
+     where assignment_id = '00000000-0000-0000-0000-00000000e011' $$,
+  $$ values ('00000000-0000-0000-0000-0000000000b1'::uuid, true) $$,
+  'The tutor who returns it is recorded as the marker');
+select results_eq(
+  $$ select recipient_id, recipient_role from public.email_outbox
+     where assignment_id = '00000000-0000-0000-0000-00000000e011' order by recipient_id $$,
+  $$ select recipient_id, recipient_role from kid_one_recipients order by recipient_id $$,
+  'and the return queues the usual emails (student and both active parents)');
+
 select * from finish();
 rollback;

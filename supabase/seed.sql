@@ -148,6 +148,12 @@ begin
     (v_mock, v_aarav, 'marked', 42, 'Strong on patterns; check units in question 7.'),
     (v_mock, v_isla, 'submitted', null, ''),
     (v_mock, v_leo, 'not_submitted', null, '');
+
+  -- The tutor marked Aarav's test, as the portal would record it. An insert from here has no
+  -- signed-in staff member, so the trigger leaves marked_by empty; setting it afterwards keeps the
+  -- marking rules happy and lets the local "work returned" demo send when it's returned.
+  update public.assignment_results set marked_by = v_tutor
+  where assignment_id = v_mock and student_id = v_aarav;
 end;
 $$;
 
