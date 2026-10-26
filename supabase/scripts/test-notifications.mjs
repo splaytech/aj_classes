@@ -1,4 +1,5 @@
-// Tests of the notifications ("work returned" email) edge function (design 03 §3.10).
+// Tests of the notifications edge function: "work returned" (design 03 §3.10), "new assignment"
+// and "due tomorrow" (design 03b §8.10).
 //   1. Unit checks of the pure modules (transport, template, batch, secret), imported straight
 //      from the function folder: Node strips the types, and Deno isn't installed locally.
 //   2. End-to-end against the LOCAL stack and its Mailpit, calling the worker directly with the
@@ -14,7 +15,16 @@ import {
   isHostedProject,
   isUsableConfig,
 } from '../functions/notifications/config.ts';
-import { escapeHtml, oneLine, renderWorkReturned } from '../functions/notifications/template.ts';
+import { EMAIL_KINDS } from '../functions/notifications/copy.ts';
+import {
+  escapeHtml,
+  formatDueDate,
+  oneLine,
+  renderDueTomorrow,
+  renderEmail,
+  renderNewAssignment,
+  renderWorkReturned,
+} from '../functions/notifications/template.ts';
 import {
   mailpitRequest,
   outcomeForStatus,
@@ -29,6 +39,7 @@ const SITE = 'https://ajclasses.com.au';
 function claimedRow(overrides = {}) {
   return {
     id: '11111111-1111-1111-1111-111111111111',
+    kind: 'work_returned',
     recipient_role: 'parent',
     email: 'parent@local.test',
     recipient_first_name: 'Priya',
@@ -37,6 +48,7 @@ function claimedRow(overrides = {}) {
     student_id: '33333333-3333-3333-3333-333333333333',
     assignment_title: 'Number patterns check',
     class_name: 'Year 7 Maths',
+    due_on: '2026-10-30',
     ...overrides,
   };
 }
@@ -380,13 +392,192 @@ async function unitChecks() {
   check('Right secret passes', secretMatches('local-notify-secret', 'local-notify-secret'));
 }
 
+// "New assignment" and "due tomorrow" templates (AC-8.2, AC-8.9, AC-8.16)
+const INSTRUCTIONS = 'Show your working zebra'; // never returned by the claim, so never in an email
+
+function newKindUnitChecks() {
+  console.log('\nnotifications: "new assignment" and "due tomorrow" unit checks\n');
+
+  check(
+    'formatDueDate: 2026-10-30 → "Friday 30 October"',
+    formatDueDate('2026-10-30') === 'Friday 30 October',
+    formatDueDate('2026-10-30'),
+  );
+  check(
+    'formatDueDate: 2027-04-04 (a DST change) → "Sunday 4 April"',
+    formatDueDate('2027-04-04') === 'Sunday 4 April',
+    formatDueDate('2027-04-04'),
+  );
+  check('formatDueDate: no date → ""', formatDueDate(null) === '');
+  check(
+    'The claim offers every kind the worker can render',
+    JSON.stringify(EMAIL_KINDS) ===
+      JSON.stringify(['work_returned', 'new_assignment', 'due_tomorrow']),
+  );
+
+  const row = (overrides) => claimedRow({ instructions: INSTRUCTIONS, ...overrides });
+  const student = {
+    recipient_role: 'student',
+    email: 'student@local.test',
+    recipient_first_name: 'Aarav',
+  };
+
+  const parentNew = renderNewAssignment(row({ kind: 'new_assignment' }), SITE);
+  const studentNew = renderNewAssignment(row({ kind: 'new_assignment', ...student }), SITE);
+  check(
+    'New assignment, parent subject: "New work for Aarav: <title>"',
+    parentNew.subject === 'New work for Aarav: Number patterns check',
+    parentNew.subject,
+  );
+  check(
+    'New assignment, student subject: "New work set: <title>"',
+    studentNew.subject === 'New work set: Number patterns check',
+    studentNew.subject,
+  );
+  const parentNewBody = `Aarav's tutor has set "Number patterns check" for Year 7 Maths. It's due Friday 30 October.`;
+  check(
+    'New assignment, parent body names the child, title, class and due date (AC-8.2)',
+    parentNew.text.includes(parentNewBody) && parentNew.html.includes(escapeHtml(parentNewBody)),
+    parentNew.text,
+  );
+  check(
+    'New assignment, student body (AC-8.2)',
+    studentNew.text.includes(
+      `Your tutor has set "Number patterns check" for Year 7 Maths. It's due Friday 30 October.`,
+    ) && studentNew.text.startsWith('Hi Aarav,'),
+    studentNew.text,
+  );
+  const noDue = renderNewAssignment(row({ kind: 'new_assignment', due_on: null }), SITE);
+  check(
+    'New assignment with no due date: no "It\'s due" sentence',
+    !noDue.text.includes("It's due") &&
+      noDue.text.includes(`Aarav's tutor has set "Number patterns check" for Year 7 Maths.\n`),
+    noDue.text,
+  );
+
+  const parentDue = renderDueTomorrow(row({ kind: 'due_tomorrow' }), SITE);
+  const studentDue = renderDueTomorrow(row({ kind: 'due_tomorrow', ...student }), SITE);
+  check(
+    'Due tomorrow, parent subject: "Aarav\'s work is due tomorrow: <title>"',
+    parentDue.subject === "Aarav's work is due tomorrow: Number patterns check",
+    parentDue.subject,
+  );
+  check(
+    'Due tomorrow, student subject: "Due tomorrow: <title>"',
+    studentDue.subject === 'Due tomorrow: Number patterns check',
+    studentDue.subject,
+  );
+  check(
+    'Due tomorrow, parent body: "is due tomorrow (Friday 30 October)" (AC-8.9)',
+    parentDue.text.includes(
+      `Aarav's "Number patterns check" for Year 7 Maths is due tomorrow (Friday 30 October) and hasn't been handed in yet.`,
+    ),
+    parentDue.text,
+  );
+  check(
+    'Due tomorrow, student body (AC-8.9)',
+    studentDue.text.includes(
+      `"Number patterns check" for Year 7 Maths is due tomorrow (Friday 30 October) and hasn't been handed in yet.`,
+    ),
+    studentDue.text,
+  );
+
+  for (const [who, email, link] of [
+    [
+      'New assignment, parent',
+      parentNew,
+      `${SITE}/portal/parent/children/33333333-3333-3333-3333-333333333333/assignments/22222222-2222-2222-2222-222222222222`,
+    ],
+    [
+      'New assignment, student',
+      studentNew,
+      `${SITE}/portal/student/assignments/22222222-2222-2222-2222-222222222222`,
+    ],
+    [
+      'Due tomorrow, parent',
+      parentDue,
+      `${SITE}/portal/parent/children/33333333-3333-3333-3333-333333333333/assignments/22222222-2222-2222-2222-222222222222`,
+    ],
+    [
+      'Due tomorrow, student',
+      studentDue,
+      `${SITE}/portal/student/assignments/22222222-2222-2222-2222-222222222222`,
+    ],
+  ]) {
+    check(
+      `${who}: "View assignment" button to the right page (AC-8.2)`,
+      email.html.includes(`href="${link}"`) &&
+        email.html.includes('>View assignment</a>') &&
+        email.text.includes(`View assignment: ${link}`),
+    );
+    check(
+      `${who}: footer links to Account → Notifications (AC-8.10)`,
+      email.text.includes(`${SITE}/portal/account#notifications`),
+    );
+    check(
+      `${who}: AJ Classes header block and colours (AC-8.16)`,
+      email.html.includes('background: #172554') &&
+        email.html.includes('<strong>AJ</strong> Classes'),
+    );
+    check(
+      `${who}: no instructions, marks or "View feedback" (AC-8.2, AC-8.9)`,
+      [email.text, email.html].every(
+        (body) =>
+          !body.includes(INSTRUCTIONS) &&
+          !body.includes('marked') &&
+          !body.includes('View feedback'),
+      ),
+    );
+  }
+
+  for (const kind of EMAIL_KINDS) {
+    const expected = {
+      work_returned: renderWorkReturned,
+      new_assignment: renderNewAssignment,
+      due_tomorrow: renderDueTomorrow,
+    }[kind];
+    const picked = renderEmail(row({ kind }), SITE);
+    check(
+      `renderEmail picks the ${kind} template`,
+      picked.subject === expected(row({ kind }), SITE).subject,
+    );
+  }
+  check(
+    'renderEmail on a work_returned row is the item 3 email, unchanged',
+    JSON.stringify(renderEmail(claimedRow(), SITE)) ===
+      JSON.stringify(renderWorkReturned(claimedRow(), SITE)),
+  );
+
+  for (const kind of ['new_assignment', 'due_tomorrow']) {
+    const hostile = renderEmail(
+      row({
+        kind,
+        assignment_title: '<script>alert(1)</script>',
+        class_name: 'A & "B"',
+        child_first_name: 'Aa\r\nrav',
+      }),
+      SITE,
+    );
+    check(
+      `${kind}: every value is escaped in the HTML, and line breaks can't reach the subject`,
+      !hostile.html.includes('<script>') &&
+        hostile.html.includes('&lt;script&gt;') &&
+        hostile.html.includes('A &amp; &quot;B&quot;') &&
+        !/[\r\n]/.test(hostile.subject),
+      hostile.subject,
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
 // End-to-end (local stack + Mailpit)
 // ---------------------------------------------------------------------------
 
 // No SQL passed to sql() may contain a dollar-quote: the helper wraps the query in double quotes
 // for /bin/sh, which would expand it to its process id (design 03 §3.10).
-const CRON_JOB = "from cron.job where jobname = 'email-worker-kick'";
+// Both jobs that add or send rows: the 5-minute kick, and item 8's hourly reminder queue (whose
+// 15:10 Melbourne run could otherwise add rows mid-test).
+const CRON_JOB = "from cron.job where jobname in ('email-worker-kick', 'due-tomorrow-reminders')";
 const setCronActive = (active) =>
   sql(`select cron.alter_job(jobid, active := ${active}) ${CRON_JOB}`);
 const RECOVERY_COMMAND = `docker exec supabase_db_aj_classes psql -U postgres -c "select cron.alter_job(jobid, active := true) ${CRON_JOB}"`;
@@ -584,12 +775,188 @@ async function endToEndChecks(ids) {
   );
 }
 
+// AC-8.1, AC-8.2: the tutor publishes the seeded "Ratio worksheet" draft, and Aarav and his parent
+// get "new work" emails. Put back as a draft afterwards, with its outbox rows deleted.
+const RATIO = "from public.assignments where title = 'Ratio worksheet'";
+function restoreRatio() {
+  sql(`update public.assignments set status = 'draft' where id = (select id ${RATIO})`);
+  sql(`delete from public.email_outbox where assignment_id = (select id ${RATIO})`);
+}
+
+async function newAssignmentRoundTrip() {
+  console.log('\nnotifications: "new assignment" round trip (local stack, Mailpit)\n');
+  const [assignment, dueOn] = sql(`select id || '|' || due_on ${RATIO} and status = 'draft'`).split(
+    '|',
+  );
+  if (!assignment) throw new Error('Seeded draft "Ratio worksheet" not found');
+  await mailpit('/api/v1/messages', { method: 'DELETE' });
+
+  const tutor = await signIn('tutor@local.test');
+  const published = await api(`/rest/v1/assignments?id=eq.${assignment}`, {
+    method: 'PATCH',
+    token: tutor.access_token,
+    headers: { Prefer: 'return=representation' },
+    body: { status: 'published' },
+  });
+  check(
+    'The tutor publishes "Ratio worksheet" through the API, with no error (AC-8.12)',
+    published.status === 200 && published.json?.[0]?.status === 'published',
+    JSON.stringify(published.json),
+  );
+  check(
+    'Two "new assignment" emails are queued: Aarav and his parent (AC-8.1)',
+    sql(
+      `select string_agg(recipient_role || ':' || status, ',' order by recipient_role) from public.email_outbox where kind = 'new_assignment' and assignment_id = '${assignment}'`,
+    ) === 'parent:pending,student:pending',
+  );
+
+  const run = await callWorker();
+  check(
+    'One worker run sends both',
+    run.status === 200 && run.json?.data?.sent === 2 && run.json?.data?.failed === 0,
+    JSON.stringify(run.json),
+  );
+  const toStudent = await messagesTo(STUDENT);
+  const toParent = await messagesTo(PARENT);
+  check(
+    'One "new work" email each, and no others',
+    toStudent.length === 1 &&
+      toParent.length === 1 &&
+      (await mailpit('/api/v1/messages')).total === 2,
+  );
+  const student = toStudent[0] && (await mailpit(`/api/v1/message/${toStudent[0].ID}`));
+  const parent = toParent[0] && (await mailpit(`/api/v1/message/${toParent[0].ID}`));
+  check(
+    'Student subject: "New work set: Ratio worksheet"',
+    student?.Subject === 'New work set: Ratio worksheet',
+    student?.Subject,
+  );
+  check(
+    'Parent subject: "New work for Aarav: Ratio worksheet"',
+    parent?.Subject === 'New work for Aarav: Ratio worksheet',
+    parent?.Subject,
+  );
+  for (const [who, message, path] of [
+    ['student', student, `/portal/student/assignments/${assignment}`],
+    ['parent', parent, `/portal/parent/children/`],
+  ]) {
+    if (!message) continue;
+    check(
+      `The ${who} email gives the class and the due date "${formatDueDate(dueOn)}" (AC-8.2)`,
+      message.Text.includes('for Selective Entry Maths & Reasoning.') &&
+        message.Text.includes(`It's due ${formatDueDate(dueOn)}.`),
+      message.Text,
+    );
+    check(
+      `The ${who} email's View assignment link opens the right page (AC-8.2)`,
+      message.Text.includes('View assignment: ') &&
+        message.Text.includes(path) &&
+        message.Text.includes(`/assignments/${assignment}`),
+    );
+    check(
+      `The ${who} email is from AJ Classes <hello@ajclasses.com.au>, with the header block (AC-8.16)`,
+      message.From.Address === 'hello@ajclasses.com.au' &&
+        message.From.Name === 'AJ Classes' &&
+        message.HTML.includes('<strong>AJ</strong> Classes'),
+    );
+    check(
+      `The ${who} email has no instructions or questions (AC-8.2)`,
+      [message.Text, message.HTML].every(
+        (body) => !body.includes('Simplify first') && !body.includes('Simplify the ratio'),
+      ),
+    );
+  }
+  const again = await callWorker();
+  check(
+    'A second worker call sends nothing more',
+    again.json?.data?.claimed === 0,
+    JSON.stringify(again.json),
+  );
+}
+
+// AC-8.5, AC-8.9: Aarav hasn't started the seeded "Fractions quick quiz". Moved to due tomorrow,
+// published 3 days ago, then one day's reminder queue and one worker run. Put back afterwards.
+const FRACTIONS = "from public.assignments where title = 'Fractions quick quiz'";
+let fractionsOriginal = null;
+function restoreFractions() {
+  if (fractionsOriginal === null) return;
+  const [dueOn, publishedAt] = fractionsOriginal.split('|');
+  sql(
+    `update public.assignments set due_on = '${dueOn}', published_at = '${publishedAt}' where id = (select id ${FRACTIONS})`,
+  );
+  sql(
+    `delete from public.email_outbox where kind = 'due_tomorrow' and assignment_id = (select id ${FRACTIONS})`,
+  );
+}
+
+async function dueTomorrowRoundTrip() {
+  console.log('\nnotifications: "due tomorrow" round trip (local stack, Mailpit)\n');
+  fractionsOriginal = sql(
+    `select due_on || '|' || published_at ${FRACTIONS} and status = 'published'`,
+  );
+  if (!fractionsOriginal) throw new Error('Seeded "Fractions quick quiz" not found');
+  await mailpit('/api/v1/messages', { method: 'DELETE' });
+
+  sql(
+    `update public.assignments set due_on = private.melbourne_date(now()) + 1, published_at = now() - interval '3 days' where id = (select id ${FRACTIONS})`,
+  );
+  sql('select private.queue_due_tomorrow_emails_for(private.melbourne_date(now()))');
+  const tomorrow = sql('select private.melbourne_date(now()) + 1');
+  check(
+    "One day's queue adds two reminders for the quiz: Aarav and his parent (AC-8.5)",
+    sql(
+      `select string_agg(a.title || ':' || o.recipient_role, ',' order by o.recipient_role) from public.email_outbox o join public.assignments a on a.id = o.assignment_id where o.kind = 'due_tomorrow' and o.status = 'pending'`,
+    ) === 'Fractions quick quiz:parent,Fractions quick quiz:student',
+  );
+
+  const run = await callWorker();
+  check(
+    'One worker run sends both',
+    run.status === 200 && run.json?.data?.sent === 2,
+    JSON.stringify(run.json),
+  );
+  const toStudent = await messagesTo(STUDENT);
+  const toParent = await messagesTo(PARENT);
+  const student = toStudent[0] && (await mailpit(`/api/v1/message/${toStudent[0].ID}`));
+  const parent = toParent[0] && (await mailpit(`/api/v1/message/${toParent[0].ID}`));
+  check(
+    'Student subject: "Due tomorrow: Fractions quick quiz"',
+    student?.Subject === 'Due tomorrow: Fractions quick quiz',
+    student?.Subject,
+  );
+  check(
+    'Parent subject: "Aarav\'s work is due tomorrow: Fractions quick quiz"',
+    parent?.Subject === "Aarav's work is due tomorrow: Fractions quick quiz",
+    parent?.Subject,
+  );
+  for (const [who, message] of [
+    ['student', student],
+    ['parent', parent],
+  ]) {
+    if (!message) continue;
+    check(
+      `The ${who} reminder says "is due tomorrow (${formatDueDate(tomorrow)})" (AC-8.9)`,
+      message.Text.includes(
+        `is due tomorrow (${formatDueDate(tomorrow)}) and hasn't been handed in yet.`,
+      ),
+      message.Text,
+    );
+    check(
+      `The ${who} reminder is from AJ Classes, with the header block, and has no instructions (AC-8.9, AC-8.16)`,
+      message.From.Address === 'hello@ajclasses.com.au' &&
+        message.HTML.includes('<strong>AJ</strong> Classes') &&
+        !message.Text.includes('Four quick questions'),
+    );
+  }
+}
+
 await unitChecks();
+newKindUnitChecks();
 
 // Cron is paused, never removed, so a kick can't land mid-test (review-3 R2-1). The signal handlers
 // come first, so a Ctrl-C at any point after this resumes it (review-3 R3-1).
 console.log(
-  `\nIf this run is interrupted, re-enable the email cron job with:\n  ${RECOVERY_COMMAND}\n(pnpm db:reset also restores it.)`,
+  `\nIf this run is interrupted, re-enable the email cron jobs with:\n  ${RECOVERY_COMMAND}\n(pnpm db:reset also restores it.)`,
 );
 for (const [signal, code] of [
   ['SIGINT', 130],
@@ -597,7 +964,7 @@ for (const [signal, code] of [
 ]) {
   process.on(signal, () => {
     setCronActive(true);
-    console.log(`\nInterrupted: the email cron job is active again.`);
+    console.log(`\nInterrupted: the email cron jobs are active again.`);
     process.exit(code);
   });
 }
@@ -606,12 +973,20 @@ const ids = seededIds();
 try {
   setCronActive(false);
   restoreSeededWork(ids); // in case an earlier run was interrupted
+  restoreRatio();
   await endToEndChecks(ids);
+  await newAssignmentRoundTrip();
+  await dueTomorrowRoundTrip();
 } finally {
-  // Resume first: if the restore throws, cron is already back on (review-5 finding 1).
+  // Resume first: if a restore throws, cron is already back on (review-5 finding 1).
   setCronActive(true);
   restoreSeededWork(ids);
+  restoreRatio();
+  restoreFractions();
 }
-check('The email cron job is active again', sql(`select active ${CRON_JOB}`) === 't');
+check(
+  'Both email cron jobs are active again',
+  sql(`select count(*) filter (where active) || '/' || count(*) ${CRON_JOB}`) === '2/2',
+);
 console.log(`(${API} local stack only)`);
 finish();

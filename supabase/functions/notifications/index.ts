@@ -1,4 +1,4 @@
-// notifications: sends queued "work returned" emails (ADR-0004; design 03 §3.4).
+// notifications: sends queued portal emails (ADR-0004, ADR-0008; design 03 §3.4, 03b §8.4).
 // Called only by pg_cron's kick through pg_net, every 5 minutes when rows are waiting, with the
 // shared secret header. The gateway doesn't check a token (config.toml); the secret check is here.
 //   200 ran (counts) · 405 not POST · 401 wrong or unset secret
@@ -12,7 +12,8 @@ import { fail, respond, succeed } from '../_shared/responses.ts';
 
 import { processBatch } from './batch.ts';
 import { gateRequest } from './config.ts';
-import { renderWorkReturned } from './template.ts';
+import { EMAIL_KINDS } from './copy.ts';
+import { renderEmail } from './template.ts';
 import type { ClaimedRow } from './template.ts';
 import { pickTransport, sendEmail } from './transport.ts';
 import type { SendOutcome } from './transport.ts';
@@ -47,7 +48,11 @@ Deno.serve(async (request) => {
       return respond(fail('config_missing'), null, 503);
     }
 
-    const { data, error } = await service.rpc('notify_claim_emails');
+    // Only the kinds this worker can render (ADR-0008 decision 6). Needs migration 20261028100000:
+    // deployed before it, this call gets PGRST202 and every kind of email stops.
+    const { data, error } = await service.rpc('notify_claim_emails', {
+      supported_kinds: [...EMAIL_KINDS],
+    });
     if (error) throw error;
 
     const record = async (outboxId: string, outcome: SendOutcome) => {
@@ -60,7 +65,7 @@ Deno.serve(async (request) => {
     };
 
     const counts = await processBatch((data ?? []) as ClaimedRow[], {
-      render: (row) => renderWorkReturned(row, siteUrl),
+      render: (row) => renderEmail(row, siteUrl),
       send: (message, outboxId) => sendEmail(transport, message, outboxId),
       record,
       pause,
