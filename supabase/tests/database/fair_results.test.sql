@@ -456,6 +456,9 @@ select ok(
 -- AC-7.13 Deleting the assignment deletes the result ---------------------------------
 delete from public.enrolments
 where class_id = '00000000-0000-0000-0000-00000000c001' and student_id = '00000000-0000-0000-0000-00000000d001';
+select is(
+  (select count(*)::int from public.assignment_results where assignment_id = '00000000-0000-0000-0000-00000000e008'),
+  1, 'Before the delete, the returned assignment has its one result');
 delete from public.assignments where id = '00000000-0000-0000-0000-00000000e008';
 select is(
   (select count(*)::int from public.assignment_results where assignment_id = '00000000-0000-0000-0000-00000000e008'),
