@@ -29,7 +29,13 @@ export { QuestionDialog } from './QuestionDialog';
 export { QuestionList } from './QuestionList';
 export { ForbiddenView, PortalLoading, PortalNotFound, PortalUnavailable } from './PortalMessages';
 export { TwoStepCodeForm } from './TwoStepCodeForm';
-export { AccountStatusChip, CrmStatusChip, PermissionChips, RoleChip } from './StatusChips';
+export {
+  AccountStatusChip,
+  CrmStatusChip,
+  PastClassChip,
+  PermissionChips,
+  RoleChip,
+} from './StatusChips';
 export { SessionDialog } from './SessionDialog';
 export { SolveForm } from './SolveForm';
 export { StudentDialog } from './StudentDialog';

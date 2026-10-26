@@ -16,6 +16,7 @@ import {
   LoadError,
   NotFoundPanel,
   PageHeader,
+  PastClassChip,
   ResultsCard,
   SectionCard,
   SolveForm,
@@ -77,6 +78,7 @@ export default function StudentAssignmentPage() {
                 label={FAMILY_STATUS_LABELS[view.status]}
               />
             )}
+            {view.isPastClass && <PastClassChip />}
             {isToDo(view.status) && <DueChip dueOn={view.dueOn} />}
             {view.isLate && <Chip size="small" color="warning" label={SOLVE_PAGE.late} />}
           </>

@@ -15,6 +15,7 @@ import {
   LoadError,
   NotFoundPanel,
   PageHeader,
+  PastClassChip,
   ResultsCard,
   SectionCard,
 } from '@/components/portal';
@@ -71,6 +72,7 @@ export default function ParentChildAssignmentPage() {
               color={work.status === 'returned' ? 'success' : 'default'}
               label={FAMILY_STATUS_LABELS[work.status]}
             />
+            {work.isPastClass && <PastClassChip />}
             {isToDo(work.status) && <DueChip dueOn={work.dueOn} />}
             {work.isLate && <Chip size="small" color="warning" label={SOLVE_PAGE.late} />}
           </>

@@ -436,6 +436,8 @@ export type FamilyAssignment = {
   /** Only once returned (F12). */
   mark: number | null;
   comment: string;
+  /** Returned work kept after leaving the class or the class ending (ADR-0007, rule (b)). */
+  isPastClass: boolean;
 };
 
 /** A question as a student (or parent) sees it. Marking fields are empty until returned. */
@@ -468,6 +470,7 @@ export type FamilyAssignmentView = Pick<
   | 'totalMarks'
   | 'mark'
   | 'comment'
+  | 'isPastClass'
 > & { instructions: string; questions: FamilyQuestion[] };
 
 export type ChildAccountStatus = 'none' | 'invited' | 'active' | 'deactivated';
