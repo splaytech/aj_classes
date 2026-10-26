@@ -73,6 +73,32 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 
 Portal → Admin → Staff → the person → **Deactivate**. Check `public.audit_log`.
 
+### A student leaves a class, or was enrolled by mistake (ADR-0007)
+
+**Removing a student from a class, or archiving the class, doesn't hide their returned work.**
+The student and every linked parent can still read it, read-only and tagged "Past class":
+questions, options, correct answers, explanations, marks, feedback and the instructions. Work
+that wasn't returned is hidden. This is the accepted residual from security review S1 (item 7).
+An all-multiple-choice quiz without "hold results" is returned the moment it's handed in, so a
+mistakenly enrolled child who submits one keeps it too.
+
+To cut access, pick the narrowest step. None of them works per class:
+
+1. **(a) Archive the student's roster row:** Portal → Admin → Students → **Archive**
+   (`students.is_active = false`). This cuts the student and all their parents off from
+   everything. Results are kept, and **Restore** brings them back.
+2. **(b) Deactivate the student's login:** Admin → Students → the student → Student account →
+   **Deactivate**. The student only. Parents still see the work.
+3. **(c) Delete the roster row:** there's no portal button. In the SQL editor:
+   `delete from public.students where id = '<student id>';`. Every result the student has, in
+   every class, is deleted with it. This can't be undone.
+4. **(d) Unlink a parent:** Admin → Students → the student → the parent → **Remove**. That parent
+   only.
+5. **(e) Delete the assignment:** the assignment page → **Delete**. It's removed for every student.
+
+Staff can't "un-return" online work. A per-class "revoke past-class access" action is in the
+Later bucket (ADR-0007).
+
 ### Deploy schema changes
 
 ```bash
