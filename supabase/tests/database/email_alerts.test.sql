@@ -235,5 +235,299 @@ delete from public.assignment_results where assignment_id = '00000000-0000-0000-
 delete from public.email_outbox;
 
 
+-- Helpers for the queue cases ----------------------------------------------------------------
+-- Act as tutor 1 (class one) or tutor 2 (class two), then come back as the test superuser with no
+-- signed-in user, so later result rows count as system changes, not staff ones.
+create function pg_temp.as_system() returns void language sql as $$
+  reset role;
+  select set_config('request.jwt.claims', '', true);
+$$;
+create function pg_temp.publish(target_assignment uuid, tutor uuid default '00000000-0000-0000-0000-0000000000b1')
+returns int language plpgsql as $$
+declare
+  changed int;
+begin
+  perform tests.authenticate_as(tutor);
+  update public.assignments set status = 'published' where id = target_assignment;
+  get diagnostics changed = row_count;
+  perform pg_temp.as_system();
+  return changed;
+end;
+$$;
+create function pg_temp.unpublish(target_assignment uuid) returns void language plpgsql as $$
+begin
+  perform tests.authenticate_as('00000000-0000-0000-0000-0000000000b1');
+  update public.assignments set status = 'draft' where id = target_assignment;
+  perform pg_temp.as_system();
+end;
+$$;
+
+-- Who class one's new work goes to: Kid One's three people, Kid Four's active parent, and parent2
+-- for Kid Six (Kid Six and parent6 have the switch off). Nobody for Kid Two, Three or Five.
+create temporary table class_one_recipients (student_id uuid, recipient_id uuid, recipient_role text);
+insert into class_one_recipients values
+  ('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-0000000005a1', 'student'),
+  ('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-0000000006a1', 'parent'),
+  ('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-0000000006a2', 'parent'),
+  ('00000000-0000-0000-0000-00000000d004', '00000000-0000-0000-0000-0000000006a4', 'parent'),
+  ('00000000-0000-0000-0000-00000000d006', '00000000-0000-0000-0000-0000000006a2', 'parent');
+
+
+-- AC-8.1: publishing queues one email per recipient per enrolled student ---------------------
+select is(pg_temp.publish('00000000-0000-0000-0000-00000000e801'), 1, 'Tutor 1 publishes the online work');
+select results_eq(
+  $$ select * from pg_temp.queued('new_assignment', '00000000-0000-0000-0000-00000000e801') $$,
+  $$ select * from class_one_recipients order by student_id, recipient_id $$,
+  'Online: the active student, each active parent, and parent2 once per child (AC-8.1)');
+select results_eq(
+  $$ select distinct status, attempts::int, send_before from public.email_outbox
+     where assignment_id = '00000000-0000-0000-0000-00000000e801' $$,
+  $$ select 'pending', 0, private.melbourne_day_start(today + 6) from melbourne $$,
+  'Each row is pending, untried, with send_before at the end of the due date (Melbourne)');
+
+select is(pg_temp.publish('00000000-0000-0000-0000-00000000e802'), 1, 'Tutor 1 publishes the paper work');
+select results_eq(
+  $$ select * from pg_temp.queued('new_assignment', '00000000-0000-0000-0000-00000000e802') $$,
+  $$ select * from class_one_recipients order by student_id, recipient_id $$,
+  'Paper homework queues the same recipients (AC-8.1)');
+
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000b1');
+insert into public.assignments (class_id, title, max_mark, status) values -- tutors can't choose the id
+  ('00000000-0000-0000-0000-00000000c001', 'Straight to published', 10, 'published');
+select pg_temp.as_system();
+create temporary table straight as select id from public.assignments where title = 'Straight to published';
+select results_eq(
+  $$ select * from pg_temp.queued('new_assignment', (select id from straight)) $$,
+  $$ select * from class_one_recipients order by student_id, recipient_id $$,
+  'An assignment inserted straight as published queues too');
+select results_eq(
+  $$ select distinct o.send_before, a.published_at + interval '7 days' from public.email_outbox o
+     join public.assignments a on a.id = o.assignment_id
+     where o.assignment_id = (select id from straight) $$,
+  $$ select a.published_at + interval '7 days', a.published_at + interval '7 days'
+     from public.assignments a where a.id = (select id from straight) $$,
+  'With no due date, send_before is 7 days after publishing');
+select is_empty(
+  $$ select 1 from public.email_outbox o join public.profiles p on p.id = o.recipient_id
+     where p.role not in ('student', 'parent')
+        or o.recipient_id in ('00000000-0000-0000-0000-0000000006a3', '00000000-0000-0000-0000-0000000005a4',
+                              '00000000-0000-0000-0000-0000000005a6', '00000000-0000-0000-0000-0000000006a6') $$,
+  'Tutors, admins, deactivated accounts and switched-off people are never queued (AC-8.11)');
+select is_empty(
+  $$ select 1 from public.email_outbox where status = 'failed' $$,
+  'Nobody without a recipient is recorded as a failure (AC-8.11)');
+
+-- Editing a published assignment (not its status) queues nothing more.
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000b1');
+update public.assignments set title = 'Online due soon (edited)' where id = '00000000-0000-0000-0000-00000000e801';
+select pg_temp.as_system();
+select is((select count(*)::int from public.email_outbox where assignment_id = '00000000-0000-0000-0000-00000000e801'),
+  5, 'Editing published work queues nothing more');
+
+
+-- AC-8.3: republishing never notifies --------------------------------------------------------
+select pg_temp.unpublish('00000000-0000-0000-0000-00000000e801');
+select is((select status from public.assignments where id = '00000000-0000-0000-0000-00000000e801'), 'draft',
+  'Tutor 1 moves the work back to draft before anyone starts');
+select is(pg_temp.publish('00000000-0000-0000-0000-00000000e801'), 1, 'and publishes it again');
+select results_eq(
+  $$ select * from pg_temp.queued('new_assignment', '00000000-0000-0000-0000-00000000e801') $$,
+  $$ select * from class_one_recipients order by student_id, recipient_id $$,
+  'Still exactly the original rows: no second email, within the 90-day outbox retention as AC-3.5 (AC-8.3)');
+
+
+-- AC-8.4: later joiners get nothing, and nothing is queued already expired ------------------
+select tests.create_family_account('00000000-0000-0000-0000-0000000005a7', 'kid7@test.local', 'student');
+insert into public.students (id, full_name, year_level, profile_id, consent_recorded_at, consent_source) values
+  ('00000000-0000-0000-0000-00000000d007', 'Kid Seven', 8, '00000000-0000-0000-0000-0000000005a7', now(), 'admin');
+insert into public.enrolments (class_id, student_id) values
+  ('00000000-0000-0000-0000-00000000c001', '00000000-0000-0000-0000-00000000d007');
+select is_empty(
+  $$ select 1 from public.email_outbox where student_id = '00000000-0000-0000-0000-00000000d007' $$,
+  'A student enrolled after publishing gets no "new assignment" email for that work (AC-8.4)');
+select is(pg_temp.publish('00000000-0000-0000-0000-00000000e803'), 1, 'Tutor 1 publishes the no-due-date work');
+select results_eq(
+  $$ select recipient_id from public.email_outbox
+     where assignment_id = '00000000-0000-0000-0000-00000000e803' and student_id = '00000000-0000-0000-0000-00000000d007' $$,
+  $$ values ('00000000-0000-0000-0000-0000000005a7'::uuid) $$,
+  'but does get one for work published after they joined');
+
+insert into public.assignments (id, class_id, title, due_on, max_mark) values
+  ('00000000-0000-0000-0000-00000000e807', '00000000-0000-0000-0000-00000000c001', 'Already overdue',
+   (select today - 1 from melbourne), 10),
+  ('00000000-0000-0000-0000-00000000e808', '00000000-0000-0000-0000-00000000c001', 'Due today',
+   (select today from melbourne), 10);
+select is(pg_temp.publish('00000000-0000-0000-0000-00000000e807'), 1, 'Work due yesterday is published');
+select is_empty(
+  $$ select 1 from public.email_outbox where assignment_id = '00000000-0000-0000-0000-00000000e807' $$,
+  'and queues nothing, so there''s never a false Failed row (AC-8.4)');
+select is(pg_temp.publish('00000000-0000-0000-0000-00000000e808'), 1, 'Work due today is published');
+select results_eq(
+  $$ select count(*)::int, min(send_before) from public.email_outbox
+     where assignment_id = '00000000-0000-0000-0000-00000000e808' $$,
+  $$ select 6, private.melbourne_day_start(today + 1) from melbourne $$,
+  'and still queues, until midnight at the end of today (AC-8.4)');
+
+
+-- AC-8.15: nobody can queue for work they can't publish ------------------------------------
+insert into public.assignments (id, class_id, title, max_mark) values
+  ('00000000-0000-0000-0000-00000000e809', '00000000-0000-0000-0000-00000000c001', 'Tutor two tries', 10);
+select is(pg_temp.publish('00000000-0000-0000-0000-00000000e809', '00000000-0000-0000-0000-0000000000b2'), 0,
+  'Tutor 2 can''t publish class one''s draft');
+select is_empty(
+  $$ select 1 from public.email_outbox where assignment_id = '00000000-0000-0000-0000-00000000e809' $$,
+  'so nothing is queued for it (AC-8.15)');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
+select throws_ok(
+  $$ insert into public.email_outbox (kind, assignment_id, student_id, recipient_id, recipient_role)
+     values ('new_assignment', '00000000-0000-0000-0000-00000000e809', '00000000-0000-0000-0000-00000000d001',
+             '00000000-0000-0000-0000-0000000005a1', 'student') $$,
+  '42501', null, 'A student can''t write to the outbox');
+select throws_ok($$ select id from public.email_outbox $$, '42501', null, 'or read it');
+select throws_ok($$ select private.queue_due_tomorrow_emails_for(current_date) $$, '42501', null,
+  'or run the reminder queue');
+select pg_temp.as_system();
+select tests.authenticate_as('00000000-0000-0000-0000-0000000006a1');
+select throws_ok($$ select id from public.email_outbox $$, '42501', null, 'A parent can''t read the outbox');
+select pg_temp.as_system();
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000b1');
+select throws_ok(
+  $$ insert into public.email_outbox (kind, assignment_id, student_id, recipient_id, recipient_role)
+     values ('new_assignment', '00000000-0000-0000-0000-00000000e809', '00000000-0000-0000-0000-00000000d001',
+             '00000000-0000-0000-0000-0000000005a1', 'student') $$,
+  '42501', null, 'Nor can a tutor');
+select pg_temp.as_system();
+
+
+-- AC-8.12: publishing never fails because of email -----------------------------------------
+savepoint cap_zero;
+create or replace function private.email_daily_cap()
+returns int language sql immutable set search_path = '' as $$ select 0 $$;
+insert into public.assignments (id, class_id, title, max_mark) values
+  ('00000000-0000-0000-0000-00000000e810', '00000000-0000-0000-0000-00000000c001', 'Cap is full', 10);
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000b1');
+select lives_ok($$ update public.assignments set status = 'published' where id = '00000000-0000-0000-0000-00000000e810' $$,
+  'With the daily cap used up, publishing still succeeds (AC-8.12)');
+select pg_temp.as_system();
+delete from vault.secrets where name = 'notify_worker_secret';
+insert into public.assignments (id, class_id, title, max_mark) values
+  ('00000000-0000-0000-0000-00000000e811', '00000000-0000-0000-0000-00000000c001', 'No worker secret', 10);
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000b1');
+select lives_ok($$ update public.assignments set status = 'published' where id = '00000000-0000-0000-0000-00000000e811' $$,
+  'With no worker secret in Vault, publishing still succeeds (AC-8.12)');
+select pg_temp.as_system();
+select private.kick_email_worker();
+select results_eq(
+  $$ select distinct status from public.email_outbox where assignment_id = '00000000-0000-0000-0000-00000000e811' $$,
+  $$ values ('pending') $$, 'and its rows wait, pending, nothing lost');
+rollback to savepoint cap_zero;
+
+
+-- AC-8.11: no-recipient classes publish and run the daily queue without error ---------------
+savepoint no_recipients;
+delete from public.student_guardians
+where student_id = '00000000-0000-0000-0000-00000000d006' and parent_id = '00000000-0000-0000-0000-0000000006a2';
+insert into public.enrolments (class_id, student_id) values
+  ('00000000-0000-0000-0000-00000000c002', '00000000-0000-0000-0000-00000000d002'),
+  ('00000000-0000-0000-0000-00000000c002', '00000000-0000-0000-0000-00000000d003'),
+  ('00000000-0000-0000-0000-00000000c002', '00000000-0000-0000-0000-00000000d005'),
+  ('00000000-0000-0000-0000-00000000c002', '00000000-0000-0000-0000-00000000d006');
+update public.assignments set due_on = (select today + 1 from melbourne)
+where id = '00000000-0000-0000-0000-00000000e804';
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000b2');
+select lives_ok($$ update public.assignments set status = 'published' where id = '00000000-0000-0000-0000-00000000e804' $$,
+  'Tutor 2 publishes to a class of roster-only, invited, parentless and switched-off students');
+select pg_temp.as_system();
+update public.assignments set published_at = now() - interval '3 days' where id = '00000000-0000-0000-0000-00000000e804';
+select lives_ok($$ select private.queue_due_tomorrow_emails_for((select today from melbourne)) $$,
+  'and the daily reminder queue runs for it');
+select is_empty(
+  $$ select 1 from public.email_outbox where assignment_id = '00000000-0000-0000-0000-00000000e804' $$,
+  'Neither queues anything (AC-8.11)');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select is_empty($$ select id from public.admin_email_problems() $$,
+  'and the admin list stays empty (AC-8.11)');
+select pg_temp.as_system();
+rollback to savepoint no_recipients;
+
+
+-- AC-8.5 / AC-8.6: the daily reminder queue --------------------------------------------------
+-- e805 is online and due tomorrow; it was published during set-up, i.e. today.
+delete from public.email_outbox;
+select private.queue_due_tomorrow_emails_for((select today from melbourne));
+select is_empty($$ select 1 from public.email_outbox $$,
+  'Published today, the day before it''s due: no reminder; the "new assignment" email covers it (AC-8.6)');
+
+update public.assignments set published_at = (select private.melbourne_day_start(today - 1) + interval '12 hours' from melbourne)
+where id = '00000000-0000-0000-0000-00000000e805';
+select private.queue_due_tomorrow_emails_for((select today from melbourne));
+select results_eq(
+  $$ select * from pg_temp.queued('due_tomorrow', '00000000-0000-0000-0000-00000000e805') $$,
+  $$ select * from class_one_recipients
+     union all select '00000000-0000-0000-0000-00000000d007', '00000000-0000-0000-0000-0000000005a7', 'student'
+     order by 1, 2 $$,
+  'Published yesterday (Melbourne): reminders for each recipient of each student not handed in (AC-8.5)');
+select results_eq(
+  $$ select distinct status, send_before from public.email_outbox where kind = 'due_tomorrow' $$,
+  $$ select 'pending', private.melbourne_day_start(today + 1) from melbourne $$,
+  'Each is pending, with send_before at the start of the due date (AC-8.7)');
+select is(
+  (select count(*)::int from public.email_outbox where student_id = '00000000-0000-0000-0000-00000000d007'),
+  1, 'Kid Seven, enrolled after publishing, is reminded too (only "new assignment" skips later joiners)');
+select private.queue_due_tomorrow_emails_for((select today from melbourne));
+select is((select count(*)::int from public.email_outbox where kind = 'due_tomorrow'), 6,
+  'A second run the same day adds nothing (unique key)');
+
+-- Hand-in status at queue time
+delete from public.email_outbox;
+insert into public.assignment_results (assignment_id, student_id, status) values
+  ('00000000-0000-0000-0000-00000000e805', '00000000-0000-0000-0000-00000000d001', 'in_progress'),
+  ('00000000-0000-0000-0000-00000000e805', '00000000-0000-0000-0000-00000000d004', 'submitted');
+select private.queue_due_tomorrow_emails_for((select today from melbourne));
+select is((select count(*)::int from public.email_outbox where student_id = '00000000-0000-0000-0000-00000000d001'), 3,
+  'In progress: still reminded (AC-8.5)');
+select is((select count(*)::int from public.email_outbox where student_id = '00000000-0000-0000-0000-00000000d004'), 0,
+  'Handed in: no reminder (AC-8.6)');
+delete from public.assignment_results where assignment_id = '00000000-0000-0000-0000-00000000e805';
+delete from public.email_outbox;
+
+-- Not sent: no due date, paper, a due date that isn't tomorrow
+update public.assignments set published_at = now() - interval '3 days'
+where id in ('00000000-0000-0000-0000-00000000e802', '00000000-0000-0000-0000-00000000e803');
+update public.assignments set due_on = (select today + 1 from melbourne)
+where id = '00000000-0000-0000-0000-00000000e802';
+select private.queue_due_tomorrow_emails_for((select today from melbourne));
+select is((select count(*)::int from public.email_outbox where assignment_id = '00000000-0000-0000-0000-00000000e803'), 0,
+  'No due date: no reminder (AC-8.6)');
+select is((select count(*)::int from public.email_outbox where assignment_id = '00000000-0000-0000-0000-00000000e802'), 0,
+  'Paper homework due tomorrow: no reminder (AC-8.6)');
+select is((select count(*)::int from public.email_outbox where assignment_id = '00000000-0000-0000-0000-00000000e801'), 0,
+  'Online work due in 5 days: no reminder yet');
+select is((select count(*)::int from public.email_outbox where assignment_id = '00000000-0000-0000-0000-00000000e805'), 6,
+  'Only the online work due tomorrow is reminded');
+
+-- Draft work due tomorrow is never reminded.
+select pg_temp.unpublish('00000000-0000-0000-0000-00000000e805');
+delete from public.email_outbox;
+select private.queue_due_tomorrow_emails_for((select today from melbourne));
+select is_empty($$ select 1 from public.email_outbox $$, 'Draft work: no reminder');
+select pg_temp.publish('00000000-0000-0000-0000-00000000e805');
+update public.assignments set published_at = now() - interval '3 days' where id = '00000000-0000-0000-0000-00000000e805';
+delete from public.email_outbox;
+
+
+-- The cron entry: hourly at :10, acting only in the 3 pm hour --------------------------------
+select results_eq(
+  $$ select schedule, command, active from cron.job where jobname = 'due-tomorrow-reminders' $$,
+  $$ values ('10 * * * *', 'select private.queue_due_tomorrow_emails()', true) $$,
+  'cron.job has due-tomorrow-reminders, hourly at 10 past');
+select private.queue_due_tomorrow_emails();
+select is(
+  (select count(*)::int from public.email_outbox where kind = 'due_tomorrow'),
+  case when private.is_reminder_hour(now()) then 6 else 0 end,
+  'The cron entry queues today''s reminders only in the Melbourne 3 pm hour (whatever hour this runs in)');
+delete from public.email_outbox;
+
+
 select * from finish();
 rollback;

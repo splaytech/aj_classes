@@ -169,6 +169,102 @@ revoke execute on function
 from public, anon, authenticated;
 
 -- ---------------------------------------------------------------------------
+-- Step 5. Queue "new assignment" on publish (AC-8.1, AC-8.3, AC-8.4, AC-8.12)
+-- ---------------------------------------------------------------------------
+
+-- Runs in the publisher's transaction: a rolled-back publish queues nothing, and a send failure
+-- never reaches the tutor. Students enrolled later get nothing (AC-8.4). Nothing is queued once
+-- the deadline has passed (work published after its due date), so there's never a false Failed row.
+-- published_at is set by the BEFORE trigger check_assignment_status, so it's there already.
+create function private.queue_new_assignment_emails()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  deadline timestamptz;
+begin
+  if tg_op = 'UPDATE' and old.status = 'published' then
+    return null; -- already published before this change
+  end if;
+  deadline := private.new_assignment_send_before(new.due_on, new.published_at);
+  if deadline <= now() then
+    return null;
+  end if;
+  insert into public.email_outbox (kind, assignment_id, student_id, recipient_id, recipient_role, send_before)
+  select 'new_assignment', new.id, e.student_id, r.profile_id, r.recipient_role, deadline
+  from public.enrolments e
+  cross join lateral private.email_recipients('new_assignment', new.id, e.student_id) r
+  where e.class_id = new.class_id
+  on conflict on constraint email_outbox_once do nothing; -- republishing never notifies (AC-8.3)
+  return null;
+end;
+$$;
+
+-- OLD can't be referenced in WHEN for an INSERT-or-UPDATE trigger, so the old status is checked inside.
+create trigger assignments_queue_new_assignment_email
+  after insert or update of status on public.assignments
+  for each row
+  when (new.status = 'published')
+  execute function private.queue_new_assignment_emails();
+
+-- ---------------------------------------------------------------------------
+-- Step 6. Queue "due tomorrow" from an hourly job (AC-8.5, AC-8.6)
+-- ---------------------------------------------------------------------------
+
+-- One day's reminders, for work due the day after `today` (Melbourne). Split from the cron entry
+-- so pgTAP can call it for any day. Class active, enrolment, online and not handed in are all
+-- inside email_recipients, so the queue and the claim agree.
+create function private.queue_due_tomorrow_emails_for(today date)
+returns void
+language sql
+volatile
+security definer
+set search_path = ''
+as $$
+  insert into public.email_outbox (kind, assignment_id, student_id, recipient_id, recipient_role, send_before)
+  select 'due_tomorrow', a.id, e.student_id, r.profile_id, r.recipient_role,
+         private.melbourne_day_start(today + 1)
+  from public.assignments a
+  join public.enrolments e on e.class_id = a.class_id
+  cross join lateral private.email_recipients('due_tomorrow', a.id, e.student_id, today + 1) r
+  where a.status = 'published'
+    and a.due_on = today + 1
+    -- AC-8.6: skip work published on the day before it's due (that's today) or later; its
+    -- "new assignment" email covers it. Work published yesterday or earlier gets a reminder.
+    and private.melbourne_date(a.published_at) < today
+  on conflict on constraint email_outbox_once do nothing
+$$;
+
+-- pg_cron entry: hourly at :10, acts only in the Melbourne 15:00 hour (ADR-0008 decision 4).
+-- A missed run has no catch-up (02b §8.3 [ASSUMPTION]).
+create function private.queue_due_tomorrow_emails()
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+begin
+  if not private.is_reminder_hour(now()) then
+    return;
+  end if;
+  perform private.queue_due_tomorrow_emails_for(private.melbourne_date(now()));
+end;
+$$;
+
+revoke execute on function
+  private.queue_new_assignment_emails(),
+  private.queue_due_tomorrow_emails_for(date),
+  private.queue_due_tomorrow_emails()
+from public, anon, authenticated;
+
+-- cron.schedule replaces a job of the same name, so re-running this is safe. Kill switch
+-- (supabase/README.md): select cron.unschedule('due-tomorrow-reminders');
+select cron.schedule('due-tomorrow-reminders', '10 * * * *', $$select private.queue_due_tomorrow_emails()$$);
+
+-- ---------------------------------------------------------------------------
 -- Step 7. "Work returned" uses the shared function
 -- ---------------------------------------------------------------------------
 

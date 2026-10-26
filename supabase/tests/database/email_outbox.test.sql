@@ -69,6 +69,7 @@ insert into public.assignment_questions (id, assignment_id, kind, prompt, option
   ('00000000-0000-0000-0000-00000000f001', '00000000-0000-0000-0000-00000000e001', 'written', 'Explain', '{}', null, 3),
   ('00000000-0000-0000-0000-00000000f003', '00000000-0000-0000-0000-00000000e003', 'multiple_choice', 'Pick A', '{A,B}', 0, 1);
 update public.assignments set status = 'published';
+delete from public.email_outbox; -- item 8: publishing queues "new assignment" rows; this file tests work_returned
 
 -- Expected recipients for Kid One: kid1, parent1, parent2 (parent3 is deactivated).
 create temporary table kid_one_recipients (recipient_id uuid, recipient_role text);
@@ -632,6 +633,7 @@ delete from public.email_outbox;
 insert into public.assignments (id, class_id, title, max_mark) values
   ('00000000-0000-0000-0000-00000000e011', '00000000-0000-0000-0000-00000000c001', 'Imported paper', 10);
 update public.assignments set status = 'published' where id = '00000000-0000-0000-0000-00000000e011';
+delete from public.email_outbox; -- the publish queued "new assignment" rows (item 8)
 select set_config('request.jwt.claims', '', true); -- no signed-in staff: like a seed or an import
 insert into public.assignment_results (assignment_id, student_id, status, mark)
 values ('00000000-0000-0000-0000-00000000e011', '00000000-0000-0000-0000-00000000d001', 'marked', 6);
