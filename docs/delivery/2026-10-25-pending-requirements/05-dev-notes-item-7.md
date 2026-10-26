@@ -272,3 +272,45 @@ Full check after round 3, on `995c9ee` plus these notes, after `pnpm db:reset`:
 - `test:functions`: 169 `ok`, 0 `not ok`.
 - `test:smoke`: 9 passed.
 - No-Supabase build: `check:hosted-ref` 0 files. `test:csp`: 19 passed.
+
+### BUG-15 (TSR round 1): refused sign-outs after a deactivation
+
+**Cause, checked locally.** supabase-js 2.117.2's `signOut({ scope: 'local' })` still sends `POST /auth/v1/logout?scope=local` whenever there's a session (`GoTrueClient._signOut`), to revoke this session's refresh token on the server. It then clears storage, and it ignores a 401, 403 or 404 itself. Deactivation bans the account (`account-admin` `set-active`). Probed on the local stack:
+
+- the ban leaves the session and its refresh token in place (1 session, 1 live refresh token before and after);
+- `/logout` for the banned user answers **403 `user_banned`** and revokes nothing;
+- a refresh with that token answers **400 `user_banned`**.
+
+So the call can't do anything, and the browser logs each refused one. Both layout guards make it, in parallel, which gives two lines.
+
+**Fix (`e748a61`, services and lib only).** For the guard's sign-out (it only happens for a deactivated account), `guardPortalPage` calls the new `forgetDeactivatedSession()`. That removes only this device's stored session (`clearStoredSession()` in `supabase.client.ts`: the session key plus the `-user` and `-code-verifier` copies). It sends no request, so both parallel guards can call it, and the second finds nothing.
+
+- The storage key is pinned explicitly to supabase-js's own default (`sb-<first host label>-auth-token`), so nobody is signed out by the change.
+- Sign-outs people choose (`PortalLayout`, join, two-step pages) still use `signOut()`, which revokes the session on the server.
+- Residual: if a deactivation's ban step failed (`ban_failed`, which the admin already sees and retries), the account's refresh token isn't revoked on the server. It's removed from this device, and the database refuses the inactive profile's reads anyway.
+
+**Tests.**
+
+- `lib/portal-guard.test.ts`: two parallel guards for a deactivated account both redirect to `/portal/login?reason=inactive`, and `signOut` is never called.
+- `services/supabase.client.test.ts` (3): the pinned key matches the default for local and hosted URLs; only the session's keys are cleared; a second clear finds nothing.
+
+**Browser repro (local, scripted, the BUG-15 steps).** The student was signed in on `/portal/student`, then the admin deactivated Aarav Demo (banned). The student then reloaded.
+
+| | Old guard (`8d29762`) | Fix |
+|---|---|---|
+| Landed on | `/portal/login?reason=inactive` | `/portal/login?reason=inactive` |
+| `POST /auth/v1/logout` | 2, both 403 | **0** |
+| Console errors | 2 ("Failed to load resource … 403") | **0** |
+| Stored session afterwards | none | none |
+
+A later visit to `/portal/student` goes to `/portal/login?next=…`, so the person stays signed out.
+
+Full check after BUG-15, on `e748a61` plus these notes, after `pnpm db:reset`:
+
+- format, lint and typecheck: clean.
+- Vitest: **62 files, 525 tests**; e2e unit 6/6.
+- Local-exports production build: `check:hosted-ref` 0 files of 153.
+- `db:test`: 15 files, 590 tests, PASS.
+- `test:functions`: 169 `ok`, 0 `not ok`.
+- `test:smoke`: 9 passed.
+- No-Supabase build: `check:hosted-ref` 0 files. `test:csp`: 19 passed.
