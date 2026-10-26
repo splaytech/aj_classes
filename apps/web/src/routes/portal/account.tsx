@@ -58,6 +58,8 @@ const FIELD_IDS = {
   consents: 'account-consent',
   notificationsHeading: 'notifications-heading',
   workReturned: 'notify-work-returned',
+  newAssignment: 'notify-new-assignment',
+  dueTomorrow: 'notify-due-tomorrow',
 };
 
 export function meta() {
@@ -272,10 +274,17 @@ function ChoicesSection() {
 }
 
 /** The "work returned" email switch (AC-3.6). On by default; every email links here. */
+// One switch per email kind, in this order (AC-8.10); one Save for all three.
+const NOTIFICATION_SWITCHES = [
+  'workReturned',
+  'newAssignment',
+  'dueTomorrow',
+] as const satisfies readonly (keyof NotificationSettings)[];
+
 function NotificationsSection() {
   const loaded = useLoaderData<typeof clientLoader>().notifications;
   const [values, setValues] = useState<NotificationSettings>(
-    loaded.ok ? loaded.data : { workReturned: true },
+    loaded.ok ? loaded.data : { workReturned: true, newAssignment: true, dueTomorrow: true },
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -313,20 +322,23 @@ function NotificationsSection() {
       <h2 id={FIELD_IDS.notificationsHeading}>{words.heading}</h2>
       <p className={formStyles.hint}>{words.intro}</p>
       <form className={formStyles.form} onSubmit={handleSubmit} noValidate>
-        <FormControlLabel
-          control={
-            <Switch
-              id={FIELD_IDS.workReturned}
-              checked={values.workReturned}
-              disabled={saving}
-              onChange={(event) => {
-                setSaved(false);
-                setValues({ workReturned: event.target.checked });
-              }}
-            />
-          }
-          label={words.workReturned}
-        />
+        {NOTIFICATION_SWITCHES.map((setting) => (
+          <FormControlLabel
+            key={setting}
+            control={
+              <Switch
+                id={FIELD_IDS[setting]}
+                checked={values[setting]}
+                disabled={saving}
+                onChange={(event) => {
+                  setSaved(false);
+                  setValues({ ...values, [setting]: event.target.checked }); // only this email
+                }}
+              />
+            }
+            label={words[setting]}
+          />
+        ))}
         <FormAlert message={error} />
         {saved && <FormStatus message={words.saved} />}
         <Button type="submit" disabled={saving}>

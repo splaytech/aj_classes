@@ -157,10 +157,17 @@ export type PublicPost = Pick<Post, 'id' | 'publishedAt' | 'title' | 'body'>;
 /** What the compose/edit form on the admin page sends. */
 export type PostInput = { title: string; body: string };
 
-/** A student's or parent's email switches (Account → Notifications; ADR-0004). */
-export type NotificationSettings = { workReturned: boolean };
+/** A student's or parent's email switches (Account → Notifications; ADR-0004, ADR-0008). */
+export type NotificationSettings = {
+  workReturned: boolean;
+  newAssignment: boolean;
+  dueTomorrow: boolean;
+};
 
-/** One row of the admin Emails page: a "work returned" email that failed or is still waiting. */
+/** The kinds of portal email; must match the email_outbox.kind check (ADR-0008). */
+export type EmailKind = 'work_returned' | 'new_assignment' | 'due_tomorrow';
+
+/** One row of the admin Emails page: a portal email that failed or is still waiting. */
 export type EmailProblemState = 'failed' | 'waiting';
 export type EmailProblemReason =
   | 'rejected'
@@ -170,12 +177,14 @@ export type EmailProblemReason =
   | 'no_address'
   | 'max_attempts'
   | 'config_missing'
+  | 'too_late'
   | 'daily_limit'
   | 'retrying'
   | 'not_attempted';
 export type EmailProblem = {
   id: string;
-  at: string; // ISO; when the work was returned (the row was queued)
+  at: string; // ISO; when the row was queued (work returned, published, or the reminder run)
+  kind: EmailKind;
   recipientRole: 'student' | 'parent';
   assignmentTitle: string;
   state: EmailProblemState;

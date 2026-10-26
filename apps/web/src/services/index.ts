@@ -128,6 +128,7 @@ export type {
   Consents,
   DayOfWeek,
   Delivery,
+  EmailKind,
   EmailProblem,
   EmailProblemReason,
   EmailProblemState,
