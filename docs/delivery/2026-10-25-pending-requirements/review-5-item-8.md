@@ -42,3 +42,24 @@ CHANGES_REQUESTED → resolved by the lead (docs only)
 3. Dev notes :143 contradicted §9 D13. **Fixed:** "(superseded by §9 D13 …)".
 
 **Lead ruling:** the blocking item was documentation only and is fixed as specified, so no further code round is needed; the Tester's round checks the docs text.
+
+---
+
+CHANGES_REQUESTED
+
+# Review 5 — item 8, round 3
+
+**Scope:** `467ded7..7301a3c` (72ccd1f P2, edb4f6f P3, ef66c48 P4, 7301a3c dev notes). format, lint, typecheck, Vitest 540, pgTAP 16 / 712 all pass, but miss Blocking 1.
+
+## Blocking
+
+1. **`20261028100000_more_email_alerts.sql:117-121`: a dated "new assignment" email that expires naturally now ends `skipped`, not `failed / too_late`.** The deadline is `melbourne_day_start(due + 1)` (:84); once past it, `melbourne_date(now())` is `due + 1`, so the new `a.due_on >= melbourne_date(now())` is false although the due date never changed. Both skip sites run before the sweep, so no dated row can reach "Too late to send" (01b :662, AC-8.7, 03b §8.10 item 8), hiding cap pressure. Tests miss it because the AC-8.7 fixtures (`email_alerts.test.sql:632-633`, ~658) use a `send_before` that can't occur with that due date. **Fix:** skip only when the due date moved earlier than queued, e.g. `a.due_on is null or a.due_on >= melbourne_date(now()) or a.due_on + 1 >= queued_due_on`; note the null `queued_due_on` at queue time and the no-due-date-at-queue case in the comment. Realistic fixtures (past D, `send_before = melbourne_day_start(D + 1)`) → kick ends `failed / too_late`; add a kick-path "re-dated to yesterday → skipped" case; update dev notes §10 and §5.
+
+## Non-blocking
+
+2. `email_alerts.test.sql:787-790`: the "due-tomorrow unchanged" assertion runs on another assignment after a rollback, so it proves nothing about P3; replace with the natural-expiry case and fix §10's wording.
+3. P2 correct (matches `listActivity`/`listStaff`; covered in `ADMIN_READS`).
+4. P4 correct (`test-notifications.mjs:624-634`; re-runs still start clean).
+5. P5 / D14 docs and §5 line ranges accurate.
+
+**Lead note:** this is the third CHANGES_REQUESTED in a row for item 8's code stage (rounds 1, 2, 3), which is the /deliver pause condition. Item 8 is paused for Saurabh here.
