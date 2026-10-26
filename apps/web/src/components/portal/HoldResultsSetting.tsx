@@ -46,12 +46,22 @@ export function HoldResultsSetting({
   const hintId = useId();
   // The value just clicked, shown at once while it saves and the page reloads (finding 5).
   const [pending, setPending] = useState<boolean | null>(null);
+  // After a save, the clicked value stays until the reloaded value arrives. revalidate() can
+  // resolve a frame before the new data renders, so clearing earlier would flicker (round 2).
+  const [lastHoldResults, setLastHoldResults] = useState(holdResults);
+  if (holdResults !== lastHoldResults) {
+    setLastHoldResults(holdResults);
+    setPending(null);
+  }
 
   async function change(event: ChangeEvent<HTMLInputElement>) {
     const hold = event.target.checked;
     setPending(hold);
-    if (await action.run(() => saveHold(assignmentId, hold))) await onChanged();
-    setPending(null); // after a refusal this shows the saved value again
+    if (!(await action.run(() => saveHold(assignmentId, hold)))) {
+      setPending(null); // refused: show the saved value again
+      return;
+    }
+    await onChanged();
   }
 
   return (

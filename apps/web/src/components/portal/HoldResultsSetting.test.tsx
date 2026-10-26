@@ -11,15 +11,21 @@ vi.mock('@/services', () => ({ setHoldResults: vi.fn() }));
 
 function renderSetting(isPublished: boolean, holdResults = false) {
   const onChanged = vi.fn();
-  render(
+  const setting = (hold: boolean) => (
     <HoldResultsSetting
       assignmentId="assignment-1"
-      holdResults={holdResults}
+      holdResults={hold}
       isPublished={isPublished}
       onChanged={onChanged}
-    />,
+    />
   );
-  return { onChanged, checkbox: screen.getByRole('checkbox', { name: HOLD_RESULTS.label }) };
+  const { rerender } = render(setting(holdResults));
+  return {
+    onChanged,
+    checkbox: screen.getByRole('checkbox', { name: HOLD_RESULTS.label }),
+    /** The page reloaded with this saved value. */
+    reloadWith: (hold: boolean) => rerender(setting(hold)),
+  };
 }
 
 describe('HoldResultsSetting (item 7)', () => {
@@ -51,7 +57,7 @@ describe('HoldResultsSetting (item 7)', () => {
       }),
     );
     const user = setupUser();
-    const { onChanged, checkbox } = renderSetting(false);
+    const { onChanged, checkbox, reloadWith } = renderSetting(false);
 
     await user.click(checkbox);
     expect(checkbox).toBeChecked();
@@ -59,7 +65,13 @@ describe('HoldResultsSetting (item 7)', () => {
 
     finishSave({ ok: true, data: undefined });
     await waitFor(() => expect(onChanged).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(checkbox).toBeEnabled());
+    // Saved, but the reloaded value hasn't arrived yet: no flicker back to unticked.
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toBeDisabled();
+
+    reloadWith(true);
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toBeEnabled();
   });
 
   it('is locked, showing its value and the locked note, once published (AC-7.1)', () => {
