@@ -447,6 +447,23 @@ select ok(
   'Nobody but the owner runs the private helpers');
 
 
+-- AC-7.13 Deleting the assignment deletes the result ---------------------------------
+delete from public.enrolments
+where class_id = '00000000-0000-0000-0000-00000000c001' and student_id = '00000000-0000-0000-0000-00000000d001';
+delete from public.assignments where id = '00000000-0000-0000-0000-00000000e008';
+select is(
+  (select count(*)::int from public.assignment_results where assignment_id = '00000000-0000-0000-0000-00000000e008'),
+  0, 'Deleting the assignment deletes its results');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
+select results_eq(
+  $$ select title from public.student_assignments() order by title $$,
+  $$ values ('Held quiz'), ('Open quiz') $$,
+  'so the removed student no longer lists it');
+select throws_ok($$ select public.student_assignment('00000000-0000-0000-0000-00000000e008') $$,
+  'P0002', 'not_found', 'and can''t open it');
+reset role;
+
+
 -- AC-7.13 Deleting the roster row deletes the results --------------------------------
 delete from public.students where id = '00000000-0000-0000-0000-00000000d001';
 select is(
