@@ -17,13 +17,14 @@ function renderSetting(isPublished: boolean, holdResults = false) {
       holdResults={hold}
       isPublished={isPublished}
       onChanged={onChanged}
+      revision={{ hold }} // a new object on every render, as the page's loader data is per reload
     />
   );
   const { rerender } = render(setting(holdResults));
   return {
     onChanged,
     checkbox: screen.getByRole('checkbox', { name: HOLD_RESULTS.label }),
-    /** The page reloaded with this saved value. */
+    /** The page's data reloaded, with this saved value. */
     reloadWith: (hold: boolean) => rerender(setting(hold)),
   };
 }
@@ -71,6 +72,20 @@ describe('HoldResultsSetting (item 7)', () => {
 
     reloadWith(true);
     expect(checkbox).toBeChecked();
+    expect(checkbox).toBeEnabled();
+  });
+
+  it('shows the reloaded value, enabled, even when it comes back unchanged (P4)', async () => {
+    vi.mocked(setHoldResults).mockResolvedValue({ ok: true, data: undefined });
+    const user = setupUser();
+    const { onChanged, checkbox, reloadWith } = renderSetting(false);
+
+    await user.click(checkbox);
+    await waitFor(() => expect(onChanged).toHaveBeenCalledTimes(1));
+    expect(checkbox).toBeChecked(); // still the clicked value until the reload renders
+
+    reloadWith(false); // another tab turned it back off before the reload
+    expect(checkbox).not.toBeChecked();
     expect(checkbox).toBeEnabled();
   });
 

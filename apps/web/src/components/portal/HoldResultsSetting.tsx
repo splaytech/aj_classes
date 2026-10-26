@@ -20,8 +20,10 @@ type HoldResultsSettingProps = {
   assignmentId: string;
   holdResults: boolean;
   isPublished: boolean;
-  /** Reloads the page's data. The tick stays as clicked until this finishes. */
+  /** Reloads the page's data. The tick stays as clicked until the reloaded data renders. */
   onChanged: () => void | Promise<void>;
+  /** Any value that changes on every reload of the page's data, e.g. the loader data object. */
+  revision: unknown;
 };
 
 /**
@@ -41,17 +43,23 @@ export function HoldResultsSetting({
   holdResults,
   isPublished,
   onChanged,
+  revision,
 }: HoldResultsSettingProps) {
   const action = usePortalAction();
   const hintId = useId();
   // The value just clicked, shown at once while it saves and the page reloads (finding 5).
   const [pending, setPending] = useState<boolean | null>(null);
-  // After a save, the clicked value stays until the reloaded value arrives. revalidate() can
-  // resolve a frame before the new data renders, so clearing earlier would flicker (round 2).
-  const [lastHoldResults, setLastHoldResults] = useState(holdResults);
-  if (holdResults !== lastHoldResults) {
-    setLastHoldResults(holdResults);
-    setPending(null);
+  // After a save, the clicked value stays until the reloaded data renders, then the box shows
+  // whatever came back. Why the revision and not holdResults: if another tab changed it back, the
+  // reload brings the same boolean, and waiting for it to change left the box stuck (Tester P4).
+  // Why not clear when onChanged resolves: revalidate() can resolve a frame before the new data
+  // renders, which flickers (review round 2). Clearing here, in the render that first shows the
+  // new data, avoids both. A reload that lands mid-save (action.busy) is ignored: the save's own
+  // reload follows it.
+  const [lastRevision, setLastRevision] = useState(revision);
+  if (revision !== lastRevision) {
+    setLastRevision(revision);
+    if (!action.busy) setPending(null);
   }
 
   async function change(event: ChangeEvent<HTMLInputElement>) {
@@ -61,7 +69,7 @@ export function HoldResultsSetting({
     try {
       if (await action.run(() => saveHold(assignmentId, hold))) {
         await onChanged();
-        reloaded = true; // the new holdResults prop clears pending, with no flicker
+        reloaded = true; // the new revision clears pending, with no flicker
       }
     } finally {
       if (!reloaded) setPending(null); // refused, or the save or reload threw: show the saved value

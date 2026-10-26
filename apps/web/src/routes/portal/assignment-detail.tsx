@@ -192,6 +192,7 @@ export default function AssignmentDetailPage() {
                 holdResults={assignment.holdResults}
                 isPublished={assignment.isPublished}
                 onChanged={refresh}
+                revision={assignment}
               />
             )}
           </>
