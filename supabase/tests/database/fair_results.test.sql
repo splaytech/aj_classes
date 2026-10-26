@@ -260,6 +260,25 @@ select is(
   'and the tutor''s comment');
 reset role;
 
+-- AC-7.4 per-question feedback on held multiple-choice work keeps the automatic marks
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000b1');
+select lives_ok(
+  $$ update public.assignment_answers set feedback = 'x'
+     where question_id = '00000000-0000-0000-0000-00000000f002'
+       and student_id = '00000000-0000-0000-0000-00000000d001' $$,
+  'The tutor can give feedback on a held multiple-choice answer');
+reset role;
+select results_eq(
+  $$ select awarded_marks, feedback from public.assignment_answers
+     where question_id = '00000000-0000-0000-0000-00000000f002'
+       and student_id = '00000000-0000-0000-0000-00000000d001' $$,
+  $$ values (0::numeric, 'x'::text) $$,
+  'The feedback is stored and the automatic mark is unchanged');
+select is(
+  (select mark from public.assignment_results
+   where assignment_id = '00000000-0000-0000-0000-00000000e001' and student_id = '00000000-0000-0000-0000-00000000d001'),
+  2::numeric, 'and so is the result''s mark');
+
 -- AC-7.8 Removed from a class: returned work stays, read-only and tagged -------------
 -- Kid One now has h1 (returned by the tutor), h2 and r1 (auto-returned), u1 handed in, i1 in
 -- progress and n1 not started.
