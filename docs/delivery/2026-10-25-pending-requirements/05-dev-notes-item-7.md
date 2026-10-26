@@ -287,7 +287,9 @@ So the call can't do anything, and the browser logs each refused one. Both layou
 
 - The storage key is pinned explicitly to supabase-js's own default (`sb-<first host label>-auth-token`), so nobody is signed out by the change.
 - Sign-outs people choose (`PortalLayout`, join, two-step pages) still use `signOut()`, which revokes the session on the server.
-- Residual: if a deactivation's ban step failed (`ban_failed`, which the admin already sees and retries), the account's refresh token isn't revoked on the server. It's removed from this device, and the database refuses the inactive profile's reads anyway.
+- Residuals (accepted):
+  - The guard signs out any account with no readable active profile, which in practice means deactivated. If a deactivation's ban step failed (`ban_failed`, which the admin already sees and retries), or a profile is unreadable some other way while the auth user isn't banned, that refresh token isn't revoked on the server. It's removed from this device, and the database refuses an inactive profile's reads anyway.
+  - Other open tabs aren't told until their next navigation. No `SIGNED_OUT` event is sent, but they share the cleared storage, so their next page load runs the guard and lands on sign-in.
 
 **Tests.**
 
