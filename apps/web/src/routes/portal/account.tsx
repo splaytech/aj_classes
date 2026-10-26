@@ -273,7 +273,6 @@ function ChoicesSection() {
   );
 }
 
-/** The "work returned" email switch (AC-3.6). On by default; every email links here. */
 // One switch per email kind, in this order (AC-8.10); one Save for all three.
 const NOTIFICATION_SWITCHES = [
   'workReturned',
@@ -281,6 +280,10 @@ const NOTIFICATION_SWITCHES = [
   'dueTomorrow',
 ] as const satisfies readonly (keyof NotificationSettings)[];
 
+/**
+ * The three email switches (AC-3.6, AC-8.10): work returned, new work set, due tomorrow. Each is
+ * on by default and controls only its own email; one Save stores all three. Every email links here.
+ */
 function NotificationsSection() {
   const loaded = useLoaderData<typeof clientLoader>().notifications;
   const [values, setValues] = useState<NotificationSettings>(
