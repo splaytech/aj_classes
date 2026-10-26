@@ -382,6 +382,7 @@ export type Database = {
           reason: string | null;
           recipient_id: string;
           recipient_role: string;
+          send_before: string | null;
           sent_at: string | null;
           status: string;
           student_id: string;
@@ -397,6 +398,7 @@ export type Database = {
           reason?: string | null;
           recipient_id: string;
           recipient_role: string;
+          send_before?: string | null;
           sent_at?: string | null;
           status?: string;
           student_id: string;
@@ -411,6 +413,7 @@ export type Database = {
           reason?: string | null;
           recipient_id?: string;
           recipient_role?: string;
+          send_before?: string | null;
           sent_at?: string | null;
           status?: string;
           student_id?: string;
@@ -534,17 +537,23 @@ export type Database = {
       };
       notification_settings: {
         Row: {
+          due_tomorrow: boolean;
+          new_assignment: boolean;
           profile_id: string;
           updated_at: string;
           work_returned: boolean;
         };
         ComputedFields: never;
         Insert: {
+          due_tomorrow?: boolean;
+          new_assignment?: boolean;
           profile_id: string;
           updated_at?: string;
           work_returned?: boolean;
         };
         Update: {
+          due_tomorrow?: boolean;
+          new_assignment?: boolean;
           profile_id?: string;
           updated_at?: string;
           work_returned?: boolean;
@@ -760,6 +769,7 @@ export type Database = {
           assignment_title: string;
           created_at: string;
           id: string;
+          kind: string;
           reason: string;
           recipient_role: string;
           state: string;
@@ -834,14 +844,16 @@ export type Database = {
         }[];
       };
       notify_claim_emails: {
-        Args: Record<PropertyKey, never>;
+        Args: { supported_kinds?: string[] };
         Returns: {
           assignment_id: string;
           assignment_title: string;
           child_first_name: string;
           class_name: string;
+          due_on: string;
           email: string;
           id: string;
+          kind: string;
           recipient_first_name: string;
           recipient_role: string;
           student_id: string;
