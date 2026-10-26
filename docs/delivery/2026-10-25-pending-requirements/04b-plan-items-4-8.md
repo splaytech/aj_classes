@@ -672,6 +672,10 @@ email goes to Mailpit.
   - AC-8.13 and AC-8.17 at 360 px, light and dark, with both new emails in Mailpit's preview at 360 px.
 - [x] **T8.11 Full check.** §0 steps 1–4 (in-repo E2E).
 - [x] **T8.12 Dev notes.** `05-dev-notes-item-8.md`. It names the copied bodies for T2.15.
+> **Paused 26 Oct 2026 by Saurabh** after three CHANGES_REQUESTED rounds on review 5 (see
+> `review-5-item-8.md` round 3, Blocking 1). Item 8 stays unmerged on `feature/more-email-alerts`;
+> the test plan is a DRAFT (not frozen).
+
 - [ ] **T8.13 Reviewer pass.** `review-5-item-8.md`, until it's APPROVED. The reviewer checks the `supported_kinds` default, the claim order, and that the sweep runs before the early return.
 - [ ] **T8.14 Test plan.** `06-test-plan-item-8.md`. It includes item 3's full regression (the claim, the cap, the kick, the admin list) and item 7's AC-7.14 under the new function.
 - [ ] **T8.15 Security review.** `06-security-item-8.md`. It covers:
