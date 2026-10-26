@@ -1,0 +1,5 @@
+list: [{"title":"Number patterns check","is_past_class":true},{"title":"e2e-item7 Held quiz","is_past_class":true}]
+NP: 200 isPastClass=true
+WORD: 403 {"code":"42501","details":null,"hint":null,"message":"not_found"}
+tt maths: 0
+E-69 API: 400 {"code":"P0001","details":null,"hint":null,"message":"not_enrolled"} res=submitted

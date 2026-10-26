@@ -1,0 +1,5 @@
+assignments e2e-item7: 0
+diff exit=0 lines=       0
+e2e: 0 0 0
+outbox waiting: 0
+cron: t

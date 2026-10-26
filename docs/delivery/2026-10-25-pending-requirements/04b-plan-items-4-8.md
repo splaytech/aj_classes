@@ -559,14 +559,14 @@ filters `kind = 'work_returned'` from the start (review-3b finding 3).
     assignment page. With no returned work, student home shows "Nothing returned yet."
 - [x] **T7.9 Full check.** §0 steps 1–3, plus the in-repo `test:smoke` and `test:csp`.
 - [x] **T7.10 Dev notes.** `05-dev-notes-item-7.md`. It names every function body that was copied, with its source file and lines, for T2.15.
-- [ ] **T7.11 Reviewer pass.** `review-5-item-7.md`, until it's APPROVED. The reviewer diffs each rebuilt body against its cited source.
-- [ ] **T7.12 Test plan.** `06-test-plan-item-7.md`: the 03b §7.6 status table as cases, plus the family regression.
-- [ ] **T7.13 Security review.** `06-security-item-7.md`. It covers:
+- [x] **T7.11 Reviewer pass.** `review-5-item-7.md`, until it's APPROVED. The reviewer diffs each rebuilt body against its cited source.
+- [x] **T7.12 Test plan.** `06-test-plan-item-7.md`: the 03b §7.6 status table as cases, plus the family regression.
+- [x] **T7.13 Security review.** `06-security-item-7.md`. It covers:
   - rule (b) is read-only and writes keep `assignment_visible_to`;
   - "removal no longer revokes returned work" (02b §7.4 risk 1, an accepted residual);
   - re-grants after drop and recreate;
   - answers and marks hidden before return.
-- [ ] **T7.14 `/test-and-ship`.** `…/06-test-plan-item-7.md` → `TSR-item-7.md`, merge, push. The close-out names the SHA.
+- [x] **T7.14 `/test-and-ship`.** `…/06-test-plan-item-7.md` → `TSR-item-7.md`, merge, push. The close-out names the SHA.
 
 **15 tasks.**
 

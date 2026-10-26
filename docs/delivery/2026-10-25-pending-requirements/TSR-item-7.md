@@ -149,3 +149,101 @@ Console rule: strict, with only A1–A4. Hosted (`supabase.co` / `unzjnxctkyahtm
 - **R1 (E-12): accepted.** The intent (the seed's two "Number patterns check" emails go out with the exact subjects) was measured on a fresh reset; only the plan's order was wrong (`test:functions` in E-04 clears Mailpit). Round 2 measures it on a fresh reset before E-04.
 - **R2 (E-10): accepted.** The frozen grep's `\b` behaves differently in BSD grep; a per-function grep shows all 7 rebuilt functions are last defined in `fair_results`, and every other E-10 value matched. Round 2 uses the per-function grep.
 - **BUG-15: fixed in item 7, not deferred.** It's Low and pre-existing, but it's a real console error on a flow item 7's cases exercise, and the fix is small. Round 2 re-runs every case.
+
+## Round 2
+
+> **Date:** 26 Oct 2026 · **Build under test:** `feature/fair-results` @ **`6c717df`** (BUG-15 fix `e748a61`, tests `1707ee3`, comment `8752ed3`; review `review-bug-15.md` APPROVED). Round 1 record committed at `8d29762`.
+> **Applied:** R1 (E-12 measured on a fresh reset before E-04) and R2 (E-10's last step as the per-function grep). Nothing else was changed or weakened. Every one of the 69 frozen cases was re-run, plus **E-94**, the BUG-15 regression case.
+> **Lead-approved scope change (not a weakening):** E-07's list grows from 31 to **36** files, adding the BUG-15 fix files `apps/web/src/lib/portal-guard.ts`, `apps/web/src/lib/portal-guard.test.ts`, `apps/web/src/services/auth.service.ts`, `apps/web/src/services/supabase.client.ts` and `apps/web/src/services/supabase.client.test.ts` (`services/index.ts` was already listed). Re-derived from `git diff --name-only develop...HEAD -- apps supabase e2e`.
+> **[re-check] values re-read** (E-01: `git diff --quiet a6727f1 HEAD -- apps …` = 1, the BUG-15 files): Vitest **62 files / 527 tests** (was 60 / 521, +6 from the BUG-15 tests; none dropped); pgTAP 15 / 590 and `fair_results` 83 unchanged.
+> **Environment:** as round 1 (local stack from this worktree, mount `1`, newest migration `20261027100000`; D on :5173; M from `test:csp`; Chromium per leg). Evidence: fresh `item7-run-2/` in the session scratchpad; filtered `*-r2` files and `screenshots-r2/` in `evidence-item-7/`. Key-shape grep over the whole folder: JWT 0, `sb_` keys 0, publishable/secret/service/anon keys 0, TOTP seed 0, passwords 0, `access_token` 0, hosted ref 0.
+
+### Full check
+
+| Step | Result |
+|---|---|
+| `format:check`, `lint`, `typecheck` | Pass |
+| `pnpm test` | Vitest **62 files / 527 tests** passed; e2e unit **6/6** |
+| Production build + `check:hosted-ref` | Pass; `check-hosted-ref: 0 files (of 153 scanned)` |
+| `db:test` | **Files=15, Tests=590**, `Result: PASS` |
+| `test:functions` | **169 `ok`**, 0 `not ok`, "All checks passed." ×3 |
+| `test:smoke` | **9 passed** (43.2 s); port freed; `e2e-%` 0 / 0 / 0 |
+| No-Supabase build + `check:hosted-ref` + `test:csp` | Pass; `0 files (of 153 scanned)`; **19 passed** (29.5 s) |
+
+### Results
+
+Hosted requests: **0** on all 117 recorded legs. Console: only A1–A4 lines (listed under E-91).
+
+| ID | Result | Measured (round 2) |
+|---|---|---|
+| E-01 | PASS | URL local, key `equal`; `.env.example`, `.env.production`; e2e `.env` 0 hosted; no secret names; HEAD `6c717df`, ancestor 0, diff 1 (BUG-15 files: [re-check] values re-read, above) |
+| E-02 | PASS | reset 0; mount 1; `20261027100000` newest; 15 files; cron `t` |
+| E-03 | PASS | `check-ignore` 0; banned-command grep over run scripts and logs 0 |
+| E-12 | PASS (R1) | fresh reset 03:33:15 UTC, before E-04; cron sent both at 03:35:00; `Your work has been marked: Number patterns check`, `Aarav's work has been marked: Number patterns check`; snapshot 6 profiles, 0 held |
+| E-04 | PASS | as the full check above |
+| E-05 | PASS | 9 passed; port 0; `e2e-%` 0, 0, 0 |
+| E-06 | PASS | build 0; 0 files; 19 passed |
+| E-07 | PASS | 36 files = round 1's 31 + the 5 BUG-15 files (lead-approved); 0 under `e2e/`, `supabase/functions/` |
+| E-08 | PASS | 0 lines |
+| E-09 | PASS | `db:types` 0; diff 0 |
+| E-10 | PASS (R2) | column, trigger, 8 × `t` + `{"search_path=\"\""}`, privileges as round 1; per-function grep: all 7 in `20261027100000_fair_results.sql` |
+| E-11 | PASS | `2`, `2`, `2`, `1`, `1`, `1`, `5` |
+| E-20–E-26 | PASS (7) | identical codes and values to round 1 (E-22: 400 `hold_needs_questions` ×2, published paper 400 `assignment_published`; E-23: 400 `assignment_published` ×2, title and back-to-draft 200; E-24: aal1 admin on NAPLAN 200 `true`, reset; families `200 []`, anon 401; E-25: 404 ×2, anon 401 ×2, tutor 403 `not_student`; E-26: `t`, 0 questions) |
+| E-30 | PASS | both 200, 1 `h1`, robots 1, overflow 0, console 0 |
+| E-31 | PASS | five roles land as in round 1, same after reload, console 0 |
+| E-32 | PASS | message; `/portal/login`; 0 token keys; 1 A1 line |
+| E-33–E-38 | PASS (6) | as round 1: switch only with a question, exact label/hint, paper 0, immediate tick (+200 ms checked + disabled; still disabled after save; enabled after reload), double click 1 PATCH, locked note, back to draft editable |
+| E-92 | PASS | untick 90 samples / 0 wrong, tick 90 / 0 wrong; 1 PATCH each; enabled at ~3.5 s; DB `t`; console 0 |
+| E-93 | PASS | forced old value → checked and **enabled**; DB `f` then `t` |
+| E-39 | PASS | `This can’t change once the assignment is published.`; reverted, enabled; DB `f`; 1 A2 line |
+| E-40 | PASS | `Add at least one question before holding results.`; reverted; DB `f`; 1 A2 line |
+| E-41 | PASS | tick `t`, locked, back to draft, untick `f`, deleted; console 0 |
+| E-42 | PASS | tutor `Not found`; student, parent: no-access page with only the layout's `profiles` read (0 staff reads); signed out → sign-in, 0 requests; switches 0 |
+| E-43 | PASS | `"submitted"`; notice, chip; 0 correct/explanation/awarded; JSON hidden; `Handed in 26 Oct 2026, 2:44 pm. Waiting for your tutor to mark it.`; DB `submitted\|true`, `2`, `0`; 4 legs overflow 0, contrast 13.87–17.15 |
+| E-44 | PASS | `Waiting for marking`, no score; `Their answer` 2; 0 correct/explanation/awarded; JSON and list hidden |
+| E-45 | PASS | 4 RPCs hidden; 6 table GETs `200 []` |
+| E-46 | PASS | `Submitted … 2 / 3`; `Returned 0 of 3`; `Aarav Demo’s work`; auto-marks `2 / 2`, `0 / 1`; `Score 2 / 3` |
+| E-47 | PASS | 2 feedback fields, 0 mark inputs; `Saved.`; feedback-only PATCHes; marks `2.0`, `0.0` kept; 1,000-char cap; Q2 `''` after reload |
+| E-48 | PASS | student and parent `feedback` `["",""]` |
+| E-49 | PASS | dialog and notice exact; `returned\|t`; Q1 feedback, Q2 `''`; cron sent both at 03:50:00, **199 s** after the return; subjects exact; leak 0 |
+| E-50 | PASS | ordinary return visible to both; `Aarav’s results` on the parent page; `Past class` 0 |
+| E-51 | PASS | auto-returned, `returned\|t`; outbox empty; worker 0; Mailpit 0/0; restored |
+| E-52 | PASS | 16 legs, every threshold met, console 0 |
+| E-60 | PASS | dialog exact; 1 `DELETE enrolments`; results 5 → 5 |
+| E-61 | PASS | to-do empty text; no Waiting; 2 items with `Past class`; `2 of 2 Done 71% Average mark 2 of 2 Handed in on time`; interview timetable only |
+| E-62 | PASS | both pages read-only (0 radios, textareas, Hand in; writes 0), results shown |
+| E-63 | PASS | 6 × `Not found`, 0 leaks, 1 A3 line each |
+| E-64 | PASS | 2 past rows; 6 hidden ids, 2 saves, 2 submits 500 P0002; timetable 0 maths; md5 unchanged |
+| E-65 | PASS | X9 joined; both parents 2 past rows, read-only pages, console 0 |
+| E-66 | PASS | 2 past rows; NP 200 past; WORD 403; timetable 0 maths; step 4 `Not found`, 1 A3 line |
+| E-67 | PASS | both links → sign-in → the page with `Returned` + `Past class`; console 0 |
+| E-68 | PASS | 16 legs; chips inside, no overlap, unclipped; contrast ≥ 13.76; overflow 0 |
+| E-69 | PASS | not listed; `Not found`; console 0; API 400 `not_enrolled`, WORD `submitted` |
+| E-70 | PASS | X10 joined; Isla's own statuses (`Reasoning mock test 1` submitted, rest not started); nothing of Aarav's; `Nothing returned yet.` |
+| E-71 | PASS | 500 / 403 / 500; home Isla only; `Not found` ×2 (2 + 1 A3 lines) |
+| E-72 | PASS | dialog exact; `Parent removed.`; RPCs 500/403/500; empty home text; child `Not found` (2 A3 lines); `parent@` unaffected |
+| E-73 | **PASS** | dialog exact; `Deactivated.`; step 2: open page → `/portal/login`, **0 console lines** (BUG-15 fixed; no `/logout` request); step 3: 403 `not_student` ×2; step 4: refused, 1 A1 line; step 5: parent still sees the rows (S1 (b)); restored, 2 past items |
+| E-74 | PASS | dialog exact; banner; open page shows `Your student account isn’t active. Please contact AJ Classes.`, 1 A4 line; 403 `not_student`; parent 500/403; parent home `Noah Demo` only; restored |
+| E-75 | PASS | inside: 0 results, `P0002 not_found`; rollback 4 = 4 |
+| E-76 | PASS | dialog exact; results 0; 1 past item left; old URL `Not found`, 1 A3 line |
+| E-77 | PASS | 6 rows, 0 past; sections back; `Saved`; both classes |
+| E-78 | PASS | archived: 1 past item, writes 500 P0002, parent 1 row, WORD 403, tutor list hides maths; S4 (informational, expected): admin return `Saved` → 2 queued → worker sent 2 (student 1, parent 1); restored, 6 rows / 0 past |
+| E-79 | PASS | Isla: both empty texts, no Waiting, `You’re not in any classes yet.`; P3 card `Year 8 · Not in a class yet`; child page both empty texts; re-enrolled |
+| E-80 | PASS | 2 pending → `sent: 2`; subjects exact; Parent Two 0; leak 0; restored |
+| E-81 | PASS | 2 mark inputs; returned; removed (UI); `sent: 2`, skipped 0; both links open with `Past class`; restored to the snapshot row; cron `t` |
+| E-82 | PASS | seed sections and titles; `Past class` 0; `Can Noah Demo use the portal?` 1; console 0 |
+| E-90 | PASS | `e2e-item7%` 0; snapshot diff **empty**; `e2e-%` 0/0/0; outbox waiting 0; cron `t` |
+| E-91 | **PASS** | Hosted 0 over 117 legs. Console lines, all declared: A1 (E-32 1, E-73 step 4 1); A2 (E-39 1, E-40 1); A3 (E-63 6 × 1, E-66 1, E-71 2 + 1, E-72 2, E-76 1); A4 (E-74 1). None outside A1–A4 |
+| **E-94** (new, BUG-15) | **PASS** | Before: session key `sb-127-auth-token` stored. Admin deactivates Aarav; the open student page reloads → `/portal/login?reason=inactive`; **0** `/auth/v1/logout` requests; **0** console errors; **no** stored session key; requests only `GET profiles` and `POST rpc/my_onboarding` (no 4xx); hosted 0. Reactivated (`t`) |
+
+**Pass rate:** **70 / 70 = 100 %** (the 69 frozen cases plus E-94). Full check green.
+
+**Defects open:** none. BUG-15 is fixed and verified (E-73, E-91, E-94).
+
+**Deviations:** as round 1, items 1 and 4 (H1's due date by SQL; real invite flows). The round 1 harness faults were fixed in the round 2 scripts before the run, and no leg was repeated.
+
+**Not covered:** unchanged from round 1 (T2.15 halves; S1/S2/S6 residuals; S4/S5 informational, both re-confirmed; deferred staff-loader pre-checks; real devices, Safari, Firefox, screen reader; hosted steps).
+
+### Verdict (round 2)
+
+**APPROVED (auto): 70 / 70 = 100 %, full check green.** Ready for the merge to `develop` (the lead's step). End state: final `pnpm db:reset`, stack up at `20261027100000`, no fixture rows, ports 5173 and 4173 free. Nothing committed or pushed by the Tester.

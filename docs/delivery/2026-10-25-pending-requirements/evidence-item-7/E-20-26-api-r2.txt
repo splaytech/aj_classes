@@ -1,0 +1,77 @@
+INSERT 0 3
+INSERT 0 2
+== E-20
+0
+f
+== E-21
+200 [{"id":"470a4886-c5b0-438d-ac17-a99bcc6b4916","hold_results":true}]
+t
+200 [{"id":"470a4886-c5b0-438d-ac17-a99bcc6b4916","hold_results":false}]
+f
+200 [{"id":"470a4886-c5b0-438d-ac17-a99bcc6b4916","hold_results":true}]
+== E-22
+400 {"code":"P0001","details":null,"hint":null,"message":"hold_needs_questions"}
+f
+400 {"code":"P0001","details":null,"hint":null,"message":"hold_needs_questions"}
+0
+400 {"code":"P0001","details":null,"hint":null,"message":"assignment_published"}
+f
+== E-23
+200 [{"id":"470a4886-c5b0-438d-ac17-a99bcc6b4916","status":"published"}]
+400 {"code":"P0001","details":null,"hint":null,"message":"assignment_published"}
+400 {"code":"P0001","details":null,"hint":null,"message":"assignment_published"}
+published|true
+200 [{"id":"470a4886-c5b0-438d-ac17-a99bcc6b4916"}]
+200 [{"id":"470a4886-c5b0-438d-ac17-a99bcc6b4916","status":"draft"}]
+200 [{"id":"470a4886-c5b0-438d-ac17-a99bcc6b4916","hold_results":false}]
+f
+200 [{"id":"470a4886-c5b0-438d-ac17-a99bcc6b4916","status":"published"}]
+f
+== E-24
+UPDATE 1
+-- admin-aal2 MD true
+200 [{"id":"470a4886-c5b0-438d-ac17-a99bcc6b4916","hold_results":true}]
+t
+-- admin-aal2 MD false
+200 [{"id":"470a4886-c5b0-438d-ac17-a99bcc6b4916","hold_results":false}]
+f
+-- admin-aal1 MD true
+200 []
+f
+-- newadmin@local.test MD true
+200 []
+f
+-- tutor ED
+200 []
+f
+-- admin-aal1 ED
+200 [{"id":"b1dabfd3-4bc6-43c7-9619-3ff2b3ee48c2","hold_results":true}]
+t
+UPDATE 1
+f
+-- student@local.test MD
+200 []
+f
+-- parent@local.test MD
+200 []
+f
+-- anon MD
+401 {"code":"42501","details":null,"hint":"Grant the required privileges to the current role with: GRANT SELECT, UPDATE ON public.assignments TO anon;","message":"permission denied for table assignments"}
+f
+-- student GET
+200 []
+== E-25
+404 {"code":"PGRST202","details":"Searched for the function public.assignment_readable_by with parameters target_assignment, target_student or with a single unnamed json/jsonb parameter, but no matche
+404 {"code":"PGRST202","details":"Searched for the function public.check_hold_results without parameters or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache.",
+401 {"code":"42501","details":null,"hint":null,"message":"permission denied for function student_assignments"}
+401 {"code":"42501","details":null,"hint":null,"message":"permission denied for function parent_child_assignments"}
+403 {"code":"42501","details":null,"hint":null,"message":"not_student"}
+== E-26
+200 [{"id":"470a4886-c5b0-438d-ac17-a99bcc6b4916","hold_results":true}]
+200 [{"id":"5fd5e55a-897b-4db7-bfd8-9d16b7b4442d"}]
+t
+0
+== E-25 fixed calls
+404 {"code":"PGRST202","details":"Searched for the function public.check_hold_results without parameters or with a singl
+401 {"code":"42501","details":null,"hint":null,"message":"permission denied for function student_assignments"}
+403 {"code":"42501","details":null,"hint":null,"message":"not_student"}
