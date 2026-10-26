@@ -260,6 +260,179 @@ select is(
   'and the tutor''s comment');
 reset role;
 
+-- AC-7.8 Removed from a class: returned work stays, read-only and tagged -------------
+-- Kid One now has h1 (returned by the tutor), h2 and r1 (auto-returned), u1 handed in, i1 in
+-- progress and n1 not started.
+delete from public.enrolments
+where class_id = '00000000-0000-0000-0000-00000000c001' and student_id = '00000000-0000-0000-0000-00000000d001';
+
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
+select results_eq(
+  $$ select title, is_past_class from public.student_assignments() order by title $$,
+  $$ values ('Held quiz', true), ('Open quiz', true), ('Returned quiz', true) $$,
+  'After removal the student still lists their returned work, tagged past class, and nothing else from the class');
+select is(
+  public.student_assignment('00000000-0000-0000-0000-00000000e008') ->> 'isPastClass', 'true',
+  'The returned page opens and says past class');
+select is(
+  public.student_assignment('00000000-0000-0000-0000-00000000e008') #>> '{questions,0,correctOption}', '0',
+  'and still shows the results');
+
+-- AC-7.10 What stays hidden
+select throws_ok($$ select public.student_assignment('00000000-0000-0000-0000-00000000e007') $$,
+  'P0002', 'not_found', 'Handed-in work that isn''t returned is hidden after removal');
+select throws_ok($$ select public.student_assignment('00000000-0000-0000-0000-00000000e006') $$,
+  'P0002', 'not_found', 'In-progress work is hidden after removal');
+select throws_ok($$ select public.student_assignment('00000000-0000-0000-0000-00000000e005') $$,
+  'P0002', 'not_found', 'Not-started work is hidden after removal');
+select throws_ok($$ select public.student_assignment('00000000-0000-0000-0000-00000000e009') $$,
+  'P0002', 'not_found', 'Drafts stay hidden');
+select is_empty(
+  $$ select session_id from public.student_timetable() where class_id = '00000000-0000-0000-0000-00000000c001' $$,
+  'The class''s timetable is hidden after removal');
+
+-- AC-7.11 Read-only: every write still follows enrolment
+select throws_ok(
+  $$ select public.student_save_answer('00000000-0000-0000-0000-00000000e008', '00000000-0000-0000-0000-00000000f009', 1) $$,
+  'P0002', 'not_found', 'A past-class answer can''t be changed');
+select throws_ok($$ select public.student_submit('00000000-0000-0000-0000-00000000e008') $$,
+  'P0002', 'not_found', 'Past-class work can''t be handed in again');
+select throws_ok(
+  $$ select public.student_save_answer('00000000-0000-0000-0000-00000000e006', '00000000-0000-0000-0000-00000000f007', 1) $$,
+  'P0002', 'not_found', 'In-progress work can''t be continued after removal');
+reset role;
+
+select tests.authenticate_as('00000000-0000-0000-0000-0000000006a1');
+select results_eq(
+  $$ select title, is_past_class from public.parent_child_assignments('00000000-0000-0000-0000-00000000d001') order by title $$,
+  $$ values ('Held quiz', true), ('Open quiz', true), ('Returned quiz', true) $$,
+  'A parent still sees the child''s returned work from the class, tagged past class');
+select is(
+  public.parent_child_assignment('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-00000000e008') ->> 'isPastClass',
+  'true', 'and its page opens');
+select throws_ok(
+  $$ select public.parent_child_assignment('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-00000000e007') $$,
+  '42501', 'not_found', 'A parent doesn''t see the child''s non-returned work after removal');
+select is_empty(
+  $$ select session_id from public.parent_child_timetable('00000000-0000-0000-0000-00000000d001')
+     where class_id = '00000000-0000-0000-0000-00000000c001' $$,
+  'A parent doesn''t see the class''s timetable after removal');
+reset role;
+
+
+-- AC-7.13 Boundaries unchanged (Kid One still removed) -------------------------------
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a2');
+select is_empty(
+  $$ select assignment_id from public.student_assignments() where assignment_id = '00000000-0000-0000-0000-00000000e008' $$,
+  'Another student never lists the work');
+select throws_ok($$ select public.student_assignment('00000000-0000-0000-0000-00000000e008') $$,
+  'P0002', 'not_found', 'Another student can''t open it');
+reset role;
+
+select tests.authenticate_as('00000000-0000-0000-0000-0000000006a3');
+select throws_ok(
+  $$ select public.parent_child_assignment('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-00000000e008') $$,
+  '42501', 'not_found', 'Another child''s parent can''t open it');
+reset role;
+
+update public.profiles set is_active = false where id = '00000000-0000-0000-0000-0000000005a1';
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
+select throws_ok($$ select * from public.student_assignments() $$,
+  '42501', 'not_student', 'A deactivated student sees nothing');
+select throws_ok($$ select public.student_assignment('00000000-0000-0000-0000-00000000e008') $$,
+  '42501', 'not_student', 'A deactivated student can''t open past-class work');
+reset role;
+update public.profiles set is_active = true where id = '00000000-0000-0000-0000-0000000005a1';
+
+delete from public.student_guardians
+where student_id = '00000000-0000-0000-0000-00000000d001' and parent_id = '00000000-0000-0000-0000-0000000006a2';
+select tests.authenticate_as('00000000-0000-0000-0000-0000000006a2');
+select throws_ok($$ select * from public.parent_child_assignments('00000000-0000-0000-0000-00000000d001') $$,
+  'P0002', 'not_found', 'An unlinked parent sees nothing in the list (require_my_child, ITEM3-FU-1)');
+select throws_ok(
+  $$ select public.parent_child_assignment('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-00000000e008') $$,
+  '42501', 'not_found', 'and can''t open past-class work');
+reset role;
+insert into public.student_guardians (student_id, parent_id)
+values ('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-0000000006a2');
+
+-- Re-enrolling shows everything by rule (a) again
+insert into public.enrolments (class_id, student_id)
+values ('00000000-0000-0000-0000-00000000c001', '00000000-0000-0000-0000-00000000d001');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
+select results_eq(
+  $$ select title, is_past_class from public.student_assignments() order by title $$,
+  $$ values ('Held quiz', false), ('In progress', false), ('Not started', false), ('Open quiz', false),
+            ('Paper work', false), ('Returned quiz', false), ('Waiting', false), ('Written work', false) $$,
+  'Re-enrolled: every published assignment is back, none tagged past class');
+select is(
+  public.student_assignment('00000000-0000-0000-0000-00000000e008') ->> 'isPastClass', 'false',
+  'and the page is no longer tagged');
+reset role;
+
+
+-- AC-7.9 Class archived (still enrolled) ---------------------------------------------
+update public.classes set is_active = false where id = '00000000-0000-0000-0000-00000000c001';
+
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
+select results_eq(
+  $$ select title, is_past_class from public.student_assignments() order by title $$,
+  $$ values ('Held quiz', true), ('Open quiz', true), ('Returned quiz', true) $$,
+  'In an archived class the student still lists their returned work, tagged past class');
+select is(
+  public.student_assignment('00000000-0000-0000-0000-00000000e008') ->> 'isPastClass', 'true',
+  'and its page opens');
+select throws_ok($$ select public.student_assignment('00000000-0000-0000-0000-00000000e007') $$,
+  'P0002', 'not_found', 'Handed-in work that isn''t returned is hidden in an archived class');
+select is_empty(
+  $$ select session_id from public.student_timetable() where class_id = '00000000-0000-0000-0000-00000000c001' $$,
+  'The archived class''s timetable is hidden');
+select throws_ok(
+  $$ select public.student_save_answer('00000000-0000-0000-0000-00000000e008', '00000000-0000-0000-0000-00000000f009', 1) $$,
+  'P0002', 'not_found', 'Archived-class answers can''t be changed');
+select throws_ok($$ select public.student_submit('00000000-0000-0000-0000-00000000e005') $$,
+  'P0002', 'not_found', 'Archived-class work can''t be handed in');
+reset role;
+
+select tests.authenticate_as('00000000-0000-0000-0000-0000000006a1');
+select results_eq(
+  $$ select title, is_past_class from public.parent_child_assignments('00000000-0000-0000-0000-00000000d001') order by title $$,
+  $$ values ('Held quiz', true), ('Open quiz', true), ('Returned quiz', true) $$,
+  'A parent still sees the returned work of an archived class');
+reset role;
+
+update public.classes set is_active = true where id = '00000000-0000-0000-0000-00000000c001';
+
+
+-- Grants after the drop and recreate ------------------------------------------------
+select ok(
+  has_function_privilege('authenticated', 'public.student_assignments()', 'execute')
+  and has_function_privilege('authenticated', 'public.parent_child_assignments(uuid)', 'execute'),
+  'Signed-in users can still call the family list functions');
+select ok(
+  not has_function_privilege('anon', 'public.student_assignments()', 'execute')
+  and not has_function_privilege('anon', 'public.parent_child_assignments(uuid)', 'execute'),
+  'Signed-out visitors can''t');
+select ok(
+  not has_function_privilege('authenticated', 'private.assignment_readable_by(uuid, uuid)', 'execute')
+  and not has_function_privilege('anon', 'private.assignment_readable_by(uuid, uuid)', 'execute')
+  and not has_function_privilege('authenticated', 'private.check_hold_results()', 'execute')
+  and not has_function_privilege('anon', 'private.check_hold_results()', 'execute')
+  and not has_function_privilege('authenticated', 'private.assignments_for_student(uuid, boolean)', 'execute')
+  and not has_function_privilege('anon', 'private.assignments_for_student(uuid, boolean)', 'execute'),
+  'Nobody but the owner runs the private helpers');
+
+
+-- AC-7.13 Deleting the roster row deletes the results --------------------------------
+delete from public.students where id = '00000000-0000-0000-0000-00000000d001';
+select is(
+  (select count(*)::int from public.assignment_results where student_id = '00000000-0000-0000-0000-00000000d001'),
+  0, 'Deleting the roster row deletes the results');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000006a1');
+select throws_ok($$ select * from public.parent_child_assignments('00000000-0000-0000-0000-00000000d001') $$,
+  'P0002', 'not_found', 'so the parent sees nothing');
+reset role;
+
 
 select * from finish();
 rollback;

@@ -151,6 +151,205 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- 5. The list builder and its wrappers (drop and recreate: the returned columns change)
+-- ---------------------------------------------------------------------------
+
+drop function public.student_assignments();
+drop function public.parent_child_assignments(uuid);
+drop function private.assignments_for_student(uuid, boolean);
+
+-- Body copied from 20261007090321_family_functions.sql lines 151-202. Changes: enrolment is a
+-- left join, so rule (b) rows (returned work after leaving the class or archiving) are kept; the
+-- where clause is rule (a) or (b); and a last column, is_past_class (= not rule (a)), for the
+-- "Past class" tag. enrolments has one row per class and student, so the join can't duplicate.
+create function private.assignments_for_student(target_student uuid, for_parent boolean)
+returns table (
+  assignment_id  uuid,
+  title          text,
+  class_name     text,
+  subject        text,
+  due_on         date,
+  published_at   timestamptz,
+  question_count int,
+  answered_count int,
+  total_marks    int,
+  status         text,
+  submitted_at   timestamptz,
+  returned_at    timestamptz,
+  is_late        boolean,
+  mark           numeric,
+  comment        text,
+  is_past_class  boolean
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select a.id,
+         a.title,
+         c.name,
+         c.subject,
+         a.due_on,
+         a.published_at,
+         (select count(*)::int from public.assignment_questions q where q.assignment_id = a.id),
+         case when not for_parent then (
+           select count(*)::int
+           from public.assignment_answers ans
+           where ans.assignment_id = a.id
+             and ans.student_id = target_student
+             and (ans.selected_option is not null or trim(ans.response) <> '')
+         ) end,
+         private.assignment_total_marks(a.id),
+         private.family_status(r.status),
+         case when r.status in ('submitted', 'marked', 'returned') then r.submitted_at end,
+         case when r.status = 'returned' then r.returned_at end,
+         private.is_late(r.submitted_at, a.due_on),
+         case when r.status = 'returned' then r.mark end,
+         case when r.status = 'returned' then r.feedback else '' end,
+         not (e.student_id is not null and c.is_active) -- is_past_class (AC-7.12)
+  from public.assignments a
+  join public.classes c on c.id = a.class_id
+  left join public.enrolments e on e.class_id = a.class_id and e.student_id = target_student
+  left join public.assignment_results r on r.assignment_id = a.id and r.student_id = target_student
+  where a.status = 'published'
+    and ((e.student_id is not null and c.is_active) or r.status = 'returned') -- rule (a) or (b)
+  order by a.due_on nulls last, a.published_at desc
+$$;
+
+-- Bodies copied from 20261007090321_family_functions.sql lines 347-371 and 574-598; the only
+-- change is the is_past_class column.
+create function public.student_assignments()
+returns table (
+  assignment_id  uuid,
+  title          text,
+  class_name     text,
+  subject        text,
+  due_on         date,
+  published_at   timestamptz,
+  question_count int,
+  answered_count int,
+  total_marks    int,
+  status         text,
+  submitted_at   timestamptz,
+  returned_at    timestamptz,
+  is_late        boolean,
+  mark           numeric,
+  comment        text,
+  is_past_class  boolean
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select * from private.assignments_for_student(private.require_student(), false)
+$$;
+
+create function public.parent_child_assignments(target_student uuid)
+returns table (
+  assignment_id  uuid,
+  title          text,
+  class_name     text,
+  subject        text,
+  due_on         date,
+  published_at   timestamptz,
+  question_count int,
+  answered_count int,
+  total_marks    int,
+  status         text,
+  submitted_at   timestamptz,
+  returned_at    timestamptz,
+  is_late        boolean,
+  mark           numeric,
+  comment        text,
+  is_past_class  boolean
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select * from private.assignments_for_student(private.require_my_child(target_student), true)
+$$;
+
+-- Grants as 20261007090321_family_functions.sql lines 786-831 apply them to these three.
+revoke execute on function private.assignments_for_student(uuid, boolean) from public, anon, authenticated;
+revoke execute on function public.student_assignments(), public.parent_child_assignments(uuid) from public, anon, authenticated;
+grant execute on function public.student_assignments(), public.parent_child_assignments(uuid) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 6. assignment_view gains isPastClass
+-- ---------------------------------------------------------------------------
+
+-- Body copied from 20261007090321_family_functions.sql lines 206-267, plus the isPastClass key.
+-- It reads the builder, so student_assignment, parent_child_assignment and the email link follow
+-- rule (b) too (AC-7.14). The before-return hiding is unchanged (AC-7.3, AC-7.6).
+create or replace function private.assignment_view(target_student uuid, target_assignment uuid, for_parent boolean)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  summary      record;
+  is_returned  boolean;
+  show_answers boolean;
+begin
+  select s.* into summary
+  from private.assignments_for_student(target_student, for_parent) s
+  where s.assignment_id = target_assignment;
+
+  if not found then
+    return null;
+  end if;
+
+  is_returned := summary.status = 'returned';
+  show_answers := not for_parent or summary.status in ('submitted', 'returned');
+
+  return jsonb_build_object(
+    'id', summary.assignment_id,
+    'title', summary.title,
+    'instructions', (select a.instructions from public.assignments a where a.id = target_assignment),
+    'className', summary.class_name,
+    'subject', summary.subject,
+    'dueOn', summary.due_on,
+    'status', summary.status,
+    'submittedAt', summary.submitted_at,
+    'returnedAt', summary.returned_at,
+    'isLate', summary.is_late,
+    'totalMarks', summary.total_marks,
+    'mark', summary.mark,
+    'comment', summary.comment,
+    'isPastClass', summary.is_past_class,
+    'questions', coalesce((
+      select jsonb_agg(
+               jsonb_build_object(
+                 'id', q.id,
+                 'kind', q.kind,
+                 'prompt', q.prompt,
+                 'options', to_jsonb(q.options),
+                 'marks', q.marks,
+                 'selectedOption', case when show_answers then ans.selected_option end,
+                 'response', case when show_answers then coalesce(ans.response, '') else '' end,
+                 'correctOption', case when is_returned then q.correct_option end,
+                 'explanation', case when is_returned then q.explanation else '' end,
+                 'awardedMarks', case when is_returned then ans.awarded_marks end,
+                 'feedback', case when is_returned then coalesce(ans.feedback, '') else '' end
+               )
+               order by q.position
+             )
+      from public.assignment_questions q
+      left join public.assignment_answers ans
+        on ans.question_id = q.id and ans.student_id = target_student
+      where q.assignment_id = target_assignment
+    ), '[]'::jsonb)
+  );
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
 -- 8. Grants (the private helpers run only inside the functions above)
 -- ---------------------------------------------------------------------------
 
