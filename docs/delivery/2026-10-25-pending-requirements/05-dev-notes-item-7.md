@@ -254,6 +254,8 @@ Checks after round 2:
 | Wrong-role read (the E-60 pattern) | New `getStaffClient()` in `staff-client.ts` (tutor or admin, else null). `getAssignment` uses it, and `getSubmission` calls `getAssignment` first, so neither page sends a read for a student, a parent or someone signed out. `staff-access.test.ts`: +10 cases | `92163b9` |
 | P4, the box stuck on an unchanged reload | `HoldResultsSetting` takes a `revision` prop (the page's loader data object) and clears the clicked value in the render that first shows reloaded data, whatever its value. A why-comment in the component explains it. Reloads that land mid-save are ignored. New test: the reload comes back with the same old value, and the box shows it, enabled | `995c9ee` |
 
+Still open (deferred to the E-60 follow-up): the other staff loaders, `assignments.tsx`, `classes.tsx`, `class-detail.tsx`, the timetable and the tutor dashboard, still send their reads for a family role. Only the assignment and marking pages use `getStaffClient()` so far.
+
 Browser (local, scripted):
 
 - A student who handed in "Times tables warm-up" then opened its staff URL and its marking URL: 0 requests to `assignments`, `assignment_answers` or `enrolments`.
