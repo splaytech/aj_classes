@@ -731,6 +731,10 @@ have merged. It follows 03b §9 exactly.
      - a due-tomorrow file hand-in that isn't handed in queues a reminder (AC-8.5, file part).
      - Re-apply item 2's 35-line `email_outbox.test.sql` change on top of item 8's version.
      - Re-test AC-5.5 for signed-URL downloads under the portal CSP.
+     - Security review item 7, S3 (`06-security-item-7.md`):
+       - (a) pgTAP: a removed student gets no storage SELECT on the files of a non-returned assignment;
+       - (b) the PO decides whether a removed student may see tutor attachments **added after** their work was returned. If not, rule (b) file reads are limited to objects created before `returned_at`;
+       - (c) upload, register and remove keep `assignment_visible_to`, with a pgTAP case for each after removal.
   6. **Privacy:** item 2's sentences go into the `'Portal accounts'` section next to item 4's,
      and its `privacy.test.tsx` lookups use the new heading.
   7. Run `pnpm db:types` and T2.13 again: the full check, plus the manual phone-photo passes.
