@@ -153,7 +153,7 @@ script from the exact lines below, and `diff` against the source shows only the 
 |---|---|---|---|
 | `private.queue_work_returned_email()` | `20261025110000_work_returned_email.sql` | 149–165 | `create or replace`; the recipients line calls `private.email_recipients('work_returned', new.assignment_id, new.student_id)` |
 | `public.notify_claim_emails()` → `(supported_kinds text[] default array['work_returned'])` | `20261025110000_work_returned_email.sql` | 189–239 | Dropped and recreated. Output gains `kind` (after `id`) and `due_on` (last). The skip step calls `email_recipients(o.kind, o.assignment_id, o.student_id, private.melbourne_date(o.send_before))`. The claim's inner select adds `x.kind = any (supported_kinds)` and `(x.send_before is null or x.send_before > now())`, ordered `(x.kind = 'due_tomorrow') desc, x.created_at`. The final select returns `c.kind` and `a.due_on`, same order |
-| `private.kick_email_worker()` | `20261025110000_work_returned_email.sql` | 299–336 | `create or replace`; the too_late sweep straight after the reclaim update, before the first early return |
+| `private.kick_email_worker()` | `20261025110000_work_returned_email.sql` | 299–336 | `create or replace`; straight after the reclaim update and before the first early return: the claim's relevance skip (added after review-5, §9 D12), then the too_late sweep |
 | `public.admin_email_problems(int)` | `20261025110000_work_returned_email.sql` | 365–399 | Dropped and recreated; `kind text` after `created_at` in `returns table`, and `o.kind` in the select |
 | People set of `private.email_recipients` | `20261027100000_fair_results.sql` (`work_returned_recipients`, item 7's version) | 360–385 | Not copied verbatim: the two branches become a `people` CTE, and the per-branch readable and switch checks move to `email_still_relevant` (`'work_returned'` → `assignment_readable_by`) and one `case` on the kind's switch column. `work_returned_recipients` is then dropped |
 
@@ -166,7 +166,7 @@ is executable by `authenticated` or `anon`.
 `20261028100000_more_email_alerts.sql`: `email_still_relevant` 105–126, `email_recipients`
 133–164, `queue_new_assignment_emails` 179–203, `queue_due_tomorrow_emails_for` 219–238,
 `queue_due_tomorrow_emails` 242–255, `queue_work_returned_email` 274–290, `notify_claim_emails`
-305–358, `kick_email_worker` 366–409, `admin_email_problems` 419–453.
+305–358, `kick_email_worker` 367–419, `admin_email_problems` 429–463 (after the review-5 fix, §9).
 
 ## 6. Deviations and `[ASSUMPTION]`s
 
@@ -257,3 +257,30 @@ is executable by `authenticated` or `anon`.
 - **Switches:** `notification_settings` is empty, so everyone is on.
 - **Mailpit:** holds this run's local emails.
 - **Ports 5173 and 4173:** free. Dev server and mirror stopped.
+
+## 9. Review fixes (review-5-item-8 CHANGES_REQUESTED, and Security item 8)
+
+| Finding | Fix |
+|---|---|
+| Review 1 (blocking): the sweep failed rows that should have been skipped | `kick_email_worker` now runs the claim's relevance skip (the same `email_recipients(o.kind, …, melbourne_date(o.send_before))` update as `notify_claim_emails`) straight before the too_late sweep. pgTAP, next to the "cap full" case: with the cap at 0, a reminder whose student has handed in, a "new assignment" row for work moved back to draft and one for a student who left the class all end `skipped` and aren't listed by `admin_email_problems`; the still-relevant reminder (Kid Four) ends `failed` / `too_late` and is listed |
+| Review 2 | One JSDoc on `NotificationsSection` for the three switches; the stale item 3 one is gone |
+| Review 3 | The B17 comment above the Privacy "Portal accounts" text names the portal-emails sentence (ADR-0004, ADR-0008). Approval stays in docs |
+| Review 4 | pgTAP: the 24-run "exactly one reminder hour" count also on 4 Oct 2026 (23-hour Melbourne day) and 4 Apr 2027 (25-hour day) |
+| Security S2 | New `notifications/claim.ts`: `claimRows` calls `notify_claim_emails(supported_kinds)`; on `PGRST202` (this function deployed before the migration) it retries once with no argument, the old claim, and marks those rows `work_returned` with no due date, so "work returned" keeps sending. Any other error, or a failed retry, is thrown as before. `index.ts` logs only "notifications claim: old database, work returned only". Unit checks in `test-notifications.mjs` with a fake claim call (normal path, fallback, the fallback rows render as item 3's email, other errors not retried, failed fallback thrown). Not run end to end: that needs the old database |
+
+- **D12. Deviation from 03b §8.2 step 9.** The design adds only the sweep to the kick. The kick now
+  also skips no-longer-relevant pending rows before it (review-5 finding 1), because the claim, the
+  only other place that skips, doesn't run while the cap is full or the worker answers
+  `config_missing`. It covers every pending row, as the claim's skip does, so an all-irrelevant
+  queue no longer calls the worker. Item 3's kick tests stay green.
+- **D13. Deviation from ADR-0008 decision 6 / 02b §8.5 (Security S2).** The function-first order is
+  no longer a full email stop: "work returned" keeps going through the old claim, and the new
+  kinds simply don't exist yet. The release steps still say migration first.
+- **Incident (local only).** While checking the kick fix before committing, I ran the pgTAP files
+  in one hand-built `psql` transaction. The test-helper hook file has its own `begin;`/`rollback;`,
+  which ended my outer transaction early, so the rest of the files ran in autocommit against the
+  shared **local** database. That wiped the seed data (it left item 7's test fixtures behind).
+  Nothing hosted was involved, and no function or migration change reached the database that way.
+  I fixed it with `pnpm db:reset` once the fix was committed. Anyone reading the local database
+  from about 05:05 UTC (16:05 Melbourne) until the reset saw fixture data, not the seed.
+
