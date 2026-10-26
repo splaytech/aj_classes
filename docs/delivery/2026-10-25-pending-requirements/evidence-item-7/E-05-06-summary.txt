@@ -1,0 +1,8 @@
+  9 passed (45.3s)
+SMOKE_EXIT=0
+port5173=       0
+BUILD_EXIT=0
+$ node scripts/check-hosted-ref.ts build/client
+check-hosted-ref: 0 files (of 153 scanned)
+  19 passed (29.6s)
+CSP_EXIT=0

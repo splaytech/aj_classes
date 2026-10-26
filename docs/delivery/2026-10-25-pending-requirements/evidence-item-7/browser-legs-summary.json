@@ -1,0 +1,2328 @@
+{
+ "e30.json": {
+  "e30": [
+   {
+    "path": "/",
+    "status": 200,
+    "h1": 1,
+    "robots": 1,
+    "overflow": 0,
+    "label": "E-30 /",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "path": "/portal/login",
+    "status": 200,
+    "h1": 1,
+    "robots": 1,
+    "overflow": 0,
+    "label": "E-30 /portal/login",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   }
+  ],
+  "e31": [
+   {
+    "email": "admin@local.test",
+    "a": {
+     "url": "/portal/admin",
+     "h1": "Admin"
+    },
+    "b": {
+     "url": "/portal/admin",
+     "h1": "Admin"
+    },
+    "label": "E-31 admin@local.test",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "email": "newadmin@local.test",
+    "a": {
+     "url": "/portal/account/two-step/setup",
+     "h1": "Set up two-step sign-in"
+    },
+    "b": {
+     "url": "/portal/account/two-step/setup",
+     "h1": "Set up two-step sign-in"
+    },
+    "label": "E-31 newadmin@local.test",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "email": "tutor@local.test",
+    "a": {
+     "url": "/portal/tutor",
+     "h1": "Welcome, Local"
+    },
+    "b": {
+     "url": "/portal/tutor",
+     "h1": "Welcome, Local"
+    },
+    "label": "E-31 tutor@local.test",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "email": "student@local.test",
+    "a": {
+     "url": "/portal/student",
+     "h1": "Hi Aarav"
+    },
+    "b": {
+     "url": "/portal/student",
+     "h1": "Hi Aarav"
+    },
+    "label": "E-31 student@local.test",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "email": "parent@local.test",
+    "a": {
+     "url": "/portal/parent",
+     "h1": "Hi Local"
+    },
+    "b": {
+     "url": "/portal/parent",
+     "h1": "Hi Local"
+    },
+    "label": "E-31 parent@local.test",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   }
+  ],
+  "e32": {
+   "url": "/portal/login",
+   "msg": 1,
+   "keys": 0,
+   "label": "E-32",
+   "errors": 2,
+   "errorLines": [
+    {
+     "t": "console",
+     "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+     "url": "http://localhost:5173/portal/login"
+    },
+    {
+     "t": "console",
+     "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+     "url": "http://localhost:5173/portal/login"
+    }
+   ],
+   "hosted": 0,
+   "bad": [
+    {
+     "s": 400,
+     "m": "POST",
+     "u": "/auth/v1/token?grant_type=password"
+    },
+    {
+     "s": 400,
+     "m": "POST",
+     "u": "/auth/v1/token?grant_type=password"
+    }
+   ]
+  }
+ },
+ "e32.json": {
+  "url": "/portal/login",
+  "msg": 1,
+  "keys": 0,
+  "label": "E-32",
+  "errors": 1,
+  "errorLines": [
+   {
+    "t": "console",
+    "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "url": "http://localhost:5173/portal/login"
+   }
+  ],
+  "hosted": 0,
+  "bad": [
+   {
+    "s": 400,
+    "m": "POST",
+    "u": "/auth/v1/token?grant_type=password"
+   }
+  ]
+ },
+ "e49.json": {
+  "dialog": {
+   "title": "Return this work?",
+   "text": "Return this work?\n\nAarav Demo and their parents will see the marks, feedback and comment.\n\nCancel\nReturn to student"
+  },
+  "notice": 1,
+  "db": "returned|true",
+  "fb": "1|e2e-item7 Q1 feedback,2|",
+  "returnedAt": "2026-10-26T02:36:18.959Z",
+  "label": "E-49 tutor",
+  "errors": 0,
+  "errorLines": [],
+  "hosted": 0,
+  "bad": []
+ },
+ "e50.json": {
+  "student": {
+   "chips": [],
+   "allChips": [
+    "Returned",
+    "2 / 2",
+    "Your answer",
+    "Correct answer",
+    "0 / 1",
+    "Correct answer",
+    "Your answer"
+   ],
+   "results": 1,
+   "correct": 2,
+   "explB": 1,
+   "explA": 1,
+   "a22": 1,
+   "a01": 1,
+   "commentHead": 1,
+   "comment": 1,
+   "fb": 1,
+   "enabledRadios": 0,
+   "handIn": 0,
+   "past": 0,
+   "headingFor": 0
+  },
+  "home": {
+   "To do": false,
+   "Waiting for marking": false,
+   "Marked and returned": true
+  },
+  "homeScore": [
+   "2 / 3 (67%)"
+  ],
+  "studentLeg": {
+   "label": "E-50 student",
+   "errors": 0,
+   "errorLines": [],
+   "hosted": 0,
+   "bad": []
+  },
+  "parentRow": "e2e-item7 Held quiz Selective Entry Maths & Reasoning Returned 2 / 3 (67%) Tutor: e2e-item7 nice work",
+  "parent": {
+   "chips": [],
+   "allChips": [
+    "Returned",
+    "2 / 2",
+    "Their answer",
+    "Correct answer",
+    "0 / 1",
+    "Correct answer",
+    "Their answer"
+   ],
+   "results": 0,
+   "correct": 2,
+   "explB": 1,
+   "explA": 1,
+   "a22": 1,
+   "a01": 1,
+   "commentHead": 1,
+   "comment": 1,
+   "fb": 1,
+   "enabledRadios": 0,
+   "handIn": 0,
+   "past": 0,
+   "headingFor": 1
+  },
+  "parentLeg": {
+   "label": "E-50 parent",
+   "errors": 0,
+   "errorLines": [],
+   "hosted": 0,
+   "bad": []
+  }
+ },
+ "e51.json": {
+  "notice": 1,
+  "returned": 1,
+  "correct": 3,
+  "label": "E-51 student",
+  "errors": 0,
+  "errorLines": [],
+  "hosted": 0,
+  "bad": []
+ },
+ "e52.json": {
+  "legs": [
+   {
+    "who": "tutor@local.test",
+    "state": "draft",
+    "w": 1280,
+    "t": "Light",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 3,
+    "hintText": "Students see their marks and t",
+    "cLabel": 16.27,
+    "cHint": 16.27,
+    "h1": 1,
+    "label": "E-52 tutor@local.test draft 1280 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "tutor@local.test",
+    "state": "draft",
+    "w": 1280,
+    "t": "Dark",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 3,
+    "hintText": "Students see their marks and t",
+    "cLabel": 13.76,
+    "cHint": 13.76,
+    "h1": 1,
+    "label": "E-52 tutor@local.test draft 1280 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "tutor@local.test",
+    "state": "draft",
+    "w": 360,
+    "t": "Light",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 5,
+    "hintText": "Students see their marks and t",
+    "cLabel": 16.27,
+    "cHint": 16.27,
+    "h1": 1,
+    "label": "E-52 tutor@local.test draft 360 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "tutor@local.test",
+    "state": "draft",
+    "w": 360,
+    "t": "Dark",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 5,
+    "hintText": "Students see their marks and t",
+    "cLabel": 13.76,
+    "cHint": 13.76,
+    "h1": 1,
+    "label": "E-52 tutor@local.test draft 360 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "tutor@local.test",
+    "state": "published",
+    "w": 1280,
+    "t": "Light",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 1,
+    "hintText": "Locked because the assignment ",
+    "cLabel": 21,
+    "cHint": 16.27,
+    "h1": 1,
+    "label": "E-52 tutor@local.test published 1280 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "tutor@local.test",
+    "state": "published",
+    "w": 1280,
+    "t": "Dark",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 1,
+    "hintText": "Locked because the assignment ",
+    "cLabel": 16.96,
+    "cHint": 13.76,
+    "h1": 1,
+    "label": "E-52 tutor@local.test published 1280 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "tutor@local.test",
+    "state": "published",
+    "w": 360,
+    "t": "Light",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 2,
+    "hintText": "Locked because the assignment ",
+    "cLabel": 21,
+    "cHint": 16.27,
+    "h1": 1,
+    "label": "E-52 tutor@local.test published 360 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "tutor@local.test",
+    "state": "published",
+    "w": 360,
+    "t": "Dark",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 2,
+    "hintText": "Locked because the assignment ",
+    "cLabel": 16.96,
+    "cHint": 13.76,
+    "h1": 1,
+    "label": "E-52 tutor@local.test published 360 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "admin@local.test",
+    "state": "draft",
+    "w": 1280,
+    "t": "Light",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 3,
+    "hintText": "Students see their marks and t",
+    "cLabel": 16.27,
+    "cHint": 16.27,
+    "h1": 1,
+    "label": "E-52 admin@local.test draft 1280 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "admin@local.test",
+    "state": "draft",
+    "w": 1280,
+    "t": "Dark",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 3,
+    "hintText": "Students see their marks and t",
+    "cLabel": 13.76,
+    "cHint": 13.76,
+    "h1": 1,
+    "label": "E-52 admin@local.test draft 1280 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "admin@local.test",
+    "state": "draft",
+    "w": 360,
+    "t": "Light",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 5,
+    "hintText": "Students see their marks and t",
+    "cLabel": 16.27,
+    "cHint": 16.27,
+    "h1": 1,
+    "label": "E-52 admin@local.test draft 360 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "admin@local.test",
+    "state": "draft",
+    "w": 360,
+    "t": "Dark",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 5,
+    "hintText": "Students see their marks and t",
+    "cLabel": 13.76,
+    "cHint": 13.76,
+    "h1": 1,
+    "label": "E-52 admin@local.test draft 360 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "admin@local.test",
+    "state": "published",
+    "w": 1280,
+    "t": "Light",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 1,
+    "hintText": "Locked because the assignment ",
+    "cLabel": 21,
+    "cHint": 16.27,
+    "h1": 1,
+    "label": "E-52 admin@local.test published 1280 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "admin@local.test",
+    "state": "published",
+    "w": 1280,
+    "t": "Dark",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 1,
+    "hintText": "Locked because the assignment ",
+    "cLabel": 16.96,
+    "cHint": 13.76,
+    "h1": 1,
+    "label": "E-52 admin@local.test published 1280 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "admin@local.test",
+    "state": "published",
+    "w": 360,
+    "t": "Light",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 2,
+    "hintText": "Locked because the assignment ",
+    "cLabel": 21,
+    "cHint": 16.27,
+    "h1": 1,
+    "label": "E-52 admin@local.test published 360 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "admin@local.test",
+    "state": "published",
+    "w": 360,
+    "t": "Dark",
+    "overflow": 0,
+    "inside": true,
+    "labelLines": 1,
+    "hintLines": 2,
+    "hintText": "Locked because the assignment ",
+    "cLabel": 16.96,
+    "cHint": 13.76,
+    "h1": 1,
+    "label": "E-52 admin@local.test published 360 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   }
+  ],
+  "mxGone": "0"
+ },
+ "e79.json": {
+  "enrolments": "0",
+  "isla": {
+   "todo": 1,
+   "returned": 1,
+   "waiting": 0,
+   "tt": 1
+  },
+  "islaLeg": {
+   "label": "E-79 Isla",
+   "errors": 0,
+   "errorLines": [],
+   "hosted": 0,
+   "bad": []
+  },
+  "p3": {
+   "notInClass": 0,
+   "empty": 1,
+   "ttEmpty": 1
+  },
+  "p3Leg": {
+   "label": "E-79 P3",
+   "errors": 0,
+   "errorLines": [],
+   "hosted": 0,
+   "bad": []
+  },
+  "restored": "2",
+  "adminLeg": {
+   "label": "admin",
+   "errors": 0,
+   "errorLines": [],
+   "hosted": 0,
+   "bad": []
+  }
+ },
+ "ph3a.json": {
+  "e33": {
+   "H1": "b934aa58-fd71-47b7-a0c0-1afcca487337",
+   "zero": 0,
+   "draftNote": 1,
+   "one": 1,
+   "checked": false,
+   "disabled": false,
+   "hint": "Students see their marks and the correct answers only when you return their work. This matters only when every question is multiple choice: work with a written question is always held until you return it.",
+   "hintExact": true,
+   "labelCount": 1,
+   "afterQuestions": true,
+   "questions": "2",
+   "net": {
+    "errors": [],
+    "hosted": [],
+    "writes": [
+     {
+      "m": "POST",
+      "u": "/rest/v1/assignments?select=id"
+     },
+     {
+      "m": "POST",
+      "u": "/rest/v1/assignment_questions?select=id"
+     },
+     {
+      "m": "POST",
+      "u": "/rest/v1/assignment_questions?select=id"
+     }
+    ],
+    "bad": []
+   }
+  },
+  "e34": {
+   "paperDraft": 0,
+   "pdGone": "0",
+   "publishedPaper": 0,
+   "md": 0,
+   "mdEmpty": 1,
+   "net": {
+    "errors": [],
+    "hosted": [],
+    "writes": [
+     {
+      "m": "POST",
+      "u": "/rest/v1/assignments?select=id"
+     },
+     {
+      "m": "DELETE",
+      "u": "/rest/v1/assignments?id=eq.299cbcaf-0e31-4859-9bcf-6baae7ea8fa9&select=id"
+     }
+    ],
+    "bad": []
+   },
+   "patches": 0
+  },
+  "e35": {
+   "at200": {
+    "checked": true,
+    "disabled": true
+   },
+   "afterSaveBeforeReload": {
+    "checked": true,
+    "disabled": true,
+    "reloadStillPending": true
+   },
+   "afterReload": {
+    "checked": true,
+    "disabled": false
+   },
+   "afterPageReload": true,
+   "db": "t",
+   "alerts": 1,
+   "net": {
+    "errors": [],
+    "hosted": [],
+    "writes": [
+     {
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.b934aa58-fd71-47b7-a0c0-1afcca487337&select=id"
+     }
+    ],
+    "bad": []
+   },
+   "patchBodies": [
+    "{\"hold_results\":true}"
+   ]
+  },
+  "e36": {
+   "untickDb": "f",
+   "dblPatches": 1,
+   "afterReloadChecked": true,
+   "db": "t",
+   "net": {
+    "errors": [],
+    "hosted": [],
+    "writes": [
+     {
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.b934aa58-fd71-47b7-a0c0-1afcca487337&select=id"
+     },
+     {
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.b934aa58-fd71-47b7-a0c0-1afcca487337&select=id"
+     }
+    ],
+    "bad": []
+   },
+   "patchBodies": [
+    "{\"hold_results\":false}",
+    "{\"hold_results\":true}"
+   ]
+  },
+  "e92": {
+   "untick": {
+    "expect": false,
+    "n": 90,
+    "wrong": 0,
+    "firstEnabledAt": 3529,
+    "disabledFrom": 0,
+    "duration": 5043,
+    "patches": 1
+   },
+   "tick": {
+    "expect": true,
+    "n": 91,
+    "wrong": 0,
+    "firstEnabledAt": 3526,
+    "disabledFrom": 0,
+    "duration": 5084,
+    "patches": 1
+   },
+   "afterReload": true,
+   "db": "t",
+   "alerts": 1,
+   "net": {
+    "errors": [],
+    "hosted": [],
+    "writes": [
+     {
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.b934aa58-fd71-47b7-a0c0-1afcca487337&select=id"
+     },
+     {
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.b934aa58-fd71-47b7-a0c0-1afcca487337&select=id"
+     }
+    ],
+    "bad": []
+   }
+  },
+  "e93": {
+   "rewrote": true,
+   "checked": true,
+   "disabled": false,
+   "realReloadChecked": false,
+   "db": "f",
+   "finalDb": "t",
+   "net": {
+    "errors": [],
+    "hosted": [],
+    "writes": [
+     {
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.b934aa58-fd71-47b7-a0c0-1afcca487337&select=id"
+     },
+     {
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.b934aa58-fd71-47b7-a0c0-1afcca487337&select=id"
+     }
+    ],
+    "bad": []
+   }
+  },
+  "e37": {
+   "dialog": {
+    "title": "Publish this assignment?",
+    "text": "Publish this assignment?\n\nEvery student in Selective Entry Maths & Reasoning will see it and can start answering. Questions can’t be changed after this.\n\nCancel\nPublish to class"
+   },
+   "notice": 1,
+   "checked": true,
+   "disabled": true,
+   "note": "Locked because the assignment is published. Move it back to draft to change this.",
+   "hintGone": 0,
+   "forcePatches": 0,
+   "net": {
+    "errors": [],
+    "hosted": [],
+    "writes": [
+     {
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.b934aa58-fd71-47b7-a0c0-1afcca487337&select=id"
+     }
+    ],
+    "bad": []
+   }
+  },
+  "e38": {
+   "dialog": {
+    "title": "Move back to draft?",
+    "text": "Move back to draft?\n\nStudents won’t see it until you publish again. This is only possible until someone starts.\n\nCancel\nBack to draft"
+   },
+   "notice": 1,
+   "enabled": true,
+   "hint": 1,
+   "untick": "f",
+   "tick": "t",
+   "relocked": {
+    "checked": true,
+    "disabled": true
+   },
+   "res": "0",
+   "net": {
+    "errors": [],
+    "hosted": [],
+    "writes": [
+     {
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.b934aa58-fd71-47b7-a0c0-1afcca487337&select=id"
+     },
+     {
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.b934aa58-fd71-47b7-a0c0-1afcca487337&select=id"
+     },
+     {
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.b934aa58-fd71-47b7-a0c0-1afcca487337&select=id"
+     },
+     {
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.b934aa58-fd71-47b7-a0c0-1afcca487337&select=id"
+     }
+    ],
+    "bad": []
+   }
+  },
+  "e39": {
+   "alert": [
+    "Draft: students and parents can’t see this yet. Add questions for online work, or publish it as paper homework.",
+    "This can’t change once the assignment is published."
+   ],
+   "checked": false,
+   "disabled": false,
+   "db": "f",
+   "net": {
+    "errors": [
+     {
+      "t": "console",
+      "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "url": "http://localhost:5173/portal/assignments/9f17e83e-06e4-4d85-8a9f-b7a325a9632e"
+     }
+    ],
+    "hosted": [],
+    "writes": [
+     {
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.9f17e83e-06e4-4d85-8a9f-b7a325a9632e&select=id"
+     }
+    ],
+    "bad": [
+     {
+      "s": 400,
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.9f17e83e-06e4-4d85-8a9f-b7a325a9632e&select=id"
+     }
+    ]
+   }
+  },
+  "e40": {
+   "raceQuestions": "0",
+   "alert": [
+    "Draft: students and parents can’t see this yet. Add questions for online work, or publish it as paper homework.",
+    "Add at least one question before holding results."
+   ],
+   "checked": false,
+   "disabled": false,
+   "db": "f",
+   "net": {
+    "errors": [
+     {
+      "t": "console",
+      "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "url": "http://localhost:5173/portal/assignments/9f17e83e-06e4-4d85-8a9f-b7a325a9632e"
+     }
+    ],
+    "hosted": [],
+    "writes": [
+     {
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.9f17e83e-06e4-4d85-8a9f-b7a325a9632e&select=id"
+     }
+    ],
+    "bad": [
+     {
+      "s": 400,
+      "m": "PATCH",
+      "u": "/rest/v1/assignments?id=eq.9f17e83e-06e4-4d85-8a9f-b7a325a9632e&select=id"
+     }
+    ]
+   },
+   "rqGone": "0"
+  },
+  "tutorLeg": {
+   "label": "tutor",
+   "errors": 2,
+   "errorLines": [
+    {
+     "t": "console",
+     "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+     "url": "http://localhost:5173/portal/assignments/9f17e83e-06e4-4d85-8a9f-b7a325a9632e"
+    },
+    {
+     "t": "console",
+     "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+     "url": "http://localhost:5173/portal/assignments/9f17e83e-06e4-4d85-8a9f-b7a325a9632e"
+    }
+   ],
+   "hosted": 0,
+   "bad": [
+    {
+     "s": 400,
+     "m": "PATCH",
+     "u": "/rest/v1/assignments?id=eq.9f17e83e-06e4-4d85-8a9f-b7a325a9632e&select=id"
+    },
+    {
+     "s": 400,
+     "m": "PATCH",
+     "u": "/rest/v1/assignments?id=eq.9f17e83e-06e4-4d85-8a9f-b7a325a9632e&select=id"
+    }
+   ]
+  }
+ },
+ "ph3b.json": {
+  "e41": {
+   "hint": 1,
+   "tick": "t",
+   "locked": {
+    "checked": true,
+    "disabled": true,
+    "note": 1
+   },
+   "enabled": true,
+   "untick": "f",
+   "gone": "0",
+   "writes": [
+    "POST /rest/v1/rpc/admin_list_staff {}",
+    "POST /rest/v1/rpc/admin_list_activity {\"max_rows\":5}",
+    "POST /rest/v1/rpc/admin_list_staff {}",
+    "POST /rest/v1/assignments {\"class_id\":\"9ed905a6-540e-4654-b19b-3a34aa5a8780\",\"title\":\"e2e-",
+    "POST /rest/v1/assignment_questions {\"assignment_id\":\"469102b4-b42f-4afa-aadf-bfde20330160\"",
+    "PATCH /rest/v1/assignments {\"hold_results\":true}",
+    "PATCH /rest/v1/assignments {\"status\":\"published\"}",
+    "PATCH /rest/v1/assignments {\"status\":\"draft\"}",
+    "PATCH /rest/v1/assignments {\"hold_results\":false}",
+    "DELETE /rest/v1/assignments ",
+    "POST /rest/v1/rpc/admin_list_staff {}"
+   ],
+   "bad": [],
+   "label": "E-41 admin",
+   "errors": 0,
+   "errorLines": [],
+   "hosted": 0
+  },
+  "e42": [
+   {
+    "who": "tutor@local.test",
+    "url": "/portal/assignments/3414fec2-be3a-43f6-bb99-3e381b8327f3",
+    "h1": "Not found",
+    "notFound": 1,
+    "noAccess": 0,
+    "switches": 0,
+    "staffReads": [
+     "GET /rest/v1/assignments?id,class_id,title,instructions,due_on,ma"
+    ],
+    "label": "E-42 tutor@local.test",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "student@local.test",
+    "url": "/portal/assignments/b934aa58-fd71-47b7-a0c0-1afcca487337",
+    "h1": "You don't have access to this page",
+    "notFound": 0,
+    "noAccess": 1,
+    "switches": 0,
+    "staffReads": [],
+    "label": "E-42 student@local.test",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": "parent@local.test",
+    "url": "/portal/assignments/b934aa58-fd71-47b7-a0c0-1afcca487337",
+    "h1": "You don't have access to this page",
+    "notFound": 0,
+    "noAccess": 1,
+    "switches": 0,
+    "staffReads": [],
+    "label": "E-42 parent@local.test",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "who": null,
+    "url": "/portal/login?next=%2Fportal%2Fassignments%2Fb934aa58-fd71-47b7-a0c0-1afcca487337",
+    "h1": "Sign in",
+    "notFound": 0,
+    "noAccess": 0,
+    "switches": 0,
+    "staffReads": [],
+    "label": "E-42 signed-out",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   }
+  ],
+  "x1Left": "0"
+ },
+ "ph3c.json": {
+  "e43": {
+   "inTodo": 1,
+   "dialog": {
+    "title": "Hand in your work?",
+    "text": "Hand in your work?\n\nYou’ve answered every question. You can’t change your answers after this.\n\nCancel\nHand in"
+   },
+   "submitBody": "\"submitted\"",
+   "notice": 1,
+   "chip": 1,
+   "correct": 0,
+   "expl": 0,
+   "awarded": 0,
+   "json": {
+    "status": "submitted",
+    "mark": null,
+    "correctNonNull": 0,
+    "explNonEmpty": 0,
+    "awardedNonNull": 0
+   },
+   "waitingText": [
+    "Handed in 26 Oct 2026, 1:34 pm. Waiting for your tutor to mark it."
+   ],
+   "homeSections": {
+    "To do": false,
+    "Waiting for marking": true,
+    "Marked and returned": false
+   },
+   "db": "submitted|true",
+   "awardedDb": "1:2.0,2:0.0",
+   "label": "E-43 student",
+   "errors": 0,
+   "errorLines": [],
+   "hosted": 0,
+   "bad": []
+  },
+  "e43legs": [
+   {
+    "w": 1280,
+    "t": "Light",
+    "overflow": 0,
+    "notice": 13.87,
+    "chip": 16.27,
+    "h1": 1,
+    "label": "E-43 1280 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "w": 1280,
+    "t": "Dark",
+    "overflow": 0,
+    "notice": 17.15,
+    "chip": 15.19,
+    "h1": 1,
+    "label": "E-43 1280 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "w": 360,
+    "t": "Light",
+    "overflow": 0,
+    "notice": 13.87,
+    "chip": 16.27,
+    "h1": 1,
+    "label": "E-43 360 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "w": 360,
+    "t": "Dark",
+    "overflow": 0,
+    "notice": 17.15,
+    "chip": 15.19,
+    "h1": 1,
+    "label": "E-43 360 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   }
+  ],
+  "e44": {
+   "rowChip": [
+    "Waiting for marking"
+   ],
+   "rowText": "e2e-item7 Held quiz Selective Entry Maths & Reasoning Waiting for marking",
+   "scoreTexts": 0,
+   "their": 2,
+   "correct": 0,
+   "expl": 0,
+   "awarded": 0,
+   "json": {
+    "status": "submitted",
+    "mark": null,
+    "correctNonNull": 0,
+    "explNonEmpty": 0,
+    "awardedNonNull": 0
+   },
+   "listRow": {
+    "status": "submitted",
+    "mark": null
+   },
+   "label": "E-44 parent",
+   "errors": 0,
+   "errorLines": [],
+   "hosted": 0,
+   "bad": []
+  },
+  "e46": {
+   "row": "Aarav Demo Submitted 26 Oct 2026, 1:34 pm 2 / 3 Mark",
+   "progress": [
+    "Returned 0 of 3"
+   ],
+   "url": "/portal/assignments/b934aa58-fd71-47b7-a0c0-1afcca487337/students/3ec004c4-df61-4549-93df-b6a104c07e31",
+   "h1": "Aarav Demo’s work",
+   "handedIn": [
+    "Handed in 26 Oct 2026, 1:34 pm"
+   ],
+   "auto": [
+    "2 / 2 (marked automatically)",
+    "0 / 1 (marked automatically)"
+   ],
+   "score": [
+    "Score 2 / 3"
+   ],
+   "returnEnabled": true,
+   "label": "E-46/47 tutor",
+   "errors": 0,
+   "errorLines": [],
+   "hosted": 0,
+   "bad": []
+  },
+  "e47": {
+   "feedbackFields": 2,
+   "markInputs": 0,
+   "saved": 1,
+   "writes": [
+    {
+     "m": "PATCH",
+     "u": "/rest/v1/assignment_answers"
+    },
+    {
+     "m": "PATCH",
+     "u": "/rest/v1/assignment_answers"
+    },
+    {
+     "m": "PATCH",
+     "u": "/rest/v1/assignment_results"
+    }
+   ],
+   "db": "1|2.0|e2e-item7 Q1 feedback,2|0.0|",
+   "q2len": 1000,
+   "q2afterReload": "",
+   "dbAfter": "1|e2e-item7 Q1 feedback,2|",
+   "errors": [],
+   "hosted": 0
+  }
+ },
+ "ph4a.json": {
+  "x7": "in_progress",
+  "e60": {
+   "dialog": {
+    "title": "Remove from class?",
+    "text": "Remove from class?\n\nAarav Demo will be removed from this class. Their past marks are kept.\n\nCancel\nRemove from class"
+   },
+   "listed": 0,
+   "enrol": "0",
+   "resultsBefore": "5",
+   "resultsAfter": "5",
+   "errors": [],
+   "hosted": [],
+   "writes": [
+    "DELETE /rest/v1/enrolments ",
+    "POST /rest/v1/rpc/admin_list_staff {}"
+   ],
+   "bad": []
+  },
+  "e61": {
+   "sections": {
+    "To do": "Nothing to do right now. Nice work!",
+    "Marked and returned": "e2e-item7 Held quiz Selective Entry Maths & Reasoning Past class 2 / 3 (67%) e2e-item7 nice work See results Number patterns check Selective Entry Maths & Reasoning Past class 6 / 8 (75%) Great reasoning in the written question, Aarav. Revise square numbers: 16 is 4 × 4, so the next one is 5 × 5. See results"
+   },
+   "waitingHeading": 0,
+   "todoEmpty": 1,
+   "pastChips": 2,
+   "seeResults": 2,
+   "progress": "",
+   "timetable": {
+    "intv": 1,
+    "maths": 0
+   },
+   "net": {
+    "errors": [],
+    "hosted": [],
+    "writes": [
+     "POST /rest/v1/rpc/student_timetable {}"
+    ],
+    "bad": []
+   }
+  },
+  "e62": {
+   "NP": {
+    "chips": [
+     "Returned",
+     "Past class",
+     "2 / 2",
+     "Your answer",
+     "Correct answer",
+     "0 / 2",
+     "Your answer",
+     "Correct answer",
+     "4 / 4"
+    ],
+    "correct": 2,
+    "comment": 1,
+    "seedComment": 1,
+    "myComment": 0,
+    "fb": 0,
+    "enabledRadios": 0,
+    "textareas": 0,
+    "handIn": 0,
+    "net": {
+     "errors": [],
+     "hosted": [],
+     "writes": [],
+     "bad": []
+    }
+   },
+   "H1": {
+    "chips": [
+     "Returned",
+     "Past class",
+     "2 / 2",
+     "Your answer",
+     "Correct answer",
+     "0 / 1",
+     "Correct answer",
+     "Your answer"
+    ],
+    "correct": 2,
+    "comment": 1,
+    "seedComment": 0,
+    "myComment": 1,
+    "fb": 1,
+    "enabledRadios": 0,
+    "textareas": 0,
+    "handIn": 0,
+    "net": {
+     "errors": [],
+     "hosted": [],
+     "writes": [],
+     "bad": []
+    }
+   }
+  },
+  "e63": {
+   "WORD": {
+    "h1": "Not found",
+    "nf": 1,
+    "leak": 0,
+    "errors": [
+     "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "hosted": [],
+    "writes": [
+     "POST /rest/v1/rpc/student_assignment {\"target\":\"1dcaf3fc-7600-4563-b583-fdcfc5ff7633\"}"
+    ],
+    "bad": [
+     {
+      "s": 500,
+      "m": "POST",
+      "u": "/rest/v1/rpc/student_assignment"
+     }
+    ]
+   },
+   "MOCK": {
+    "h1": "Not found",
+    "nf": 1,
+    "leak": 0,
+    "errors": [
+     "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "hosted": [],
+    "writes": [
+     "POST /rest/v1/rpc/student_assignment {\"target\":\"a58838a4-3444-4ba8-b66d-b3d1851d0626\"}"
+    ],
+    "bad": [
+     {
+      "s": 500,
+      "m": "POST",
+      "u": "/rest/v1/rpc/student_assignment"
+     }
+    ]
+   },
+   "FRACQ": {
+    "h1": "Not found",
+    "nf": 1,
+    "leak": 0,
+    "errors": [
+     "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "hosted": [],
+    "writes": [
+     "POST /rest/v1/rpc/student_assignment {\"target\":\"209d7bd2-10f8-4799-a810-d7dcde2f987e\"}"
+    ],
+    "bad": [
+     {
+      "s": 500,
+      "m": "POST",
+      "u": "/rest/v1/rpc/student_assignment"
+     }
+    ]
+   },
+   "FRACP": {
+    "h1": "Not found",
+    "nf": 1,
+    "leak": 0,
+    "errors": [
+     "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "hosted": [],
+    "writes": [
+     "POST /rest/v1/rpc/student_assignment {\"target\":\"a2a3177b-8b27-476b-8878-a9e31d9f44be\"}"
+    ],
+    "bad": [
+     {
+      "s": 500,
+      "m": "POST",
+      "u": "/rest/v1/rpc/student_assignment"
+     }
+    ]
+   },
+   "TABLES": {
+    "h1": "Not found",
+    "nf": 1,
+    "leak": 0,
+    "errors": [
+     "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "hosted": [],
+    "writes": [
+     "POST /rest/v1/rpc/student_assignment {\"target\":\"754a7832-8fdb-4055-a619-aae93f13e679\"}"
+    ],
+    "bad": [
+     {
+      "s": 500,
+      "m": "POST",
+      "u": "/rest/v1/rpc/student_assignment"
+     }
+    ]
+   },
+   "RATIO": {
+    "h1": "Not found",
+    "nf": 1,
+    "leak": 0,
+    "errors": [
+     "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "hosted": [],
+    "writes": [
+     "POST /rest/v1/rpc/student_assignment {\"target\":\"ab47ab70-74ca-423d-8822-afef851c6562\"}"
+    ],
+    "bad": [
+     {
+      "s": 500,
+      "m": "POST",
+      "u": "/rest/v1/rpc/student_assignment"
+     }
+    ]
+   }
+  }
+ },
+ "ph4b.json": {
+  "x9": {
+   "join": {
+    "landed": "/portal/parent",
+    "label": "join e2e-item7 Parent Two",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   "profile": "parent|active|true",
+   "linked": "1",
+   "admin": {
+    "label": "X9 admin",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   }
+  },
+  "e65": {
+   "parent@local.test": {
+    "rows": [
+     {
+      "title": "e2e-item7 Held quiz",
+      "chips": [
+       "Returned",
+       "Past class"
+      ],
+      "tutor": 1
+     },
+     {
+      "title": "Number patterns check",
+      "chips": [
+       "Returned",
+       "Past class"
+      ],
+      "tutor": 1
+     }
+    ],
+    "intv": 2,
+    "maths": 2,
+    "pages": {
+     "NP": {
+      "chips": [
+       "Returned",
+       "Past class",
+       "2 / 2"
+      ],
+      "correct": 2,
+      "radios": 0,
+      "textareas": 0,
+      "buttons": 0
+     },
+     "H1": {
+      "chips": [
+       "Returned",
+       "Past class",
+       "2 / 2"
+      ],
+      "correct": 2,
+      "radios": 0,
+      "textareas": 0,
+      "buttons": 0
+     }
+    },
+    "writes": 0,
+    "label": "E-65 parent@local.test",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   "e2e-item7-p2@local.test": {
+    "rows": [
+     {
+      "title": "e2e-item7 Held quiz",
+      "chips": [
+       "Returned",
+       "Past class"
+      ],
+      "tutor": 1
+     },
+     {
+      "title": "Number patterns check",
+      "chips": [
+       "Returned",
+       "Past class"
+      ],
+      "tutor": 1
+     }
+    ],
+    "intv": 2,
+    "maths": 2,
+    "pages": {
+     "NP": {
+      "chips": [
+       "Returned",
+       "Past class",
+       "2 / 2"
+      ],
+      "correct": 2,
+      "radios": 0,
+      "textareas": 0,
+      "buttons": 0
+     },
+     "H1": {
+      "chips": [
+       "Returned",
+       "Past class",
+       "2 / 2"
+      ],
+      "correct": 2,
+      "radios": 0,
+      "textareas": 0,
+      "buttons": 0
+     }
+    },
+    "writes": 0,
+    "label": "E-65 e2e-item7-p2@local.test",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   }
+  },
+  "e66s4": {
+   "h1": "Not found",
+   "errors": [
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+   ],
+   "hosted": [],
+   "writes": [
+    "POST /rest/v1/rpc/parent_children {}",
+    "POST /rest/v1/rpc/parent_child_assignment {\"target_student\":\"3ec004c4-df61-4549-93df-b6a104c07e31\",\"target_assignment\":\""
+   ],
+   "bad": [
+    {
+     "s": 403,
+     "m": "POST",
+     "u": "/rest/v1/rpc/parent_child_assignment"
+    }
+   ]
+  },
+  "e67": [
+   {
+    "role": "student",
+    "atLogin": "/portal/login?next=%2Fportal%2Fstudent%2Fassignments%2Fb934aa58-fd71-47b7-a0c0-1afcca487337",
+    "final": "/portal/student/assignments/b934aa58-fd71-47b7-a0c0-1afcca487337",
+    "ok": false,
+    "chips": [
+     "Returned",
+     "Past class"
+    ],
+    "correct": 2,
+    "label": "E-67 student",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "role": "parent",
+    "atLogin": "/portal/login?next=%2Fportal%2Fparent%2Fchildren%2F3ec004c4-df61-4549-93df-b6a104c07e31%2Fassignments%2Fb934aa58-fd71-47b7-a0c0-1afcca487337",
+    "final": "/portal/parent/children/3ec004c4-df61-4549-93df-b6a104c07e31/assignments/b934aa58-fd71-47b7-a0c0-1afcca487337",
+    "ok": true,
+    "chips": [
+     "Returned",
+     "Past class"
+    ],
+    "correct": 2,
+    "label": "E-67 parent",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   }
+  ],
+  "e68": [
+   {
+    "name": "student",
+    "w": 1280,
+    "t": "Light",
+    "n": 2,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 16.27,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 student 1280 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "student",
+    "w": 1280,
+    "t": "Dark",
+    "n": 2,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 13.76,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 student 1280 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "student",
+    "w": 360,
+    "t": "Light",
+    "n": 2,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 16.27,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 student 360 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "student",
+    "w": 360,
+    "t": "Dark",
+    "n": 2,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 13.76,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 student 360 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "student-NP",
+    "w": 1280,
+    "t": "Light",
+    "n": 1,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 16.27,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 student-NP 1280 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "student-NP",
+    "w": 1280,
+    "t": "Dark",
+    "n": 1,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 15.19,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 student-NP 1280 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "student-NP",
+    "w": 360,
+    "t": "Light",
+    "n": 1,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 16.27,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 student-NP 360 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "student-NP",
+    "w": 360,
+    "t": "Dark",
+    "n": 1,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 15.19,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 student-NP 360 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "parent-child",
+    "w": 1280,
+    "t": "Light",
+    "n": 2,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 16.27,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 parent-child 1280 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "parent-child",
+    "w": 1280,
+    "t": "Dark",
+    "n": 2,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 13.76,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 parent-child 1280 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "parent-child",
+    "w": 360,
+    "t": "Light",
+    "n": 2,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 16.27,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 parent-child 360 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "parent-child",
+    "w": 360,
+    "t": "Dark",
+    "n": 2,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 13.76,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 parent-child 360 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "parent-NP",
+    "w": 1280,
+    "t": "Light",
+    "n": 1,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 16.27,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 parent-NP 1280 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "parent-NP",
+    "w": 1280,
+    "t": "Dark",
+    "n": 1,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 15.19,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 parent-NP 1280 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "parent-NP",
+    "w": 360,
+    "t": "Light",
+    "n": 1,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 16.27,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 parent-NP 360 Light",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   {
+    "name": "parent-NP",
+    "w": 360,
+    "t": "Dark",
+    "n": 1,
+    "inside": true,
+    "overlap": false,
+    "clipped": false,
+    "contrast": 15.19,
+    "overflow": 0,
+    "h1": 1,
+    "label": "E-68 parent-NP 360 Dark",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   }
+  ],
+  "e69": {
+   "listed": 0,
+   "h1": "Not found",
+   "label": "E-69 tutor",
+   "errors": 0,
+   "errorLines": [],
+   "hosted": 0,
+   "bad": []
+  }
+ },
+ "ph4c.json": {
+  "x10": {
+   "join": {
+    "landed": "/portal/student",
+    "label": "join Isla Demo",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   "profile": "student|active|true",
+   "linked": "1"
+  },
+  "x11": {
+   "join": {
+    "landed": "/portal/parent",
+    "label": "join e2e-item7 Parent Three",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   "profile": "parent|active"
+  },
+  "admin": {
+   "label": "X10/X11 admin",
+   "errors": 0,
+   "errorLines": [],
+   "hosted": 0,
+   "bad": []
+  },
+  "e70ui": {
+   "url": "/portal/student",
+   "nothingReturned": 1,
+   "leak": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "bodyLeak": [],
+   "label": "E-70 Isla",
+   "errors": 0,
+   "errorLines": [],
+   "hosted": 0,
+   "bad": []
+  },
+  "e71ui": {
+   "homeIsla": true,
+   "homeAarav": false,
+   "child": {
+    "h1": "Not found",
+    "errors": [
+     "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+     "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "hosted": [],
+    "writes": [
+     "POST /rest/v1/rpc/parent_children {}",
+     "POST /rest/v1/rpc/parent_child_assignments {\"target_student\":\"3ec004c4-df61-4549-93df-b6a104c07e31\"}",
+     "POST /rest/v1/rpc/parent_child_timetable {\"target_student\":\"3ec004c4-df61-4549-93df-b6a104c07e31\"}"
+    ],
+    "bad": [
+     {
+      "s": 500,
+      "m": "POST",
+      "u": "/rest/v1/rpc/parent_child_assignments"
+     },
+     {
+      "s": 500,
+      "m": "POST",
+      "u": "/rest/v1/rpc/parent_child_timetable"
+     }
+    ]
+   },
+   "asg": {
+    "h1": "Not found",
+    "errors": [
+     "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    ],
+    "hosted": [],
+    "writes": [
+     "POST /rest/v1/rpc/parent_children {}",
+     "POST /rest/v1/rpc/parent_child_assignment {\"target_student\":\"3ec004c4-df61-4549-93df-b6a104c07e31\",\"target_assignment\":\""
+    ],
+    "bad": [
+     {
+      "s": 403,
+      "m": "POST",
+      "u": "/rest/v1/rpc/parent_child_assignment"
+     }
+    ]
+   }
+  }
+ },
+ "ph4d.json": {
+  "e72": {
+   "dialog": {
+    "title": "Remove this parent?",
+    "text": "Remove this parent?\n\ne2e-item7 Parent Two will no longer see Aarav Demo’s work. Their account stays, so you can link them again.\n\nCancel\nRemove"
+   },
+   "removed": 1,
+   "links": "0",
+   "admin": {
+    "errors": [],
+    "hosted": [],
+    "writes": [
+     "POST /rest/v1/rpc/admin_unlink_parent {\"target_student\":\"3ec004c4-df61-4549-93df-b6a104c07e31\",\"target_parent\":\"bf1cd0e7"
+    ],
+    "bad": []
+   },
+   "api": [
+    "500 {\"code\":\"P0002\",\"details\":null,\"hint\":null,\"message\":\"not_found\"}",
+    "403 {\"code\":\"42501\",\"details\":null,\"hint\":null,\"message\":\"not_found\"}",
+    "500 {\"code\":\"P0002\",\"details\":null,\"hint\":null,\"message\":\"not_found\"}"
+   ],
+   "home": 1,
+   "child": {
+    "h1": "Not found",
+    "errors": [
+     "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+     "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "hosted": [],
+    "writes": [
+     "POST /rest/v1/rpc/parent_children {}",
+     "POST /rest/v1/rpc/parent_child_assignments {\"target_student\":\"3ec004c4-df61-4549-93df-b6a104c07e31\"}",
+     "POST /rest/v1/rpc/parent_child_timetable {\"target_student\":\"3ec004c4-df61-4549-93df-b6a104c07e31\"}"
+    ],
+    "bad": [
+     {
+      "s": 500,
+      "m": "POST",
+      "u": "/rest/v1/rpc/parent_child_timetable"
+     },
+     {
+      "s": 500,
+      "m": "POST",
+      "u": "/rest/v1/rpc/parent_child_assignments"
+     }
+    ]
+   },
+   "p2leg": {
+    "label": "E-72 P2",
+    "errors": 2,
+    "errorLines": [
+     {
+      "t": "console",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/portal/parent/children/3ec004c4-df61-4549-93df-b6a104c07e31"
+     },
+     {
+      "t": "console",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/portal/parent/children/3ec004c4-df61-4549-93df-b6a104c07e31"
+     }
+    ],
+    "hosted": 0,
+    "bad": [
+     {
+      "s": 500,
+      "m": "POST",
+      "u": "/rest/v1/rpc/parent_child_timetable"
+     },
+     {
+      "s": 500,
+      "m": "POST",
+      "u": "/rest/v1/rpc/parent_child_assignments"
+     }
+    ]
+   },
+   "parentStill": "200 [{\"assignment_id\":\"c17ac472-c9a1-4dc2-ac23-6fa57a05293a\",\"title\":\"Number patterns check\",\"class_name\":\"Selecti"
+  },
+  "e73": {
+   "dialog": {
+    "title": "Deactivate this account?",
+    "text": "Deactivate this account?\n\nAarav Demo will be signed out and lose access straight away. Their work and marks are kept.\n\nCancel\nDeactivate"
+   },
+   "notice": 1,
+   "active": "f",
+   "admin": {
+    "errors": [],
+    "hosted": [],
+    "writes": [
+     "POST /functions/v1/account-admin {\"action\":\"set-active\",\"userId\":\"1ed566ae-f59e-4f33-ad1e-5c0a4ea3f53b\",\"active\":false}"
+    ],
+    "bad": []
+   },
+   "step2": {
+    "url": "/portal/login",
+    "notStudent": 0,
+    "errors": [
+     "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+     "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    ],
+    "hosted": [],
+    "writes": [
+     "POST /rest/v1/rpc/my_onboarding {}"
+    ],
+    "bad": [
+     {
+      "s": 403,
+      "m": "POST",
+      "u": "/auth/v1/logout?scope=local"
+     },
+     {
+      "s": 403,
+      "m": "POST",
+      "u": "/auth/v1/logout?scope=local"
+     }
+    ]
+   },
+   "step3": [
+    "403 {\"code\":\"42501\",\"details\":null,\"hint\":null,\"message\":\"not_student\"}",
+    "403 {\"code\":\"42501\",\"details\":null,\"hint\":null,\"message\":\"not_student\"}"
+   ],
+   "step4": {
+    "url": "/portal/login",
+    "msg": 1,
+    "label": "E-73 sign-in",
+    "errors": 1,
+    "errorLines": [
+     {
+      "t": "console",
+      "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "url": "http://localhost:5173/portal/login"
+     }
+    ],
+    "hosted": 0,
+    "bad": [
+     {
+      "s": 400,
+      "m": "POST",
+      "u": "/auth/v1/token?grant_type=password"
+     }
+    ]
+   },
+   "step5": "200 [{\"assignment_id\":\"c17ac472-c9a1-4dc2-ac23-6fa57a05293a\",\"title\":\"Number patterns check\",\"class_name\":\"Selecti",
+   "restore": {
+    "notice": 1,
+    "active": "t"
+   },
+   "after": {
+    "url": "/portal/student",
+    "past": 2,
+    "label": "E-73 after",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   }
+  },
+  "adminLeg": {
+   "label": "admin",
+   "errors": 0,
+   "errorLines": [],
+   "hosted": 0,
+   "bad": []
+  }
+ },
+ "ph4e.json": {
+  "e74": {
+   "dialog": {
+    "title": "Archive this student?",
+    "text": "Archive this student?\n\nAarav Demo will be hidden from the roster. Their classes and marks are kept.\n\nCancel\nArchive"
+   },
+   "admin": {
+    "errors": [],
+    "hosted": [],
+    "writes": [
+     "PATCH /rest/v1/students {\"is_active\":false}"
+    ],
+    "bad": []
+   },
+   "banner": 1,
+   "step2": {
+    "url": "/portal/student",
+    "h1": null,
+    "notStudent": 1,
+    "errors": [
+     "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    ],
+    "hosted": [],
+    "writes": [
+     "POST /rest/v1/rpc/student_assignments {}"
+    ],
+    "bad": [
+     {
+      "s": 403,
+      "m": "POST",
+      "u": "/rest/v1/rpc/student_assignments"
+     }
+    ]
+   },
+   "studentApi": "403 {\"code\":\"42501\",\"details\":null,\"hint\":null,\"message\":\"not_student\"}",
+   "parentApi": [
+    "500 {\"code\":\"P0002\",\"details\":null,\"hint\":null,\"message\":\"not_found\"}",
+    "403 {\"code\":\"42501\",\"details\":null,\"hint\":null,\"message\":\"not_found\"}"
+   ],
+   "parentHome": {
+    "aarav": false,
+    "noah": true,
+    "label": "E-74 parent home",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   "restored": "t",
+   "after": "200 [{\"assignment_id\":\"c17ac47"
+  },
+  "e76": {
+   "dialog": {
+    "title": "Delete this assignment?",
+    "text": "Delete this assignment?\n\nIt will be removed with all its marks and feedback. This cannot be undone.\n\nCancel\nDelete"
+   },
+   "results": "0",
+   "tutor": {
+    "label": "E-76 tutor",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   "home": "Number patterns check Selective Entry Maths & Reasoning Past class 6 / 8 (75%) Great reasoning in the written question, Aarav. Revise square numbers: 16 is 4 × 4, so the next one is 5 × 5. See results",
+   "past": 1,
+   "step4": {
+    "h1": "Not found",
+    "errors": [
+     "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "hosted": [],
+    "writes": [
+     "POST /rest/v1/rpc/student_assignment {\"target\":\"b934aa58-fd71-47b7-a0c0-1afcca487337\"}"
+    ],
+    "bad": [
+     {
+      "s": 500,
+      "m": "POST",
+      "u": "/rest/v1/rpc/student_assignment"
+     }
+    ]
+   },
+   "api": "200 [{\"assignment_id\":\"c17ac472-c9a1-4dc2-ac23-6fa57a05293a\",\"title\":\"Number patterns check\",\"class_name"
+  },
+  "e77": {
+   "enrol": "1",
+   "rows": 6,
+   "past": 0,
+   "headings": [
+    "To do",
+    "Waiting for marking",
+    "Marked and returned"
+   ],
+   "pastChips": 0,
+   "saved": 1,
+   "tt": {
+    "maths": true,
+    "intv": true
+   },
+   "student": {
+    "label": "E-77 student",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   }
+  },
+  "e78": {
+   "dialog": {
+    "title": "Archive this class?",
+    "text": "Archive this class?\n\nIt disappears from the tutor’s pages and the timetable. You can restore it later.\n\nCancel\nArchive"
+   },
+   "banner": 1,
+   "admin": {
+    "errors": [],
+    "hosted": [],
+    "writes": [
+     "PATCH /rest/v1/classes {\"is_active\":false}",
+     "POST /rest/v1/rpc/admin_list_staff {}"
+    ],
+    "bad": []
+   },
+   "home": {
+    "To do": "Nothing to do right now. Nice work!",
+    "Marked and returned": "Number patterns check Selective Entry Maths & Reasoning Past class 6 / 8 (75%) Great reasoning in the written question, Aarav. Revise square numbers: 16 is 4 × 4, so the next one is 5 × 5. See results"
+   },
+   "past": 1,
+   "tt": {
+    "maths": false,
+    "intv": true
+   },
+   "student": {
+    "label": "E-78 student",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   "api": {
+    "rows": [
+     "Number patterns check|true"
+    ],
+    "saveNP": "500 {\"code\":\"P0002\",\"details\":null,\"hint\":null,\"message\":\"not_found\"}",
+    "saveFRACQ": "500 {\"code\":\"P0002\",\"details\":null,\"hint\":null,\"message\":\"not_found\"}",
+    "submitFRACQ": "500 {\"code\":\"P0002\",\"details\":null,\"hint\":null,\"message\":\"not_found\"}"
+   },
+   "parent": {
+    "rows": [
+     "Number patterns check|true"
+    ],
+    "NP": "200",
+    "WORD": "403 {\"code\":\"42501\",\"details\":null,\"hint\":null,\"message\":\"not_found\"}"
+   },
+   "parentPast": 1,
+   "parentLeg": {
+    "label": "E-78 parent",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   "tutorSeesMaths": 0,
+   "tutorLeg": {
+    "label": "E-78 tutor",
+    "errors": 0,
+    "errorLines": [],
+    "hosted": 0,
+    "bad": []
+   },
+   "s4": {
+    "error": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('combobox', { name: 'Status for Aarav Demo' })\u001b[22m\n",
+    "status": "marked",
+    "outbox": ""
+   },
+   "restored": "t",
+   "afterRestore": {
+    "rows": 6,
+    "past": 0
+   }
+  },
+  "adminLeg": {
+   "label": "admin",
+   "errors": 0,
+   "errorLines": [],
+   "hosted": 0,
+   "bad": []
+  }
+ }
+}

@@ -1,0 +1,16 @@
+== E-07
+      31
+       0
+== E-08
+printed-above(none=pass)
+== E-09
+dbtypes=0
+diff=0
+== E-11
+2
+2
+2
+1
+1
+1
+5

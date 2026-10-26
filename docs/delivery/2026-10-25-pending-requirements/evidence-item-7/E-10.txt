@@ -1,0 +1,21 @@
+false|NO|boolean
+assignments_check_hold_results|O
+assignment_readable_by|t|{"search_path=\"\""}
+assignment_view|t|{"search_path=\"\""}
+assignments_for_student|t|{"search_path=\"\""}
+check_hold_results|t|{"search_path=\"\""}
+parent_child_assignments|t|{"search_path=\"\""}
+student_assignments|t|{"search_path=\"\""}
+student_submit|t|{"search_path=\"\""}
+work_returned_recipients|t|{"search_path=\"\""}
+anon|private.assignment_readable_by(uuid, uuid)|f
+anon|private.assignments_for_student(uuid, boolean)|f
+anon|private.check_hold_results()|f
+anon|public.parent_child_assignments(uuid)|f
+anon|public.student_assignments()|f
+authenticated|private.assignment_readable_by(uuid, uuid)|f
+authenticated|private.assignments_for_student(uuid, boolean)|f
+authenticated|private.check_hold_results()|f
+authenticated|public.parent_child_assignments(uuid)|t
+authenticated|public.student_assignments()|t
+supabase/migrations/20261025110000_work_returned_email.sql

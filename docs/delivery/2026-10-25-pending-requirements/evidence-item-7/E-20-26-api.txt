@@ -1,0 +1,102 @@
+INSERT 0 3
+INSERT 0 2
+== E-20
+0
+f
+== E-21
+200 [{"id":"0ce0281a-a68b-4cb5-afc2-e3686bc40648","hold_results":true}]
+t
+200 [{"id":"0ce0281a-a68b-4cb5-afc2-e3686bc40648","hold_results":false}]
+f
+200 [{"id":"0ce0281a-a68b-4cb5-afc2-e3686bc40648","hold_results":true}]
+== E-22
+400 {"code":"P0001","details":null,"hint":null,"message":"hold_needs_questions"}
+f
+400 {"code":"P0001","details":null,"hint":null,"message":"hold_needs_questions"}
+0
+400 {"code":"P0001","details":null,"hint":null,"message":"assignment_published"}
+f
+== E-23
+200 [{"id":"0ce0281a-a68b-4cb5-afc2-e3686bc40648","status":"published"}]
+400 {"code":"P0001","details":null,"hint":null,"message":"assignment_published"}
+400 {"code":"P0001","details":null,"hint":null,"message":"assignment_published"}
+published|true
+200 [{"id":"0ce0281a-a68b-4cb5-afc2-e3686bc40648"}]
+200 [{"id":"0ce0281a-a68b-4cb5-afc2-e3686bc40648","status":"draft"}]
+200 [{"id":"0ce0281a-a68b-4cb5-afc2-e3686bc40648","hold_results":false}]
+f
+200 [{"id":"0ce0281a-a68b-4cb5-afc2-e3686bc40648","status":"published"}]
+f
+== E-24
+UPDATE 1
+-- admin-aal2 MD true
+200 [{"id":"0ce0281a-a68b-4cb5-afc2-e3686bc40648","hold_results":true}]
+t
+-- admin-aal2 MD false
+200 [{"id":"0ce0281a-a68b-4cb5-afc2-e3686bc40648","hold_results":false}]
+f
+-- admin-aal1 MD true
+200 []
+f
+-- newadmin@local.test MD true
+200 []
+f
+-- tutor ED
+200 []
+f
+-- admin-aal1 ED
+200 [{"id":"3414fec2-be3a-43f6-bb99-3e381b8327f3","hold_results":true}]
+t
+UPDATE 1
+f
+-- student@local.test MD
+200 []
+f
+-- parent@local.test MD
+200 []
+f
+-- anon MD
+401 {"code":"42501","details":null,"hint":"Grant the required privileges to the current role with: GRANT SELECT, UPDATE ON public.assignments TO anon;","message":"permission denied for table assignments"}
+f
+-- student GET
+200 []
+== E-25
+404 {"code":"PGRST202","details":"Searched for the function public.assignment_readable_by with parameters target_assignment, target_student or with a single unnamed json/jsonb parameter, but no matche
+<anonymous_script>:1
+{\}
+ ^
+
+SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+    at file:///private/tmp/claude-501/-Users-sjain-dev-work-aj-classes/f3122f43-e1db-48f8-8b25-a31385abb4a2/scratchpad/item7-run/as.mjs:7:62
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+Node.js v24.15.0
+<anonymous_script>:1
+{\}
+ ^
+
+SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+    at file:///private/tmp/claude-501/-Users-sjain-dev-work-aj-classes/f3122f43-e1db-48f8-8b25-a31385abb4a2/scratchpad/item7-run/as.mjs:7:62
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.15.0
+401 {"code":"42501","details":null,"hint":null,"message":"permission denied for function parent_child_assignments"}
+<anonymous_script>:1
+{\}
+ ^
+
+SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+    at file:///private/tmp/claude-501/-Users-sjain-dev-work-aj-classes/f3122f43-e1db-48f8-8b25-a31385abb4a2/scratchpad/item7-run/as.mjs:7:62
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+Node.js v24.15.0
+== E-26
+200 [{"id":"0ce0281a-a68b-4cb5-afc2-e3686bc40648","hold_results":true}]
+200 [{"id":"cd0beb48-94b3-4921-8d8c-0a89a7e96524"}]
+t
+0
