@@ -621,12 +621,16 @@ function restoreSeededWork({ assignment, student }) {
   sql(
     `update public.assignment_answers set awarded_marks = null, feedback = '' where ${where} and question_id in (select id from public.assignment_questions where kind = 'written')`,
   );
-  sql(`delete from public.email_outbox where assignment_id = '${assignment}'`);
+  // Only the "work returned" rows this test's return queues (also those of an interrupted run).
+  // The seed's own "new assignment" rows for this work stay (item 8 test plan P4).
+  sql(
+    `delete from public.email_outbox where assignment_id = '${assignment}' and kind = 'work_returned'`,
+  );
 }
 
 const outboxFor = (assignment) =>
   sql(
-    `select id || ':' || status from public.email_outbox where assignment_id = '${assignment}' order by id`,
+    `select id || ':' || status from public.email_outbox where assignment_id = '${assignment}' and kind = 'work_returned' order by id`,
   )
     .split('\n')
     .filter(Boolean)
