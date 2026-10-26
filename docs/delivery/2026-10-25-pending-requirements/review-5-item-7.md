@@ -44,3 +44,30 @@ None.
 
 1. T7.12 Tester: the dev notes §6 manual legs, plus findings 2 and 3 if not added to pgTAP.
 2. T2.15 / item 8: keep both copies of rule (b) in step (`assignment_readable_by` and the builder condition at `fair_results.sql:216`).
+
+---
+
+APPROVED
+
+# Review 5 — item 7, round 2
+
+**Scope:** `git diff 8aee800..374b368` (9 commits, 8 files). Ran: lint, typecheck (web, e2e) pass; Vitest 59 files / 506 tests; pgTAP 15 files / 586 tests PASS.
+
+**Status:** R1–R5 and S1–S3 resolved; dev notes §7 matches. Step (c)'s SQL is correct (all 5 FKs to `public.students` cascade). Code-quality rules hold.
+
+## Blocking
+
+None.
+
+## Non-blocking
+
+1. `HoldResultsSetting.tsx:53-54`: possible one-frame flicker after a successful save (`revalidate()` resolves before the transition renders new data). Fix: clear `pending` only on refusal; on success keep it until the `holdResults` prop changes.
+2. `HoldResultsSetting.tsx:53-54`: if `onChanged` throws, `pending` is never cleared. Fix: `try … finally`.
+3. `supabase/README.md:92-94` step (c): also say enrolments, parent links and answers go; suggest (b) first and a `select full_name …` check before deleting.
+4. `HoldResultsSetting.test.tsx:94`: the constant-text assertion repeats the constant. Drop it or keep as a copy pin.
+5. `05-dev-notes-item-7.md:212`: clarify the box was unticked by hand to restore seed data.
+6. `fair_results.test.sql:459-461`: optionally assert the count is 1 just before the delete.
+
+Tester (T7.12): click the switch on a slow connection and watch for the flicker.
+
+**Lead note:** findings 1, 2, 3, 5, 6 fixed in 0d1b701, 8cf5689, 3d1e2fb, d5baae1, 0ccdd93; 4 skipped. The throw path of finding 2 has no unit test (an `onChanged` rejection is left unhandled by design, so Vitest fails the run); covered by reading only. Vitest 506, pgTAP 587.
