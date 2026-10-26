@@ -89,9 +89,14 @@ To cut access, pick the narrowest step. None of them works per class:
    everything. Results are kept, and **Restore** brings them back.
 2. **(b) Deactivate the student's login:** Admin → Students → the student → Student account →
    **Deactivate**. The student only. Parents still see the work.
-3. **(c) Delete the roster row:** there's no portal button. In the SQL editor:
-   `delete from public.students where id = '<student id>';`. Every result the student has, in
-   every class, is deleted with it. This can't be undone.
+3. **(c) Delete the roster row:** this can't be undone, so do (a) or (b) first and use this only
+   if the work must be gone. There's no portal button. In the SQL editor, check you have the
+   right student first:
+   `select full_name from public.students where id = '<student id>';`
+   then:
+   `delete from public.students where id = '<student id>';`
+   Everything linked to the row goes with it, in every class: enrolments, parent links, results,
+   answers, the consent recorded on the row, and their "work returned" email rows.
 4. **(d) Unlink a parent:** Admin → Students → the student → the parent → **Remove**. That parent
    only.
 5. **(e) Delete the assignment:** the assignment page → **Delete**. It's removed for every student.
