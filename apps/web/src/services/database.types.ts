@@ -198,6 +198,7 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           due_on: string | null;
+          hold_results: boolean;
           id: string;
           instructions: string;
           max_mark: number | null;
@@ -212,6 +213,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           due_on?: string | null;
+          hold_results?: boolean;
           id?: string;
           instructions?: string;
           max_mark?: number | null;
@@ -225,6 +227,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           due_on?: string | null;
+          hold_results?: boolean;
           id?: string;
           instructions?: string;
           max_mark?: number | null;
@@ -862,6 +865,7 @@ export type Database = {
           comment: string;
           due_on: string;
           is_late: boolean;
+          is_past_class: boolean;
           mark: number;
           published_at: string;
           question_count: number;
@@ -920,6 +924,7 @@ export type Database = {
           comment: string;
           due_on: string;
           is_late: boolean;
+          is_past_class: boolean;
           mark: number;
           published_at: string;
           question_count: number;
