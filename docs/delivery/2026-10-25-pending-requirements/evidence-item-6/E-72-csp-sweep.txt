@@ -1,0 +1,61 @@
+[CI/Lighthouse]   |   ✘   1 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › / loads and is used with no CSP violations (3.3s)
+[CI/Lighthouse]   |   ✘   2 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /programmes/vce loads and is used with no CSP violations (2.3s)
+[CI/Lighthouse]   |   ✘   3 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /programmes/selective-entry loads and is used with no CSP violations (1.7s)
+[CI/Lighthouse]   |   ✘   4 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /resources loads and is used with no CSP violations (1.2s)
+[CI/Lighthouse]   |   ✘   5 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /resources/victorian-selective-entry-exam loads and is used with no CSP violations (2.3s)
+[CI/Lighthouse]   |   ✘   6 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /privacy loads and is used with no CSP violations (2.3s)
+[CI/Lighthouse]   |   ✘   7 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /posts loads and is used with no CSP violations (1.2s)
+[CI/Lighthouse]   |   ✘   8 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /subscribed loads and is used with no CSP violations (1.2s)
+[CI/Lighthouse]   |   ✘   9 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /nope loads and is used with no CSP violations (1.1s)
+[CI/Lighthouse]   |   ✘  10 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › / loads and is used with no CSP violations (2.3s)
+[CI/Lighthouse]   |   ✘  11 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /programmes/vce loads and is used with no CSP violations (1.6s)
+[CI/Lighthouse]   |   ✘  12 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /programmes/selective-entry loads and is used with no CSP violations (1.7s)
+[CI/Lighthouse]   |   ✘  13 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /resources loads and is used with no CSP violations (863ms)
+[CI/Lighthouse]   |   ✘  14 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /resources/victorian-selective-entry-exam loads and is used with no CSP violations (2.2s)
+[CI/Lighthouse]   |   ✘  15 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /privacy loads and is used with no CSP violations (1.6s)
+[CI/Lighthouse]   |   ✘  16 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /posts loads and is used with no CSP violations (1.1s)
+[CI/Lighthouse]   |   ✘  17 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /subscribed loads and is used with no CSP violations (772ms)
+[CI/Lighthouse]   |   ✘  18 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /nope loads and is used with no CSP violations (738ms)
+[CI/Lighthouse]   |   ✘  19 csp/public-csp.spec.ts:120:1 › a script from an origin outside the policy is blocked and reported (AC-5.8) (5.7s)
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id,created_at,title,body&order=created_at.desc&limit=200",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id,created_at,title,body&order=created_at.desc&limit=200",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     +     "blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1",
+[CI/Lighthouse]   |     +     "directive": "connect-src",
+[CI/Lighthouse]   |     Received array:  [{"blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1", "directive": "connect-src"}, {"blockedURI": "https://example.com/x.js", "directive": "script-src-elem"}]
+[CI/Lighthouse]   |       135 |   expect((await violations(page))[0]?.directive).toBe('script-src-elem');

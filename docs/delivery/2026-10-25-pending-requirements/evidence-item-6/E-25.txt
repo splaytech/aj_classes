@@ -1,0 +1,6 @@
+    Error: requests to a hosted Supabase project
+    +   "https://example.supabase.co/rest/v1/",
+    > 29 |       expect(attempted, 'requests to a hosted Supabase project').toEqual([]);
+    test-results/our-approach-Our-Approach--63e3d-s-in-order-each-with-one-h3/test-failed-1.png
+  1 failed
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -g 'Our Approach'

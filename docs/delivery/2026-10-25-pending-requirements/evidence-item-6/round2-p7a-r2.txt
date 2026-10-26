@@ -1,0 +1,15 @@
+pre-status 0
+== E-70
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+1 failed
+8 passed (1.1m)
+❌  Failure - Main E2E smoke (global setup starts the dev server on 5173)
+Artifact e2e-report has been successfully uploaded! Final size is 11734574 bytes. Artifact ID is 1245231678
+🏁  Job failed
+exit 1 wall 165s
+ref 0 hosts 
+✘  7 tests/our-approach.spec.ts:11:3 › Our Approach homepage section › renders all four steps, in order, each with one h3 (10.6s)
+Error: expect(locator).toHaveText(expected) failed
+index 1 trace 1 media 2
+ref 0 net-supabase 0
+containers 0 volume 0

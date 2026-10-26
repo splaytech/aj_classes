@@ -1,0 +1,19 @@
+[CI/web]   ✅  Success - Main actions/checkout@v4 [482.65325ms]
+[CI/web]   ✅  Success - Main pnpm/action-setup@v4 [1.126980042s]
+[CI/web]   ✅  Success - Main actions/setup-node@v4 [2.750347708s]
+[CI/web]   ✅  Success - Main pnpm install --frozen-lockfile [2.50652025s]
+[CI/web]   ✅  Success - Main pnpm format:check [1.874639208s]
+[CI/web]   ✅  Success - Main pnpm lint [3.957310167s]
+[CI/web]   ✅  Success - Main pnpm typecheck [4.511768209s]
+[CI/web]   |  Test Files  56 passed (56)
+[CI/web]   |       Tests  496 passed (496)
+[CI/web]   | ℹ tests 6
+[CI/web]   | ℹ suites 2
+[CI/web]   | ℹ pass 6
+[CI/web]   | ℹ fail 0
+[CI/web]   ✅  Success - Main pnpm test [5.036011333s]
+- **Test Files**: ✅ **56 passes** · 56 total
+[CI/web]   ✅  Success - Main Build (production settings, as Vercel builds it) [3.6673615s]
+[CI/web] 🏁  Job succeeded
+exit 0 wall 35s
+ref 0 hosts 

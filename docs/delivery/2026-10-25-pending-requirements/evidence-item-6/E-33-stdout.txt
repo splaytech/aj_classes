@@ -1,0 +1,12 @@
+### JavaScript transferred per page (median)
+
+| Page | JS (KB) |
+| --- | ---: |
+| / | 183.6 |
+| /programmes/vce | 179.0 |
+| /programmes/selective-entry | 180.4 |
+| /resources | 180.0 |
+| /resources/victorian-selective-entry-exam | 181.3 |
+| /privacy | 179.0 |
+
+lighthouse-report: 18 runs, 0 supabase.co requests

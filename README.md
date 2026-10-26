@@ -21,14 +21,18 @@ pnpm dev          # http://localhost:5173
 | `pnpm build`     | Production build: pre-renders every page to static HTML |
 | `pnpm preview`   | Serves the production build locally                     |
 | `pnpm lint`      | ESLint, including the "no text in components" rule      |
-| `pnpm typecheck` | TypeScript check                                        |
-| `pnpm test`      | Unit tests (Vitest)                                     |
+| `pnpm typecheck` | TypeScript check of `apps/web` and the `e2e` suite      |
+| `pnpm test`      | Unit tests (Vitest, plus the e2e `node:test` checks)    |
 | `pnpm format`    | Formats every file with Prettier                        |
 | `pnpm check`     | Everything above in one go. Run before pushing          |
 
 Copy `apps/web/.env.example` to `apps/web/.env.local` and add the Web3Forms access key (enquiry form) and the Kit form ID (newsletter sign-up). Without the Kit form ID the newsletter form stays hidden.
 
 **Portal (Release 2a, R3a, R3b):** sign-in with two-step for admins; staff management and activity; classes, weekly timetable, student roster, assignments and marking; online assignments with multiple-choice and written questions (publish, autosave, hand in, mark, return); student and parent accounts by invitation, with parental consent; light and dark appearance. Staff pages use Material UI, themed from `theme.css`. In development the first visit to a page using a new Material UI part reloads once while Vite prepares it. Needs Docker and the Supabase CLI. Run `pnpm db:start`, add the three portal settings to `.env.local` (see `.env.example`), then `pnpm dev` and open http://localhost:5173/portal/login. Local accounts and commands: [supabase/README.md](supabase/README.md). Without the portal settings, the portal is switched off.
+
+## Checks
+
+CI (`.github/workflows/ci.yml`) runs five checks on every pull request and every push to `develop` and `main`: `web` (`pnpm check`, with the build run as `VITE_APP_ENV=production pnpm build`, as Vercel builds it), `database` (pgTAP), `E2E smoke` (the Playwright suite in [`e2e/`](e2e/)), `Lighthouse` (mobile budget and CSP sweep) and `Structured data` (JSON-LD). None of them may reach the hosted Supabase project. How to run each one locally, with the same commands: [docs/testing/ci-gates.md](docs/testing/ci-gates.md).
 
 ## House rules
 

@@ -1,0 +1,19 @@
+  ✓   1 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › / loads and is used with no CSP violations
+  ✓   2 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /programmes/vce loads and is used with no CSP violations
+  ✓   3 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /programmes/selective-entry loads and is used with no CSP violations
+  ✓   4 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /resources loads and is used with no CSP violations
+  ✓   5 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /resources/victorian-selective-entry-exam loads and is used with no CSP violations
+  ✓   6 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /privacy loads and is used with no CSP violations
+  ✓   7 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /posts loads and is used with no CSP violations
+  ✓   8 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /subscribed loads and is used with no CSP violations
+  ✓   9 csp/public-csp.spec.ts:94:7 › Public CSP at 360px (phone) › /nope loads and is used with no CSP violations
+  ✓  10 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › / loads and is used with no CSP violations
+  ✓  11 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /programmes/vce loads and is used with no CSP violations
+  ✓  12 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /programmes/selective-entry loads and is used with no CSP violations
+  ✓  13 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /resources loads and is used with no CSP violations
+  ✓  14 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /resources/victorian-selective-entry-exam loads and is used with no CSP violations
+  ✓  15 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /privacy loads and is used with no CSP violations
+  ✓  16 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /posts loads and is used with no CSP violations
+  ✓  17 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /subscribed loads and is used with no CSP violations
+  ✓  18 csp/public-csp.spec.ts:94:7 › Public CSP at 1280px (desktop) › /nope loads and is used with no CSP violations
+  ✓  19 csp/public-csp.spec.ts:120:1 › a script from an origin outside the policy is blocked and reported (AC-5.8)

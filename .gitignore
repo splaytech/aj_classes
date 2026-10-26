@@ -22,3 +22,9 @@ docs/legacy-erp/
 .kinet
 CLAUDE.md
 kinet.config.json
+
+# E2E suite output (e2e/) and Lighthouse CI output (apps/web)
+e2e/playwright-report/
+e2e/test-results/
+apps/web/.lighthouseci/
+apps/web/lighthouse-report/

@@ -1,0 +1,13 @@
+[CI/Lighthouse]   ✅  Success - Main actions/checkout@v4 [437.053959ms]
+[CI/Lighthouse]   ✅  Success - Main pnpm/action-setup@v4 [966.634542ms]
+[CI/Lighthouse]   ✅  Success - Main actions/setup-node@v4 [2.493050333s]
+[CI/Lighthouse]   ✅  Success - Main pnpm install --frozen-lockfile [2.647825416s]
+[CI/Lighthouse]   ✅  Success - Main Build with no Supabase config (never the hosted project) [3.578386583s]
+[CI/Lighthouse]   | check-hosted-ref: 1 files in build/client contain the hosted project ref, e.g. zz-hosted-probe.js
+[CI/Lighthouse]   | check-hosted-ref: 1 files (of 154 scanned)
+[CI/Lighthouse]   ❌  Failure - Main No hosted project reference in the build [296.515917ms]
+[CI/Lighthouse]   ✅  Success - Main actions/upload-artifact@v4 [545.062458ms]
+[CI/Lighthouse]   ✅  Success - Main actions/upload-artifact@v4 [470.666292ms]
+[CI/Lighthouse] 🏁  Job failed
+exit 1 wall 19s
+ref 0 hosts 

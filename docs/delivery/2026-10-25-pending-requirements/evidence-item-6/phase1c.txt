@@ -1,0 +1,72 @@
+== E-18
+24:## The one rule: no hosted requests
+48:## E2E smoke
+96:## Lighthouse
+136:## Structured data
+159:## Running the workflow itself with `act` (optional)
+check:hosted-ref 3
+local-env.mjs 2
+aj-classes-e2e typecheck 0
+playwright install 1
+test:smoke 1
+VITE_SUPABASE_PUBLISHABLE_KEY= 2
+VITE_KIT_FORM_ID=0000000 1
+VITE_FORM_ACCESS_KEY=local-placeholder 1
+pnpm --filter web lighthouse 2
+lighthouse:report 3
+test:csp 2
+check:structured-data 1
+CHROME_PATH 1
+no-sandbox 1
+supabase start 1
+-- e2e run lines
+        run: pnpm --filter web check:hosted-ref ../../.github/workflows ../../e2e
+        run: supabase start -x studio,imgproxy,logflare,vector,supavisor,postgres-meta > /dev/null
+        run: node e2e/scripts/local-env.mjs >> "$GITHUB_ENV"
+        run: pnpm --filter aj-classes-e2e test:smoke
+-- lighthouse run lines
+        run: pnpm build
+        run: pnpm --filter web check:hosted-ref build/client
+        run: >-
+        run: pnpm --filter web lighthouse --collect.settings.chromeFlags=--no-sandbox
+        run: pnpm --filter web lighthouse:report
+        run: pnpm --filter aj-classes-e2e test:csp
+-- structured-data run lines
+        run: pnpm build
+        run: pnpm --filter web check:hosted-ref build/client
+        run: pnpm --filter web check:structured-data
+1
+       5
+1
+5:- **Amended 2026-10-26** (Developer, review-5 finding 7): 
+174:  and test old data (a false green). `pnpm db:stop` keeps the volume, so don't use it here.
+177:  supabase stop --no-backup
+183:  supabase stop --no-backup
+190:  `supabase stop --no-backup` deletes the local database volume: local data only, as
+17:First install the workspace once (Node 24 and pnpm; see the README's
+18-[Getting started](../../README.md#getting-started)). It installs `apps/web` and `e2e/` together:
+19-
+20-```bash
+21-pnpm install
+1
+1
+1
+== E-19
+exit 0
+  ✔ accepts localhost and 127.0.0.1 (0.207792ms)
+  ✔ refuses a hosted Supabase URL and a URL that does not parse (0.186834ms)
+✔ assertLocalUrl (0.896875ms)
+  ✔ accepts the local stack URL (0.110042ms)
+  ✔ refuses a hosted VITE_SUPABASE_URL before the dev server starts (0.0585ms)
+  ✔ refuses an unset or blank VITE_SUPABASE_URL, which would fall back to the app env files (0.049084ms)
+  ✔ refuses any other hosted VITE_SUPABASE_*_URL (0.040792ms)
+✔ assertLocalDevServerEnv (0.330958ms)
+ℹ tests 6
+ℹ suites 2
+ℹ pass 6
+ℹ fail 0
+0
+e2e/src/config.ts:4:import { assertLocalHost, assertLocalUrl } from './local-hosts.js';
+e2e/setup/global-setup.ts:6:import { assertLocalDevServerEnv } from '../src/local-hosts.js';
+6
+2

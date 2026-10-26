@@ -1,0 +1,47 @@
+== E-20
+exit 0 lines 23 ph 0 err 0
+SUPABASE_ANON_KEY equal
+SUPABASE_SERVICE_ROLE_KEY equal
+VITE_SUPABASE_PUBLISHABLE_KEY equal
+masks 3 errlines 3 outcolons 0
+same
+== E-21
+a exit 1 out=0 err: local-env: the stack's API_URL is "https://example.supabase.co", not http://127.0.0.1:55321; refusing
+b exit 1 out=0 err: local-env: `supabase status` has no PUBLISHABLE_KEY
+c exit 1 out=0 err: local-env: `supabase status -o json` failed; start the local stack first (pnpm db:start)
+== E-22
+WEB_BASE_URL=https://example.supabase.co exit 1 listen 0 :: Error: Config error: WEB_BASE_URL must be localhost or 127.0.0.1, not "example.supabase.co" 
+SUPABASE_REST_URL=https://example.supabase.co exit 1 listen 0 :: Error: Config error: SUPABASE_REST_URL must be localhost or 127.0.0.1, not "example.supabase.co" 
+MAILPIT_URL=http://10.0.0.5:55324 exit 1 listen 0 :: Error: Config error: MAILPIT_URL must be localhost or 127.0.0.1, not "10.0.0.5" 
+PG_HOST=db.example.supabase.co exit 1 listen 0 :: Error: Config error: PG_HOST must be localhost or 127.0.0.1, not "db.example.supabase.co" 
+ADMIN_EMAIL= exit 1 listen 0 :: Error: Missing required environment variable(s): ADMIN_EMAIL. Run `node e2e/scripts/local-env.mjs > e2e/.env` with the local stack up (docs/testing/ci-gates.md). 
+== E-23
+exit 0
+✓  1 tests/admin-posts.spec.ts:22:3 › Admin Daily Posts › create, edit, delete a post reflected in both UI and DB
+✓  2 tests/admin-posts.spec.ts:79:3 › Admin Daily Posts › public /posts renders published posts newest-first
+✓  3 tests/admin-posts.spec.ts:126:3 › Admin Daily Posts › long unbroken titles and URLs wrap: no sideways scroll on /posts or the admin page
+✓  4 tests/admin-posts.spec.ts:164:3 › Admin Daily Posts › XSS guard: script payload renders as text, never executes
+✓  5 tests/admin-posts.spec.ts:202:3 › Admin Daily Posts › RLS: anon can read the public post columns but not author_id, and cannot write
+✓  6 tests/invite-onboarding.spec.ts:18:3 › Invite onboarding › admin invites a staff member; they complete onboarding into an active tutor account
+✓  7 tests/our-approach.spec.ts:11:3 › Our Approach homepage section › renders all four steps, in order, each with one h3
+✓  8 tests/register-interest.spec.ts:37:3 › Register Interest form › submits via the mocked Web3Forms path and persists to public.enquiries
+✓  9 tests/staff-login.spec.ts:6:3 › Staff/admin login › admin signs in through 2FA and lands on the portal
+  9 passed (43.5s)
+listen 0 rows 0 0 0 status 0
+== E-24
+admin-posts.spec.ts=19 invite-onboarding.spec.ts=10 our-approach.spec.ts=0 register-interest.spec.ts=4 staff-login.spec.ts=0 
+2
+       5
+1
+2
+playwright test
+== E-25
+ 1 file changed, 1 insertion(+)
+exit 1
+    Error: requests to a hosted Supabase project
+    +   "https://example.supabase.co/rest/v1/",
+  1 failed
+trace e2e/test-results/our-approach-Our-Approach--63e3d-s-in-order-each-with-one-h3/trace.zip
+"_failureText":"net::ERR_FAILED" "status":-1 
+status 0
+head-equal

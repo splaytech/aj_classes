@@ -1,0 +1,10 @@
+  ✓  1 tests/admin-posts.spec.ts:22:3 › Admin Daily Posts › create, edit, delete a post reflected in both UI and DB
+  ✓  2 tests/admin-posts.spec.ts:77:3 › Admin Daily Posts › public /posts renders published posts newest-first
+  ✓  3 tests/admin-posts.spec.ts:114:3 › Admin Daily Posts › long unbroken titles and URLs wrap: no sideways scroll on /posts or the admin page
+  ✓  4 tests/admin-posts.spec.ts:148:3 › Admin Daily Posts › XSS guard: script payload renders as text, never executes
+  ✓  5 tests/admin-posts.spec.ts:181:3 › Admin Daily Posts › RLS: anon can read the public post columns but not author_id, and cannot write
+  ✓  6 tests/invite-onboarding.spec.ts:17:3 › Invite onboarding › admin invites a staff member; they complete onboarding into an active tutor account
+  ✓  7 tests/our-approach.spec.ts:11:3 › Our Approach homepage section › renders all four steps, in order, each with one h3
+  ✓  8 tests/register-interest.spec.ts:35:3 › Register Interest form › submits via the mocked Web3Forms path and persists to public.enquiries
+  ✓  9 tests/staff-login.spec.ts:6:3 › Staff/admin login › admin signs in through 2FA and lands on the portal
+  9 passed (1.6m)

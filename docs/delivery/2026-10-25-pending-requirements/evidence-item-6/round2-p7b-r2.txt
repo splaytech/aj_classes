@@ -1,0 +1,9 @@
+== E-71
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+broken-db-r2: Applying migration 20261026100000_staff_phone_edit.sql...;Files=14, Tests=507,  1 ;Result: PASS;🏁  Job succeeded;exit 0 wall 24s;ref 0 hosts ;
+broken-web-r2: Test Files  56 passed (56);Tests  496 passed (496);ℹ pass 6;- **Test Files**: ✅ **56 passes** · 56 total;🏁  Job succeeded;exit 0 wall 34s;ref 0 hosts ;
+broken-sd-r2: check-structured-data: 18 pages, 0 problems;🏁  Job succeeded;exit 0 wall 17s;ref 0 hosts ;
+broken-lh-r2: lighthouse-report: 18 runs, 0 supabase.co requests;19 passed (29.5s);🏁  Job succeeded;exit 0 wall 281s;ref 0 hosts ;
+status 0
+head-equal
+containers 0 volume 0

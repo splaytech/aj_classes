@@ -1,0 +1,67 @@
+== E-30
+build 0
+$ node scripts/check-hosted-ref.ts build/client
+check-hosted-ref: 0 files (of 153 scanned)
+nfiles 153 local 0 ph 1 stay 1 html 18
+== E-31
+serve-mirror: http://127.0.0.1:4173 (Supabase http://127.0.0.1:55321)
+/ 200 csp=1 kind=public-local
+/programmes/vce 200 csp=1 kind=public-local
+/programmes/selective-entry 200 csp=1 kind=public-local
+/resources 200 csp=1 kind=public-local
+/resources/victorian-selective-entry-exam 200 csp=1 kind=public-local
+/privacy 200 csp=1 kind=public-local
+/nope 404 csp=1 kind=public-local
+200 0
+listen 0
+== E-32
+exit 0
+      18
+http://127.0.0.1:4173/	3	mobile	true	0.94	0.97	1	1
+http://127.0.0.1:4173/privacy	3	mobile	true	0.94	1	1	1
+http://127.0.0.1:4173/programmes/selective-entry	3	mobile	true	0.94	1	1	1
+http://127.0.0.1:4173/programmes/vce	3	mobile	true	0.94	1	1	1
+http://127.0.0.1:4173/resources	3	mobile	true	0.94	1	1	1
+http://127.0.0.1:4173/resources/victorian-selective-entry-exam	3	mobile	true	0.94	1	1	1
+HeadlessChrome/155.0.0.0
+  18 html   18 json    1 manifest.json manifest 18 public 0 listen 0
+== E-33
+exit 0
+### JavaScript transferred per page (median)
+
+| Page | JS (KB) |
+| --- | ---: |
+| / | 183.6 |
+| /programmes/vce | 179.0 |
+| /programmes/selective-entry | 180.4 |
+| /resources | 180.0 |
+| /resources/victorian-selective-entry-exam | 181.3 |
+| /privacy | 179.0 |
+
+lighthouse-report: 18 runs, 0 supabase.co requests
+stderr: [$ node scripts/check-lighthouse-report.ts .lighthouseci]
+node-stderr 0 summary 1
+net=0 anyurl=0 under-budget-runs=0
+== E-34
+a
+rc=1 last=[] err=[lighthouse-report: no such folder: (none given); give the .lighthouseci folder|]
+b
+rc=1 last=[] err=[lighthouse-report: no such folder: nope; give the .lighthouseci folder|]
+c
+rc=1 last=[] err=[lighthouse-report: no lhr-*.json in lhr-empty; run lhci autorun first|]
+d
+rc=1 last=[lighthouse-report: 18 runs, 1 supabase.co requests] err=[  supabase.co request: https://x.supabase.co/rest/v1/posts|]
+e
+rc=1 last=[] err=[lighthouse-report: lhr-<n>.json: no network-requests list for http://127.0.0.1:4173/; the audit may have errored|]
+f
+rc=1 last=[lighthouse-report: 18 runs, 1 supabase.co requests] err=[  supabase.co request: https://x.supabase.co/rest/v1/posts?select=id|]
+g
+rc=1 last=[] err=[lighthouse-report: lhr-x.json: not a Lighthouse result: no requestedUrl|]
+== E-35
+import 0
+33:const LOCAL_LEADS_URL = 'http://127.0.0.1:55321/functions/v1/leads';
+exit 0
+19
+  19 passed (29.9s)
+e2e/.env
+listen 0

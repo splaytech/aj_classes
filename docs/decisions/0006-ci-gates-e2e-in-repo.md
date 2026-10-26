@@ -2,6 +2,7 @@
 
 - **Status:** Accepted (2026-10-26, Architect, `/deliver` pending-requirements items 4–8, Stage 2; proposed and accepted the same day, when [review-2b](../delivery/2026-10-25-pending-requirements/review-2b-items-4-8.md) approved the stage, with its findings applied)
 - **Source:** `docs/delivery/2026-10-25-pending-requirements/02b-architecture-items-4-8.md` item 6
+- **Amended 2026-10-26** (Developer, review-5 finding 7): decision 2's keys are read with `supabase status -o json`, not `-o env`; decision 3's Lighthouse check also fails on `supabase.co` URLs the mirror's CSP blocked, read from the `inspector-issues` audit (05-dev-notes-item-6 D4), and on a run with no `network-requests` list (security S2).
 
 ## Context
 

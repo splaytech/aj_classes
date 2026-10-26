@@ -1,0 +1,32 @@
+Archive:  /private/tmp/claude-501/-Users-sjain-dev-work-aj-classes/f3122f43-e1db-48f8-8b25-a31385abb4a2/scratchpad/item6-run/act-artifacts/broken/1/e2e-report/e2e-report.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+   135053  10-25-2026 23:44   playwright-report/data/0db43d8cfa1494d1e5e75b94abcab7f249a21206.png
+  1195814  10-25-2026 23:44   playwright-report/data/703041d277d04a710ed7bbd74f6e060f4a8a6eed.webm
+  4638054  10-25-2026 23:44   playwright-report/data/2bfcab2614bddea20e1225d0ccf9e3ec996c2592.zip
+     2121  10-25-2026 23:44   playwright-report/data/dbc153dc65cd29037868b9ca59545eb601d4a3d6.md
+   549308  10-25-2026 23:44   playwright-report/index.html
+   307393  10-25-2026 23:44   playwright-report/trace/assets/codeMirrorModule-BEB2e8M3.js
+   667649  10-25-2026 23:44   playwright-report/trace/assets/defaultSettingsView-D-g2vrvf.js
+     2510  10-25-2026 23:44   playwright-report/trace/assets/urlMatch-L3liM589.js
+     6251  10-25-2026 23:44   playwright-report/trace/codeMirrorModule.-QdMvsKi.css
+    80340  10-25-2026 23:44   playwright-report/trace/codicon.DCmgc-ay.ttf
+   107270  10-25-2026 23:44   playwright-report/trace/defaultSettingsView.C8BeHuxd.css
+     6628  10-25-2026 23:44   playwright-report/trace/index.7-c5LSTW.js
+     2055  10-25-2026 23:44   playwright-report/trace/index.B_TqY17P.css
+     2363  10-25-2026 23:44   playwright-report/trace/index.html
+     5033  10-25-2026 23:44   playwright-report/trace/playwright-logo.svg
+      429  10-25-2026 23:44   playwright-report/trace/manifest.webmanifest
+      650  10-25-2026 23:44   playwright-report/trace/snapshot.B_Jk1wbt.js
+      389  10-25-2026 23:44   playwright-report/trace/snapshot.html
+    96737  10-25-2026 23:44   playwright-report/trace/sw.bundle.js
+    38121  10-25-2026 23:44   playwright-report/trace/uiMode.CYwC_gH1.js
+    54590  10-25-2026 23:44   playwright-report/trace/uiMode.CyMfwkXJ.css
+      727  10-25-2026 23:44   playwright-report/trace/uiMode.html
+     2853  10-25-2026 23:44   playwright-report/trace/xtermModule.kHJ-D0s7.css
+     2121  10-25-2026 23:44   test-results/our-approach-Our-Approach--63e3d-s-in-order-each-with-one-h3/error-context.md
+   135053  10-25-2026 23:44   test-results/our-approach-Our-Approach--63e3d-s-in-order-each-with-one-h3/test-failed-1.png
+  4638054  10-25-2026 23:44   test-results/our-approach-Our-Approach--63e3d-s-in-order-each-with-one-h3/trace.zip
+  1195814  10-25-2026 23:44   test-results/our-approach-Our-Approach--63e3d-s-in-order-each-with-one-h3/video.webm
+---------                     -------
+ 13873380                     27 files

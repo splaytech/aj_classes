@@ -1,0 +1,34 @@
+== E-60
+lighthouse/Lighthouse CI;structured-data/Structured data;web/web CI;database/database CI;e2e/E2E smoke;
+== E-61
+web-1: Test Files  56 passed (56);Tests  496 passed (496);ℹ pass 6;ℹ fail 0;- **Test Files**: ✅ **56 passes** · 56 total;🏁  Job succeeded;exit 0 wall 37s;ref 0 hosts ;
+web-2: Test Files  56 passed (56);Tests  496 passed (496);ℹ pass 6;ℹ fail 0;- **Test Files**: ✅ **56 passes** · 56 total;🏁  Job succeeded;exit 0 wall 33s;ref 0 hosts ;
+web-3: Test Files  56 passed (56);Tests  496 passed (496);ℹ pass 6;ℹ fail 0;- **Test Files**: ✅ **56 passes** · 56 total;🏁  Job succeeded;exit 0 wall 34s;ref 0 hosts ;
+actions/checkout@v4;pnpm/action-setup@v4;actions/setup-node@v4;pnpm install --frozen-lockfile;pnpm format:check;pnpm lint;pnpm typecheck;pnpm test;Build (production settings, as Vercel builds it);
+== E-62
+[CI/Structured data]   ✅  Success - Main pnpm install --frozen-lockfile
+[CI/Structured data]   ✅  Success - Main Build with no Supabase config
+[CI/Structured data]   | check-hosted-ref: 0 files (of 153 scanned)
+[CI/Structured data]   ✅  Success - Main No hosted project reference in the build
+[CI/Structured data]   | check-structured-data: 18 pages, 0 problems
+[CI/Structured data]   ✅  Success - Main JSON-LD on every pre-rendered page
+[CI/Structured data] 🏁  Job succeeded
+exit 0 wall 19s
+ref 0 hosts 
+== E-63
+[CI/Lighthouse]   ✅  Success - Main Build with no Supabase config (never the hosted project)
+[CI/Lighthouse]   | check-hosted-ref: 0 files (of 153 scanned)
+[CI/Lighthouse]   ✅  Success - Main No hosted project reference in the build
+[CI/Lighthouse]   ✅  Success - Main pnpm --filter aj-classes-e2e exec playwright install --with-deps chromium
+[CI/Lighthouse]   ✅  Success - Main Lighthouse uses Playwright's Chromium
+[CI/Lighthouse]   ✅  Success - Main Lighthouse (mobile, median of 3; thresholds in apps/web/lighthouserc.json)
+[CI/Lighthouse]   | lighthouse-report: 18 runs, 0 supabase.co requests
+[CI/Lighthouse]   ✅  Success - Main No Supabase requests; JS size per page
+[CI/Lighthouse]   |   19 passed (29.3s)
+[CI/Lighthouse]   ✅  Success - Main CSP sweep on the mirror (item 5, AC-5.3 and AC-5.8)
+[CI/Lighthouse]   | Artifact lighthouse-report has been successfully uploaded! Final size is 14695120 bytes. Artifact ID is 3384952654
+[CI/Lighthouse] 🏁  Job succeeded
+exit 0 wall 285s
+ref 0 hosts 
+lighthouse-report  30713901                     37 files
+listen 0

@@ -1,0 +1,41 @@
+== E-73
+ 1 file changed, 1 insertion(+), 1 deletion(-)
++        "categories:performance": ["error", { "minScore": 1, "aggregationMethod": "median" }],
+✅  Success - Main Build with no Supabase config (never the hosted project)
+check-hosted-ref: 0 files (of 153 scanned)
+✅  Success - Main No hosted project reference in the build
+✅  Success - Main Lighthouse uses Playwright's Chromium
+❌  Failure - Main Lighthouse (mobile, median of 3; thresholds in apps/web/lighthouserc.json)
+lighthouse-report: 18 runs, 0 supabase.co requests
+✅  Success - Main No Supabase requests; JS size per page
+19 passed (29.5s)
+✅  Success - Main CSP sweep on the mirror (item 5, AC-5.3 and AC-5.8)
+Artifact lighthouse-report has been successfully uploaded! Final size is 14696848 bytes. Artifact ID is 3384952654
+Artifact csp-report has been successfully uploaded! Final size is 204144 bytes. Artifact ID is 2829685262
+🏁  Job failed
+exit 1 wall 293s
+ref 0 hosts 
+perf-failure 0
+   6 [CI/Lighthouse]   |   ✘  categories.performance failure for minScore assertion
+   1 [CI/Lighthouse]   | Assertion failed. Exiting with status code 1.
+   1 [CI/Lighthouse]   | Checking assertions against 6 URL(s), 18 total run(s)
+csp-report lighthouse-report  30715185                     37 files
+status 0
+head-equal
+== E-75
+        run: pnpm build
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+✅  Success - Main Build with no Supabase config (never the hosted project)
+check-hosted-ref: 1 files in build/client contain the hosted project ref, e.g. zz-hosted-probe.js
+check-hosted-ref: 1 files (of 154 scanned)
+❌  Failure - Main No hosted project reference in the build
+🏁  Job failed
+exit 1 wall 19s
+ref 0 hosts 
+   build/client/zz-hosted-probe.js
+mirror 0 later-steps 0
+No files were found with the provided path: apps/web/lighthouse-report. No artifacts will be uploaded.
+No files were found with the provided path: e2e/playwright-report%0Ae2e/test-results. No artifacts will be uploaded.
+artifact-files 0
+status 0
+head-equal

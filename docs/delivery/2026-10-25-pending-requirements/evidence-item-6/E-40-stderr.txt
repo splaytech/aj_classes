@@ -1,0 +1,1 @@
+$ node scripts/check-structured-data.ts build/client

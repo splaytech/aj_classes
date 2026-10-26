@@ -1,0 +1,8 @@
+[CI/Lighthouse]   | Checking assertions against 6 URL(s), 18 total run(s)
+[CI/Lighthouse]   |   ✘  categories.performance failure for minScore assertion
+[CI/Lighthouse]   |   ✘  categories.performance failure for minScore assertion
+[CI/Lighthouse]   |   ✘  categories.performance failure for minScore assertion
+[CI/Lighthouse]   |   ✘  categories.performance failure for minScore assertion
+[CI/Lighthouse]   |   ✘  categories.performance failure for minScore assertion
+[CI/Lighthouse]   |   ✘  categories.performance failure for minScore assertion
+[CI/Lighthouse]   | Assertion failed. Exiting with status code 1.

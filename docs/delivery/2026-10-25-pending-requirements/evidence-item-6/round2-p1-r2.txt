@@ -1,0 +1,79 @@
+== E-11
+      54
+   1 apps/web/lighthouserc.json;   1 apps/web/package.json;  14 apps/web/scripts;   3 apps/web/src;  28 e2e;   7 root;
+apps/web/src/components/portal/ProfileForm.test.tsx apps/web/src/routes/portal/admin-posts.test.tsx apps/web/src/test/user.ts 
+cfg 0
+4
+== E-12
+  14 same
+== E-13
+database e2e lighthouse structured-data web 
+14:on: 15-  push: 16-    branches: [main, develop] 17-  pull_request: 
+15 20 15 10 10 
+0
+95:      - if: failure()
+144:        if: ${{ !cancelled() && steps.hosted-ref.outcome == 'success' }}
+147:        if: ${{ !cancelled() && steps.hosted-ref.outcome == 'success' }}
+149:      - if: always()
+155:      - if: failure()
+127:        id: hosted-ref
+  contents: read
+1
+102 154 162 
+== E-14
+0
+0
+e2e/.env
+$ node scripts/check-hosted-ref.ts ../../.github/workflows ../../e2e
+check-hosted-ref: 0 files (of 30 scanned)
+exit 0
+      29
+12:      VITE_LEAD_CAPTURE: 'on'
+30:        run: supabase start -x studio,imgproxy,logflare,vector,supavisor,postgres-meta > /dev/null
+32:        run: node e2e/scripts/local-env.mjs >> "$GITHUB_ENV"
+apps/web/.env.example apps/web/.env.production e2e/.env.example 
+3
+ignored 0
+       0
+0
+== E-15
+{"startServerCommand":"node scripts/serve-mirror.ts --stub-analytics","startServerReadyPattern":"Accepting connections","numberOfRuns":3,"settings":{"formFactor":"mobile","screenEmulation":{"mobile":true}},"n":6}
+{"categories:performance":["error",{"minScore":0.9,"aggregationMethod":"median"}],"categories:accessibility":["error",{"minScore":0.9,"aggregationMethod":"median"}],"categories:best-practices":["error",{"minScore":0.9,"aggregationMethod":"median"}],"categories:seo":["error",{"minScore":1,"aggregationMethod":"median"}]}
+{"target":"filesystem","outputDir":"./lighthouse-report"}
+apps/web/lighthouserc.json:19 apps/web/lighthouserc.json:20 apps/web/lighthouserc.json:21 apps/web/lighthouserc.json:22 
+       0
+0
+false
+== E-16
+{"d":null,"dd":{"@playwright/test":"1.64.0","@supabase/supabase-js":"^2.117.2","@types/node":"^26.6.3","@types/pg":"8.23.1","dotenv":"18.0.7","pg":"8.23.1","typescript":"^6.0.3"}}
+deps 0
+2a3
+>   "@lhci/cli": "0.15.1",
+5
+== E-17
+       0
+== E-18
+24:## The one rule: no hosted requests 48:## E2E smoke 102:## Lighthouse 142:## Structured data 165:## Running the workflow itself with `act` (optional) 
+check:hosted-ref=3 local-env.mjs=2 aj-classes-e2e typecheck=1 playwright install=1 test:smoke=1 VITE_SUPABASE_PUBLISHABLE_KEY==2 VITE_KIT_FORM_ID=0000000=1 VITE_FORM_ACCESS_KEY=local-placeholder=1 pnpm --filter web lighthouse=2 lighthouse:report=3 test:csp=2 check:structured-data=1 CHROME_PATH=1 no-sandbox=1 
+typecheck-in-e2e-section 1 before-dbstart 9 13 
+1
+       5
+1
+1
+180:  and test old data (a false green). `pnpm db:stop` keeps the volume, so don't use it 
+183:  supabase stop --no-backup
+189:  supabase stop --no-backup
+196:  `supabase stop --no-backup` deletes the local database volume: local data only, as
+203:  docker ps -aq --filter name=act- | xargs docker rm -f
+1
+1
+1
+1
+== E-19
+exit 0
+ℹ tests 6 ℹ suites 2 ℹ pass 6 ℹ fail 0 
+8
+0
+e2e/src/config.ts:1 e2e/setup/global-setup.ts:1 
+6
+2
