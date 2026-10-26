@@ -30,7 +30,7 @@ export async function guardPortalPage(
     case 'redirect':
       throw redirect(decision.to);
     case 'signOut':
-      // Only a deactivated account gets here: the server already refuses its session (BUG-15).
+      // Only an account with no readable active profile (deactivated) gets here (BUG-15).
       forgetDeactivatedSession();
       throw redirect(decision.to);
     case 'forbidden':
