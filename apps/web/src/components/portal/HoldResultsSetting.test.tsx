@@ -75,6 +75,28 @@ describe('HoldResultsSetting (item 7)', () => {
     expect(checkbox).toBeEnabled();
   });
 
+  it('ignores a reload that lands while the save is still running', async () => {
+    let finishSave: (result: { ok: true; data: undefined }) => void = () => {};
+    vi.mocked(setHoldResults).mockReturnValue(
+      new Promise((resolve) => {
+        finishSave = resolve;
+      }),
+    );
+    const user = setupUser();
+    const { onChanged, checkbox, reloadWith } = renderSetting(false);
+
+    await user.click(checkbox);
+    reloadWith(false); // an unrelated reload, from before the save landed
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toBeDisabled();
+
+    finishSave({ ok: true, data: undefined });
+    await waitFor(() => expect(onChanged).toHaveBeenCalledTimes(1));
+    reloadWith(true); // the save's own reload
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toBeEnabled();
+  });
+
   it('shows the reloaded value, enabled, even when it comes back unchanged (P4)', async () => {
     vi.mocked(setHoldResults).mockResolvedValue({ ok: true, data: undefined });
     const user = setupUser();
