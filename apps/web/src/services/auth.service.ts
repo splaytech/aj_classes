@@ -1,7 +1,7 @@
 // Staff sign-in: passwords, email links, sessions (R2a design §11.4).
 // Pages call these plain functions and get back a Result; they never see Supabase.
 
-import { getSupabase, isPortalConfigured } from './supabase.client';
+import { clearStoredSession, getSupabase, isPortalConfigured } from './supabase.client';
 import { attempt, fail, succeed } from './result';
 import { toErrorKey } from './auth-errors';
 import type { AccessState, EmailLinkType, OnboardingInfo, Result } from './types';
@@ -39,6 +39,20 @@ export async function signOut(): Promise<void> {
   if (!isPortalConfigured()) return;
   const supabase = await getSupabase();
   await supabase.auth.signOut({ scope: 'local' });
+}
+
+/**
+ * Ends the session of an account that was deactivated while signed in (the page guard's
+ * sign-out, BUG-15). Why not signOut(): supabase-js's 'local' sign-out still POSTs /logout, to
+ * revoke this session's refresh token on the server. Deactivation bans the account, and for a
+ * banned account GoTrue refuses that call (403 user_banned) and revokes nothing; it already
+ * refuses the refresh token (400 user_banned). So the call could only add a console error, once
+ * per parallel page loader, and clearing this device's copy is all there is to do. It sends no
+ * request, so the parallel loaders can all call it: only the first finds a session to remove.
+ */
+export function forgetDeactivatedSession(): void {
+  if (!isPortalConfigured()) return;
+  clearStoredSession();
 }
 
 /**

@@ -4,7 +4,7 @@
 import { redirect } from 'react-router';
 
 import { APP_CONFIG } from '@/constants';
-import { getAccessState, signOut } from '@/services';
+import { forgetDeactivatedSession, getAccessState } from '@/services';
 import type { AccessState } from '@/services';
 
 import { decidePortalAccess } from './portal-access';
@@ -30,7 +30,8 @@ export async function guardPortalPage(
     case 'redirect':
       throw redirect(decision.to);
     case 'signOut':
-      await signOut();
+      // Only a deactivated account gets here: the server already refuses its session (BUG-15).
+      forgetDeactivatedSession();
       throw redirect(decision.to);
     case 'forbidden':
       return { access, forbidden: true };

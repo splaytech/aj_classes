@@ -12,6 +12,7 @@ export { subscribe } from './subscription.service';
 export {
   changePassword,
   confirmEmailLink,
+  forgetDeactivatedSession,
   getAccessState,
   requestPasswordReset,
   sendReauthCode,
