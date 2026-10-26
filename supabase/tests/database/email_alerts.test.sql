@@ -529,5 +529,259 @@ select is(
 delete from public.email_outbox;
 
 
+-- The claim: supported kinds, order, deadline and re-checks (ADR-0008 decisions 2, 5, 6) ----
+create temporary table all_kinds (kinds text[]);
+insert into all_kinds values (array['work_returned', 'new_assignment', 'due_tomorrow']);
+grant select on all_kinds to service_role;
+
+-- Hand-made rows for Kid One. Each is still relevant, so the claim's skip step leaves it pending:
+-- e801 is published and visible; e805 is online, due tomorrow, published 3 days ago, not handed in.
+create function pg_temp.add_row(
+  row_kind text, target_assignment uuid, recipient uuid, row_created timestamptz,
+  row_send_before timestamptz default null)
+returns uuid language sql as $$
+  insert into public.email_outbox
+    (kind, assignment_id, student_id, recipient_id, recipient_role, created_at, send_before)
+  values (row_kind, target_assignment, '00000000-0000-0000-0000-00000000d001', recipient,
+          case when recipient = '00000000-0000-0000-0000-0000000005a1' then 'student' else 'parent' end,
+          row_created, row_send_before)
+  returning id
+$$;
+
+-- AC-8.14: reminders first, then oldest first, under one shared cap
+delete from public.email_outbox;
+select pg_temp.add_row('work_returned', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-0000000005a1',
+  now() - interval '3 hours');
+select pg_temp.add_row('new_assignment', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-0000000006a1',
+  now() - interval '2 hours', (select private.melbourne_day_start(today + 6) from melbourne));
+select pg_temp.add_row('due_tomorrow', '00000000-0000-0000-0000-00000000e805', '00000000-0000-0000-0000-0000000006a2',
+  now() - interval '1 hour', (select private.melbourne_day_start(today + 1) from melbourne));
+
+create function pg_temp.claim_kinds(cap int) returns text[] language plpgsql as $$
+declare
+  claimed text[];
+begin
+  execute format('create or replace function private.email_daily_cap() returns int language sql immutable '
+                 'set search_path = '''' as %L', format('select %s', cap));
+  set local role service_role;
+  select array_agg(c.kind) into claimed
+  from public.notify_claim_emails((select kinds from all_kinds)) c;
+  reset role;
+  update public.email_outbox set status = 'pending', attempts = 0, claimed_at = null;
+  return claimed;
+end;
+$$;
+select is(pg_temp.claim_kinds(3), array['due_tomorrow', 'work_returned', 'new_assignment'],
+  'Cap 3: the reminder first, then work returned (oldest), then new assignment (AC-8.14)');
+select is(pg_temp.claim_kinds(2), array['due_tomorrow', 'work_returned'],
+  'Cap 2: the reminder and the oldest other row');
+select is(pg_temp.claim_kinds(1), array['due_tomorrow'], 'Cap 1: the reminder only');
+create or replace function private.email_daily_cap()
+returns int language sql immutable set search_path = '' as $$ select 70 $$;
+
+-- Deploy order (ADR-0008 decision 6): today's worker calls with no argument.
+set local role service_role;
+create temporary table old_worker_claim on commit drop as select * from public.notify_claim_emails();
+reset role;
+select results_eq($$ select kind from old_worker_claim $$, $$ values ('work_returned') $$,
+  'With no argument (today''s worker) the claim takes only work_returned rows');
+select results_eq(
+  $$ select kind, status from public.email_outbox order by created_at $$,
+  $$ values ('work_returned', 'sending'), ('new_assignment', 'pending'), ('due_tomorrow', 'pending') $$,
+  'and leaves the new kinds pending for the new worker');
+update public.email_outbox set status = 'pending', attempts = 0, claimed_at = null;
+
+-- What the new worker gets: kind and due date, and still no mark, feedback or instructions.
+set local role service_role;
+create temporary table new_worker_claim on commit drop as
+  select * from public.notify_claim_emails((select kinds from all_kinds));
+reset role;
+select results_eq(
+  $$ select kind, recipient_role, email, child_first_name, assignment_title, class_name, due_on
+     from new_worker_claim order by kind $$,
+  $$ select * from (values
+       ('due_tomorrow', 'parent', 'parent2@test.local', 'Kid', 'Recipient check', 'Class one', (select today + 1 from melbourne)),
+       ('new_assignment', 'parent', 'parent1@test.local', 'Kid', 'Online due soon (edited)', 'Class one', (select today + 5 from melbourne)),
+       ('work_returned', 'student', 'kid1@test.local', 'Kid', 'Online due soon (edited)', 'Class one', (select today + 5 from melbourne))
+     ) v order by 1 $$,
+  'The claim returns each row''s kind and the due date for its template (AC-8.2, AC-8.9)');
+
+
+-- AC-8.7: never late. Expired rows aren't claimed, and the kick fails them as too_late -------
+delete from public.email_outbox;
+insert into public.assignments (id, class_id, title, due_on) values
+  ('00000000-0000-0000-0000-00000000e812', '00000000-0000-0000-0000-00000000c001', 'Due today online',
+   (select today from melbourne));
+insert into public.assignment_questions (assignment_id, kind, prompt, options, correct_option, marks) values
+  ('00000000-0000-0000-0000-00000000e812', 'multiple_choice', 'Pick A', '{A,B}', 0, 1);
+select pg_temp.publish('00000000-0000-0000-0000-00000000e812');
+delete from public.email_outbox;
+-- A reminder for work due today: its deadline (midnight this morning) has passed.
+select pg_temp.add_row('due_tomorrow', '00000000-0000-0000-0000-00000000e812', '00000000-0000-0000-0000-0000000006a1',
+  now() - interval '20 hours', (select private.melbourne_day_start(today) from melbourne));
+select pg_temp.add_row('new_assignment', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-0000000006a2',
+  now() - interval '8 days', now() - interval '1 minute');
+select pg_temp.add_row('work_returned', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-0000000005a1',
+  now() - interval '5 days');
+set local role service_role;
+select results_eq($$ select kind from public.notify_claim_emails((select kinds from all_kinds)) $$,
+  $$ values ('work_returned') $$,
+  'The claim skips both rows past their deadline (AC-8.7)');
+reset role;
+update public.email_outbox set status = 'pending', attempts = 0, claimed_at = null;
+select private.kick_email_worker();
+select results_eq(
+  $$ select kind, status, reason from public.email_outbox order by kind $$,
+  $$ values ('due_tomorrow', 'failed', 'too_late'), ('new_assignment', 'failed', 'too_late'),
+            ('work_returned', 'pending', null::text) $$,
+  'The kick fails both as too_late; a work_returned row (no deadline) is untouched (AC-8.7)');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select results_eq(
+  $$ select kind, state, reason from public.admin_email_problems() order by kind $$,
+  $$ values ('due_tomorrow', 'failed', 'too_late'), ('new_assignment', 'failed', 'too_late'),
+            ('work_returned', 'waiting', 'not_attempted') $$,
+  'Admins see both as Failed / too_late, with their kind (AC-8.7, AC-8.13); the old work_returned row waits');
+select pg_temp.as_system();
+
+-- The sweep runs even when the cap is full (it comes before the kick's early returns).
+delete from public.email_outbox;
+select pg_temp.add_row('new_assignment', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-0000000006a2',
+  now() - interval '8 days', now() - interval '1 minute');
+create or replace function private.email_daily_cap()
+returns int language sql immutable set search_path = '' as $$ select 0 $$;
+select private.kick_email_worker();
+select is((select reason from public.email_outbox), 'too_late',
+  'With the daily cap full, the kick still fails an expired row as too_late');
+create or replace function private.email_daily_cap()
+returns int language sql immutable set search_path = '' as $$ select 70 $$;
+
+
+-- AC-8.13: every kind reaches the admin list with its type ---------------------------------
+delete from public.email_outbox;
+select pg_temp.add_row('work_returned', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-0000000005a1',
+  now() - interval '3 hours');
+select pg_temp.add_row('new_assignment', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-0000000006a1',
+  now() - interval '4 hours', (select private.melbourne_day_start(today + 6) from melbourne));
+select pg_temp.add_row('due_tomorrow', '00000000-0000-0000-0000-00000000e805', '00000000-0000-0000-0000-0000000006a2',
+  now() - interval '5 hours', (select private.melbourne_day_start(today + 1) from melbourne));
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select results_eq(
+  $$ select kind, state, reason from public.admin_email_problems() $$,
+  $$ values ('work_returned', 'waiting', 'not_attempted'), ('new_assignment', 'waiting', 'not_attempted'),
+            ('due_tomorrow', 'waiting', 'not_attempted') $$,
+  'Waiting rows of every kind are listed, newest first, with their kind (AC-8.13)');
+select pg_temp.as_system();
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000b1');
+select throws_ok($$ select * from public.admin_email_problems() $$, '42501', 'not_admin',
+  'A tutor is still refused the admin list');
+select pg_temp.as_system();
+
+
+-- AC-8.3 (claim): back to draft before the send means skipped, not failed --------------------
+delete from public.email_outbox;
+insert into public.assignments (id, class_id, title, due_on, max_mark) values
+  ('00000000-0000-0000-0000-00000000e813', '00000000-0000-0000-0000-00000000c001', 'Pulled back',
+   (select today + 4 from melbourne), 10);
+select pg_temp.publish('00000000-0000-0000-0000-00000000e813');
+select is((select count(*)::int from public.email_outbox where assignment_id = '00000000-0000-0000-0000-00000000e813'),
+  6, 'Publishing queues the class''s "new assignment" rows');
+select pg_temp.unpublish('00000000-0000-0000-0000-00000000e813');
+set local role service_role;
+select is_empty(
+  $$ select 1 from public.notify_claim_emails((select kinds from all_kinds))
+     where assignment_id = '00000000-0000-0000-0000-00000000e813' $$,
+  'Back to draft before the send: the claim returns none of them (AC-8.3)');
+reset role;
+select results_eq(
+  $$ select distinct status from public.email_outbox where assignment_id = '00000000-0000-0000-0000-00000000e813' $$,
+  $$ values ('skipped') $$, 'They end skipped');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select is_empty($$ select 1 from public.admin_email_problems() $$, 'and aren''t shown to admins (AC-8.3)');
+select pg_temp.as_system();
+select pg_temp.publish('00000000-0000-0000-0000-00000000e813');
+select results_eq(
+  $$ select status, count(*)::int from public.email_outbox
+     where assignment_id = '00000000-0000-0000-0000-00000000e813' group by status $$,
+  $$ values ('skipped', 6) $$,
+  'Republishing adds no rows, even though the first emails were skipped (AC-8.3, within the 90-day retention)');
+
+
+-- AC-8.6 (claim): handed in after queueing ---------------------------------------------------
+delete from public.email_outbox;
+select private.queue_due_tomorrow_emails_for((select today from melbourne));
+select is((select count(*)::int from public.email_outbox where student_id = '00000000-0000-0000-0000-00000000d001'),
+  3, 'Kid One''s three reminders are queued');
+insert into public.assignment_results (assignment_id, student_id, status)
+values ('00000000-0000-0000-0000-00000000e805', '00000000-0000-0000-0000-00000000d001', 'submitted');
+set local role service_role;
+select is_empty(
+  $$ select 1 from public.notify_claim_emails((select kinds from all_kinds))
+     where student_id = '00000000-0000-0000-0000-00000000d001' $$,
+  'Handed in before the send: the claim skips Kid One''s reminders (AC-8.6)');
+reset role;
+select results_eq(
+  $$ select distinct status from public.email_outbox where student_id = '00000000-0000-0000-0000-00000000d001' $$,
+  $$ values ('skipped') $$, 'They end skipped, not failed');
+insert into public.assignment_answers (assignment_id, question_id, student_id, selected_option, awarded_marks)
+select q.assignment_id, q.id, '00000000-0000-0000-0000-00000000d001', 0, 1
+from public.assignment_questions q where q.assignment_id = '00000000-0000-0000-0000-00000000e805';
+update public.assignment_results set status = 'returned'
+where assignment_id = '00000000-0000-0000-0000-00000000e805' and student_id = '00000000-0000-0000-0000-00000000d001';
+select is_empty(
+  $$ select 1 from private.email_recipients('due_tomorrow', '00000000-0000-0000-0000-00000000e805',
+       '00000000-0000-0000-0000-00000000d001', (select today + 1 from melbourne)) $$,
+  'Returned work isn''t reminded either (AC-8.6)');
+delete from public.assignment_answers where assignment_id = '00000000-0000-0000-0000-00000000e805';
+delete from public.assignment_results where assignment_id = '00000000-0000-0000-0000-00000000e805';
+
+
+-- AC-8.8: at most one reminder, even if the due date changes --------------------------------
+delete from public.email_outbox;
+select private.queue_due_tomorrow_emails_for((select today from melbourne));
+update public.assignments set due_on = (select today + 3 from melbourne)
+where id = '00000000-0000-0000-0000-00000000e805';
+set local role service_role;
+select is_empty(
+  $$ select 1 from public.notify_claim_emails((select kinds from all_kinds)) where kind = 'due_tomorrow' $$,
+  'The due date moved after queueing: the claim skips the reminders (AC-8.8)');
+reset role;
+select private.queue_due_tomorrow_emails_for((select today + 2 from melbourne));
+select results_eq(
+  $$ select status, count(*)::int from public.email_outbox where kind = 'due_tomorrow' group by status $$,
+  $$ values ('skipped', 6) $$,
+  'The eve of the new due date queues no second reminder (AC-8.8, within the 90-day retention)');
+update public.assignments set due_on = (select today + 1 from melbourne)
+where id = '00000000-0000-0000-0000-00000000e805';
+
+
+-- AC-8.15: only the worker can claim ------------------------------------------------------
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
+select throws_ok($$ select public.notify_claim_emails(array['due_tomorrow']) $$, '42501', null,
+  'A student can''t claim emails of any kind');
+select pg_temp.as_system();
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select throws_ok($$ select public.notify_claim_emails(array['new_assignment']) $$, '42501', null,
+  'Nor can an admin');
+select pg_temp.as_system();
+select ok(not has_function_privilege('authenticated', 'public.notify_claim_emails(text[])', 'execute'),
+  'authenticated has no execute on notify_claim_emails(text[])');
+select ok(has_function_privilege('service_role', 'public.notify_claim_emails(text[])', 'execute'),
+  'service_role has');
+select ok(has_function_privilege('authenticated', 'public.admin_email_problems(int)', 'execute'),
+  'authenticated can still call admin_email_problems (the function checks admin)');
+select ok(not has_function_privilege('anon', 'public.admin_email_problems(int)', 'execute'),
+  'anon can''t');
+select hasnt_function('private', 'work_returned_recipients', array['uuid', 'uuid'],
+  'The old work_returned_recipients helper is gone');
+select is(
+  (select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'private'
+     and p.proname in ('reminder_hour', 'melbourne_date', 'melbourne_day_start', 'is_reminder_hour',
+                       'new_assignment_send_before', 'email_still_relevant', 'email_recipients',
+                       'queue_new_assignment_emails', 'queue_due_tomorrow_emails_for', 'queue_due_tomorrow_emails')
+     and (has_function_privilege('authenticated', p.oid, 'execute') or has_function_privilege('anon', p.oid, 'execute'))),
+  0, 'None of the new private helpers is executable by authenticated or anon');
+
+
 select * from finish();
 rollback;

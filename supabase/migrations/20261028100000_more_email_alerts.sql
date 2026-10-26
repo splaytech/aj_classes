@@ -288,3 +288,178 @@ begin
   return null;
 end;
 $$;
+
+-- ---------------------------------------------------------------------------
+-- Step 8. Claim: supported kinds, deadline, order (ADR-0008 decisions 2, 5, 6)
+-- ---------------------------------------------------------------------------
+
+drop function public.notify_claim_emails();
+
+-- supported_kinds: the kinds the calling worker can render. Today's worker calls with no argument
+-- and keeps claiming only work_returned, so this migration can land before the function deploy
+-- (review-2b finding 1). Reminders first (their deadline is hours away), then oldest first. The
+-- skip step re-checks every pending row, of every kind, against the date it was queued for.
+-- Body copied from 20261025110000_work_returned_email.sql lines 189-239, with the supported
+-- kinds, the deadline and the order added, and kind and due_on returned. Every column reference
+-- stays table-qualified, because kind and due_on are also output names.
+create function public.notify_claim_emails(supported_kinds text[] default array['work_returned'])
+returns table (
+  id uuid, kind text, recipient_role text, email text, recipient_first_name text,
+  child_first_name text, assignment_id uuid, student_id uuid,
+  assignment_title text, class_name text, due_on date)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  room int;
+begin
+  perform pg_advisory_xact_lock(hashtext('email_outbox_claim'));
+
+  update public.email_outbox o set status = 'skipped'
+  where o.status = 'pending'
+    and not exists (select 1 from private.email_recipients(o.kind, o.assignment_id, o.student_id,
+                                                           private.melbourne_date(o.send_before)) r
+                    where r.profile_id = o.recipient_id);
+
+  update public.email_outbox o set status = 'failed', reason = 'no_address'
+  from public.profiles p
+  where o.status = 'pending' and p.id = o.recipient_id and trim(p.email) = '';
+
+  room := private.email_daily_cap() - private.emails_sent_last_day();
+  if room <= 0 then
+    return;
+  end if;
+
+  return query
+  with claimed as (
+    update public.email_outbox o
+    set status = 'sending', claimed_at = now(), attempts = o.attempts + 1, reason = null
+    where o.id in (select x.id from public.email_outbox x
+                   where x.status = 'pending'
+                     and x.kind = any (supported_kinds)
+                     and (x.send_before is null or x.send_before > now())
+                   order by (x.kind = 'due_tomorrow') desc, x.created_at
+                   limit room
+                   for update skip locked)
+    returning o.*
+  )
+  select c.id, c.kind, c.recipient_role, p.email,
+         split_part(trim(p.full_name), ' ', 1), split_part(trim(s.full_name), ' ', 1),
+         c.assignment_id, c.student_id, a.title, cl.name, a.due_on
+  from claimed c
+  join public.profiles p on p.id = c.recipient_id
+  join public.students s on s.id = c.student_id
+  join public.assignments a on a.id = c.assignment_id
+  join public.classes cl on cl.id = a.class_id
+  order by (c.kind = 'due_tomorrow') desc, c.created_at;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Step 9. The kick sweeps expired rows (AC-8.7)
+-- ---------------------------------------------------------------------------
+
+-- Body copied from 20261025110000_work_returned_email.sql lines 299-336, plus the too_late sweep
+-- straight after the reclaim and before the first early return.
+create or replace function private.kick_email_worker()
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  worker_url text;
+  worker_secret text;
+begin
+  -- Reclaim rows from a worker that died (10 min > the 150 s / 400 s function limit). The attempt
+  -- stays counted; the third one ends as failed.
+  update public.email_outbox
+  set status = case when attempts >= 3 then 'failed' else 'pending' end,
+      reason = case when attempts >= 3 then 'max_attempts' else reason end
+  where status = 'sending' and claimed_at < now() - interval '10 minutes';
+
+  -- Past their deadline: failed, shown to admins as "Too late to send". Here, not in the worker,
+  -- because the kick never calls the worker while the cap is full (02b §8.4).
+  update public.email_outbox
+  set status = 'failed', reason = 'too_late'
+  where status = 'pending' and send_before <= now();
+
+  if not exists (select 1 from public.email_outbox where status = 'pending') then
+    return;
+  end if;
+  if private.emails_sent_last_day() >= private.email_daily_cap() then
+    return;
+  end if;
+
+  select decrypted_secret into worker_url from vault.decrypted_secrets where name = 'notify_worker_url';
+  select decrypted_secret into worker_secret from vault.decrypted_secrets where name = 'notify_worker_secret';
+  if coalesce(worker_url, '') = '' or coalesce(worker_secret, '') = '' then
+    return; -- rows wait; after ~2 h admins see "Not attempted" (02 item 3, risk 3)
+  end if;
+
+  perform net.http_post(
+    url := worker_url,
+    body := '{}'::jsonb,
+    headers := jsonb_build_object('Content-Type', 'application/json', 'x-notify-secret', worker_secret),
+    timeout_milliseconds := 10000);
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Step 10. Admin list gains the kind (AC-8.13)
+-- ---------------------------------------------------------------------------
+
+drop function public.admin_email_problems(int);
+
+-- Body copied from 20261025110000_work_returned_email.sql lines 365-399; the select list gains
+-- o.kind after o.created_at. too_late comes through as a stored failed reason.
+create function public.admin_email_problems(max_rows int default 100)
+returns table (
+  id uuid, created_at timestamptz, kind text, recipient_role text, assignment_title text,
+  state text,  -- 'failed' | 'waiting'
+  reason text) -- failed: the stored code; waiting: 'config_missing' | 'daily_limit' | 'retrying' | 'not_attempted'
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  cap_reached boolean;
+begin
+  if not private.is_admin() then
+    raise exception 'not_admin' using errcode = '42501';
+  end if;
+  cap_reached := private.emails_sent_last_day() >= private.email_daily_cap();
+  return query
+    select o.id, o.created_at, o.kind, o.recipient_role, a.title,
+           case when o.status = 'failed' then 'failed' else 'waiting' end,
+           case
+             when o.status = 'failed' then o.reason
+             when o.reason = 'config_missing' then 'config_missing' -- "Set-up error"
+             when cap_reached then 'daily_limit'
+             when o.attempts > 0 then 'retrying'
+             else 'not_attempted' -- what a missing cron job or Vault secret looks like
+           end
+    from public.email_outbox o
+    join public.assignments a on a.id = o.assignment_id
+    where o.status = 'failed'
+       or (o.status in ('pending', 'sending') and o.created_at < now() - interval '2 hours')
+    order by o.created_at desc
+    limit least(greatest(coalesce(max_rows, 100), 1), 500);
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Step 11. Drop the old helper, and grants for the recreated functions
+-- ---------------------------------------------------------------------------
+
+drop function private.work_returned_recipients(uuid, uuid);
+
+revoke execute on function
+  public.notify_claim_emails(text[]), public.admin_email_problems(int)
+from public, anon, authenticated;
+grant execute on function public.notify_claim_emails(text[]) to service_role;
+grant execute on function public.admin_email_problems(int) to authenticated;

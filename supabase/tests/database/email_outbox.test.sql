@@ -326,12 +326,13 @@ select results_eq(
             ('parent', 'parent4@test.local', 'Test', 'Kid', 'Paper one', 'Class one'),
             ('student', 'kid1@test.local', 'Test', 'Kid', 'Paper one', 'Class one') $$,
   'The claim returns only still-eligible rows, with the email''s details');
+-- Output columns only (proargmodes 't'): item 8 added the supported_kinds input, and kind and due_on.
 select is(
-  (select array_agg(n order by n) from unnest(
-     (select proargnames[1:] from pg_proc where proname = 'notify_claim_emails')) n
-   where n not in ('id')),
-  array['assignment_id', 'assignment_title', 'child_first_name', 'class_name', 'email',
-        'recipient_first_name', 'recipient_role', 'student_id'],
+  (select array_agg(n.name order by n.name)
+   from pg_proc f, unnest(f.proargnames, f.proargmodes) as n(name, mode)
+   where f.proname = 'notify_claim_emails' and n.mode = 't' and n.name not in ('id')),
+  array['assignment_id', 'assignment_title', 'child_first_name', 'class_name', 'due_on', 'email',
+        'kind', 'recipient_first_name', 'recipient_role', 'student_id'],
   'The claim has no mark, score or feedback column (AC-3.3)');
 select results_eq(
   $$ select status, count(*)::int from public.email_outbox
@@ -544,7 +545,7 @@ reset role;
 select is(
   (select array_agg(n order by n) from unnest(
      (select proargnames from pg_proc where proname = 'admin_email_problems')) n),
-  array['assignment_title', 'created_at', 'id', 'max_rows', 'reason', 'recipient_role', 'state'],
+  array['assignment_title', 'created_at', 'id', 'kind', 'max_rows', 'reason', 'recipient_role', 'state'],
   'The admin list returns no address, name or body (AC-3.8)');
 
 update public.email_outbox set attempts = 1, reason = 'network'
