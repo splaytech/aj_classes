@@ -99,6 +99,11 @@ To cut access, pick the narrowest step. None of them works per class:
 Staff can't "un-return" online work. A per-class "revoke past-class access" action is in the
 Later bucket (ADR-0007).
 
+**Guidance for tutors (security review S2):** students who have left still see later edits to a
+returned assignment's title and instructions. Don't put class-only links, meeting details or
+anything meant only for current students in an old assignment's instructions. Put them in a new
+assignment instead.
+
 ### Deploy schema changes
 
 ```bash
