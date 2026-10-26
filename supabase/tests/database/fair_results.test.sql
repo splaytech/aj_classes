@@ -150,6 +150,116 @@ select is(
   (select hold_results from public.assignments where id = '00000000-0000-0000-0000-00000000e005'), false,
   'The change made on the draft stuck');
 
+-- Kid One's work in class one: i1 in progress, u1 handed in (written), r1 auto-returned ------
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
+select public.student_save_answer('00000000-0000-0000-0000-00000000e006', '00000000-0000-0000-0000-00000000f007', 0);
+select public.student_save_answer('00000000-0000-0000-0000-00000000e007', '00000000-0000-0000-0000-00000000f008', null, 'Because');
+select is(public.student_submit('00000000-0000-0000-0000-00000000e007'), 'submitted', 'Written work waits for marking');
+select public.student_save_answer('00000000-0000-0000-0000-00000000e008', '00000000-0000-0000-0000-00000000f009', 0);
+select is(public.student_submit('00000000-0000-0000-0000-00000000e008'), 'returned', 'An unheld quiz comes straight back');
+reset role;
+
+
+-- AC-7.3 Submit with hold on --------------------------------------------------------
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
+select public.student_save_answer('00000000-0000-0000-0000-00000000e001', '00000000-0000-0000-0000-00000000f001', 1);
+select public.student_save_answer('00000000-0000-0000-0000-00000000e001', '00000000-0000-0000-0000-00000000f002', 1);
+select is(public.student_submit('00000000-0000-0000-0000-00000000e001'), 'submitted',
+  'A held quiz stays Submitted when handed in');
+select is(
+  public.student_assignment('00000000-0000-0000-0000-00000000e001') ->> 'status', 'submitted',
+  'The student sees it as handed in (family status submitted: "Waiting for marking")');
+select is(
+  (select count(*)::int
+   from jsonb_array_elements(public.student_assignment('00000000-0000-0000-0000-00000000e001') -> 'questions') q
+   where q ->> 'correctOption' is not null or q ->> 'explanation' <> '' or q ->> 'awardedMarks' is not null),
+  0, 'Before return the student sees no correct option, explanation or awarded mark');
+select is(
+  public.student_assignment('00000000-0000-0000-0000-00000000e001') ->> 'mark', null,
+  'Before return the student sees no mark');
+select results_eq(
+  $$ select status, mark from public.student_assignments()
+     where assignment_id = '00000000-0000-0000-0000-00000000e001' $$,
+  $$ values ('submitted'::text, null::numeric) $$,
+  'The student''s list shows it as handed in, with no mark');
+reset role;
+
+select is(
+  (select status from public.assignment_results
+   where assignment_id = '00000000-0000-0000-0000-00000000e001' and student_id = '00000000-0000-0000-0000-00000000d001'),
+  'submitted', 'The stored result is Submitted');
+select results_eq(
+  $$ select question_id, awarded_marks from public.assignment_answers
+     where assignment_id = '00000000-0000-0000-0000-00000000e001' order by question_id $$,
+  $$ values ('00000000-0000-0000-0000-00000000f001'::uuid, 2::numeric),
+            ('00000000-0000-0000-0000-00000000f002'::uuid, 0::numeric) $$,
+  'The held answers are auto-marked as today');
+
+
+-- AC-7.6 Parents can't read held marks or answers before return ----------------------
+select tests.authenticate_as('00000000-0000-0000-0000-0000000006a1');
+select is(
+  (select count(*)::int
+   from jsonb_array_elements(public.parent_child_assignment('00000000-0000-0000-0000-00000000d001',
+                                                            '00000000-0000-0000-0000-00000000e001') -> 'questions') q
+   where q ->> 'correctOption' is not null or q ->> 'explanation' <> '' or q ->> 'awardedMarks' is not null),
+  0, 'Before return a parent sees no correct option, explanation or awarded mark');
+select results_eq(
+  $$ select status, mark from public.parent_child_assignments('00000000-0000-0000-0000-00000000d001')
+     where assignment_id = '00000000-0000-0000-0000-00000000e001' $$,
+  $$ values ('submitted'::text, null::numeric) $$,
+  'The parent''s list shows it as handed in, with no mark');
+reset role;
+
+
+-- AC-7.5 Hold off is unchanged ------------------------------------------------------
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
+select public.student_save_answer('00000000-0000-0000-0000-00000000e002', '00000000-0000-0000-0000-00000000f003', 0);
+select is(public.student_submit('00000000-0000-0000-0000-00000000e002'), 'returned',
+  'An all-multiple-choice quiz without hold still returns on submit');
+reset role;
+select is(
+  (select marked_by from public.assignment_results
+   where assignment_id = '00000000-0000-0000-0000-00000000e002' and student_id = '00000000-0000-0000-0000-00000000d001'),
+  null, 'The automatic return records no marker');
+select is(
+  (select count(*)::int from public.email_outbox
+   where kind = 'work_returned' and assignment_id in ('00000000-0000-0000-0000-00000000e002',
+                                                       '00000000-0000-0000-0000-00000000e008')),
+  0, 'Automatic returns queue no "work returned" email');
+
+
+-- AC-7.4 Tutor return of held work --------------------------------------------------
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000b1');
+select lives_ok(
+  $$ update public.assignment_results set status = 'returned', feedback = 'Nice work'
+     where assignment_id = '00000000-0000-0000-0000-00000000e001'
+       and student_id = '00000000-0000-0000-0000-00000000d001' $$,
+  'The tutor can return held work straight away (every answer is already marked)');
+reset role;
+select is(
+  (select marked_by from public.assignment_results
+   where assignment_id = '00000000-0000-0000-0000-00000000e001' and student_id = '00000000-0000-0000-0000-00000000d001'),
+  '00000000-0000-0000-0000-0000000000b1'::uuid, 'It counts as a staff return');
+select results_eq(
+  $$ select recipient_id from public.email_outbox
+     where kind = 'work_returned' and assignment_id = '00000000-0000-0000-0000-00000000e001'
+     order by recipient_id $$,
+  $$ values ('00000000-0000-0000-0000-0000000005a1'::uuid), ('00000000-0000-0000-0000-0000000006a1'::uuid),
+            ('00000000-0000-0000-0000-0000000006a2'::uuid) $$,
+  'and queues the "work returned" email for the student and both parents');
+
+select tests.authenticate_as('00000000-0000-0000-0000-0000000005a1');
+select results_eq(
+  $$ select (q ->> 'correctOption')::int, (q ->> 'awardedMarks')::numeric, q ->> 'explanation'
+     from jsonb_array_elements(public.student_assignment('00000000-0000-0000-0000-00000000e001') -> 'questions') q $$,
+  $$ values (1, 2::numeric, 'B is right'), (0, 0::numeric, 'A is right') $$,
+  'Once returned the student sees correct options, marks and explanations');
+select is(
+  public.student_assignment('00000000-0000-0000-0000-00000000e001') ->> 'comment', 'Nice work',
+  'and the tutor''s comment');
+reset role;
+
 
 select * from finish();
 rollback;
