@@ -14,6 +14,7 @@ import type { ChangeEvent } from 'react';
 import { HOLD_RESULTS } from '@/constants';
 import { usePortalAction } from '@/lib/use-portal-action';
 import { setHoldResults } from '@/services';
+import type { Result } from '@/services';
 
 type HoldResultsSettingProps = {
   assignmentId: string;
@@ -21,6 +22,18 @@ type HoldResultsSettingProps = {
   isPublished: boolean;
   onChanged: () => void;
 };
+
+/**
+ * Saves the switch. Here "assignment_published" means it was published elsewhere (another tab),
+ * so it gets its own message: the generic one is about questions (review 5 item 7, finding 4).
+ */
+async function saveHold(assignmentId: string, hold: boolean): Promise<Result> {
+  const result = await setHoldResults(assignmentId, hold);
+  if (!result.ok && result.error === 'assignmentPublished') {
+    return { ok: false, error: 'holdLocked' };
+  }
+  return result;
+}
 
 export function HoldResultsSetting({
   assignmentId,
@@ -33,7 +46,7 @@ export function HoldResultsSetting({
 
   async function change(event: ChangeEvent<HTMLInputElement>) {
     const hold = event.target.checked;
-    if (await action.run(() => setHoldResults(assignmentId, hold))) onChanged();
+    if (await action.run(() => saveHold(assignmentId, hold))) onChanged();
   }
 
   return (

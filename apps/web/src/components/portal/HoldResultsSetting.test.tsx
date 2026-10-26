@@ -62,4 +62,15 @@ describe('HoldResultsSetting (item 7)', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(PORTAL_ERRORS.holdNeedsQuestions);
     expect(onChanged).not.toHaveBeenCalled();
   });
+
+  it('explains a draft that was published elsewhere with its own message', async () => {
+    vi.mocked(setHoldResults).mockResolvedValue({ ok: false, error: 'assignmentPublished' });
+    const user = setupUser();
+    const { checkbox } = renderSetting(false);
+
+    await user.click(checkbox);
+
+    expect(PORTAL_ERRORS.holdLocked).toBe('This can’t change once the assignment is published.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(PORTAL_ERRORS.holdLocked);
+  });
 });
