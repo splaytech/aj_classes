@@ -5,6 +5,7 @@
 
 import { toErrorKey } from './auth-errors';
 import { attempt, fail, succeed } from './result';
+import { getAdminClient } from './staff-client';
 import { getSupabase } from './supabase.client';
 import type { EmailProblem, NotificationSettings, Result } from './types';
 
@@ -89,7 +90,8 @@ export async function saveMyNotificationSettings(settings: NotificationSettings)
 
 export async function listEmailProblems(maxRows = 100): Promise<Result<EmailProblem[]>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getAdminClient();
+    if (!supabase) return fail('notAllowed'); // not an admin with two-step: the layout shows the right page
     const { data, error } = await supabase.rpc('admin_email_problems', { max_rows: maxRows });
     if (error) return fail(toErrorKey(error));
     return succeed(

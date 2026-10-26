@@ -49,6 +49,13 @@ vi.mock('./supabase.client', () => ({
   }),
 }));
 
+// The admin list asks staff-client for its client (E-60 pattern); staff-access.test.ts covers who
+// gets one. Here every caller is treated as an admin with two-step.
+vi.mock('./staff-client', async () => {
+  const { getSupabase } = await import('./supabase.client');
+  return { getAdminClient: getSupabase };
+});
+
 beforeEach(() => {
   calls.length = 0;
   replies = [];
