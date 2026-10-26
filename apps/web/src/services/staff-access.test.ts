@@ -3,8 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AppRole } from '@/constants';
 
 import { listActivity } from './activity.service';
+import { getAssignment } from './assignments.service';
 import { getMyProfile, getProfile } from './profile.service';
 import { getStaffMember, listStaff } from './staff.service';
+import { getSubmission } from './submissions.service';
 import type { AccessState } from './types';
 
 const fake = vi.hoisted(() => ({
@@ -136,5 +138,39 @@ describe('staff profile reads ask the database only when the row is theirs to se
     fake.access = signedInAs('admin', 'aal2');
     await getProfile('someone-else');
     expect(fake.from).toHaveBeenCalledTimes(1);
+  });
+});
+
+// The assignment and marking page loaders (item 7 test plan, the E-60 pattern).
+const STAFF_PAGE_READS = [
+  ['getAssignment', () => getAssignment('a1')],
+  ['getSubmission', () => getSubmission('a1', 's1')],
+] as const;
+
+describe('staff assignment reads ask the database only for a tutor or an admin', () => {
+  it.each(
+    STAFF_PAGE_READS.flatMap(([name, read]) =>
+      (['student', 'parent'] as const).map((role) => [name, role, read] as const),
+    ),
+  )('%s as a %s → no call, "not allowed"', async (_name, role, read) => {
+    fake.access = signedInAs(role);
+    expect(await read()).toEqual({ ok: false, error: 'notAllowed' });
+    expect(databaseCalls()).toBe(0);
+  });
+
+  it.each(STAFF_PAGE_READS)('%s: signed out → no call', async (_name, read) => {
+    fake.access = signedInAs(null);
+    expect(await read()).toEqual({ ok: false, error: 'notAllowed' });
+    expect(databaseCalls()).toBe(0);
+  });
+
+  it.each(
+    STAFF_PAGE_READS.flatMap(([name, read]) =>
+      (['tutor', 'admin'] as const).map((role) => [name, role, read] as const),
+    ),
+  )('%s as a %s → one read', async (_name, role, read) => {
+    fake.access = signedInAs(role);
+    await read();
+    expect(fake.from).toHaveBeenCalledTimes(1); // the assignment row; not found stops there
   });
 });

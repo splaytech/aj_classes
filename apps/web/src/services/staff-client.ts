@@ -25,3 +25,12 @@ export async function getProfileClient(userId: string) {
   if (userId !== access.userId && !(role === 'admin' && access.aal === 'aal2')) return null;
   return getSupabase();
 }
+
+/** Staff pages (an assignment and its marking page): a tutor or an admin, as the staff layout
+ * requires. A student or parent opening a staff URL sends no read (item 7 test plan). */
+export async function getStaffClient() {
+  const access = await getAccessState();
+  const role = access.profile?.role;
+  if (!role || !isStaffRole(role)) return null;
+  return getSupabase();
+}

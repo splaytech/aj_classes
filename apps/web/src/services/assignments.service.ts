@@ -7,6 +7,7 @@ import { toErrorKey } from './auth-errors';
 import { toStudentSummary } from './classes.service';
 import type { StudentRow } from './classes.service';
 import { attempt, fail, succeed } from './result';
+import { getStaffClient } from './staff-client';
 import { getSupabase } from './supabase.client';
 import { QUESTION_COLUMNS, toQuestion } from './questions.service';
 import type { QuestionRow } from './questions.service';
@@ -112,7 +113,8 @@ export async function listAssignments(classId?: string): Promise<Result<Assignme
 
 export async function getAssignment(assignmentId: string): Promise<Result<AssignmentDetail>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getStaffClient();
+    if (!supabase) return fail('notAllowed'); // a family role: the staff layout shows the right page
     const { data, error } = await supabase
       .from('assignments')
       .select(ASSIGNMENT_COLUMNS)
