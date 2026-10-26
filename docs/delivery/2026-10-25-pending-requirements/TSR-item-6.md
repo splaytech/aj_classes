@@ -258,3 +258,18 @@
 ## Verdict (round 2)
 
 **APPROVED (auto).** 54 / 54 on the frozen plan, with the round-1 rulings PR-1 and PR-2 applied as stated. The full check is green, and BUG-13 and BUG-14 are verified fixed. Next is `/test-and-ship`'s merge to `develop`. Straight after the push come the post-merge cases P-01 to P-08 (ask Saurabh before P-02's `gh run rerun`).
+
+## Post-merge evidence (first `develop` run, 26 Oct 2026)
+Run 40251932344 (push, `68f1729`), conclusion **success**. Collected by the team lead from `gh run view --log` (raw log kept outside git).
+
+| ID | Result | Evidence |
+|----|--------|----------|
+| P-01 | PASS | Five checks on GitHub: `web`, `database`, `E2E smoke`, `Lighthouse`, `Structured data`, all `success` |
+| P-02 | PARTIAL (1 of 3 runs) | `web` 1 min 1 s, `database` 1 min 43 s, `E2E smoke` 3 min 22 s (≤ 15), `Lighthouse` 5 min 7 s (≤ 10), `Structured data` 28 s; workflow about 5 min 8 s (≤ 20). The two `gh run rerun` repeats wait on Saurabh's OK |
+| P-03 | PARTIAL | `lighthouse-report` artifact expires 2 Nov 2026 01:03 UTC (7 days). `e2e-report` / `csp-report` only upload on failure; not seen yet |
+| P-04 | PASS | Lighthouse ran on GitHub's x86-64 runner with `--no-sandbox`: `18 runs, 0 supabase.co requests`; CSP sweep `19 passed` |
+| P-06 | PASS | Whole run log: 0 key-shaped strings, 20 `***` masks, 0 hosted-ref hits; E2E smoke `9 passed` |
+| P-08 | PASS | `68f1729` merge-commit body lists the five dev dependencies with reasons |
+| O1 | 1 of 3 | `web` green on its first GitHub run |
+
+P-05 (empty-variable override) and P-07 (step summary) are not separately collected yet; the green Lighthouse run with 0 `supabase.co` and the hosted-ref step passing cover P-05's intent but not its exact measure.
