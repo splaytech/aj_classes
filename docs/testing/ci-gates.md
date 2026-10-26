@@ -50,6 +50,12 @@ Staging and prod share one hosted Supabase project, so no gate, locally or in CI
 Needs Docker and the Supabase CLI. Port 5173 must be free, or must already be serving this
 checkout's dev server with the settings below: global setup reuses a running server as it is.
 
+CI typechecks the suite first, before it starts anything (root `pnpm typecheck` also covers it):
+
+```bash
+pnpm --filter aj-classes-e2e typecheck
+```
+
 ```bash
 pnpm db:start
 ```
@@ -189,3 +195,10 @@ act pull_request -j structured-data -P ubuntu-latest=catthehacker/ubuntu:act-lat
 
   `supabase stop --no-backup` deletes the local database volume: local data only, as
   `pnpm db:reset` does. Anything you added to the local database by hand is lost.
+
+- `act` leaves the last container of each job running after the job ends. Remove them when
+  you're done:
+
+  ```bash
+  docker ps -aq --filter name=act- | xargs docker rm -f
+  ```
