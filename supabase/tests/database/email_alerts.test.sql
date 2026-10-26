@@ -83,7 +83,15 @@ insert into public.assignment_questions (assignment_id, kind, prompt, options, c
   ('00000000-0000-0000-0000-00000000e803', 'multiple_choice', 'Pick A', '{A,B}', 0, 1),
   ('00000000-0000-0000-0000-00000000e804', 'multiple_choice', 'Pick A', '{A,B}', 0, 1);
 
-delete from public.email_outbox; -- nothing above is published, but keep the start clean
+-- e805: online, published, due tomorrow, for the recipient-function cases.
+insert into public.assignments (id, class_id, title, due_on) values
+  ('00000000-0000-0000-0000-00000000e805', '00000000-0000-0000-0000-00000000c001', 'Recipient check',
+   (select today + 1 from melbourne));
+insert into public.assignment_questions (assignment_id, kind, prompt, options, correct_option, marks) values
+  ('00000000-0000-0000-0000-00000000e805', 'multiple_choice', 'Pick A', '{A,B}', 0, 1);
+update public.assignments set status = 'published' where id = '00000000-0000-0000-0000-00000000e805';
+
+delete from public.email_outbox; -- publishing e805 queued "new assignment" rows; start clean
 
 create function pg_temp.queued(target_kind text, target_assignment uuid)
 returns table (student_id uuid, recipient_id uuid, recipient_role text)
@@ -139,6 +147,92 @@ select results_eq(
 delete from public.notification_settings where profile_id = '00000000-0000-0000-0000-0000000006a4';
 select col_hasnt_default('public', 'email_outbox', 'send_before',
   'send_before has no default: only the new kinds set one');
+
+
+-- One recipient function for every kind (ADR-0008 decision 3) -------------------------------
+create function pg_temp.recipients(target_kind text, target_student uuid, queued_due_on date default null)
+returns setof uuid language sql as $$
+  select r.profile_id from private.email_recipients(
+    target_kind, '00000000-0000-0000-0000-00000000e805', target_student, queued_due_on) r
+  order by 1
+$$;
+create temporary table kid_one_people (id uuid);
+insert into kid_one_people values
+  ('00000000-0000-0000-0000-0000000005a1'), ('00000000-0000-0000-0000-0000000006a1'),
+  ('00000000-0000-0000-0000-0000000006a2');
+
+select results_eq($$ select pg_temp.recipients('new_assignment', '00000000-0000-0000-0000-00000000d001') $$,
+  $$ select id from kid_one_people order by 1 $$,
+  'new_assignment: the active student and both active parents (parent3 is deactivated)');
+select results_eq(
+  $$ select pg_temp.recipients('due_tomorrow', '00000000-0000-0000-0000-00000000d001',
+                               (select today + 1 from melbourne)) $$,
+  $$ select id from kid_one_people order by 1 $$,
+  'due_tomorrow: the same people, for the due date it was queued for');
+select is_empty(
+  $$ select pg_temp.recipients('due_tomorrow', '00000000-0000-0000-0000-00000000d001',
+                               (select today + 2 from melbourne)) $$,
+  'due_tomorrow: nobody once the due date differs from the queued one (AC-8.8)');
+select is_empty(
+  $$ select pg_temp.recipients('due_tomorrow', '00000000-0000-0000-0000-00000000d001') $$,
+  'due_tomorrow: nobody without a queued due date');
+select results_eq($$ select pg_temp.recipients('work_returned', '00000000-0000-0000-0000-00000000d001') $$,
+  $$ select id from kid_one_people order by 1 $$,
+  'work_returned: the same people while the work is readable (ADR-0007)');
+select is_empty($$ select pg_temp.recipients('something_else', '00000000-0000-0000-0000-00000000d001') $$,
+  'An unknown kind has no recipients');
+select results_eq($$ select pg_temp.recipients('new_assignment', '00000000-0000-0000-0000-00000000d006') $$,
+  $$ values ('00000000-0000-0000-0000-0000000006a2'::uuid) $$,
+  'Kid Six: only parent2, as Kid Six and parent6 turned the switch off');
+select is_empty($$ select pg_temp.recipients('new_assignment', '00000000-0000-0000-0000-00000000d002') $$,
+  'Roster-only Kid Two: nobody (AC-8.11)');
+select is_empty($$ select pg_temp.recipients('new_assignment', '00000000-0000-0000-0000-00000000d003') $$,
+  'Invited Kid Three: nobody (AC-8.11)');
+select results_eq($$ select pg_temp.recipients('new_assignment', '00000000-0000-0000-0000-00000000d004') $$,
+  $$ values ('00000000-0000-0000-0000-0000000006a4'::uuid) $$,
+  'Deactivated Kid Four: only their active parent');
+select is_empty($$ select pg_temp.recipients('new_assignment', '00000000-0000-0000-0000-00000000d005') $$,
+  'Kid Five, whose only parent is deactivated: nobody (AC-8.11)');
+
+-- Each switch controls only its own kind (AC-8.10).
+insert into public.notification_settings (profile_id, work_returned, new_assignment, due_tomorrow)
+values ('00000000-0000-0000-0000-0000000006a1', true, false, true);
+select results_eq($$ select pg_temp.recipients('new_assignment', '00000000-0000-0000-0000-00000000d001') $$,
+  $$ select id from kid_one_people where id <> '00000000-0000-0000-0000-0000000006a1' order by 1 $$,
+  'parent1''s "new work" switch off: no new_assignment email for them...');
+select results_eq(
+  $$ select pg_temp.recipients('due_tomorrow', '00000000-0000-0000-0000-00000000d001',
+                               (select today + 1 from melbourne)) $$,
+  $$ select id from kid_one_people order by 1 $$,
+  '...but they still get due_tomorrow');
+update public.notification_settings set new_assignment = true, due_tomorrow = false
+where profile_id = '00000000-0000-0000-0000-0000000006a1';
+select results_eq(
+  $$ select pg_temp.recipients('due_tomorrow', '00000000-0000-0000-0000-00000000d001',
+                               (select today + 1 from melbourne)) $$,
+  $$ select id from kid_one_people where id <> '00000000-0000-0000-0000-0000000006a1' order by 1 $$,
+  'parent1''s "due tomorrow" switch off: no reminder for them...');
+select results_eq($$ select pg_temp.recipients('new_assignment', '00000000-0000-0000-0000-00000000d001') $$,
+  $$ select id from kid_one_people order by 1 $$,
+  '...but they still get new_assignment');
+delete from public.notification_settings where profile_id = '00000000-0000-0000-0000-0000000006a1';
+
+-- due_tomorrow follows the hand-in status: not started and in progress count, handed in doesn't.
+insert into public.assignment_results (assignment_id, student_id, status)
+values ('00000000-0000-0000-0000-00000000e805', '00000000-0000-0000-0000-00000000d001', 'in_progress');
+select results_eq(
+  $$ select pg_temp.recipients('due_tomorrow', '00000000-0000-0000-0000-00000000d001',
+                               (select today + 1 from melbourne)) $$,
+  $$ select id from kid_one_people order by 1 $$,
+  'due_tomorrow: in progress still counts as not handed in (AC-8.5)');
+update public.assignment_results set status = 'submitted'
+where assignment_id = '00000000-0000-0000-0000-00000000e805' and student_id = '00000000-0000-0000-0000-00000000d001';
+select is_empty(
+  $$ select pg_temp.recipients('due_tomorrow', '00000000-0000-0000-0000-00000000d001',
+                               (select today + 1 from melbourne)) $$,
+  'due_tomorrow: nobody once it''s handed in (AC-8.6)');
+delete from public.assignment_results where assignment_id = '00000000-0000-0000-0000-00000000e805';
+delete from public.email_outbox;
 
 
 select * from finish();
