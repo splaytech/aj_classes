@@ -361,8 +361,9 @@ $$;
 -- Step 9. The kick sweeps expired rows (AC-8.7)
 -- ---------------------------------------------------------------------------
 
--- Body copied from 20261025110000_work_returned_email.sql lines 299-336, plus the too_late sweep
--- straight after the reclaim and before the first early return.
+-- Body copied from 20261025110000_work_returned_email.sql lines 299-336, plus, straight after the
+-- reclaim and before the first early return, the claim's relevance skip and then the too_late
+-- sweep (review-5 item 8, finding 1).
 create or replace function private.kick_email_worker()
 returns void
 language plpgsql
@@ -380,6 +381,15 @@ begin
   set status = case when attempts >= 3 then 'failed' else 'pending' end,
       reason = case when attempts >= 3 then 'max_attempts' else reason end
   where status = 'sending' and claimed_at < now() - interval '10 minutes';
+
+  -- No longer relevant (handed in, back to draft, left the class, switch off): skipped, as the
+  -- claim does. It runs here first because the claim doesn't run while the cap is full or the
+  -- worker is set up wrongly, and without it the sweep below would fail these as "too late".
+  update public.email_outbox o set status = 'skipped'
+  where o.status = 'pending'
+    and not exists (select 1 from private.email_recipients(o.kind, o.assignment_id, o.student_id,
+                                                           private.melbourne_date(o.send_before)) r
+                    where r.profile_id = o.recipient_id);
 
   -- Past their deadline: failed, shown to admins as "Too late to send". Here, not in the worker,
   -- because the kick never calls the worker while the cap is full (02b §8.4).

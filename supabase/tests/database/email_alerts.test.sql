@@ -118,6 +118,16 @@ select is(
                                              interval '1 hour') run
    where private.is_reminder_hour(run)),
   1, 'Exactly one of the 24 hourly runs on a day passes the guard');
+select is(
+  (select count(*)::int from generate_series(timestamptz '2026-10-04 00:10Z', timestamptz '2026-10-04 23:10Z',
+                                             interval '1 hour') run
+   where private.is_reminder_hour(run)),
+  1, 'and on 4 Oct 2026, the day clocks go forward (a 23-hour Melbourne day)');
+select is(
+  (select count(*)::int from generate_series(timestamptz '2027-04-04 00:10Z', timestamptz '2027-04-04 23:10Z',
+                                             interval '1 hour') run
+   where private.is_reminder_hour(run)),
+  1, 'and on 4 Apr 2027, the day clocks go back (a 25-hour Melbourne day)');
 
 select is(private.melbourne_day_start('2026-10-05'), timestamptz '2026-10-04 13:00Z',
   'Midnight starting 5 Oct 2026 (AEDT) is 13:00Z the day before');
@@ -654,6 +664,52 @@ select is((select reason from public.email_outbox), 'too_late',
   'With the daily cap full, the kick still fails an expired row as too_late');
 create or replace function private.email_daily_cap()
 returns int language sql immutable set search_path = '' as $$ select 70 $$;
+
+-- Past their deadline but no longer relevant: skipped, not "too late", even with the cap full
+-- (review-5 item 8, finding 1; AC-8.3, AC-8.6, 03b §8.3).
+savepoint stale_rows;
+delete from public.email_outbox;
+create or replace function private.email_daily_cap()
+returns int language sql immutable set search_path = '' as $$ select 0 $$;
+-- Kid One handed in e812 (due today) after the reminder was queued; Kid Four didn't.
+insert into public.assignment_results (assignment_id, student_id, status)
+values ('00000000-0000-0000-0000-00000000e812', '00000000-0000-0000-0000-00000000d001', 'submitted');
+select pg_temp.add_row('due_tomorrow', '00000000-0000-0000-0000-00000000e812', '00000000-0000-0000-0000-0000000006a1',
+  now() - interval '20 hours', (select private.melbourne_day_start(today) from melbourne));
+insert into public.email_outbox (kind, assignment_id, student_id, recipient_id, recipient_role, created_at, send_before)
+values ('due_tomorrow', '00000000-0000-0000-0000-00000000e812', '00000000-0000-0000-0000-00000000d004',
+        '00000000-0000-0000-0000-0000000006a4', 'parent', now() - interval '20 hours',
+        (select private.melbourne_day_start(today) from melbourne));
+-- A "new assignment" row for work moved back to draft, and one for a student who left the class.
+insert into public.assignments (id, class_id, title, max_mark) values
+  ('00000000-0000-0000-0000-00000000e814', '00000000-0000-0000-0000-00000000c001', 'Pulled back early', 10);
+select pg_temp.publish('00000000-0000-0000-0000-00000000e814');
+select pg_temp.unpublish('00000000-0000-0000-0000-00000000e814');
+delete from public.email_outbox where assignment_id = '00000000-0000-0000-0000-00000000e814';
+select pg_temp.add_row('new_assignment', '00000000-0000-0000-0000-00000000e814', '00000000-0000-0000-0000-0000000005a1',
+  now() - interval '8 days', now() - interval '1 minute');
+insert into public.email_outbox (kind, assignment_id, student_id, recipient_id, recipient_role, created_at, send_before)
+values ('new_assignment', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-00000000d007',
+        '00000000-0000-0000-0000-0000000005a7', 'student', now() - interval '8 days', now() - interval '1 minute');
+delete from public.enrolments
+where class_id = '00000000-0000-0000-0000-00000000c001' and student_id = '00000000-0000-0000-0000-00000000d007';
+select private.kick_email_worker();
+select results_eq(
+  $$ select kind, assignment_id::text, recipient_id::text, status, reason from public.email_outbox
+     order by kind, assignment_id, recipient_id $$,
+  $$ values
+       ('due_tomorrow', '00000000-0000-0000-0000-00000000e812', '00000000-0000-0000-0000-0000000006a1', 'skipped', null::text),
+       ('due_tomorrow', '00000000-0000-0000-0000-00000000e812', '00000000-0000-0000-0000-0000000006a4', 'failed', 'too_late'),
+       ('new_assignment', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-0000000005a7', 'skipped', null::text),
+       ('new_assignment', '00000000-0000-0000-0000-00000000e814', '00000000-0000-0000-0000-0000000005a1', 'skipped', null::text) $$,
+  'Cap full: handed in, back to draft and left the class end skipped; the still-relevant reminder ends too_late');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select results_eq(
+  $$ select kind, recipient_role, state, reason from public.admin_email_problems() $$,
+  $$ values ('due_tomorrow', 'parent', 'failed', 'too_late') $$,
+  'Admins see only the still-relevant one, as Too late to send; skipped rows aren''t listed');
+select pg_temp.as_system();
+rollback to savepoint stale_rows;
 
 
 -- AC-8.13: every kind reaches the admin list with its type ---------------------------------
