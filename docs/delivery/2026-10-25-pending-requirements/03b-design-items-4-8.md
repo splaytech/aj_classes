@@ -1957,7 +1957,12 @@ When item 2 is rebased onto `develop` for release (expected after items 4–8):
    `hold_needs_questions` (AC-7.2 file half); a removed student reads their returned hand-in's
    files and the tutor's attachments, and can't upload or remove (AC-7.15); publishing a file
    hand-in queues "new assignment" (AC-8.1) and a due-tomorrow file hand-in not handed in queues a
-   reminder (AC-8.5).
+   reminder (AC-8.5). From security review item 7, S3 ([06-security-item-7](06-security-item-7.md)):
+   (a) a removed student gets no storage SELECT on a non-returned assignment's files (pgTAP);
+   (b) the PO decides whether tutor attachments added after the student's work was returned are
+   readable under rule (b); if not, rule (b) file reads cover only objects created before
+   `returned_at`; (c) upload, register and remove keep `assignment_visible_to`, each with a pgTAP
+   case after removal.
 4. **Privacy:** item 2's sentences go into the "Portal accounts" section next to item 4's; its
    `privacy.test.tsx` lookups use `'Portal accounts'`.
 5. `email_outbox.test.sql`: item 2's 35-line change is reapplied on top of item 8's version.

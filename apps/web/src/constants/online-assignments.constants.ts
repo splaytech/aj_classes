@@ -76,6 +76,13 @@ export const QUESTION_BUILDER = {
   limitReached: `You’ve reached the limit of ${QUESTION_LIMITS.questionsMax} questions.`,
 } as const;
 
+/** The "hold results" switch on a draft with questions (ADR-0007, item 7). */
+export const HOLD_RESULTS = {
+  label: 'Hold results until I return them',
+  hint: 'Students see their marks and the correct answers only when you return their work. This matters only when every question is multiple choice: work with a written question is always held until you return it.',
+  lockedNote: 'Locked because the assignment is published. Move it back to draft to change this.',
+} as const;
+
 export const QUESTION_DIALOG = {
   newHeading: 'New question',
   editHeading: 'Edit question',

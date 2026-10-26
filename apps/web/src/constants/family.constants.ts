@@ -104,6 +104,12 @@ export const FAMILY_STATUS_LABELS: Record<FamilyStatus, string> = {
   returned: 'Returned',
 };
 
+/** Short tags on family work. Past class: returned work from a class the student has left, or
+ * that has ended; it stays readable (ADR-0007, item 7 AC-7.12). */
+export const FAMILY_TAGS = {
+  pastClass: 'Past class',
+} as const;
+
 export const STUDENT_HOME = {
   greeting: (firstName: string) => `Hi ${firstName}`,
   intro: 'Your assignments and classes at AJ Classes.',

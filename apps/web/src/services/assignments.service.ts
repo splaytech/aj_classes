@@ -7,6 +7,7 @@ import { toErrorKey } from './auth-errors';
 import { toStudentSummary } from './classes.service';
 import type { StudentRow } from './classes.service';
 import { attempt, fail, succeed } from './result';
+import { getStaffClient } from './staff-client';
 import { getSupabase } from './supabase.client';
 import { QUESTION_COLUMNS, toQuestion } from './questions.service';
 import type { QuestionRow } from './questions.service';
@@ -21,7 +22,7 @@ import type {
 } from './types';
 
 const ASSIGNMENT_COLUMNS = `
-  id, class_id, title, instructions, due_on, max_mark, status,
+  id, class_id, title, instructions, due_on, max_mark, status, hold_results,
   class:classes!inner(name, is_active, enrolments(student_id)),
   assignment_questions(marks),
   assignment_results(student_id, status)
@@ -38,6 +39,7 @@ type AssignmentRow = {
   due_on: string | null;
   max_mark: number | null;
   status: 'draft' | 'published';
+  hold_results: boolean;
   class: { name: string; is_active: boolean; enrolments: { student_id: string }[] };
   assignment_questions: { marks: number }[];
   assignment_results: { student_id: string; status: ResultStatus }[];
@@ -65,6 +67,7 @@ function toAssignmentSummary(row: AssignmentRow): AssignmentSummary {
     dueOn: row.due_on,
     maxMark: row.max_mark,
     isPublished: row.status === 'published',
+    holdResults: row.hold_results,
     questionCount: questionMarks.length,
     totalMarks:
       questionMarks.length > 0
@@ -110,7 +113,8 @@ export async function listAssignments(classId?: string): Promise<Result<Assignme
 
 export async function getAssignment(assignmentId: string): Promise<Result<AssignmentDetail>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getStaffClient();
+    if (!supabase) return fail('notAllowed'); // a family role: the staff layout shows the right page
     const { data, error } = await supabase
       .from('assignments')
       .select(ASSIGNMENT_COLUMNS)
@@ -185,6 +189,21 @@ export async function setAssignmentPublished(
     const { data, error } = await supabase
       .from('assignments')
       .update({ status: published ? 'published' : 'draft' })
+      .eq('id', assignmentId)
+      .select('id')
+      .maybeSingle();
+    if (error) return fail(toErrorKey(error));
+    return data ? succeed() : fail('notAllowed');
+  });
+}
+
+/** Turns "hold results until returned" on or off on a draft (ADR-0007). */
+export async function setHoldResults(assignmentId: string, hold: boolean): Promise<Result> {
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { data, error } = await supabase
+      .from('assignments')
+      .update({ hold_results: hold })
       .eq('id', assignmentId)
       .select('id')
       .maybeSingle();

@@ -27,6 +27,7 @@ function assignment(overrides: Partial<FamilyAssignment>): FamilyAssignment {
     isLate: false,
     mark: null,
     comment: '',
+    isPastClass: false,
     ...overrides,
   };
 }

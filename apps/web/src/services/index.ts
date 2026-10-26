@@ -12,6 +12,7 @@ export { subscribe } from './subscription.service';
 export {
   changePassword,
   confirmEmailLink,
+  forgetDeactivatedSession,
   getAccessState,
   requestPasswordReset,
   sendReauthCode,
@@ -39,6 +40,7 @@ export {
   saveAssignment,
   saveResult,
   setAssignmentPublished,
+  setHoldResults,
 } from './assignments.service';
 export { deleteQuestion, moveQuestion, saveQuestion } from './questions.service';
 export { getSubmission, saveSubmission } from './submissions.service';

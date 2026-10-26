@@ -303,6 +303,8 @@ export type AssignmentSummary = {
   maxMark: number | null; // null: feedback only
   /** Drafts are visible to staff only (R3b FT2). */
   isPublished: boolean;
+  /** All-multiple-choice work waits for staff to return it (ADR-0007). Locked once published. */
+  holdResults: boolean;
   /** Online work has questions; paper homework has none (R3b D6). */
   questionCount: number;
   /** Sum of the question marks, or maxMark for paper homework; null: feedback only. */
@@ -365,8 +367,9 @@ export type Submission = {
   answers: SubmissionAnswer[];
 };
 
-/** The marks and feedback a tutor gives one answer. */
-export type AnswerMark = { questionId: string; awardedMarks: number | null; feedback: string };
+/** The tutor's mark and feedback on one answer. Multiple choice omits `awardedMarks`: it keeps
+ * its automatic mark, and only the feedback is saved (item 7 AC-7.4). */
+export type AnswerMark = { questionId: string; awardedMarks?: number | null; feedback: string };
 
 export type AssignmentInput = {
   id?: string;
@@ -434,6 +437,8 @@ export type FamilyAssignment = {
   /** Only once returned (F12). */
   mark: number | null;
   comment: string;
+  /** Returned work kept after leaving the class or the class ending (ADR-0007, rule (b)). */
+  isPastClass: boolean;
 };
 
 /** A question as a student (or parent) sees it. Marking fields are empty until returned. */
@@ -466,6 +471,7 @@ export type FamilyAssignmentView = Pick<
   | 'totalMarks'
   | 'mark'
   | 'comment'
+  | 'isPastClass'
 > & { instructions: string; questions: FamilyQuestion[] };
 
 export type ChildAccountStatus = 'none' | 'invited' | 'active' | 'deactivated';

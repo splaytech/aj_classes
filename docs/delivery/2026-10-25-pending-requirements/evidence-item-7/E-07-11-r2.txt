@@ -1,0 +1,53 @@
+== E-07
+      36
+delta vs round 1:
+10a11,12
+> apps/web/src/lib/portal-guard.test.ts
+> apps/web/src/lib/portal-guard.ts
+20a23
+> apps/web/src/services/auth.service.ts
+27a31,32
+> apps/web/src/services/supabase.client.test.ts
+> apps/web/src/services/supabase.client.ts
+       0
+== E-08
+(none printed = pass)
+== E-09
+dbtypes=0
+diff=0
+== E-10
+false|NO|boolean
+assignments_check_hold_results|O
+assignment_readable_by|t|{"search_path=\"\""}
+assignment_view|t|{"search_path=\"\""}
+assignments_for_student|t|{"search_path=\"\""}
+check_hold_results|t|{"search_path=\"\""}
+parent_child_assignments|t|{"search_path=\"\""}
+student_assignments|t|{"search_path=\"\""}
+student_submit|t|{"search_path=\"\""}
+work_returned_recipients|t|{"search_path=\"\""}
+anon|private.assignment_readable_by(uuid, uuid)|f
+anon|private.assignments_for_student(uuid, boolean)|f
+anon|private.check_hold_results()|f
+anon|public.parent_child_assignments(uuid)|f
+anon|public.student_assignments()|f
+authenticated|private.assignment_readable_by(uuid, uuid)|f
+authenticated|private.assignments_for_student(uuid, boolean)|f
+authenticated|private.check_hold_results()|f
+authenticated|public.parent_child_assignments(uuid)|t
+authenticated|public.student_assignments()|t
+student_submit 20261027100000_fair_results.sql
+assignments_for_student 20261027100000_fair_results.sql
+student_assignments 20261027100000_fair_results.sql
+parent_child_assignments 20261027100000_fair_results.sql
+assignment_view 20261027100000_fair_results.sql
+work_returned_recipients 20261027100000_fair_results.sql
+assignment_readable_by 20261027100000_fair_results.sql
+== E-11
+2
+2
+2
+1
+1
+1
+5

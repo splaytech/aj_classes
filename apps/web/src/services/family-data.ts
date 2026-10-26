@@ -28,6 +28,7 @@ export type FamilyAssignmentRow = {
   is_late: boolean;
   mark: number | null;
   comment: string;
+  is_past_class: boolean;
 };
 
 export type FamilyTimetableRow = {
@@ -72,6 +73,7 @@ export function toFamilyAssignment(row: FamilyAssignmentRow): FamilyAssignment {
     isLate: row.is_late,
     mark: toNumberOrNull(row.mark),
     comment: row.comment,
+    isPastClass: row.is_past_class,
   };
 }
 
