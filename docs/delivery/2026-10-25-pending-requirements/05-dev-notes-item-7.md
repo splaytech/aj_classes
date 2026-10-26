@@ -209,7 +209,7 @@ badly or overlaps.
 | Review 2 | pgTAP (AC-7.13): after removal, deleting the returned assignment deletes its result, drops it from the student's list, and its page gives P0002 | `27d5d8e` |
 | Review 3 | pgTAP, archive block: `parent_child_assignment(d1, e008)` isn't null; `e007` gives 42501 `not_found` | `314bc7d` |
 | Review 4 (O4) | New `PORTAL_ERRORS.holdLocked`: "This can’t change once the assignment is published." `HoldResultsSetting` maps `assignmentPublished` to it. The generic `auth-errors` mapping is unchanged elsewhere. 1 new test | `4a014f4` |
-| Review 5 (O1) | The switch shows the clicked value at once, disabled, until the save and `onChanged` (the page reload) finish. After a refusal it goes back to the saved value. `onChanged` may now return a promise. 1 new test, plus the refusal test checks the revert. Browser: on "Ratio worksheet" the box is ticked straight after the click, and still ticked after a reload (then unticked again) | `7126f06` |
+| Review 5 (O1) | The switch shows the clicked value at once, disabled, until the save and `onChanged` (the page reload) finish. After a refusal it goes back to the saved value. `onChanged` may now return a promise. 1 new test, plus the refusal test checks the revert. Browser: on "Ratio worksheet" the box is ticked straight after the click, and still ticked after a reload. The script then clicked it again to untick it, putting the seed data back (and the next `pnpm db:reset` reset it anyway) | `7126f06` |
 | Security S1 | `supabase/README.md` → Runbooks → "A student leaves a class, or was enrolled by mistake": the residual and admin steps (a)–(e), with the portal paths. There's no portal button for (c), so it's the SQL line | `1e28b48` |
 | Security S2 | The same section: one tutor-guidance paragraph | `4a00530` |
 | Security S3 | 03b §9 step 3 and 04b §7 T2.15 step 5 list the three item 2 rebase checks | `393635f` |
@@ -225,3 +225,23 @@ Full check after the fixes, on `393635f`, after `pnpm db:reset`:
 - `test:functions`: 169 `ok`, 0 `not ok`.
 - `test:smoke`: **9 passed**.
 - No-Supabase build: `check:hosted-ref` 0 files. `test:csp`: **19 passed**.
+
+### Round 2 (review-5-item-7 round 2, APPROVED; non-blocking findings)
+
+| Finding | Fix | Commit |
+|---|---|---|
+| 1 Flicker after save | After a successful save, the clicked value stays until the `holdResults` prop changes (previous-prop-in-state). A refusal still reverts at once. The "tick at once" test now rerenders with the new value and checks there's no flicker before it arrives | `0d1b701` |
+| 2 Stuck if a save or reload throws | `try … finally` clears the pending value unless the reload finished. The refusal tests cover the `finally` path. The throw path isn't unit-tested: a rejection from the change handler is unhandled by design, and Vitest fails the run on it | `8cf5689` |
+| 3 Step (c) wording | `supabase/README.md`: do (a) or (b) first; check `select full_name …` before the delete; enrolments, parent links, results, answers, the row's consent and email rows all cascade (all 5 FKs to `students` are `on delete cascade`) | `3d1e2fb` |
+| 5 Dev notes | §7 now says the script unticked the box again to restore the seed data | this commit |
+| 6 Vacuous delete | pgTAP asserts the e008 result count is 1 just before the delete | `d5baae1` |
+
+Finding 4 is skipped, as the team lead asked.
+
+Checks after round 2:
+
+- format, lint and typecheck: clean.
+- Vitest: 59 files, 506 tests; e2e unit 6/6.
+- `db:test`: 15 files, **587 tests**, PASS (`fair_results` 80).
+- No build config changed, so the build and E2E weren't re-run.
+
