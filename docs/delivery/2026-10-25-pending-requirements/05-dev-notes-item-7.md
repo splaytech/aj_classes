@@ -200,3 +200,28 @@ badly or overlaps.
 6. **Hosted behaviour:** none, by rule. O1's lag on hosted latency is unmeasured.
 7. **Lighthouse and structured data** weren't run: T7.9 names only `test:smoke` and `test:csp`,
    and item 7 changes no public page.
+
+## 7. Review fixes (after review-5-item-7 and 06-security-item-7, both APPROVED)
+
+| Finding | Fix | Commit |
+|---|---|---|
+| Review 1 | The `notify_claim_emails()` count joins `email_outbox` on `kind = 'work_returned'` | `32ed149` |
+| Review 2 | pgTAP (AC-7.13): after removal, deleting the returned assignment deletes its result, drops it from the student's list, and its page gives P0002 | `27d5d8e` |
+| Review 3 | pgTAP, archive block: `parent_child_assignment(d1, e008)` isn't null; `e007` gives 42501 `not_found` | `314bc7d` |
+| Review 4 (O4) | New `PORTAL_ERRORS.holdLocked`: "This can’t change once the assignment is published." `HoldResultsSetting` maps `assignmentPublished` to it. The generic `auth-errors` mapping is unchanged elsewhere. 1 new test | `4a014f4` |
+| Review 5 (O1) | The switch shows the clicked value at once, disabled, until the save and `onChanged` (the page reload) finish. After a refusal it goes back to the saved value. `onChanged` may now return a promise. 1 new test, plus the refusal test checks the revert. Browser: on "Ratio worksheet" the box is ticked straight after the click, and still ticked after a reload (then unticked again) | `7126f06` |
+| Security S1 | `supabase/README.md` → Runbooks → "A student leaves a class, or was enrolled by mistake": the residual and admin steps (a)–(e), with the portal paths. There's no portal button for (c), so it's the SQL line | `1e28b48` |
+| Security S2 | The same section: one tutor-guidance paragraph | `4a00530` |
+| Security S3 | 03b §9 step 3 and 04b §7 T2.15 step 5 list the three item 2 rebase checks | `393635f` |
+
+Not changed: O2 (muted text, already on `develop`) and O3 (hint length, PO wording), as review finding 6 says. S4 and S5 are informational, for the TSR.
+
+Full check after the fixes, on `393635f`, after `pnpm db:reset`:
+
+- format, lint and typecheck: clean.
+- Vitest: **59 files, 506 tests**; e2e unit 6/6.
+- Local-exports production build: `check:hosted-ref` 0 files of 153.
+- `db:test`: **15 files, 586 tests**, PASS (`fair_results` 79).
+- `test:functions`: 169 `ok`, 0 `not ok`.
+- `test:smoke`: **9 passed**.
+- No-Supabase build: `check:hosted-ref` 0 files. `test:csp`: **19 passed**.
