@@ -335,6 +335,7 @@ select results_eq(
   'The student and both parents are still "work returned" recipients after removal');
 select is(
   (select count(*)::int from public.notify_claim_emails() c
+   join public.email_outbox o on o.id = c.id and o.kind = 'work_returned'
    where c.assignment_id = '00000000-0000-0000-0000-00000000e001'),
   3, 'The worker still sends the held quiz''s waiting emails after removal');
 select is(
