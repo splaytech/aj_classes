@@ -55,8 +55,16 @@ export async function getSubmission(
   });
 }
 
+/** The columns to write for one answer: multiple choice keeps its automatic mark. */
+function answerColumns(mark: AnswerMark): { awarded_marks?: number | null; feedback: string } {
+  const feedback = mark.feedback.trim();
+  return mark.awardedMarks === undefined
+    ? { feedback }
+    : { awarded_marks: mark.awardedMarks, feedback };
+}
+
 /**
- * Saves the marks and feedback for the written answers and the overall comment, then returns
+ * Saves the marks and feedback (feedback only for multiple choice) and the overall comment, then returns
  * the work to the student when `returnWork` is set. Saving again is safe if one step fails.
  */
 export async function saveSubmission(
@@ -72,7 +80,7 @@ export async function saveSubmission(
     for (const mark of marks) {
       const { error } = await supabase
         .from('assignment_answers')
-        .update({ awarded_marks: mark.awardedMarks, feedback: mark.feedback.trim() })
+        .update(answerColumns(mark))
         .eq('question_id', mark.questionId)
         .eq('student_id', studentId);
       if (error) return fail(toErrorKey(error));

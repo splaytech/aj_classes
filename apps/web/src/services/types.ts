@@ -367,8 +367,9 @@ export type Submission = {
   answers: SubmissionAnswer[];
 };
 
-/** The marks and feedback a tutor gives one answer. */
-export type AnswerMark = { questionId: string; awardedMarks: number | null; feedback: string };
+/** The tutor's mark and feedback on one answer. Multiple choice omits `awardedMarks`: it keeps
+ * its automatic mark, and only the feedback is saved (item 7 AC-7.4). */
+export type AnswerMark = { questionId: string; awardedMarks?: number | null; feedback: string };
 
 export type AssignmentInput = {
   id?: string;
