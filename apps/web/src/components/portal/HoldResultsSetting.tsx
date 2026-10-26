@@ -8,7 +8,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import type { ChangeEvent } from 'react';
 
 import { HOLD_RESULTS } from '@/constants';
@@ -20,7 +20,8 @@ type HoldResultsSettingProps = {
   assignmentId: string;
   holdResults: boolean;
   isPublished: boolean;
-  onChanged: () => void;
+  /** Reloads the page's data. The tick stays as clicked until this finishes. */
+  onChanged: () => void | Promise<void>;
 };
 
 /**
@@ -43,10 +44,14 @@ export function HoldResultsSetting({
 }: HoldResultsSettingProps) {
   const action = usePortalAction();
   const hintId = useId();
+  // The value just clicked, shown at once while it saves and the page reloads (finding 5).
+  const [pending, setPending] = useState<boolean | null>(null);
 
   async function change(event: ChangeEvent<HTMLInputElement>) {
     const hold = event.target.checked;
-    if (await action.run(() => saveHold(assignmentId, hold))) onChanged();
+    setPending(hold);
+    if (await action.run(() => saveHold(assignmentId, hold))) await onChanged();
+    setPending(null); // after a refusal this shows the saved value again
   }
 
   return (
@@ -55,8 +60,8 @@ export function HoldResultsSetting({
         <FormControlLabel
           control={
             <Checkbox
-              checked={holdResults}
-              disabled={isPublished || action.busy}
+              checked={pending ?? holdResults}
+              disabled={isPublished || pending !== null}
               onChange={change}
               slotProps={{ input: { 'aria-describedby': hintId } }}
             />

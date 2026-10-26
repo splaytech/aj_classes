@@ -43,6 +43,25 @@ describe('HoldResultsSetting (item 7)', () => {
     await waitFor(() => expect(onChanged).toHaveBeenCalledTimes(1));
   });
 
+  it('shows the tick at once, while it saves and the page reloads', async () => {
+    let finishSave: (result: { ok: true; data: undefined }) => void = () => {};
+    vi.mocked(setHoldResults).mockReturnValue(
+      new Promise((resolve) => {
+        finishSave = resolve;
+      }),
+    );
+    const user = setupUser();
+    const { onChanged, checkbox } = renderSetting(false);
+
+    await user.click(checkbox);
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toBeDisabled();
+
+    finishSave({ ok: true, data: undefined });
+    await waitFor(() => expect(onChanged).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(checkbox).toBeEnabled());
+  });
+
   it('is locked, showing its value and the locked note, once published (AC-7.1)', () => {
     const { checkbox } = renderSetting(true, true);
 
@@ -61,6 +80,8 @@ describe('HoldResultsSetting (item 7)', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(PORTAL_ERRORS.holdNeedsQuestions);
     expect(onChanged).not.toHaveBeenCalled();
+    expect(checkbox).not.toBeChecked(); // back to the saved value
+    expect(checkbox).toBeEnabled();
   });
 
   it('explains a draft that was published elsewhere with its own message', async () => {
