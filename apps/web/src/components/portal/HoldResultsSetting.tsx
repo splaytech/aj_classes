@@ -57,11 +57,15 @@ export function HoldResultsSetting({
   async function change(event: ChangeEvent<HTMLInputElement>) {
     const hold = event.target.checked;
     setPending(hold);
-    if (!(await action.run(() => saveHold(assignmentId, hold)))) {
-      setPending(null); // refused: show the saved value again
-      return;
+    let reloaded = false;
+    try {
+      if (await action.run(() => saveHold(assignmentId, hold))) {
+        await onChanged();
+        reloaded = true; // the new holdResults prop clears pending, with no flicker
+      }
+    } finally {
+      if (!reloaded) setPending(null); // refused, or the save or reload threw: show the saved value
     }
-    await onChanged();
   }
 
   return (
