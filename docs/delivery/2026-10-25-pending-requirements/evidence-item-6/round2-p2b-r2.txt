@@ -1,0 +1,23 @@
+== E-26
+E-26 exit 1 listen 0 unreach 0 results 0
+1
+E-26b exit 1 listen 0 unreach 0 results 0
+1
+== E-28
+E-28 exit 1 listen 0 unreach 0 results 0
+1
+E-28b exit 1 listen 0 unreach 0 results 0
+2
+== E-29
+exit 1
+[global-setup] The dev server at http://localhost:5173 requested a hosted Supabase project (https://example.supabase.co/rest/v1/posts?select=id&limit=1); stop it and re-run with the local settings.
+results 0 devlog-supabase 0
+listen 0
+== E-27
+shell: VITE_SUPABASE_URL=http://127.0.0.1:55321 
+exit 0
+proc: VITE_SUPABASE_URL=http://127.0.0.1:55321 
+9
+  9 passed (1.6m)
+same-titles
+rows 0 0 0 ext 0

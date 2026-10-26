@@ -169,3 +169,92 @@
 - **PR-2 (E-73): accepted.** The behaviour was measured: LHCI failed, the report and the CSP sweep still ran. Only the grep string was wrong; LHCI 0.15.1 prints `✘  categories.performance failure for minScore assertion` (6 times). Round 2 uses that string.
 - **PR-3 (E-82): rejected; FAIL.** The case's intent is that following the runbook leaves the machine clean, and it didn't until a manual `docker rm -f`. Filed as **BUG-14** (Low, docs).
 - **Fixes:** BUG-13 and BUG-14 fixed in `docs/testing/ci-gates.md` (team lead acting as Developer; docs-only). Round 2 re-runs every case.
+
+## Round 2
+
+- Date: 2026-10-26 · Branch: `feature/ci-quality-gates` @ **`58600f2`**, which descends from the freeze commit `e83b81e`. The code equals `815135d` (`git diff --quiet 815135d HEAD -- apps e2e .github package.json pnpm-lock.yaml pnpm-workspace.yaml supabase README.md` exits 0). The only change since round 1 is `docs/testing/ci-gates.md` (`1ea4405`, the BUG-13 and BUG-14 fixes).
+- Scope: **all 54 frozen cases re-run**, not just the failed ones. Two round-1 rulings apply:
+  - **PR-1:** E-33 and E-40 pass if the script's own stderr (run with `node`) is 0 bytes and the only stderr under `pnpm --filter` is pnpm's `$ node …` echo;
+  - **PR-2:** E-73 counts LHCI's `categories.performance failure for minScore assertion`.
+
+  Nothing else was weakened.
+- Regression checks for the bugs:
+  - **BUG-13 (E-18):** the "E2E smoke" section now holds `pnpm --filter aj-classes-e2e typecheck` (1), before `pnpm db:start` (section lines 9 and 13). E-51 ran it as written: exit 0.
+  - **BUG-14 (E-82):** after the `act` runs, I followed the runbook's new clean-up line `docker ps -aq --filter name=act- | xargs docker rm -f`. `act-` containers went from 2 to **0**.
+- Environment: as round 1. The stack was reset from this worktree (mount `1`, `20261026100000`), rebuilt fresh by the `act` cases, and restarted at E-80. Every `pnpm db:start` / `supabase start` / `supabase stop` output went to files in the scratchpad, not to the console.
+- Full check (E-10) → **PASS**, every step exit 0:
+  - format, lint (0 problems), typecheck (web and e2e), build, `check-hosted-ref: 0 files (of 153 scanned)`;
+  - Vitest **56 files, 496 tests**; `node:test` **6 tests, 2 suites, 6 pass, 0 fail**;
+  - `db:test` **`Files=14, Tests=507`, `Result: PASS`**; `test:functions` **169 `ok`, 0 `not ok`**;
+  - E2E smoke **9 passed** (43.5 s).
+- Evidence:
+  - committed: `evidence-item-6/`, round-2 files suffixed `-r2` (39 files, including `round2-p*-r2.txt` per phase). The key-shape grep (`eyJ…`, `sb_secret_`, `sb_publishable_`, `service_role`) finds nothing; no zips;
+  - kept out of git: raw logs, artifacts and traces, in the scratchpad `item6-run-2/`.
+
+| ID | Case | Round 2 result (measured) | Result |
+|----|------|------|--------|
+| E-01 | Build, shell, tools | `58600f2`; ancestor of `815135d` `0`; code diff `0`; only `docs/testing/ci-gates.md` changed; status clean; local URL; key `equal`; no override names; ports `0`; act 0.2.89, image 1, CLI 2.120.0, v24.15.0, 11.1.2; external `488dde1`, `0` | PASS |
+| E-02 | Stack and snapshot | reset 0; mount 1; `20261026100000` ×2; profiles 6, posts 0, enquiries 0, `e2e-%` 0 | PASS |
+| E-03 | `.env.deploy`; banned commands; nothing pushed | `git check-ignore` 0; no banned command in the session; `no upstream configured` | PASS |
+| E-10 | Full check | as above | PASS |
+| E-11 | Scope | 54 files (7 root, 2 + 14 + 3 web, 28 e2e); the 3 test-only `apps/web/src` files; config `0`; root `package.json` 4 changed lines (`typecheck`, `test`) | PASS |
+| E-12 | Moved suite | `14 same` | PASS |
+| E-13 | Workflow shape | 5 jobs; `push: [main, develop]` + `pull_request:`; 15 20 15 10 10; needs `0`; `if:` at 95, 144, 147, 149, 155; `id: hosted-ref` line 127; `contents: read`, 1; retention 102, 154, 162 | PASS |
+| E-14 | Workflow safety | `0`, `0`; `check-hosted-ref: 0 files (of 30 scanned)`, exit 0; 29 tracked; job env lines 12/30/32; 3 env files; 3 placeholders; ignored `0`; keys `0`, history `0` | PASS |
+| E-15 | Lighthouse config | identical to round 1 (mobile, 6 URLs, 3 runs, 0.9/0.9/0.9/1 median, filesystem; `minScore` only lines 19–22; `0`; `0`; `false`) | PASS |
+| E-16 | Dev deps | `d` null, the 7 `dd`; web deps `0`; only `"@lhci/cli": "0.15.1"` added; `5` reason rows | PASS |
+| E-17 | Code rules | `0` | PASS |
+| E-18 | Docs (static) + **BUG-13 regression** | 5 sections; every gate command present, now including `aj-classes-e2e typecheck` (1, before `pnpm db:start`); README 1, arch 5, Preconditions 1, ADR amendment 1; `act` steps (`--no-backup` before and after, `pnpm db:stop` only as "don't use it here", clean-up line 203); `pnpm install`, `signing_keys_path`, anchor, `test:unit` all `1` | PASS |
+| E-19 | `local-hosts` tests | exit 0; `ℹ tests 6`, `ℹ suites 2`, `ℹ pass 6`, `ℹ fail 0`; no imports; used by config and global setup; 2 describe, 6 it | PASS |
+| E-20 | `local-env.mjs` | exit 0; 23 lines; placeholders 0; stderr 0; 3 × `equal`; CI mode 3 masks on stderr, stdout `::` 0, `same` | PASS |
+| E-21 | Refusals | 3 exact messages, exit 1, stdout 0 | PASS |
+| E-22 | Config guard | 5 exact refusals, exit 1 each, 5173 `0` | PASS |
+| E-23 | Smoke | `9 passed (43.5s)`, the 9 titles; 5173 free; rows 0/0/0; status 0 | PASS |
+| E-24 | Journeys (R1) | 19/10/4/0/0; mock 2; 5 guarded; `auto: true` 1; `playwright test` | PASS |
+| E-25 | Guard proof (H1) | `1 failed`, `Error: requests to a hosted Supabase project` with the URL; trace network `status -1`, `net::ERR_FAILED`; restored; HEAD equal | PASS |
+| E-26 | Hosted URL refused | exit 1, exact message 1, 5173 0, no start warning, no results; FUNCTIONS_URL leg the same | PASS |
+| E-27 | External suite | shell and 5173 process: only `VITE_SUPABASE_URL=http://127.0.0.1:55321`; `9 passed (1.6m)`, same titles as E-23; rows 0; external repo 0 | PASS |
+| E-28 | Unset URL refused | blank and space: exact message, exit 1, 5173 0 | PASS |
+| E-29 | Warm-up guard (H3) | exit 1; the exact `[global-setup] … (https://example.supabase.co/rest/v1/posts?select=id&limit=1); stop it and re-run with the local settings.`; no results; dev log `supabase.co` 0; 5173 freed | PASS |
+| E-30 | LH build | `0 files (of 153 scanned)`; N 153; local 0; placeholder 1; subscribe 1; 18 HTML | PASS |
+| E-31 | Mirror headers | `serve-mirror: http://127.0.0.1:4173 (Supabase http://127.0.0.1:55321)`; 6 × `200 csp=1 kind=public-local`; `/nope 404 csp=1 kind=public-local`; stub `200 0`; 4173 freed | PASS |
+| E-32 | LHCI | exit 0; 18 LHRs; 6 × 3, mobile/true; medians perf 0.94, a11y 0.97 (`/`) / 1, BP 1, SEO 1; Chrome 155; 18 + 18 + manifest (18); public storage 0 | PASS |
+| E-33 | Report step (PR-1) | stdout exact (table 183.6 / 179.0 / 180.4 / 180.0 / 181.3 / 179.0, blank line, `18 runs, 0 supabase.co requests`); pnpm stderr only `$ node scripts/check-lighthouse-report.ts .lighthouseci`; `node` stderr 0; summary 1; LHRs `supabase.co` 0; no run ≤ 102,400 bytes | PASS |
+| E-34 | Report fails closed | (a)–(g) exact, exit 1 each | PASS |
+| E-35 | CSP sweep as CI | import rule 0; `LOCAL_LEADS_URL` line 33; `19 passed (29.9s)`; `.env` restored; 4173 freed | PASS |
+| E-40 | SD gate run (PR-1) | `0 files (of 153 scanned)`; exit 0; `check-structured-data: 18 pages, 0 problems`; pnpm stderr only `$ node scripts/check-structured-data.ts build/client`; `node` stderr 0 | PASS |
+| E-41 | Cross-check | 11 pages × 1 block; home / 9 programmes / guide types as expected; problems 0 | PASS |
+| E-42 | Unit tests | 2 files, 34 tests; the 9 named titles ✓ | PASS |
+| E-43 | CLI invalid states | (a)–(n) identical to round 1, all exact, exit 1 | PASS |
+| E-50 | Clean worktree | add 0; status 0; no `.env`/`node_modules` | PASS |
+| E-51 | Runbook E2E (+ BUG-13 step) | the page's 7 commands, in order: `pnpm install`, **`pnpm --filter aj-classes-e2e typecheck`**, `pnpm db:start` (output to a file), `local-env`, `playwright install chromium`, `test:smoke`, `lsof … \| xargs kill`; all exit 0; `9 passed (49.5s)`; dev-server cwd `ci-check/apps/web`; 5173 free | PASS |
+| E-52 | Runbook Lighthouse | 5 commands exit 0; `0 files`; `18 runs, 0 supabase.co requests`; `19 passed`; 4173 free | PASS |
+| E-53 | Runbook SD | 3 commands exit 0; `0 files`; `18 pages, 0 problems` | PASS |
+| E-54 | Docs claims; clean-up | 1/1/1/1; ci-check status 0; removed; worktrees back to 3; edge-runtime mount still this worktree | PASS |
+| E-60 | Job list | 5 rows | PASS |
+| E-61 | `web` ×3 (R3) | 3 of 3 `56 passed (56)`, `496 passed (496)`, `pass 6`/`fail 0`, all 9 steps ✅, succeeded; 37 / 33 / 34 s | PASS |
+| E-62 | `structured-data` | `0 files (of 153 scanned)`; `18 pages, 0 problems`; succeeded; 19 s; ref 0 | PASS |
+| E-63 | `lighthouse` | every step ✅ in order; `18 runs, 0 supabase.co requests`; `19 passed`; only `lighthouse-report` (37 files); 285 s; ref 0 | PASS |
+| E-64 | Stack hand-off | containers 0; volume 0 | PASS |
+| E-65 | `database` | 14 migrations, last `20261026100000_staff_phone_edit.sql...`; seed; `Files=14, Tests=507`; `Result: PASS`; succeeded; cleared 0/0 | PASS |
+| E-66 | `e2e` | steps in order, `0 files (of 29 scanned)`, `9 passed (56.0s)`; succeeded; 210 s; `Started` 1; 3 key values 0; shapes 0; `***` 7; 14 migrations + seed 1; no artifact; cleared 0/0 | PASS |
+| E-70 | Broken spec | `1 failed` / `8 passed`; `✘ 7 … renders all four steps, in order, each with one h3`, `Error: expect(locator).toHaveText(expected) failed`; `❌ Failure - Main E2E smoke (…)`; `e2e-report` uploaded; index 1, trace 1, media 2; trace ref 0, network `supabase.co` 0; cleared 0/0 | PASS |
+| E-71 | Only E2E fails | database (fresh 14, `507`, PASS), web (56/496, node 6), SD (18/0), Lighthouse (0 `supabase.co`, 19 passed): all succeeded; restored; HEAD equal | PASS |
+| E-72 | Hosted-style URL (H2) | lines 120, 121 (of 120/121/180/181) edited; `0 files`; LHCI ✅; `18 runs, 18 supabase.co requests` (18 × `…/rest/v1/posts?select=id&limit=1`); `❌` report; CSP sweep `19 failed`, all `connect-src`; both artifacts; job failed; hosts `example.supabase.co/` only; LHRs `network-requests` `supabase.co` **0**, blocked attempt in 18 of 18; restored | PASS |
+| E-73 | Threshold miss (PR-2) | LHCI `❌`; `Checking assertions against 6 URL(s), 18 total run(s)`; `✘  categories.performance failure for minScore assertion` **6** (counted on the ANSI-stripped log, as `actjob` writes it); `Assertion failed. Exiting with status code 1.`; report ✅ `0 supabase.co`; CSP ✅ `19 passed`; `lighthouse-report` (37) + `csp-report`; job failed; restored | PASS |
+| E-75 | Hosted-ref failure | `1 files in build/client contain the hosted project ref, e.g. zz-hosted-probe.js`; `1 files (of 154 scanned)`; `❌` hosted-ref; later steps 0 lines; mirror 0; both uploads "No files were found…", 0 artifact files; job failed (19 s); ref 0; restored | PASS |
+| E-74 | History clean | 25 commits, newest `58600f2`, `1ea4405`, `e83b81e`; no proof commit; proof-pattern lines 0; clean; stash 0 | PASS |
+| E-80 | Stack restored | `db:start` 0 (output to file); mount 1; `20261026100000`; snapshot diff empty (profiles 6, posts 0, enquiries 0, `e2e-%` 0) | PASS |
+| E-81 | Hosted totals | 15 round-2 `act` runs all `ref 0`; hosts only `act-hosted-r2.txt` (`example.supabase.co/`); raw logs with the ref 0; guard attempts 0 outside H1/H2/H3 (all aborted or CSP-blocked) | PASS |
+| E-82 | Hygiene + **BUG-14 regression** | evidence key shapes 0; zips 0; ports 0; **`act-` containers 2 → 0 after the runbook's clean-up line**; status only evidence and this TSR; worktrees 3 | PASS |
+
+### Round 2 results
+
+- **Pass rate: 54 / 54 (100 %).** FAIL 0, BLOCKED 0, not run 0. The full check is green.
+- **BUG-13: verified fixed** (E-18 and E-51). **BUG-14: verified fixed** (E-82, following the runbook line).
+- No hosted request, no hosted ref in any build, log or artifact, and no key in the committed evidence.
+- "Not covered" is unchanged from round 1: post-merge P-01 to P-08, R-01, O1 on GitHub, S1/S5/S6 deferred, and the other path-B limits.
+
+## Verdict (round 2)
+
+**APPROVED (auto).** 54 / 54 on the frozen plan, with the round-1 rulings PR-1 and PR-2 applied as stated. The full check is green, and BUG-13 and BUG-14 are verified fixed. Next is `/test-and-ship`'s merge to `develop`. Straight after the push come the post-merge cases P-01 to P-08 (ask Saurabh before P-02's `gh run rerun`).

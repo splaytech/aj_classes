@@ -443,12 +443,12 @@ where the workflow is proven:
   - **one deviation:** Q30 recommends required checks on `main` only, while 03b §6.11 says
     `develop` and `main`. The reason: `/test-and-ship` pushes merge commits straight to
     `develop`, and a required check there would block that push.
-- [ ] **T6.11 Reviewer pass.** `review-5-item-6.md`, until it's APPROVED. The reviewer checks:
+- [x] **T6.11 Reviewer pass.** `review-5-item-6.md`, until it's APPROVED. The reviewer checks:
   - the thresholds are 0.9 / 0.9 / 0.9 / 1 and live only in `lighthouserc.json` (AC-6.7);
   - the dependency reasons (AC-6.13): in the dev notes on both paths, and in the draft PR description on path A;
   - no deliberate-failure commit in `git log develop..HEAD`.
-- [ ] **T6.12 Test plan.** `06-test-plan-item-6.md`: every AC-6.x, plus the local runbook.
-- [ ] **T6.13 Security review.** `06-security-item-6.md`. It covers:
+- [x] **T6.12 Test plan.** `06-test-plan-item-6.md`: every AC-6.x, plus the local runbook.
+- [x] **T6.13 Security review.** `06-security-item-6.md`. It covers:
   - no keys or hosted values in the workflow or in `e2e/`;
   - `::add-mask::` on stderr;
   - local demo values only in the public repo;

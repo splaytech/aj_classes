@@ -1,0 +1,12 @@
+[CI/Structured data]   ✅  Success - Main actions/checkout@v4 [459.018666ms]
+[CI/Structured data]   ✅  Success - Main pnpm/action-setup@v4 [960.451708ms]
+[CI/Structured data]   ✅  Success - Main actions/setup-node@v4 [2.399357084s]
+[CI/Structured data]   ✅  Success - Main pnpm install --frozen-lockfile [2.567097709s]
+[CI/Structured data]   ✅  Success - Main Build with no Supabase config [3.258931875s]
+[CI/Structured data]   | check-hosted-ref: 0 files (of 153 scanned)
+[CI/Structured data]   ✅  Success - Main No hosted project reference in the build [285.60875ms]
+[CI/Structured data]   | check-structured-data: 18 pages, 0 problems
+[CI/Structured data]   ✅  Success - Main JSON-LD on every pre-rendered page [260.421666ms]
+[CI/Structured data] 🏁  Job succeeded
+exit 0 wall 17s
+ref 0 hosts 

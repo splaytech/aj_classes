@@ -1,0 +1,35 @@
+== E-64
+stop 0
+containers 0 volume 0
+== E-65
+migr 14
+Applying migration 20261026100000_staff_phone_edit.sql...
+Seeding data from supabase/seed.sql...
+✅  Success - Main Start a local database with every migration
+Files=14, Tests=507,  1 wallclock secs ( 0.02 usr  0.01 sys +  0.04 cusr  0.02 csys =  0.09 CPU)
+Result: PASS
+✅  Success - Main Database tests (row-level security, functions, triggers)
+🏁  Job succeeded
+exit 0 wall 24s
+ref 0 hosts 
+containers 0 volume 0
+== E-66
+| check-hosted-ref: 0 files (of 29 scanned)
+✅  Success - Main No hosted project reference in the workflow or the specs
+✅  Success - Main pnpm --filter aj-classes-e2e typecheck
+✅  Success - Main supabase/setup-cli@v1
+✅  Success - Main Start local Supabase (only the services the specs use)
+✅  Success - Main Local keys into the job env (masked)
+✅  Success - Main pnpm --filter aj-classes-e2e exec playwright install --with-deps chromium
+|   9 passed (56.0s)
+✅  Success - Main E2E smoke (global setup starts the dev server on 5173)
+🏁  Job succeeded
+exit 0 wall 210s
+ref 0 hosts 
+started 1
+SUPABASE_ANON_KEY in-log 0
+SUPABASE_SERVICE_ROLE_KEY in-log 0
+VITE_SUPABASE_PUBLISHABLE_KEY in-log 0
+shapes 0 masked 7
+migr 14 last: Applying migration 20261026100000_staff_phone_edit.sql... seed 1 artifacts 0
+containers 0 volume 0
