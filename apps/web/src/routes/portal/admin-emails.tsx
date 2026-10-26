@@ -59,7 +59,7 @@ export default function AdminEmailsPage() {
               return (
                 <TableRow key={problem.id}>
                   <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDateTime(problem.at)}</TableCell>
-                  <TableCell>{labels.type}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{labels.type}</TableCell>
                   <TableCell>{labels.role}</TableCell>
                   <TableCell sx={{ overflowWrap: 'anywhere' }}>{problem.assignmentTitle}</TableCell>
                   <TableCell>
