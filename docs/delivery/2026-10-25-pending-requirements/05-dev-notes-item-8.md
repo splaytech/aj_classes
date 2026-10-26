@@ -163,10 +163,11 @@ authenticated`, then granted to `service_role` and `authenticated` respectively,
 is executable by `authenticated` or `anon`.
 
 **Where these live now (for T2.15, copy from here, not from `20261025110000`)**, in
-`20261028100000_more_email_alerts.sql`: `email_still_relevant` 105–126, `email_recipients`
-133–164, `queue_new_assignment_emails` 179–203, `queue_due_tomorrow_emails_for` 219–238,
-`queue_due_tomorrow_emails` 242–255, `queue_work_returned_email` 274–290, `notify_claim_emails`
-305–358, `kick_email_worker` 367–419, `admin_email_problems` 429–463 (after the review-5 fix, §9).
+`20261028100000_more_email_alerts.sql` (after the review-5 fix, §9, and test-plan P3, §10):
+`email_still_relevant` 107–132, `email_recipients` 139–170, `queue_new_assignment_emails` 185–209,
+`queue_due_tomorrow_emails_for` 225–244, `queue_due_tomorrow_emails` 248–261,
+`queue_work_returned_email` 280–296, `notify_claim_emails` 311–364, `kick_email_worker` 373–425,
+`admin_email_problems` 435–469.
 
 ## 6. Deviations and `[ASSUMPTION]`s
 
@@ -283,4 +284,16 @@ is executable by `authenticated` or `anon`.
   Nothing hosted was involved, and no function or migration change reached the database that way.
   I fixed it with `pnpm db:reset` once the fix was committed. Anyone reading the local database
   from about 05:05 UTC (16:05 Melbourne) until the reset saw fixture data, not the seed.
+
+## 10. Test plan fixes (06-test-plan-item-8.md)
+
+| Finding | Fix | Commit |
+|---|---|---|
+| P2 Admin → Emails sent a refused `rpc/admin_email_problems` for a non-admin (the loader runs alongside the admin guard; the E-60 pattern) | `listEmailProblems` uses `getAdminClient()`, so only an admin with two-step sends the read; anyone else gets `notAllowed` with no request. `staff-access.test.ts` adds it to the admin reads (student, parent, tutor, signed out, admin without two-step: no call; access read fails: `network`; admin with two-step: one call). `notifications.service.test.ts` mocks `staff-client` | `72ccd1f` |
+| P3 A pending "new assignment" email for work re-dated into the past still went out, "It's due <past date>" (AC-8.4) | `email_still_relevant('new_assignment', …)` also requires `due_on is null or due_on >= melbourne_date(now())`, so the claim's skip and the kick's pre-sweep skip both mark it `skipped`, not failed. The publish trigger's own deadline check already refused this at queue time, so queueing is unchanged. The `due_tomorrow` arm is untouched. pgTAP: re-dated to yesterday → not claimed, `skipped`; re-dated to today → claimed; the due-tomorrow recipients for the same student are unchanged. Mutation: with the old function, the two new tests fail | `edb4f6f` |
+| P4 `restoreSeededWork` deleted the seed's sent "new assignment" rows for "Word problems set 1" | The restore and the script's outbox lookup for that work touch only `kind = 'work_returned'` rows, the ones the test's return queues (an interrupted run's included, so a re-run still starts clean) | `ef66c48` |
+| P5 03b §8.7 says a failed load shows the defaults (all on) | Not what the build does, as item 3: a failed load shows the `FormAlert` and no switches. The all-on value in `NotificationsSection`'s `useState` is never displayed (the section returns the alert first), but it isn't removable: `useState` must run before that early return and needs a typed initial value. Left as it is and documented here (D14) | this commit |
+
+- **D14. Deviation from 03b §8.7 "Load failed: defaults shown".** The page shows the error alert
+  instead of three switches the person can't trust, as item 3's page already did.
 
