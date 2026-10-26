@@ -7,6 +7,7 @@ export { DueChip } from './DueChip';
 export { EnrolDialog } from './EnrolDialog';
 export { AnswersList, ProgressSummary, ResultsCard, scoreText } from './FamilyWork';
 export { FormDialog } from './FormDialog';
+export { HoldResultsSetting } from './HoldResultsSetting';
 export { InviteDialog } from './InviteDialog';
 export { PageHeader } from './PageHeader';
 export { ParentInviteDialog } from './ParentInviteDialog';

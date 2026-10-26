@@ -127,6 +127,7 @@ describe('summariseWork', () => {
     instructions: '',
     maxMark: 10,
     isPublished: true,
+    holdResults: false,
     questionCount: 0,
     totalMarks: 10,
   };

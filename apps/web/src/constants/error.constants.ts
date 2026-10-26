@@ -93,6 +93,8 @@ export const PORTAL_ERRORS = {
   // My profile (item 4): a saved staff phone can be changed but not removed.
   phoneRequired: PHONE_REQUIRED,
   invalidYearLevel: 'Please choose your year level.',
+  // Hold results (item 7)
+  holdNeedsQuestions: 'Add at least one question before holding results.',
   notConfigured: "Sign-in isn't available right now.",
   unknown: 'Something went wrong. Please try again.',
 } as const;

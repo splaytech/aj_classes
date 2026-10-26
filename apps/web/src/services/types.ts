@@ -303,6 +303,8 @@ export type AssignmentSummary = {
   maxMark: number | null; // null: feedback only
   /** Drafts are visible to staff only (R3b FT2). */
   isPublished: boolean;
+  /** All-multiple-choice work waits for staff to return it (ADR-0007). Locked once published. */
+  holdResults: boolean;
   /** Online work has questions; paper homework has none (R3b D6). */
   questionCount: number;
   /** Sum of the question marks, or maxMark for paper homework; null: feedback only. */

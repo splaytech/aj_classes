@@ -108,6 +108,8 @@ const ERROR_KEYS_BY_OWN_KEY: Record<string, ErrorKey> = {
   phone_required: 'phoneRequired',
   insufficient_aal: 'needsTwoStep',
   invalid_year_level: 'invalidYearLevel',
+  // Hold results (item 7)
+  hold_needs_questions: 'holdNeedsQuestions',
 };
 
 /** The portal error to show for anything a Supabase call returned or threw. */
