@@ -126,7 +126,7 @@ rule; gates this release only); the item 8 Privacy sentence approved (Q7 / B17);
 and its AC-3.11 check done; Q31 accepted.
 
 - [ ] `git fetch && git checkout -b release/more-email-alerts <item 8 develop merge SHA>`.
-- [ ] From that branch: `supabase/scripts/deploy.sh`. One run pushes the migration and **then** deploys `notifications`. By hand: `supabase db push` first, then `supabase functions deploy notifications`. **Never the function first**: it gets `PGRST202` and stops all email.
+- [ ] From that branch: `supabase/scripts/deploy.sh`. One run pushes the migration and **then** deploys `notifications`. By hand: `supabase db push` first, then `supabase functions deploy notifications`. **Not the function first**: it falls back to sending only "work returned" until the migration lands (log line `notifications claim: old database, work returned only`).
 - [ ] Merge `release/more-email-alerts` (the same SHA, not `develop`) into `main` through a PR.
 - [ ] Release check with the seeded fake family and the test class only (supabase/README.md → "Portal emails", steps 6–7): publish one paper assignment, and both test inboxes get "New work set" within 5 minutes; set up one online assignment due tomorrow, published 2 or more days earlier, and after 15:10 Melbourne both get "Due tomorrow"; Admin → Emails is empty. Delete the test class afterwards.
 - [ ] Expect the first 15:10 run to send reminders to real families for already-published online work due the next day (by design, Q31).

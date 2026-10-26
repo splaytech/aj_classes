@@ -62,6 +62,9 @@ exceed the 70-a-day cap.
    all three kinds, and gets `kind` and `due_on` back to pick and fill the template. The reverse
    order isn't safe: a new worker calling the old zero-argument function gets `PGRST202`, and all
    email stops until the migration lands.
+   *Amended 26 Oct 2026 (item 8 dev notes D13):* the worker now retries the claim with no
+   argument on `PGRST202`, so in the reverse order "work returned" keeps sending and only the new
+   kinds wait. Migration first is still the release order.
 7. **The admin page** gains a `kind` column and the "Too late to send" label. The empty state is
    unchanged.
 

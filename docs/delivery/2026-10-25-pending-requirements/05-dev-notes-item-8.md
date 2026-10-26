@@ -141,7 +141,7 @@ code** (no diff against `8e2af88`), `pnpm test:functions` ran against the new da
   new kinds `pending`.
 
 The reverse order (new function, old database) wasn't run: by design it gets `PGRST202` and stops
-all email. The release steps keep migration first (README "Portal emails", go-live §7d).
+all email (superseded by §9 D13: it now falls back to "work returned" only). The release steps keep migration first (README "Portal emails", go-live §7d).
 
 ## 5. Copied function bodies (for T2.15 and the Reviewer)
 

@@ -21,3 +21,24 @@ Branch `feature/more-email-alerts`, diff `git diff 8e2af88...HEAD` (996bfbe excl
 ## Checked and fine
 
 `supported_kinds` default and dropped old overload; claim order and filters; sweep placement before both early returns; `email_recipients` people set equals item 7's `work_returned_recipients` (active, role, rule (b), parents' off switch via one left join, union dedup); `email_still_relevant` per kind; Melbourne guard and DST; cron `10 * * * *`; publish trigger (deadline from `published_at`, republish silent); definer functions, revokes and grants; no caller left for `work_returned_recipients`; worker copy, escaping, no instructions/marks/answers, `formatDueDate`; web rules; docs (README "Portal emails", budget "pending Q27", go-live §7d unticked).
+
+---
+
+CHANGES_REQUESTED → resolved by the lead (docs only)
+
+# Review 5 — item 8, round 2
+
+**Scope:** `996bfbe..a0a2ef3`. format, lint, typecheck pass; Vitest 62 / 533; pgTAP 16 files / 708 PASS. `claimRows` exercised with a fake claim.
+
+**Round 1 status:** 1 resolved (the skip at :385-392 is word-for-word the claim's skip, runs before the sweep and both early returns; pgTAP :668-712 proves skipped vs too_late with only the relevant row listed). 1a: no race with the claim (both guarded by `status = 'pending'`, `skip locked`, same rule). 2, 3, 4 resolved. S2 resolved in code (`claim.ts:20-33`; the old claim's columns are `ClaimedRow` minus `kind`/`due_on`, so fallback rows render; no secrets logged; five meaningful unit checks).
+
+## Blocking
+
+1. Three operator docs still said a function-first deploy stops all email (`supabase/README.md:135`, `go-live.md:129`, ADR-0008 decision 6). **Fixed by the lead:** each now says "work returned" keeps sending and the new kinds wait, with the log line; ADR-0008 has a dated amendment pointing to D13. Migration first is still the release order.
+
+## Non-blocking
+
+2. A past-deadline row with an empty address ends `too_late`, not `no_address` (pre-existing, cosmetic). Not changed; follow-up.
+3. Dev notes :143 contradicted §9 D13. **Fixed:** "(superseded by §9 D13 …)".
+
+**Lead ruling:** the blocking item was documentation only and is fixed as specified, so no further code round is needed; the Tester's round checks the docs text.
