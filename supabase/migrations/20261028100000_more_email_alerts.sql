@@ -102,6 +102,8 @@ from public, anon, authenticated;
 
 -- Is this kind still worth sending for this student's work? queued_due_on: the due date a
 -- reminder was queued for (from its send_before); a changed due date means skipped (AC-8.8).
+-- "New assignment" also stops once its due date is in the past (Melbourne), e.g. re-dated after
+-- queueing, so it's skipped instead of saying "It's due" a past date (AC-8.4, item 8 test plan P3).
 create function private.email_still_relevant(
   target_kind text, target_assignment uuid, target_student uuid, queued_due_on date)
 returns boolean
@@ -112,7 +114,11 @@ set search_path = ''
 as $$
   select case target_kind
     when 'work_returned' then private.assignment_readable_by(target_student, target_assignment)
-    when 'new_assignment' then private.assignment_visible_to(target_student, target_assignment)
+    when 'new_assignment' then
+      private.assignment_visible_to(target_student, target_assignment)
+      and exists (select 1 from public.assignments a
+                  where a.id = target_assignment
+                    and (a.due_on is null or a.due_on >= private.melbourne_date(now())))
     when 'due_tomorrow' then
       private.assignment_visible_to(target_student, target_assignment)
       and private.is_online_assignment(target_assignment)

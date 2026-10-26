@@ -762,6 +762,34 @@ select results_eq(
   'Republishing adds no rows, even though the first emails were skipped (AC-8.3, within the 90-day retention)');
 
 
+-- AC-8.4 (claim): a "new assignment" email re-dated into the past is never sent (test plan P3) -
+savepoint redated;
+delete from public.email_outbox;
+select pg_temp.add_row('new_assignment', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-0000000006a1',
+  now() - interval '1 hour', (select private.melbourne_day_start(today + 6) from melbourne));
+update public.assignments set due_on = (select today - 1 from melbourne)
+where id = '00000000-0000-0000-0000-00000000e801';
+set local role service_role;
+select is_empty($$ select 1 from public.notify_claim_emails((select kinds from all_kinds)) $$,
+  'Re-dated to yesterday after queueing: the claim doesn''t return it (AC-8.4)');
+reset role;
+select results_eq($$ select status, reason from public.email_outbox $$, $$ values ('skipped', null::text) $$,
+  'It ends skipped, not failed');
+update public.email_outbox set status = 'pending';
+update public.assignments set due_on = (select today from melbourne)
+where id = '00000000-0000-0000-0000-00000000e801';
+set local role service_role;
+select results_eq($$ select kind from public.notify_claim_emails((select kinds from all_kinds)) $$,
+  $$ values ('new_assignment') $$,
+  'Re-dated to today: it still goes out, until the end of the due date');
+reset role;
+rollback to savepoint redated;
+select is(
+  (select count(*)::int from private.email_recipients('due_tomorrow', '00000000-0000-0000-0000-00000000e805',
+     '00000000-0000-0000-0000-00000000d001', (select today + 1 from melbourne))),
+  3, 'The due-tomorrow check is unchanged by it');
+
+
 -- AC-8.6 (claim): handed in after queueing ---------------------------------------------------
 delete from public.email_outbox;
 select private.queue_due_tomorrow_emails_for((select today from melbourne));
