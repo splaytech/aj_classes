@@ -320,6 +320,29 @@ select is_empty(
 reset role;
 
 
+-- AC-7.14 Email links and waiting emails still work after removal --------------------
+select tests.authenticate_as('00000000-0000-0000-0000-0000000006a1');
+select isnt(
+  public.parent_child_assignment('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-00000000e008'),
+  null, 'The "View feedback" link''s function still opens the page after removal');
+reset role;
+select results_eq(
+  $$ select profile_id from private.work_returned_recipients('00000000-0000-0000-0000-00000000e008',
+                                                              '00000000-0000-0000-0000-00000000d001')
+     order by profile_id $$,
+  $$ values ('00000000-0000-0000-0000-0000000005a1'::uuid), ('00000000-0000-0000-0000-0000000006a1'::uuid),
+            ('00000000-0000-0000-0000-0000000006a2'::uuid) $$,
+  'The student and both parents are still "work returned" recipients after removal');
+select is(
+  (select count(*)::int from public.notify_claim_emails() c
+   where c.assignment_id = '00000000-0000-0000-0000-00000000e001'),
+  3, 'The worker still sends the held quiz''s waiting emails after removal');
+select is(
+  (select count(*)::int from public.email_outbox
+   where kind = 'work_returned' and assignment_id = '00000000-0000-0000-0000-00000000e001' and status = 'skipped'),
+  0, 'and skips none of them');
+
+
 -- AC-7.13 Boundaries unchanged (Kid One still removed) -------------------------------
 select tests.authenticate_as('00000000-0000-0000-0000-0000000005a2');
 select is_empty(

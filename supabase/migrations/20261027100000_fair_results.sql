@@ -350,6 +350,41 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- 7. "Work returned" recipients follow rule (b)
+-- ---------------------------------------------------------------------------
+
+-- Body copied from 20261025110000_work_returned_email.sql lines 115-140; both
+-- assignment_visible_to calls become assignment_readable_by. Otherwise an email still waiting
+-- under the daily cap would be skipped if the student left the class before it was sent, though
+-- they can still open the work (02b §7.1 point 6, AC-7.14). Item 8 replaces this function.
+create or replace function private.work_returned_recipients(target_assignment uuid, target_student uuid)
+returns table (profile_id uuid, recipient_role text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.id, 'student'
+  from public.students s
+  join public.profiles p on p.id = s.profile_id
+  where s.id = target_student
+    and s.is_active
+    and p.is_active and p.status = 'active' and p.role = 'student'
+    and private.assignment_readable_by(target_student, target_assignment)
+    and coalesce((select ns.work_returned from public.notification_settings ns where ns.profile_id = p.id), true)
+  union
+  select p.id, 'parent'
+  from public.student_guardians g
+  join public.students s on s.id = g.student_id
+  join public.profiles p on p.id = g.parent_id
+  where g.student_id = target_student
+    and s.is_active
+    and p.is_active and p.status = 'active' and p.role = 'parent'
+    and private.assignment_readable_by(target_student, target_assignment)
+    and coalesce((select ns.work_returned from public.notification_settings ns where ns.profile_id = p.id), true)
+$$;
+
+-- ---------------------------------------------------------------------------
 -- 8. Grants (the private helpers run only inside the functions above)
 -- ---------------------------------------------------------------------------
 
