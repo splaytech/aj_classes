@@ -71,3 +71,28 @@ None.
 Tester (T7.12): click the switch on a slow connection and watch for the flicker.
 
 **Lead note:** findings 1, 2, 3, 5, 6 fixed in 0d1b701, 8cf5689, 3d1e2fb, d5baae1, 0ccdd93; 4 skipped. The throw path of finding 2 has no unit test (an `onChanged` rejection is left unhandled by design, so Vitest fails the run); covered by reading only. Vitest 506, pgTAP 587.
+
+---
+
+APPROVED
+
+# Review 5 — item 7, round 3
+
+**Scope:** `git diff c5167a6..79e803a` (6b082f0, 92163b9, 995c9ee, 79e803a). Lint, typecheck, format clean; Vitest 60 files / 520; pgTAP 15 files / 587 PASS. No migration change.
+
+## Blocking
+
+None.
+
+## Non-blocking
+
+1. **The DB doesn't refuse a staff mark edit on a multiple-choice answer** (pre-existing: `20261007090320:741` grants `update (awarded_marks, feedback)`; RLS :796 checks only `can_manage_assignment`; `check_assignment_answer` :648–685 has no kind check). Round 3's UI sends only `{ feedback }` for MCQ, and a feedback-only update doesn't fire `assignment_answers_update_mark`. Fix: tighten the trigger, or record as an accepted risk.
+2. **No pgTAP proves a feedback-only update on held MCQ keeps `awarded_marks` and `mark`.** Add one to `fair_results.test.sql`.
+3. **The mid-save reload guard (`HoldResultsSetting.tsx:61`) is untested.** Add a test: pending save, `reloadWith(false)` → still checked and disabled; resolve, `reloadWith(true)` → checked and enabled.
+4. **Other staff loaders (`assignments.tsx`, `classes.tsx`, `class-detail.tsx`, timetable, tutor dashboard) still read for a family role.** Out of item 7's scope; record the deferral in the dev notes.
+
+## Checked and fine
+
+Written answers unchanged (a blank written mark still blocks Return); the MCQ field follows the conventions and families see it after return (`FamilyWork.tsx:207`); `getStaffClient` matches the item 4 helpers and only `getAssignment`/`getSubmission` use it; the revision approach has no stuck, flicker or stale-closure bug (double click, refusal, throw, unmount, mid-save reload all reasoned); dev notes match.
+
+**Lead ruling on finding 1:** accepted residual, not fixed in item 7. Only the class's tutor or an admin can do it, through the API not the UI, capped at the question's marks; it was already possible before item 7. Recorded in 06-security-item-7.md as S6 and on the follow-up list. Findings 2–4 go to the Developer now.

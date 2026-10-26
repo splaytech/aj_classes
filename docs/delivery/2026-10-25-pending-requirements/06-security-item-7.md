@@ -50,3 +50,7 @@ APPROVED
 1. S1 as stated.
 2. Item 2's rebase must carry rule (b), the hold rule and the grants (ADR-0007 decision 4, pinned by `fair_results.test.sql`); re-run the grant query there.
 3. At release: confirm on hosted (read-only) that the migration is applied and `anon` can't execute `student_assignments` or `parent_child_assignments`.
+
+## Added after review 5 round 3
+
+6. **S6 — Low, accepted residual (pre-existing).** Staff who manage the class (its tutor, or an admin) can change `awarded_marks` on a multiple-choice answer straight through the API (`20261007090320:741` column grant; `check_assignment_answer` has no kind check), up to that question's marks, and the result total follows. The portal never sends it (multiple-choice saves are feedback-only since `6b082f0`). Not a family-facing risk. **Follow-up:** have `check_assignment_answer` refuse a multiple-choice mark change outside the submit path, with a pgTAP case.
