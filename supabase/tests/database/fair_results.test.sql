@@ -423,6 +423,12 @@ select results_eq(
   $$ select title, is_past_class from public.parent_child_assignments('00000000-0000-0000-0000-00000000d001') order by title $$,
   $$ values ('Held quiz', true), ('Open quiz', true), ('Returned quiz', true) $$,
   'A parent still sees the returned work of an archived class');
+select isnt(
+  public.parent_child_assignment('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-00000000e008'),
+  null, 'and can open its page');
+select throws_ok(
+  $$ select public.parent_child_assignment('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-00000000e007') $$,
+  '42501', 'not_found', 'but not the child''s non-returned work in the archived class');
 reset role;
 
 update public.classes set is_active = true where id = '00000000-0000-0000-0000-00000000c001';
