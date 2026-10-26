@@ -245,3 +245,28 @@ Checks after round 2:
 - `db:test`: 15 files, **587 tests**, PASS (`fair_results` 80).
 - No build config changed, so the build and E2E weren't re-run.
 
+
+### Round 3 (Tester findings from the item 7 test plan)
+
+| Finding | Fix | Commit |
+|---|---|---|
+| Bug, AC-7.4 per-question feedback | The marking page shows the existing "Feedback on this answer (optional)" field on multiple-choice answers too. There's no mark field: the automatic mark stays. `saveSubmission` sends `feedback` only for those (`AnswerMark.awardedMarks` is omitted), through the same `assignment_answers` update and `feedback` column grant. New `submission.test.tsx` (3): the field shows on a multiple-choice answer with no mark field; it saves feedback only; written answers keep mark + feedback | `6b082f0` |
+| Wrong-role read (the E-60 pattern) | New `getStaffClient()` in `staff-client.ts` (tutor or admin, else null). `getAssignment` uses it, and `getSubmission` calls `getAssignment` first, so neither page sends a read for a student, a parent or someone signed out. `staff-access.test.ts`: +10 cases | `92163b9` |
+| P4, the box stuck on an unchanged reload | `HoldResultsSetting` takes a `revision` prop (the page's loader data object) and clears the clicked value in the render that first shows reloaded data, whatever its value. A why-comment in the component explains it. Reloads that land mid-save are ignored. New test: the reload comes back with the same old value, and the box shows it, enabled | `995c9ee` |
+
+Browser (local, scripted):
+
+- A student who handed in "Times tables warm-up" then opened its staff URL and its marking URL: 0 requests to `assignments`, `assignment_answers` or `enrolments`.
+- The tutor's marking page showed 3 feedback fields and 0 mark fields. Saving feedback on question 2 stored it, and the automatic marks stayed (0, 1, 0).
+- The student's returned page showed the feedback (FamilyWork).
+- The hold switch on "Ratio worksheet" ticked at once, settled ticked and enabled, then was unticked again by the script.
+
+Full check after round 3, on `995c9ee` plus these notes, after `pnpm db:reset`:
+
+- format, lint and typecheck: clean.
+- Vitest: **60 files, 520 tests**; e2e unit 6/6.
+- Local-exports production build: `check:hosted-ref` 0 files of 153.
+- `db:test`: 15 files, 587 tests, PASS.
+- `test:functions`: 169 `ok`, 0 `not ok`.
+- `test:smoke`: 9 passed.
+- No-Supabase build: `check:hosted-ref` 0 files. `test:csp`: 19 passed.
