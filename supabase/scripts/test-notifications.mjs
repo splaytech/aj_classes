@@ -15,6 +15,7 @@ import {
   isHostedProject,
   isUsableConfig,
 } from '../functions/notifications/config.ts';
+import { claimRows } from '../functions/notifications/claim.ts';
 import { EMAIL_KINDS } from '../functions/notifications/copy.ts';
 import {
   escapeHtml,
@@ -950,8 +951,72 @@ async function dueTomorrowRoundTrip() {
   }
 }
 
+// Security item 8 S2: the function deployed before the migration still sends "work returned".
+async function claimFallbackChecks() {
+  console.log('\nnotifications: claim, and the fallback to the old claim\n');
+  const fakeClaim = (replies) => {
+    const calls = [];
+    const claim = async (args) => {
+      calls.push(args === undefined ? 'no argument' : JSON.stringify(args));
+      return replies.shift();
+    };
+    return { claim, calls };
+  };
+  const newRow = claimedRow({ kind: 'due_tomorrow' });
+  const { kind: _kind, due_on: _dueOn, ...oldRow } = claimedRow();
+
+  const normal = fakeClaim([{ data: [newRow], error: null }]);
+  const normalResult = await claimRows(normal.claim);
+  check(
+    'New database: one claim, with every kind this worker can render',
+    normal.calls.join('|') === JSON.stringify({ supported_kinds: [...EMAIL_KINDS] }) &&
+      !normalResult.usedOldClaim &&
+      normalResult.rows[0]?.kind === 'due_tomorrow',
+    normal.calls.join('|'),
+  );
+
+  const old = fakeClaim([
+    { data: null, error: { code: 'PGRST202' } },
+    { data: [oldRow], error: null },
+  ]);
+  const oldResult = await claimRows(old.claim);
+  check(
+    'Old database (PGRST202): retries once with no argument',
+    old.calls.length === 2 && old.calls[1] === 'no argument' && oldResult.usedOldClaim,
+    old.calls.join('|'),
+  );
+  check(
+    "and renders the old claim's rows as work returned, the only kind it has",
+    oldResult.rows.length === 1 &&
+      oldResult.rows[0].kind === 'work_returned' &&
+      oldResult.rows[0].due_on === null &&
+      JSON.stringify(renderEmail(oldResult.rows[0], SITE)) ===
+        JSON.stringify(renderWorkReturned(claimedRow(), SITE)),
+  );
+
+  const refused = fakeClaim([{ data: null, error: { code: '42501' } }]);
+  let refusedError = null;
+  await claimRows(refused.claim).catch((error) => (refusedError = error));
+  check(
+    'Any other error is thrown, with no retry',
+    refusedError?.code === '42501' && refused.calls.length === 1,
+  );
+
+  const bothFail = fakeClaim([
+    { data: null, error: { code: 'PGRST202' } },
+    { data: null, error: { code: 'PGRST000' } },
+  ]);
+  let fallbackError = null;
+  await claimRows(bothFail.claim).catch((error) => (fallbackError = error));
+  check(
+    'A failed fallback is thrown too (the run fails; rows wait)',
+    fallbackError?.code === 'PGRST000',
+  );
+}
+
 await unitChecks();
 newKindUnitChecks();
+await claimFallbackChecks();
 
 // Cron is paused, never removed, so a kick can't land mid-test (review-3 R2-1). The signal handlers
 // come first, so a Ctrl-C at any point after this resumes it (review-3 R3-1).

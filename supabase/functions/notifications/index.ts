@@ -11,10 +11,9 @@ import { serviceClient } from '../_shared/clients.ts';
 import { fail, respond, succeed } from '../_shared/responses.ts';
 
 import { processBatch } from './batch.ts';
+import { claimRows } from './claim.ts';
 import { gateRequest } from './config.ts';
-import { EMAIL_KINDS } from './copy.ts';
 import { renderEmail } from './template.ts';
-import type { ClaimedRow } from './template.ts';
 import { pickTransport, sendEmail } from './transport.ts';
 import type { SendOutcome } from './transport.ts';
 
@@ -48,12 +47,12 @@ Deno.serve(async (request) => {
       return respond(fail('config_missing'), null, 503);
     }
 
-    // Only the kinds this worker can render (ADR-0008 decision 6). Needs migration 20261028100000:
-    // deployed before it, this call gets PGRST202 and every kind of email stops.
-    const { data, error } = await service.rpc('notify_claim_emails', {
-      supported_kinds: [...EMAIL_KINDS],
-    });
-    if (error) throw error;
+    // Only the kinds this worker can render (ADR-0008 decision 6). If this function was deployed
+    // before migration 20261028100000, claimRows falls back to the old claim (work returned only).
+    const { rows, usedOldClaim } = await claimRows((args) =>
+      service.rpc('notify_claim_emails', args),
+    );
+    if (usedOldClaim) console.warn('notifications claim: old database, work returned only');
 
     const record = async (outboxId: string, outcome: SendOutcome) => {
       const { error: recordError } = await service.rpc('notify_record_result', {
@@ -64,7 +63,7 @@ Deno.serve(async (request) => {
       if (recordError) throw recordError;
     };
 
-    const counts = await processBatch((data ?? []) as ClaimedRow[], {
+    const counts = await processBatch(rows, {
       render: (row) => renderEmail(row, siteUrl),
       send: (message, outboxId) => sendEmail(transport, message, outboxId),
       record,
