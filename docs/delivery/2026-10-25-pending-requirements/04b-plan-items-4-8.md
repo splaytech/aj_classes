@@ -493,7 +493,7 @@ Design: 03b §7 (25 files), ADR-0007. One migration, no function deploy, no new 
 AC-7.1–7.17. The file half of AC-7.2 and all of AC-7.15 move to T2.15. Every new outbox assertion
 filters `kind = 'work_returned'` from the start (review-3b finding 3).
 
-- [ ] **T7.0 Branch and migration file.**
+- [x] **T7.0 Branch and migration file.**
   - **Precondition:** the latest `develop` CI run is green:
     `gh run list -R splaytech/aj_classes -b develop -e push -L 1 --json conclusion,headSha -q '.[0].conclusion + " " + .[0].headSha'`
     prints `success <SHA>`, where the SHA is `develop` HEAD's own run. `ci.yml` cancels
@@ -501,13 +501,13 @@ filters `kind = 'work_returned'` from the start (review-3b finding 3).
     `gh run rerun <id>` (no fix-forward). If it's red, finish the T6.14 fix-forward first.
   - **Run:** `git checkout develop && git pull --ff-only && git checkout -b feature/fair-results && pnpm db:reset`.
   - **Test:** §0 stack checks 1 and 2 (check 2: item 4's `20261026100000`). Then create `supabase/migrations/20261027100000_fair_results.sql`, or a fresh `supabase migration new fair_results` stamp per §1 rule 2. `ls supabase/migrations | tail -2` shows it last.
-- [ ] **T7.1 Hold flag and its guard (DB).**
+- [x] **T7.1 Hold flag and its guard (DB).**
   - **Files:** 03b #1 steps 1–2 (column, grant, `check_hold_results`, trigger); #2 `fair_results.test.sql` (fixtures from 03b §7.7, starting with `delete from public.email_outbox`).
   - **Tests:**
     - AC-7.1: default false; set on a draft with questions; `assignment_published` after publishing; back to draft unlocks it; b2 gets 0 rows; a1 aal2 succeeds.
     - AC-7.2 (paper half): `hold_needs_questions` on insert and on update.
   - **Run:** `pnpm db:reset && pnpm db:test`.
-- [ ] **T7.2 Read rule and held submit (DB).**
+- [x] **T7.2 Read rule and held submit (DB).**
   - **Files:** #1 steps 3–4. `assignment_readable_by`; `student_submit` copied from `20261007090321` lines 463–528 with the `or hold_results` branch. Before copying, check with `grep -n "function public.student_submit" supabase/migrations/*.sql | tail -1` that it's still the current body.
   - **Tests:**
     - AC-7.3: held work stays `submitted` and hides answers and marks;
@@ -516,7 +516,7 @@ filters `kind = 'work_returned'` from the start (review-3b finding 3).
     - AC-7.6: the parent and student views before return.
     - `family_portal.test.sql` D8 stays green.
   - **Run:** `pnpm db:reset && pnpm db:test`.
-- [ ] **T7.3 List builder, wrappers and view (DB).**
+- [x] **T7.3 List builder, wrappers and view (DB).**
   - **Files:** #1 steps 5–6. Drop and recreate `assignments_for_student`, `student_assignments` and `parent_child_assignments` with rule (b) and `is_past_class`, re-granted exactly as `20261007090321` lines 786–830. `assignment_view` gains `isPastClass`.
   - **Tests:**
     - AC-7.8: removal;
@@ -527,14 +527,14 @@ filters `kind = 'work_returned'` from the start (review-3b finding 3).
     - the grants row.
     - The whole pgTAP suite, `family_portal.test.sql` included, stays green.
   - **Run:** `pnpm db:reset && pnpm db:test`.
-- [ ] **T7.4 Email recipients follow rule (b) (DB).**
+- [x] **T7.4 Email recipients follow rule (b) (DB).**
   - **Files:** #1 steps 7–8: `work_returned_recipients` copied from `20261025110000` lines 115–138 with `assignment_readable_by`; the revokes.
   - **Tests:**
     - AC-7.14: after removal, `parent_child_assignment(d1, r1)` returns JSON and the recipients still list s1, p1 and p2;
     - `email_outbox.test.sql` stays green.
   - **Then:** `pnpm db:types` (#10) and `git diff --stat` shows only `database.types.ts`.
   - **Run:** `pnpm db:reset && pnpm db:test && pnpm db:types && pnpm typecheck`.
-- [ ] **T7.5 Hold switch in the portal.**
+- [x] **T7.5 Hold switch in the portal.**
   - **Files:**
     - #3 `assignments.service.ts` (`hold_results` column, `holdResults`, `setHoldResults`), #4 `types.ts`, #7 `services/index.ts`;
     - #8 and #9 `auth-errors` and its test (`holdNeedsQuestions`), #11 `PORTAL_ERRORS.holdNeedsQuestions`, #12 `HOLD_RESULTS`;
@@ -543,22 +543,22 @@ filters `kind = 'work_returned'` from the start (review-3b finding 3).
   - **Tests:** `HoldResultsSetting.test.tsx`: a draft is enabled and calls `setHoldResults(id, true)` then `onChanged`; a published one is disabled with the locked note; an error shows an alert; the text comes from `HOLD_RESULTS`.
   - **Visible:** `tutor@local.test` on an MCQ draft ticks the box, publishes, and it's locked; a paper draft shows no box.
   - **Run:** `pnpm --filter web exec vitest run src/components/portal/HoldResultsSetting.test.tsx src/services/auth-errors.test.ts`.
-- [ ] **T7.6 "Past class" for families.**
+- [x] **T7.6 "Past class" for families.**
   - **Files:** #5 `family-data.ts`, #6 `family-data.test.ts` (new), #4 `types.ts`, #13 `FAMILY_TAGS.pastClass`, #16 `StatusChips.tsx` (`PastClassChip`), #17 its test (new), #18 the exports, #20–23 the four family routes.
   - **Tests:** the mapping `is_past_class` → `isPastClass`; the chip renders "Past class".
   - **Visible:** remove `student@local.test` from the seeded class. Their returned work shows "Past class" on student home and on the parent's child page and both assignment pages, read-only; non-returned work disappears.
   - **Run:** `pnpm --filter web exec vitest run src/services/family-data.test.ts src/components/portal/StatusChips.test.tsx`.
-- [ ] **T7.7 Docs (AC-7.17).**
+- [x] **T7.7 Docs (AC-7.17).**
   - **Files:** #24 `r3b/review.md` (F8 and F28 resolved, link to 01b), #25 `r3b/design.md` (§4 rule (b), the D8 note).
   - **Run:** `pnpm format:check`.
-- [ ] **T7.8 Manual passes.** Record each in the dev notes.
+- [x] **T7.8 Manual passes.** Record each in the dev notes.
   - AC-7.4 browser leg: a held submission is returned with a comment, and the email reaches Mailpit within 5 minutes.
   - AC-7.7 and AC-7.16: the switch and the chip at 360 px, light and dark.
   - AC-7.14: the Mailpit "View feedback" link opens after the student has been removed.
   - AC-7.12: after removal, the "Past class" tag shows in the student's list and on the
     assignment page. With no returned work, student home shows "Nothing returned yet."
-- [ ] **T7.9 Full check.** §0 steps 1–3, plus the in-repo `test:smoke` and `test:csp`.
-- [ ] **T7.10 Dev notes.** `05-dev-notes-item-7.md`. It names every function body that was copied, with its source file and lines, for T2.15.
+- [x] **T7.9 Full check.** §0 steps 1–3, plus the in-repo `test:smoke` and `test:csp`.
+- [x] **T7.10 Dev notes.** `05-dev-notes-item-7.md`. It names every function body that was copied, with its source file and lines, for T2.15.
 - [ ] **T7.11 Reviewer pass.** `review-5-item-7.md`, until it's APPROVED. The reviewer diffs each rebuilt body against its cited source.
 - [ ] **T7.12 Test plan.** `06-test-plan-item-7.md`: the 03b §7.6 status table as cases, plus the family regression.
 - [ ] **T7.13 Security review.** `06-security-item-7.md`. It covers:
