@@ -10,6 +10,7 @@ const ALWAYS_LISTED = [
   ROUTES.resources,
   ...GUIDE_PATHS,
   ROUTES.privacy,
+  ROUTES.careers,
 ];
 
 /** /posts reads live from Supabase, so a build that can't read it leaves it out (AC-1.11). */
