@@ -25,7 +25,10 @@ export VITE_APP_ENV=production VITE_SUPABASE_URL= VITE_SUPABASE_PUBLISHABLE_KEY=
   5. Only then, for manual/curl checks: `pnpm --filter web mirror`; `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:4173/careers` → 200; manual ACs 4, 5, 6, 10, 14, 15 (axe), 23 per §10. Stop the mirror after.
   6. AC-21 (review-3 item 3): production build `grep -c 'name="robots"' apps/web/build/client/careers/index.html` → 0. Then `VITE_APP_ENV=staging` + rest of `CI_ENV`, `pnpm build`: same grep ≥ 1, `grep -cx 'Disallow: /' apps/web/build/client/robots.txt` → 1 (exact line: a plain `grep -c` also matches production's `Disallow: /portal`, so it can't tell the builds apart; production gives 0), title has `[STAGING]`. Rebuild with `CI_ENV` afterwards so `build/` isn't left as staging.
   7. Must-not-change: `git diff develop --stat` touches no `services/`, `sections/contact/`, `supabase/`, `package.json`, `pnpm-lock.yaml`, `.env*`, `vercel.json`, `serve.railway.json`, `content.constants.ts` (AC-25-30).
-- [ ] **T7 — Docs.** Tick this plan; Tester writes the TSR under this folder; lead records DEC-WH-1 in `_knowledge/decisions.md`.
+- **T7 — Docs** (split by owner):
+  - [x] Developer: plan ticked, [05-dev-notes.md](05-dev-notes.md) written.
+  - [ ] Tester: manual ACs and TSR under this folder.
+  - [ ] Lead: record DEC-WH-1 in `_knowledge/decisions.md`.
 
 ## Risks (small)
 
@@ -54,3 +57,4 @@ D1 header/home mention · D2 on/off switch · D3 JobPosting data, more roles · 
 3. CSP e2e and Lighthouse (a11y ≥ 0.9, SEO = 1, 0 supabase.co) pass with `/careers` included.
 4. Conventional commits, one per task; this plan ticked.
 5. No PII anywhere in the diff: no owner personal name, no street address, no ABN (`careers.test.tsx` 1g guard plus a read of the diff).
+6. Manual ACs (4, 5, 6, 10, 14, 15, 23) pass and the TSR is written (review-4 item 3; Tester).
