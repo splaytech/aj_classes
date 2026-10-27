@@ -8,7 +8,9 @@ Every check below was run once on this branch on 2026-10-27 (baseline: 62 files 
 
 ```
 export VITE_APP_ENV=production VITE_SUPABASE_URL= VITE_SUPABASE_PUBLISHABLE_KEY= VITE_LEAD_CAPTURE= VITE_FORM_ACCESS_KEY=local-placeholder VITE_KIT_FORM_ID=0000000
-``` Prettier is clean repo-wide, so `pnpm format` is safe. One commit per task, Conventional Commits.
+```
+
+Prettier is clean repo-wide, so `pnpm format` is safe. One commit per task, Conventional Commits.
 
 ## Tasks
 
