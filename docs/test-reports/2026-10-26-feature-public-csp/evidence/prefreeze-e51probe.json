@@ -1,0 +1,120 @@
+{
+ "out": [
+  {
+   "name": "fetch",
+   "r": "rejected TypeError: Failed to fetch",
+   "v": [
+    "connect-src|https://example.com/data|enforce"
+   ],
+   "lines": [
+    "error: Connecting to 'https://example.com/data' violates the following Content Security Policy directive: \"connect-src 'self' http://127.0.0.1:55321 https://api.web3forms.com https://app.convertkit.com\". The action has been blocked.",
+    "error: Fetch API cannot load https://example.com/data. Refused to connect because it violates the document's Content Security Policy."
+   ]
+  },
+  {
+   "name": "img",
+   "r": "ok",
+   "v": [
+    "img-src|https://example.com/b.gif|enforce"
+   ],
+   "lines": [
+    "error: Loading the image 'https://example.com/b.gif' violates the following Content Security Policy directive: \"img-src 'self' data:\". The action has been blocked."
+   ]
+  },
+  {
+   "name": "beacon",
+   "r": "true",
+   "v": [
+    "connect-src|https://example.com/beacon|enforce"
+   ],
+   "lines": [
+    "error: Connecting to 'https://example.com/beacon' violates the following Content Security Policy directive: \"connect-src 'self' http://127.0.0.1:55321 https://api.web3forms.com https://app.convertkit.com\". The action has been blocked."
+   ]
+  },
+  {
+   "name": "ws",
+   "r": "constructed",
+   "v": [
+    "connect-src|wss://example.com/ws|enforce"
+   ],
+   "lines": [
+    "error: Connecting to 'wss://example.com/ws' violates the following Content Security Policy directive: \"connect-src 'self' http://127.0.0.1:55321 https://api.web3forms.com https://app.convertkit.com\". The action has been blocked."
+   ]
+  },
+  {
+   "name": "font",
+   "r": "rejected NetworkError",
+   "v": [
+    "font-src|https://example.com/f.woff2|enforce"
+   ],
+   "lines": [
+    "error: Loading the font 'https://example.com/f.woff2' violates the following Content Security Policy directive: \"font-src 'self'\". The action has been blocked."
+   ]
+  },
+  {
+   "name": "link",
+   "r": "ok",
+   "v": [
+    "style-src-elem|https://example.com/s.css|enforce"
+   ],
+   "lines": [
+    "error: Loading the stylesheet 'https://example.com/s.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+   ]
+  },
+  {
+   "name": "iframe",
+   "r": "ok",
+   "v": [
+    "frame-src|https://example.com|enforce"
+   ],
+   "lines": [
+    "error: Framing 'https://example.com/' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n"
+   ]
+  },
+  {
+   "name": "iframeSelf",
+   "r": "ok",
+   "v": [
+    "frame-src|http://127.0.0.1:4173/privacy|enforce"
+   ],
+   "lines": [
+    "error: Framing 'http://127.0.0.1:4173/privacy' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n"
+   ]
+  },
+  {
+   "name": "object",
+   "r": "ok",
+   "v": [
+    "object-src|https://example.com|enforce"
+   ],
+   "lines": [
+    "error: Loading plugin data from 'https://example.com/o.swf' violates the following Content Security Policy directive: \"object-src 'none'\". The action has been blocked."
+   ]
+  },
+  {
+   "name": "base",
+   "r": "http://127.0.0.1:4173/",
+   "v": [
+    "base-uri|https://example.com/|enforce"
+   ],
+   "lines": [
+    "error: Setting the document's base URI to 'https://example.com/' violates the following Content Security Policy directive: \"base-uri 'self'\". The action has been blocked."
+   ]
+  },
+  {
+   "name": "form",
+   "r": "submitted",
+   "v": [
+    "form-action|https://example.com/post|enforce"
+   ],
+   "lines": [
+    "error: Sending form data to 'https://example.com/post' violates the following Content Security Policy directive: \"form-action 'self'\". The request has been blocked.\n"
+   ]
+  }
+ ],
+ "preLines": [],
+ "pe": [],
+ "ex": 0,
+ "url": "http://127.0.0.1:4173/",
+ "baseURI": "http://127.0.0.1:4173/"
+}

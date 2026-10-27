@@ -1,0 +1,59 @@
+{
+ "E-54": {
+  "before": "0400 000 000",
+  "field": "0400 000 000",
+  "hint": [
+   "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website."
+  ],
+  "status": [
+   "Profile saved."
+  ],
+  "saved": 1,
+  "tel": [
+   "tel:+61355504321 (03) 5550 4321"
+  ],
+  "after": "(03) 5550 4321",
+  "audDelta": 1,
+  "last": "{\"fields\": [\"phone\"]}"
+ },
+ "E-55": {
+  "first": "26 Oct 2026, 5:59 am Local Admin Edited profile of Local Tutor Fields: phone",
+  "bad": [],
+  "tel": 0
+ },
+ "E-56": {
+  "abc": "Please enter an Australian phone number, like 0412 345 678.",
+  "blank": "Please enter a phone number. You can change it, but you can't remove it.",
+  "patches": 0,
+  "db": "+61400000000"
+ },
+ "E-57": {
+  "title": "Local Admin (you)",
+  "own": {
+   "status": [
+    "Profile saved."
+   ],
+   "audDelta": 0
+  },
+  "newadmin": {
+   "status": [
+    "Profile saved."
+   ],
+   "audDelta": 1,
+   "last": "1b09db6f-d916-4080-8d8c-b6ecc621b994|{\"fields\": [\"phone\"]}"
+  },
+  "listAdmin": "0491 570 156",
+  "listNew": "0491 570 157"
+ },
+ "E-58": {
+  "inaBefore": "0400 000 000",
+  "hasForm": 1,
+  "status": [
+   "Profile saved."
+  ],
+  "tel": [
+   "tel:+61755501234 (07) 5550 1234"
+  ],
+  "invitee": "0491 570 110"
+ }
+}

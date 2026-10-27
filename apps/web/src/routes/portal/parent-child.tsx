@@ -15,6 +15,7 @@ import {
   LoadError,
   NotFoundPanel,
   PageHeader,
+  PastClassChip,
   ProgressSummary,
   SectionCard,
   WeekTimetable,
@@ -132,6 +133,7 @@ function AssignmentRow({ studentId, item }: { studentId: string; item: FamilyAss
             color={isReturned ? 'success' : 'default'}
             label={FAMILY_STATUS_LABELS[item.status]}
           />
+          {item.isPastClass && <PastClassChip />}
           {isToDo(item.status) && <DueChip dueOn={item.dueOn} />}
           {item.isLate && <Chip size="small" color="warning" label={SOLVE_PAGE.late} />}
         </Stack>

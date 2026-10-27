@@ -1,0 +1,2 @@
+Error: Config error: VITE_SUPABASE_FUNCTIONS_URL must be localhost or 127.0.0.1, not "example.supabase.co"
+> 10 |     throw new Error(`Config error: ${name} must be localhost or 127.0.0.1, not "${host}"`);

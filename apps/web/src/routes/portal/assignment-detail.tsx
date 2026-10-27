@@ -16,6 +16,7 @@ import {
   AssignmentDialog,
   ConfirmDialog,
   DueChip,
+  HoldResultsSetting,
   LoadError,
   NotFoundPanel,
   PageHeader,
@@ -177,12 +178,24 @@ export default function AssignmentDetailPage() {
         </SectionCard>
 
         {(isOnline || !assignment.isPublished) && (
-          <QuestionList
-            assignmentId={assignment.id}
-            questions={assignment.questions}
-            editable={!assignment.isPublished}
-            onChanged={refresh}
-          />
+          <>
+            <QuestionList
+              assignmentId={assignment.id}
+              questions={assignment.questions}
+              editable={!assignment.isPublished}
+              onChanged={refresh}
+            />
+            {/* Paper homework has no questions, so it never auto-returns and never shows this. */}
+            {isOnline && (
+              <HoldResultsSetting
+                assignmentId={assignment.id}
+                holdResults={assignment.holdResults}
+                isPublished={assignment.isPublished}
+                onChanged={refresh}
+                revision={assignment}
+              />
+            )}
+          </>
         )}
 
         <StudentWork assignment={assignment} isOnline={isOnline} onChanged={refresh} />

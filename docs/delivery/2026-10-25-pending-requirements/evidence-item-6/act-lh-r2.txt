@@ -1,0 +1,19 @@
+[CI/Lighthouse]   ✅  Success - Main actions/checkout@v4 [426.307375ms]
+[CI/Lighthouse]   ✅  Success - Main pnpm/action-setup@v4 [1.000725416s]
+[CI/Lighthouse]   ✅  Success - Main actions/setup-node@v4 [2.262154167s]
+[CI/Lighthouse]   ✅  Success - Main pnpm install --frozen-lockfile [2.184277875s]
+[CI/Lighthouse]   ✅  Success - Main Build with no Supabase config (never the hosted project) [3.365084083s]
+[CI/Lighthouse]   | check-hosted-ref: 0 files (of 153 scanned)
+[CI/Lighthouse]   ✅  Success - Main No hosted project reference in the build [330.137833ms]
+[CI/Lighthouse]   ✅  Success - Main pnpm --filter aj-classes-e2e exec playwright install --with-deps chromium [49.856763708s]
+[CI/Lighthouse]   ✅  Success - Main Lighthouse uses Playwright's Chromium [238.801375ms]
+[CI/Lighthouse]   ✅  Success - Main Lighthouse (mobile, median of 3; thresholds in apps/web/lighthouserc.json) [3m0.892959375s]
+[CI/Lighthouse]   | lighthouse-report: 18 runs, 0 supabase.co requests
+[CI/Lighthouse]   ✅  Success - Main No Supabase requests; JS size per page [317.8795ms]
+[CI/Lighthouse]   |   19 passed (29.3s)
+[CI/Lighthouse]   ✅  Success - Main CSP sweep on the mirror (item 5, AC-5.3 and AC-5.8) [29.780680042s]
+[CI/Lighthouse]   | Artifact lighthouse-report has been successfully uploaded! Final size is 14695120 bytes. Artifact ID is 3384952654
+[CI/Lighthouse]   ✅  Success - Main actions/upload-artifact@v4 [1.083853083s]
+[CI/Lighthouse] 🏁  Job succeeded
+exit 0 wall 285s
+ref 0 hosts 

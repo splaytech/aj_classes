@@ -1,0 +1,12 @@
+import { chromium, newLeg, signIn, settle, record, P } from './lib.mjs';
+const browser = await chromium.launch({ channel: 'chrome', headless: true });
+const { page, L } = await newLeg(browser, { name: 'probe7-admin-1280', portal: true });
+await signIn(page, 'admin@local.test', { twoStep: true });
+await page.waitForURL(u => !u.pathname.startsWith('/portal/login'), { timeout: 20000 });
+await settle(page, true);
+L.url = new URL(page.url()).pathname; L.h1 = await page.locator('h1').allInnerTexts();
+await page.reload(); await settle(page, true); L.urlAfterReload = new URL(page.url()).pathname;
+L.frames = page.frames().map(f => f.url().slice(0, 80));
+await L.close(); delete L.responses;
+console.log(JSON.stringify(L, null, 1));
+await browser.close();

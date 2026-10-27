@@ -1,0 +1,1 @@
+{"keysBefore":["sb-127-auth-token"],"active":"f","after":{"url":"/portal/login?reason=inactive","logoutRequests":0,"consoleErrors":[],"storedSession":[],"bad":[],"requests":["GET /rest/v1/profiles","POST /rest/v1/rpc/my_onboarding"],"hosted":0},"restored":"t","admin":{"label":"E-94 admin","errors":0,"errorLines":[],"hosted":0,"bad":[]}}

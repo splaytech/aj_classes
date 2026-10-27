@@ -2,7 +2,7 @@
 // family.constants.ts, online assignments in online-assignments.constants.ts. Error messages live
 // in error.constants.ts.
 
-import { AUTH_LIMITS, PHOTO_LIMITS, PROFILE_LIMITS } from './app.constants';
+import { AUTH_LIMITS, PHOTO_LIMITS, POST_LIMITS, PROFILE_LIMITS } from './app.constants';
 import type { AppRole, ThemeMode } from './app.constants';
 import { BUSINESS } from './business.constants';
 
@@ -26,6 +26,8 @@ export const PORTAL_SEO = {
   adminStudents: 'Students',
   adminActivity: 'Activity',
   adminEnquiries: 'Enquiries',
+  adminPosts: 'Posts',
+  adminEmails: 'Emails',
   twoStepSetup: 'Set up two-step sign-in',
   tutor: 'Dashboard',
   admin: 'Admin',
@@ -249,6 +251,16 @@ export const ACCOUNT_PAGE = {
     saving: 'Saving…',
     saved: 'Your choices are saved.',
   },
+  // Students and parents only (AC-3.6). The id is the target of the link in every email.
+  notifications: {
+    id: 'notifications',
+    heading: 'Notifications',
+    intro: 'Emails we send about schoolwork.',
+    workReturned: 'Email me when work is marked and returned',
+    save: 'Save',
+    saving: 'Saving…',
+    saved: "Saved. We'll remember this choice.",
+  },
   signedInAs: 'Signed in as',
   role: 'Role',
   password: {
@@ -366,6 +378,8 @@ export const ADMIN_DASHBOARD = {
     students: 'Students',
     timetable: 'Timetable',
     enquiries: 'Enquiries',
+    posts: 'Posts',
+    emails: 'Emails',
     activity: 'Activity',
   },
   recent: {
@@ -415,6 +429,31 @@ export const ENQUIRIES_PAGE = {
   phoneLink: (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`,
 } as const;
 
+// Admin → Posts (posts.md): compose, edit and delete the posts shown publicly on the website.
+export const POSTS_PAGE = {
+  heading: 'Posts',
+  intro: 'Publish a short update for the website. Newest first, visible to every visitor.',
+  titleLabel: 'Title',
+  bodyLabel: 'Body',
+  publish: 'Publish',
+  publishing: 'Publishing…',
+  published: 'Post published.',
+  edit: 'Edit',
+  save: 'Save',
+  saving: 'Saving…',
+  saved: 'Post updated.',
+  cancel: 'Cancel',
+  delete: 'Delete',
+  confirmDeleteTitle: 'Delete this post?',
+  confirmDeleteText: (title: string) => `"${title}" will be removed from the website immediately.`,
+  deleted: 'Post deleted.',
+  empty: 'No posts yet. Publish the first one above.',
+  // Inline field messages (AC-1.14). Spaces alone don't count as text.
+  titleLength: `Please enter a title (${POST_LIMITS.titleMin}–${POST_LIMITS.titleMax} characters).`,
+  bodyLength: `Please write the post (${POST_LIMITS.bodyMin}–${POST_LIMITS.bodyMax} characters).`,
+  bodyCount: (used: number) => `${used} / ${POST_LIMITS.bodyMax} characters`,
+} as const;
+
 export const FOOTER_PORTAL = {
   signIn: 'Sign in',
 } as const;
@@ -426,11 +465,15 @@ export const PROFILE_PAGE = {
   emailHint: 'To change your email, contact an admin.',
   labels: {
     fullName: 'Full name',
+    phone: JOIN_PAGE.labels.phone,
     subjects: 'Subjects I teach',
     bio: 'Bio',
     qualifications: 'Qualifications',
   },
   hints: {
+    // The page intro says the profile may appear on the website; the phone never does (AC-4.1).
+    phone:
+      "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
     subjects: 'Tick all that apply.',
     bio: 'A few sentences about your teaching. Plain text only.',
     qualifications: 'One per line, for example "B.Ed (Secondary Maths), Monash University".',
@@ -600,6 +643,35 @@ export const ACTIVITY_PAGE = {
   student: (name: string) => `Student: ${name}`,
   someone: 'Someone',
   listSeparator: ' · ',
+} as const;
+
+// Admin → Emails (AC-3.8; ADR-0004). Reason keys must match the codes admin_email_problems returns.
+export const EMAILS_PAGE = {
+  heading: 'Emails',
+  intro:
+    '"Work returned" emails that failed, or haven\'t gone out about 2 hours after the work was returned. Sent emails aren\'t listed.',
+  columns: {
+    when: 'When',
+    recipient: 'Recipient',
+    assignment: 'Assignment',
+    state: 'State',
+    reason: 'Reason',
+  },
+  roles: { student: 'Student', parent: 'Parent' },
+  states: { failed: 'Failed', waiting: 'Waiting' },
+  reasons: {
+    rejected: 'Rejected by email service',
+    rate_limited: 'Email service busy',
+    server_error: 'Email service error',
+    network: "Couldn't reach email service",
+    no_address: 'Recipient address missing',
+    max_attempts: 'Gave up after 3 tries',
+    config_missing: 'Set-up error',
+    daily_limit: 'Daily limit',
+    retrying: 'Retrying',
+    not_attempted: 'Not attempted',
+  },
+  empty: 'No failed or waiting emails',
 } as const;
 
 export const DAYS_OF_WEEK = [1, 2, 3, 4, 5, 6, 7] as const; // ISO: 1 = Monday

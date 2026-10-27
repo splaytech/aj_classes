@@ -6,14 +6,14 @@ Backend for staff sign-in from Release 2 onwards. Design: [R2a design](../docs/r
 
 Needs Docker Desktop running and the Supabase CLI (`brew install supabase/tap/supabase`).
 
-| Command (from the repo root) | What it does                                                                 |
-| ---------------------------- | ---------------------------------------------------------------------------- |
-| `pnpm db:start`              | Starts the local stack, applies migrations and `seed.sql`                    |
-| `pnpm db:stop`               | Stops it                                                                     |
-| `pnpm db:reset`              | Rebuilds the database from migrations + seed (wipes local data)              |
-| `pnpm db:test`               | Runs the pgTAP tests in `tests/database/`                                    |
-| `pnpm db:status`             | Shows local URLs and the publishable key for `apps/web/.env.local`           |
-| `pnpm test:functions`        | End-to-end test of the `account-admin` edge function (stack must be running) |
+| Command (from the repo root) | What it does                                                                                                |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `pnpm db:start`              | Starts the local stack, applies migrations and `seed.sql`                                                   |
+| `pnpm db:stop`               | Stops it                                                                                                    |
+| `pnpm db:reset`              | Rebuilds the database from migrations + seed (wipes local data)                                             |
+| `pnpm db:test`               | Runs the pgTAP tests in `tests/database/`                                                                   |
+| `pnpm db:status`             | Shows local URLs and the publishable key for `apps/web/.env.local`                                          |
+| `pnpm test:functions`        | End-to-end tests of the `account-admin`, `leads` and `notifications` edge functions (stack must be running) |
 
 Local addresses use the **553xx** ports, so this project can run next to other local Supabase projects:
 
@@ -30,7 +30,9 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 
 **Staff portal locally:** with the stack running, `pnpm dev` and open http://localhost:5173/portal/login. `apps/web/.env.local` needs `VITE_SUPABASE_URL=http://127.0.0.1:55321`, the publishable key from `pnpm db:status`, and `VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA` (see `apps/web/.env.example`). Use `pnpm dev`, not a production build: the production security policy only allows `*.supabase.co`, so a local build can't reach the local stack.
 
-**Edge functions** (`supabase/functions/`) are served by the local stack at http://127.0.0.1:55321/functions/v1/. `account-admin` (was `staff-admin` before R3b) handles staff, student and parent invites, deactivation and two-step resets; its allowed browser origins are set in `config.toml` (`[edge_runtime.secrets]`). Hosted: `supabase functions deploy account-admin` and `supabase secrets set ALLOWED_ORIGINS=...`.
+**Edge functions** (`supabase/functions/`) are served by the local stack at http://127.0.0.1:55321/functions/v1/. `account-admin` (was `staff-admin` before R3b) handles staff, student and parent invites, deactivation and two-step resets; its allowed browser origins are set in `config.toml` (`[edge_runtime.secrets]`). Hosted: run `supabase/scripts/deploy.sh`. **Hosted function secrets change only through `deploy.sh`**: never run `supabase secrets set` by hand, because it also copies the local values in `[edge_runtime.secrets]` (the Mailpit transport, `localhost` site URL and the public local worker secret) to the hosted project.
+
+**"Work returned" emails locally** (ADR-0004): when a tutor returns work, the database queues one email per active student and parent (`email_outbox`). Every 5 minutes `pg_cron` calls the local `notifications` function, which sends them to **Mailpit** (http://127.0.0.1:55324), never out. The seed's returned work queues two on every `pnpm db:reset`. The function's local settings are in `config.toml` (`[edge_runtime.secrets]`: `EMAIL_TRANSPORT=mailpit`, the local-only `NOTIFY_WORKER_SECRET`); its address and secret for the cron job are in local Vault (`seed.sql`). To send without waiting: `curl -X POST http://127.0.0.1:55321/functions/v1/notifications -H 'x-notify-secret: local-notify-secret'`. After changing `config.toml`, restart the stack (`pnpm db:stop && pnpm db:start`) so the function sees it.
 
 **Demo data:** `seed.sql` also creates three classes with weekly times, six fictional students ("… Demo") and a few assignments, so every staff page has something to show.
 
@@ -57,7 +59,8 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 
 ### Only admin has lost every authenticator (break-glass)
 
-1. Confirm who they are by phone.
+1. Confirm who they are by calling a number held outside the portal (for example, your own
+   contacts). Never use the phone on their portal profile: the account itself can change it.
 2. Dashboard → Authentication → the user → delete their MFA factors.
 3. Record it:
    ```sql
@@ -70,6 +73,42 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 
 Portal → Admin → Staff → the person → **Deactivate**. Check `public.audit_log`.
 
+### A student leaves a class, or was enrolled by mistake (ADR-0007)
+
+**Removing a student from a class, or archiving the class, doesn't hide their returned work.**
+The student and every linked parent can still read it, read-only and tagged "Past class":
+questions, options, correct answers, explanations, marks, feedback and the instructions. Work
+that wasn't returned is hidden. This is the accepted residual from security review S1 (item 7).
+An all-multiple-choice quiz without "hold results" is returned the moment it's handed in, so a
+mistakenly enrolled child who submits one keeps it too.
+
+To cut access, pick the narrowest step. None of them works per class:
+
+1. **(a) Archive the student's roster row:** Portal → Admin → Students → **Archive**
+   (`students.is_active = false`). This cuts the student and all their parents off from
+   everything. Results are kept, and **Restore** brings them back.
+2. **(b) Deactivate the student's login:** Admin → Students → the student → Student account →
+   **Deactivate**. The student only. Parents still see the work.
+3. **(c) Delete the roster row:** this can't be undone, so do (a) or (b) first and use this only
+   if the work must be gone. There's no portal button. In the SQL editor, check you have the
+   right student first:
+   `select full_name from public.students where id = '<student id>';`
+   then:
+   `delete from public.students where id = '<student id>';`
+   Everything linked to the row goes with it, in every class: enrolments, parent links, results,
+   answers, the consent recorded on the row, and their "work returned" email rows.
+4. **(d) Unlink a parent:** Admin → Students → the student → the parent → **Remove**. That parent
+   only.
+5. **(e) Delete the assignment:** the assignment page → **Delete**. It's removed for every student.
+
+Staff can't "un-return" online work. A per-class "revoke past-class access" action is in the
+Later bucket (ADR-0007).
+
+**Guidance for tutors (security review S2):** students who have left still see later edits to a
+returned assignment's title and instructions. Don't put class-only links, meeting details or
+anything meant only for current students in an old assignment's instructions. Put them in a new
+assignment instead.
+
 ### Deploy schema changes
 
 ```bash
@@ -78,6 +117,46 @@ supabase db push
 ```
 
 Test on staging, then repeat with the prod ref. `db push` does not run `seed.sql`.
+
+### Work returned emails (ADR-0004)
+
+How it works: a staff return queues rows in `public.email_outbox` (no address or body stored); the `email-worker-kick` cron job (every 5 min) calls the `notifications` function, which sends through Resend's HTTP API (hosted) and marks each row sent. App cap: **70 in any rolling 24 hours**, so sign-in emails always keep 30 of Resend Free's 100 a day. Admins see failed sends, and sends still waiting after ~2 hours, at **Portal → Admin → Emails**.
+
+**Set up once on the hosted project** (after `deploy.sh`, which prints these lines). Dashboard → SQL Editor, with `NOTIFY_WORKER_SECRET` from the password manager (never pasted into chat or git):
+
+```sql
+select vault.create_secret('https://unzjnxctkyahtmrkinyr.supabase.co/functions/v1/notifications', 'notify_worker_url');
+select vault.create_secret('<NOTIFY_WORKER_SECRET>', 'notify_worker_secret');
+```
+
+Then delete that query from the SQL Editor's saved snippets and history, so the secret is only in Vault and the password manager.
+
+To change the secret later: `select vault.update_secret(id, '<new value>') from vault.secrets where name = 'notify_worker_secret';`, then run `deploy.sh` again with the same new value.
+
+**Keep `net` out of the exposed API schemas** (Dashboard → Project Settings → API → Exposed schemas: only `public` and `graphql_public`). The migration enables `pg_net`, and Supabase lets signed-in users run `net.http_post`; exposing `net` would let anyone signed in make the server send web requests.
+
+**Retention:** the `daily-history-trim` cron job keeps the cron log to 7 days and deletes sent, skipped and failed emails after 90 days. Waiting emails are kept until they go out.
+
+**Release check (AC-3.11), on the hosted project.** Staging and prod share one database, so a return made on staging emails real families. Test only with a fake family that uses your own addresses:
+
+1. Admin: create a student "Test Student" with an alias of your address, invite them, and a parent "Test Parent" with a second alias; accept both invites.
+2. Create a class "Test class" with only that student, taught by a test tutor; publish one paper assignment.
+3. As the test tutor, return it with a mark.
+4. Within 5 minutes both aliases get "… has been marked" from `hello@ajclasses.com.au`; **View feedback** opens the right page.
+5. Portal → Admin → Emails says "No failed or waiting emails".
+6. Delete the test class (its outbox rows go with it), then the test accounts.
+
+**Stop all sends at once (kill switch):** `select cron.unschedule('email-worker-kick');`. Rows wait; nothing is lost. Turn back on with the `cron.schedule('email-worker-kick', …)` line in `migrations/20261025110000_work_returned_email.sql`. Or `supabase secrets unset EMAIL_TRANSPORT --project-ref unzjnxctkyahtmrkinyr` (an `unset` copies nothing from `config.toml`; only `set` does): from the next kick the worker sends nothing, flags waiting rows, and returns 503 before it even checks the secret, so they show as Waiting / "Set-up error" (after the usual ~2 hours), never "Not attempted". Turn it back on by running `deploy.sh` again.
+
+**Admin Emails page reasons:** "Not attempted" after 2 hours means the cron job or the Vault entries are missing; "Set-up error" means `EMAIL_TRANSPORT`, `RESEND_API_KEY` or `SITE_URL` is missing on the function, or the hosted function has local-only values (`EMAIL_TRANSPORT=mailpit`, the local worker secret or a non-https `SITE_URL`: run `deploy.sh` again); "Daily limit" means 70 were sent in the last 24 hours (they go out as earlier ones age out); "Gave up after 3 tries" means Resend kept failing. When Resend is busy (429) or can't be reached, the worker stops the batch and puts the unsent rows back; each of those still uses one of its 3 attempts, so a long outage can end rows as "Gave up after 3 tries" even though Resend never accepted them.
+
+**If `pnpm test:functions` was interrupted** and local emails stop: the notifications script pauses the cron job while it runs and resumes it on exit or Ctrl-C. If that ever didn't happen:
+
+```bash
+docker exec supabase_db_aj_classes psql -U postgres -c "select cron.alter_job(jobid, active := true) from cron.job where jobname = 'email-worker-kick'"
+```
+
+`pnpm db:reset` also restores it.
 
 ### Project paused (free plan)
 

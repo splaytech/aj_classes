@@ -1,0 +1,15 @@
+{
+  "Subject": "Aarav's work has been marked: Reasoning mock test 1",
+  "From": {
+    "Name": "AJ Classes",
+    "Address": "hello@ajclasses.com.au"
+  },
+  "To": [
+    {
+      "Name": "",
+      "Address": "parent@local.test"
+    }
+  ],
+  "Text": "Hi Local,\r\n\r\nAarav's tutor has marked \"Reasoning mock test 1\" for Selective Entry Maths & Reasoning and returned it.\r\n\r\nView feedback: http://localhost:5173/portal/parent/children/3ff627ac-2e18-46a3-a88c-cc0db0ee43ff/assignments/ce91617a-a5e1-48b7-9608-51158f728417\r\n\r\nYou're getting this because you have an AJ Classes portal account.\r\nTo stop these emails, go to Account → Notifications: http://localhost:5173/portal/account#notifications\r\n",
+  "HTML": "<!doctype html>\r\n<html lang=\"en\">\r\n  <body style=\"margin: 0; padding: 24px; background: #f5f9ff; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; color: #172033\">\r\n    <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 16px\">\r\n      <tr>\r\n        <td style=\"padding: 24px 32px; background: #172554; border-radius: 16px 16px 0 0; color: #ffffff; font-size: 20px\">\r\n          <strong>AJ</strong> Classes <span style=\"color: #f9c62b; font-size: 14px\">&nbsp;Parents</span>\r\n        </td>\r\n      </tr>\r\n      <tr>\r\n        <td style=\"padding: 32px; font-size: 16px; line-height: 1.6\">\r\n          <p style=\"margin: 0 0 16px\">Hi Local,</p>\r\n          <p style=\"margin: 0\">Aarav&#39;s tutor has marked &quot;Reasoning mock test 1&quot; for Selective Entry Maths &amp; Reasoning and returned it.</p>\r\n          <p style=\"margin: 24px 0\">\r\n            <a href=\"http://localhost:5173/portal/parent/children/3ff627ac-2e18-46a3-a88c-cc0db0ee43ff/assignments/ce91617a-a5e1-48b7-9608-51158f728417\" style=\"display: inline-block; padding: 12px 24px; background: #2563eb; color: #ffffff; border-radius: 8px; font-weight: 700; text-decoration: none\">View feedback</a>\r\n          </p>\r\n          <p style=\"margin: 24px 0 0; color: #4b5563; font-size: 14px\">\r\n            You&#39;re getting this because you have an AJ Classes portal account. To stop these emails, go to Account → Notifications: <a href=\"http://localhost:5173/portal/account#notifications\" style=\"color: #2563eb; word-break: break-all\">http://localhost:5173/portal/account#notifications</a>\r\n          </p>\r\n        </td>\r\n      </tr>\r\n    </table>\r\n  </body>\r\n</html>\r\n"
+}

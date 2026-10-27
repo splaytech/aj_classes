@@ -12,6 +12,7 @@ export { subscribe } from './subscription.service';
 export {
   changePassword,
   confirmEmailLink,
+  forgetDeactivatedSession,
   getAccessState,
   requestPasswordReset,
   sendReauthCode,
@@ -22,8 +23,16 @@ export {
 } from './auth.service';
 export { completeOnboarding } from './onboarding.service';
 export { getMyConsents, setMyConsents } from './consents.service';
+export {
+  getMyNotificationSettings,
+  listEmailProblems,
+  saveMyNotificationSettings,
+} from './notifications.service';
 export { listActivity } from './activity.service';
 export { deleteEnquiry, listEnquiries, resyncEnquiry } from './enquiries.service';
+export { createPost, deletePost, listPosts, updatePost } from './posts.service';
+export { hasPublishedPosts, listPublicPosts } from './public-posts.client';
+export { isPublicSupabaseConfigured } from './public-supabase-config';
 export {
   deleteAssignment,
   getAssignment,
@@ -31,6 +40,7 @@ export {
   saveAssignment,
   saveResult,
   setAssignmentPublished,
+  setHoldResults,
 } from './assignments.service';
 export { deleteQuestion, moveQuestion, saveQuestion } from './questions.service';
 export { getSubmission, saveSubmission } from './submissions.service';
@@ -118,6 +128,9 @@ export type {
   Consents,
   DayOfWeek,
   Delivery,
+  EmailProblem,
+  EmailProblemReason,
+  EmailProblemState,
   RosterStudent,
   SessionInput,
   StudentInput,
@@ -129,9 +142,13 @@ export type {
   FamilyAssignment,
   FamilyAssignmentView,
   FamilyQuestion,
+  NotificationSettings,
   OnboardingInfo,
   OnboardingInput,
   ParentInviteOutcome,
+  Post,
+  PostInput,
+  PublicPost,
   ProfileChanges,
   Question,
   QuestionInput,

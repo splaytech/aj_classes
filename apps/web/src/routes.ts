@@ -16,6 +16,8 @@ export default [
   route(ROUTES.resources, 'routes/resources.tsx'),
   route(GUIDE_PAGE, 'routes/resource.tsx'),
   route(ROUTES.subscribed, 'routes/subscribed.tsx'),
+  route(ROUTES.posts, 'routes/posts.tsx'), // pre-rendered shell; posts load live in the browser (ADR-0001)
+  route(ROUTES.careers, 'routes/careers.tsx'),
   route(ROUTES.sitemap, 'routes/sitemap.ts'),
   route(ROUTES.robots, 'routes/robots.ts'),
 
@@ -50,6 +52,8 @@ export default [
           route(PORTAL_ROUTE_PATTERNS.staffMember, 'routes/portal/admin-staff-member.tsx'),
           route(PORTAL_ROUTES.adminActivity, 'routes/portal/admin-activity.tsx'),
           route(PORTAL_ROUTES.adminEnquiries, 'routes/portal/admin-enquiries.tsx'),
+          route(PORTAL_ROUTES.adminPosts, 'routes/portal/admin-posts.tsx'),
+          route(PORTAL_ROUTES.adminEmails, 'routes/portal/admin-emails.tsx'),
           route(PORTAL_ROUTES.adminStudents, 'routes/portal/admin-students.tsx'),
           route(PORTAL_ROUTE_PATTERNS.adminStudent, 'routes/portal/admin-student.tsx'),
         ]),

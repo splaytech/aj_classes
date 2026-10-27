@@ -33,7 +33,7 @@ Family logins only work well if a few things exist first. Each of these is in sc
 | D5 | **Invites:** admins invite each student and parent separately from the student's page. A parent e-mail that already has a parent account is linked, not re-invited. A **student account needs consent recorded first**, by a linked parent in the portal or by an admin (e.g. paper form). | Invite-only like staff; consent for minors (F4). |
 | D6 | **Assignments have optional questions.** With questions: students answer in the portal; total = sum of question marks. Without: "paper" homework as in R3a (tutor records the mark). | Keeps R3a working and covers worksheets handed in on paper. |
 | D7 | **Question types:** multiple choice (2–6 options, one correct) and written (free text). Each has marks (1–100) and an optional explanation shown after return. | Owner asked for MCQ + descriptive; single-answer MCQ keeps marking simple. |
-| D8 | **Status flow:** not started → in progress (autosaved) → submitted → returned. Paper homework: not submitted → submitted (handed in) → marked → returned. Families see marks and comments only when **returned**. All-MCQ assignments are returned automatically on submit. | Clear, matches R3's Submitted → Marked → Returned. |
+| D8 | **Status flow:** not started → in progress (autosaved) → submitted → returned. Paper homework: not submitted → submitted (handed in) → marked → returned. Families see marks and comments only when **returned**. All-MCQ assignments are returned automatically on submit, unless staff tick "Hold results until I return them" on the draft (pending-requirements item 7, ADR-0007): then the work stays Submitted until staff return it, which sends the "work returned" email. | Clear, matches R3's Submitted → Marked → Returned. |
 | D9 | **Comments:** an overall comment per student per assignment and optional per-question feedback, both visible to the student and their parents after return. | Owner: comments visible to both. |
 | D10 | **Appearance:** System / Light / Dark for the whole portal, remembered in the browser (per device). Dark colours are defined in `theme.css` under `[data-portal-theme='dark']`; the public site is unaffected. | Single source of colours; works for MUI and CSS-module pages alike. |
 
@@ -79,8 +79,8 @@ Existing R3a assignments become `published` (they were already in use).
 | Who | How | What |
 |---|---|---|
 | Staff (tutor/admin) | RLS as in R3a, extended to questions and answers (`can_manage_assignment`) | Build questions, see answers, mark, return |
-| Student | RPCs, keyed on `private.my_student_id()` (active student account + active roster row) | Own published assignments in active classes they're enrolled in; save/submit own answers; own timetable |
-| Parent | RPCs, keyed on `private.is_my_child(student)` (active parent + link) | Linked children's assignments (status always; answers once submitted; marks/comments once returned), timetable, consent |
+| Student | RPCs, keyed on `private.my_student_id()` (active student account + active roster row) | Own published assignments in active classes they're enrolled in (rule (a)), **or** whose result is Returned, even after leaving the class or the class being archived (rule (b), read-only, tagged "Past class"; pending-requirements item 7, ADR-0007); save/submit own answers only under rule (a); own timetable (active enrolled classes only) |
+| Parent | RPCs, keyed on `private.is_my_child(student)` (active parent + link) | Linked children's assignments by the same rules (a) and (b) as the student (status always; answers once submitted; marks/comments once returned), timetable, consent |
 | Admin | RLS + `account-admin` edge function + `admin_record_consent`, `admin_unlink_parent` | Invites, links, consent, account status |
 
 **Family RPCs** (all `security definer`, `search_path = ''`, `execute` granted to `authenticated`, each checks the caller):

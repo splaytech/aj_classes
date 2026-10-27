@@ -94,15 +94,40 @@ add the second admin with a normal invite (`supabase/README.md` → "First admin
 3. Merge `develop` into `main` (pull request) → live.
 4. Smoke test (§8), then invite tutors, then students and parents.
 
+## 7a. "Work returned" emails (pending-requirements item 3, ADR-0004)
+
+Release steps for Saurabh (04-plan §6.3). Preconditions: Q2 answered; the item 3 Privacy sentence
+approved (Q7 / B17); B1 done first, or released together at the same SHA.
+
+- [ ] Step 0, before deploying: in Dashboard → SQL Editor (read only) this returns 0, or the posts migration will fail: `select count(*) from public.posts where btrim(title, E' \t\n\r') = '' or btrim(body, E' \t\n\r') = '' or char_length(title) > 120 or char_length(body) > 5000;`
+- [ ] Put a new long random `NOTIFY_WORKER_SECRET` and the Resend key in the password manager and in `supabase/.env.deploy` (git-ignored).
+- [ ] `git fetch && git checkout -b release/work-returned-email <item 3 develop merge SHA>`, then from that branch run `supabase/scripts/deploy.sh`. It applies the migration (enables `pg_cron` and `pg_net`; if `db push` refuses, enable both in Dashboard → Database → Extensions and run it again), deploys `notifications` and sets the function settings.
+- [ ] Straight after the deploy (before merging to `main`), run the two Vault lines the script printed, in Dashboard → SQL Editor (supabase/README.md → "Work returned emails"), then delete that query from the editor's snippets and history.
+- [ ] Confirm the script printed "Hosted function settings checked". First run only: confirm `supabase secrets list -o json` shows SHA-256 hex digests; if not, fix the check before relying on it.
+- [ ] Merge `release/work-returned-email` (the same SHA, not `develop`) into `main` through a PR.
+- [ ] Dashboard → Project Settings → API → Exposed schemas is still only `public` and `graphql_public` (never `net`).
+- [ ] AC-3.11 test-family check (same README section): both emails arrive within 5 minutes; Admin → Emails is empty; delete the test class.
+
+## 7c. Public CSP (pending-requirements item 5, ADR-0005)
+
+Release steps for Saurabh, then the team (03b §5.8). No migration or function.
+
+- [ ] Before merging to `main`: on the `develop` preview (DevTools → Network), the `/portal/login` document has exactly one `content-security-policy`, the portal one (it names `challenges.cloudflare.com`); `/` has the public one. `vercel.live` toolbar violations on the preview are expected; never add that host.
+- [ ] After release, read-only: `curl -sI` on `/`, `/programmes/vce` and `/nope` shows the public CSP; HSTS is present.
+- [ ] `curl -sI https://ajclasses.com.au/portal/login | grep -ci '^content-security-policy:'` prints `1`, the portal one.
+- [ ] `curl -sI https://ajclasses.com.au/__spa-fallback | grep -ci '^content-security-policy:'` prints `1`, the portal one, with `X-Robots-Tag: noindex, nofollow` and `Cache-Control: no-store`.
+- [ ] `curl -sI https://ajclasses.com.au/_vercel/insights/script.js` → 200, and the live home page shows 0 CSP violations in Chrome.
+- [ ] If `/portal/*` or `/__spa-fallback` ever shows two CSPs, revert the release (config only).
+
 ## 8. Smoke test
 
-- [ ] Public pages unchanged; WhatsApp button opens a chat; `/resources` and the guide load; `sitemap.xml` has no `/portal`; `robots.txt` disallows `/portal`
-- [ ] Footer "Sign in" appears (portal on)
-- [ ] Invite a tutor → email arrives (check spam) → Continue → set password → tutor dashboard
-- [ ] Admin sign-in asks for the two-step code
-- [ ] Forgot password works; an old link says "expired or already used"
-- [ ] Send a test enquiry: email arrives as before, and it appears in Portal → Admin → Enquiries as "In Zoho CRM" (and under Leads in Zoho CRM); delete it afterwards
-- [ ] Class, student and parent invite; online assignment published, solved, returned; parent sees marks
-- [ ] Deactivate a test tutor → their next action fails
-- [ ] Refresh on a deep link (e.g. `/portal/classes`) still loads
-- [ ] `/portal/*` responses carry `Content-Security-Policy` (naming `unzjnxctkyahtmrkinyr.supabase.co`), `X-Robots-Tag: noindex, nofollow`, `Cache-Control: no-store`
+- [x] Public pages unchanged; WhatsApp button opens a chat; `/resources` and the guide load; `sitemap.xml` has no `/portal`; `robots.txt` disallows `/portal` — verified via curl (23 Oct 2026): `/` and `/resources` → 200, guide page `/resources/victorian-selective-entry-exam` → 200, `wa.me/61469800685` link present in page source, `sitemap.xml` has zero `/portal` entries, `robots.txt` has `Disallow: /portal`.
+- [x] Footer "Sign in" appears (portal on) — verified via curl: home page source contains "Sign in" linking to `/portal/login`.
+- [ ] Invite a tutor → email arrives (check spam) → Continue → set password → tutor dashboard — needs a real invited tutor account and inbox access; owner/human action, not run here.
+- [ ] Admin sign-in asks for the two-step code — needs a real admin login with 2FA set up; owner/human action, not run here.
+- [ ] Forgot password works; an old link says "expired or already used" — partially verified: `/portal/forgot-password` and `/portal/reset-password?token=...` both return 200 (SPA fallback, no 404) with correct `no-store` header, but the page is a client-rendered SPA so the actual "expired or already used" wording could not be confirmed by curl/WebFetch (no JS execution); needs a quick human check in a real browser with a bogus/expired token (no real reset should be triggered).
+- [ ] Send a test enquiry: email arrives as before, and it appears in Portal → Admin → Enquiries as "In Zoho CRM" (and under Leads in Zoho CRM); delete it afterwards — needs a real enquiry submission and Zoho CRM/admin access; owner/human action, not run here (explicitly out of scope for this automated pass).
+- [ ] Class, student and parent invite; online assignment published, solved, returned; parent sees marks — needs real invited accounts across roles; owner/human action, not run here.
+- [ ] Deactivate a test tutor → their next action fails — needs a real test tutor account; owner/human action, not run here.
+- [x] Refresh on a deep link (e.g. `/portal/classes`) still loads — verified via curl: `/portal/classes` returns HTTP 200 (SPA fallback), not a 404.
+- [x] `/portal/*` responses carry `Content-Security-Policy` (naming `unzjnxctkyahtmrkinyr.supabase.co`), `X-Robots-Tag: noindex, nofollow`, `Cache-Control: no-store` — verified via curl on `/portal/login` and `/portal/classes`: all three headers present and correct.

@@ -640,7 +640,7 @@ Kept in `supabase/README.md`.
 
 1. **First admin on a new environment.** Invite the person from the Supabase dashboard (Authentication → Invite). After they accept, run `update public.profiles set role = 'admin' where email = '…';` in the SQL editor (runs as `postgres`, so the column grant doesn't apply). They set up two-step on first sign-in. Locally, `seed.sql` creates `admin@local.test`, `tutor@local.test` and `inactive@local.test` with a known local-only password.
 2. **Second admin.** Make at least two admins so one can reset the other's two-step (Q2).
-3. **Break-glass: the only admin lost every authenticator.** The developer deletes the factors in the Supabase dashboard (Authentication → user → MFA factors) after confirming identity by phone. Write an `audit_log` row by hand with details `{"via":"break-glass"}`.
+3. **Break-glass: the only admin lost every authenticator.** The developer deletes the factors in the Supabase dashboard (Authentication → user → MFA factors) after confirming identity by calling a number held outside the portal (for example, the one in the developer's own contacts), never the phone on their portal profile, which the account itself can change (item 4 security review S1). Write an `audit_log` row by hand with details `{"via":"break-glass"}`.
 4. **Someone leaves.** Admin → Staff → Deactivate. Check the audit log. Their photo stays in storage until removed.
 5. **Deploy schema.** `supabase db push --linked` to staging, test, then prod. Never edit an applied migration; add a new one.
 6. **Free-tier pause.** A paused project means nobody can sign in. Resume it in the dashboard, and move to Pro before real use (Q5).

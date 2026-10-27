@@ -198,6 +198,7 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           due_on: string | null;
+          hold_results: boolean;
           id: string;
           instructions: string;
           max_mark: number | null;
@@ -212,6 +213,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           due_on?: string | null;
+          hold_results?: boolean;
           id?: string;
           instructions?: string;
           max_mark?: number | null;
@@ -225,6 +227,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           due_on?: string | null;
+          hold_results?: boolean;
           id?: string;
           instructions?: string;
           max_mark?: number | null;
@@ -368,6 +371,74 @@ export type Database = {
           },
         ];
       };
+      email_outbox: {
+        Row: {
+          assignment_id: string;
+          attempts: number;
+          claimed_at: string | null;
+          created_at: string;
+          id: string;
+          kind: string;
+          reason: string | null;
+          recipient_id: string;
+          recipient_role: string;
+          sent_at: string | null;
+          status: string;
+          student_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          assignment_id: string;
+          attempts?: number;
+          claimed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          kind: string;
+          reason?: string | null;
+          recipient_id: string;
+          recipient_role: string;
+          sent_at?: string | null;
+          status?: string;
+          student_id: string;
+        };
+        Update: {
+          assignment_id?: string;
+          attempts?: number;
+          claimed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          reason?: string | null;
+          recipient_id?: string;
+          recipient_role?: string;
+          sent_at?: string | null;
+          status?: string;
+          student_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'email_outbox_assignment_id_fkey';
+            columns: ['assignment_id'];
+            isOneToOne: false;
+            referencedRelation: 'assignments';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'email_outbox_recipient_id_fkey';
+            columns: ['recipient_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'email_outbox_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'students';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       enquiries: {
         Row: {
           created_at: string;
@@ -460,6 +531,61 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      notification_settings: {
+        Row: {
+          profile_id: string;
+          updated_at: string;
+          work_returned: boolean;
+        };
+        ComputedFields: never;
+        Insert: {
+          profile_id: string;
+          updated_at?: string;
+          work_returned?: boolean;
+        };
+        Update: {
+          profile_id?: string;
+          updated_at?: string;
+          work_returned?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_settings_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: true;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      posts: {
+        Row: {
+          author_id: string | null;
+          body: string;
+          created_at: string;
+          id: string;
+          title: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_id?: string | null;
+          body: string;
+          created_at?: string;
+          id?: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          author_id?: string | null;
+          body?: string;
+          created_at?: string;
+          id?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
       };
       profiles: {
         Row: {
@@ -628,6 +754,17 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      admin_email_problems: {
+        Args: { max_rows?: number };
+        Returns: {
+          assignment_title: string;
+          created_at: string;
+          id: string;
+          reason: string;
+          recipient_role: string;
+          state: string;
+        }[];
+      };
       admin_list_activity: {
         Args: { max_rows?: number };
         Returns: {
@@ -696,6 +833,25 @@ export type Database = {
           year_level: number;
         }[];
       };
+      notify_claim_emails: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          assignment_id: string;
+          assignment_title: string;
+          child_first_name: string;
+          class_name: string;
+          email: string;
+          id: string;
+          recipient_first_name: string;
+          recipient_role: string;
+          student_id: string;
+        }[];
+      };
+      notify_flag_config_missing: { Args: Record<PropertyKey, never>; Returns: undefined };
+      notify_record_result: {
+        Args: { failure_reason?: string; outcome: string; target: string };
+        Returns: undefined;
+      };
       parent_child_assignment: {
         Args: { target_assignment: string; target_student: string };
         Returns: Json;
@@ -709,6 +865,7 @@ export type Database = {
           comment: string;
           due_on: string;
           is_late: boolean;
+          is_past_class: boolean;
           mark: number;
           published_at: string;
           question_count: number;
@@ -767,6 +924,7 @@ export type Database = {
           comment: string;
           due_on: string;
           is_late: boolean;
+          is_past_class: boolean;
           mark: number;
           published_at: string;
           question_count: number;

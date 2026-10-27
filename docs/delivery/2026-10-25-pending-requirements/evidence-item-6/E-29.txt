@@ -1,0 +1,3 @@
+Error: [global-setup] The dev server at http://localhost:5173 requested a hosted Supabase project (https://example.supabase.co/rest/v1/posts?select=id&limit=1); stop it and re-run with the local settings.
+> 121 |       throw new Error(
+  122 |         `[global-setup] The dev server at ${config.web.baseUrl} requested a hosted Supabase ` +

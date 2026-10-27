@@ -1,0 +1,5 @@
+1: http://127.0.0.1:55321 equal
+2: .env.example .env.production 
+3: 0 WEB_BASE_URL=http://localhost:5173 SUPABASE_REST_URL=http://127.0.0.1:55321 MAILPIT_URL=http://127.0.0.1:55324 
+4: []
+5: 6c717df anc=0 diff=1 feature/fair-results anc6c7=0

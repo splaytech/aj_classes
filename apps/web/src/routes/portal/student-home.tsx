@@ -14,6 +14,7 @@ import {
   DueChip,
   LoadError,
   PageHeader,
+  PastClassChip,
   ProgressSummary,
   SectionCard,
   scoreText,
@@ -177,6 +178,11 @@ function ReturnedItem({ item }: { item: FamilyAssignment }) {
           <Typography variant="body2" color="text.secondary">
             {item.className}
           </Typography>
+          {item.isPastClass && (
+            <Box sx={{ mt: 1 }}>
+              <PastClassChip />
+            </Box>
+          )}
           <Typography sx={{ mt: 1, fontWeight: 700 }}>{scoreText(item)}</Typography>
           {item.comment && (
             <Typography

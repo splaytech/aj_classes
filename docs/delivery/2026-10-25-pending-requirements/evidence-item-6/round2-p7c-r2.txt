@@ -1,0 +1,30 @@
+== E-72
+120 121 180 181 
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+-          VITE_SUPABASE_URL: ''
+-          VITE_SUPABASE_PUBLISHABLE_KEY: ''
++          VITE_SUPABASE_URL: https://example.supabase.co
++          VITE_SUPABASE_PUBLISHABLE_KEY: proof-placeholder
+✅  Success - Main Build with no Supabase config (never the hosted project)
+check-hosted-ref: 0 files (of 153 scanned)
+✅  Success - Main No hosted project reference in the build
+✅  Success - Main Lighthouse uses Playwright's Chromium
+✅  Success - Main Lighthouse (mobile, median of 3; thresholds in apps/web/lighthouserc.json)
+lighthouse-report: 18 runs, 18 supabase.co requests
+❌  Failure - Main No Supabase requests; JS size per page
+19 failed
+❌  Failure - Main CSP sweep on the mirror (item 5, AC-5.3 and AC-5.8)
+Artifact lighthouse-report has been successfully uploaded! Final size is 14727043 bytes. Artifact ID is 3384952654
+Artifact csp-report has been successfully uploaded! Final size is 68780889 bytes. Artifact ID is 2829685262
+🏁  Job failed
+exit 1 wall 290s
+ref 0 hosts example.supabase.co/ 
+   1 lighthouse-report: 18 runs, 18 supabase.co requests
+  18 supabase.co request: https://example.supabase.co/rest/v1/posts?select=id&limit=1
+  20 [CI/Lighthouse]   |     +     "directive": "connect-src",
+   1 [CI/Lighthouse]   |     Received array:  [{"blockedURI": "https://example.supabase.co/rest/v1/posts?select=id&limit=1", "directive": "connect-src"}, {"blockedURI": "https://example.com/x.js", "directive": "script-src-elem"}]
+csp-report lighthouse-report 
+reports 18
+network-supabase=0 runs-with-blocked=18
+status 0
+head-equal

@@ -1,0 +1,8 @@
+BEGIN
+DELETE 1
+results_inside=0
+{"sub" : "088371f3-73a2-4d89-a005-5a845addaa8e", "role" : "authenticated"}
+SET
+NOTICE:  raised P0002 not_found
+DO
+ROLLBACK

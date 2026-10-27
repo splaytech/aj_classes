@@ -5,7 +5,7 @@
 import { BUSINESS } from './business.constants';
 import type { SocialPlatform } from './business.constants';
 import { PROGRAMMES, PROGRAMME_SLUGS } from './programmes.constants';
-import { SECTION_IDS, programmePath } from './routes.constants';
+import { ROUTES, SECTION_IDS, programmePath } from './routes.constants';
 
 export const TAGLINE = 'Every student can rise.';
 
@@ -47,6 +47,9 @@ export const NAV = {
     { label: 'FAQ', sectionId: SECTION_IDS.faq },
     { label: 'Contact', sectionId: SECTION_IDS.contact },
   ],
+  // A page, not a home-page section, so it sits outside `links`. Shown last, and only once at
+  // least one post exists (ADR-0001). Becomes "What's On" when Events ship (B11).
+  newsLink: { label: 'News', href: ROUTES.posts },
   cta: 'Register Interest',
   // One link for everyone: the portal sends each person to their own home by role.
   signIn: 'Sign in',
@@ -174,7 +177,9 @@ export const RESULTS = {
 
 export type ApproachStepId = 'assess' | 'plan' | 'practise' | 'review';
 
-type ApproachStep = { id: ApproachStepId; name: string; text: string };
+// `assertion` is a short, school-as-subject ("We…") headline; optional keeps the
+// renderer null-safe for any step that doesn't have one (ui-polish.md §3, item 2).
+type ApproachStep = { id: ApproachStepId; name: string; text: string; assertion?: string };
 
 export const APPROACH = {
   heading: 'Our Approach',
@@ -188,22 +193,26 @@ export const APPROACH = {
     {
       id: 'assess',
       name: 'Assess',
-      text: 'An initial assessment shows where your child is today: their strengths, gaps and goals.',
+      assertion: 'We start by knowing your child.',
+      text: 'A first assessment pinpoints exactly where your child stands — their strengths, gaps and goals.',
     },
     {
       id: 'plan',
       name: 'Plan',
-      text: 'We place them in the right small group and set personalised targets for the term.',
+      assertion: 'We build a plan that fits.',
+      text: 'We place your child in the right small group and set clear, personal targets for the term.',
     },
     {
       id: 'practise',
       name: 'Practise',
-      text: 'Twice-weekly classes build skills, then timed practice builds exam confidence.',
+      assertion: 'We turn practice into confidence.',
+      text: 'Twice-weekly classes build real skill, and timed practice builds exam confidence.',
     },
     {
       id: 'review',
       name: 'Review',
-      text: 'Regular feedback and progress updates, then interview preparation when it counts.',
+      assertion: 'We keep you in the loop.',
+      text: 'You get regular feedback and progress updates, and focused interview preparation when it counts.',
     },
   ] satisfies readonly ApproachStep[],
 };
@@ -356,6 +365,7 @@ export const FOOTER = {
   contactHeading: 'Contact',
   location: LOCATION,
   privacyLink: 'Privacy Policy',
+  newsLink: 'News', // first in the legal row, only once at least one post exists (ADR-0001)
   copyright: (year: number) => `© ${year} AJ Classes. All rights reserved.`,
   // Short form of the "Accuracy of information" section in PRIVACY.
   disclaimer:
@@ -370,15 +380,16 @@ export const PRIVACY = {
   sections: [
     {
       heading: 'What we collect',
-      text: "When you register interest, contact us or subscribe, we collect the details you give us: your name, email address, and, if you choose to give them, your phone number and message. We don't ask for sensitive information.",
+      text: "When you register interest, contact us or subscribe, we collect the details you give us: your name, email address, and, if you choose to give them, your phone number and message. We don't ask for sensitive information, except for the Working with Children Check or VIT registration details we ask job applicants for (see Job applications).",
     },
     {
       heading: 'Why we collect it',
       text: 'To respond to your enquiry, contact you in the way you prefer, and, if you ticked the box or subscribed, send you news and enrolment updates. Every newsletter email has an unsubscribe link, and you can unsubscribe at any time.',
     },
     {
+      // The news check wording (ADR-0001, Security item 1 finding 6) is for the owner to approve with B1.
       heading: 'Who handles it',
-      text: "Enquiry form submissions are delivered to us by email through a form-processing service (Web3Forms). We also keep a copy of each enquiry in our database (Supabase) and in our customer records system (Zoho CRM), so we can follow up; if you enrol, invoices are sent through Zoho Invoice. Newsletter sign-ups are managed by Kit (kit.com), our email newsletter service, which stores your email address and sends our updates. Both may process data outside Australia (including the United States). To block spam, our enquiry form uses a hidden check that doesn't collect any extra information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing.",
+      text: "Enquiry form submissions are delivered to us by email through a form-processing service (Web3Forms). We also keep a copy of each enquiry in our database (Supabase) and in our customer records system (Zoho CRM), so we can follow up; if you enrol, invoices are sent through Zoho Invoice. Newsletter sign-ups are managed by Kit (kit.com), our email newsletter service, which stores your email address and sends our updates. Both may process data outside Australia (including the United States). To block spam, our enquiry form uses a hidden check that doesn't collect any extra information. Our website is hosted by Vercel, and we use Vercel Web Analytics, which is cookieless and does not identify you personally. We don't sell or share your information with anyone for marketing. When you visit a page, your browser asks our database provider (Supabase, Sydney) whether there is any news to show. Like any web request, this sends your IP address and browser type. Supabase keeps these in short-lived technical logs for security and troubleshooting. We don't save them in our own records or use them to identify you.",
     },
     {
       // Owner request (Oct 2026). Wording for the owner to review; consumer law limits what can be excluded.
@@ -387,8 +398,10 @@ export const PRIVACY = {
     },
     {
       // R3b review F19: family accounts. Wording for the owner to review.
-      heading: 'Student and parent portal accounts',
-      text: "Portal accounts are created only by invitation from AJ Classes. For each account we keep your name, email address and sign-in times. For students we also keep their classes and timetable, their assignment answers, marks, and tutor feedback and comments. A student's account is only created after a parent or guardian agrees, in the portal or on our enrolment form. Parents linked to a student can see that student's assignments, answers once handed in, marks, progress and tutor comments; they never see other students. Portal data is stored with Supabase (database and sign-in), and our sign-in pages use Cloudflare Turnstile to check that you are a person; both may process data outside Australia. We never use portal information for marketing.",
+      // The "work returned" email sentence (ADR-0004) and the Resend mention (Security item 3,
+      // finding 3) are drafts for the owner to approve with B17.
+      heading: 'Portal accounts',
+      text: "Portal accounts are created only by invitation from AJ Classes. For each account we keep your name, email address and sign-in times. For tutors and other staff we also keep a phone number, given at account setup or added later on My profile, and kept up to date by them or an admin. We use it to contact them about classes; only they and AJ Classes admins can see it, and it is never published. For students we also keep their classes and timetable, their assignment answers, marks, and tutor feedback and comments. A student's account is only created after a parent or guardian agrees, in the portal or on our enrolment form. Parents linked to a student can see that student's assignments, answers once handed in, marks, progress and tutor comments; they never see other students. Portal data is stored with Supabase (database and sign-in), our sign-in pages use Cloudflare Turnstile to check that you are a person, and Resend (United States) sends our sign-in and portal emails; all of these may process data outside Australia. We never use portal information for marketing. When your child's work is marked and returned, we email you and your child (if they have their own account). These are service emails; you can turn them off in Account → Notifications.",
     },
     {
       // invite-onboarding.md, "Consents". Wording for the owner to review.
@@ -396,8 +409,13 @@ export const PRIVACY = {
       text: 'When parents set up their portal account, they can choose, separately and only if they want to: to receive news, offers and enrolment updates by email and SMS; to let us share their child’s name and selective school or scholarship result on our website and social media; and to let us publish a testimonial video they provide. None of these is needed to use the portal. Parents can change or withdraw any of them at any time in Account → Your choices, or by emailing hello@ajclasses.com.au; withdrawing stops future use, though we can’t always remove something already shared. Emails, SMS and calls about classes, accounts and invoices are part of our service and are covered by our Terms.',
     },
     {
+      // We're hiring page (06-security findings 7 and 8). Retention set by the owner, 27 Oct 2026.
+      heading: 'Job applications',
+      text: "If you apply to work with us, you email us at hello@ajclasses.com.au; this website doesn't collect applications through a form. We use what you send us, such as your name, contact details, CV, experience and your Working with Children Check or VIT registration details, only to consider your application and to confirm your check or registration with the body that issued it. Applications stay in our email inbox; we don't add them to our customer records or use them for marketing. If you aren't offered a role, we delete your application 12 months after we receive it. You can ask us to delete it sooner at any time by emailing hello@ajclasses.com.au.",
+    },
+    {
       heading: 'How long we keep it',
-      text: 'Only as long as we need it to respond to you and provide our services, then we delete it.',
+      text: "Only as long as we need it to respond to you and provide our services, then we delete it. Applications from people we don't hire are kept for up to 12 months, as described above.",
     },
     {
       heading: 'Children',

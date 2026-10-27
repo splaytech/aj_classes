@@ -1,0 +1,37 @@
+P|admin@local.test|admin|active|true
+P|inactive@local.test|tutor|active|false
+P|newadmin@local.test|admin|active|true
+P|parent@local.test|parent|active|true
+P|student@local.test|student|active|true
+P|tutor@local.test|tutor|active|true
+S|Aarav Demo|true|<uuid>|parent|2026-10-23 03:33:04.814207+00
+S|Isla Demo|true|null|null|null
+S|Leo Demo|true|null|null|null
+S|Mia Demo|true|null|null|null
+S|Noah Demo|true|null|null|null
+S|Zara Demo|true|null|null|null
+E|NAPLAN Reading & Writing|Noah Demo
+E|NAPLAN Reading & Writing|Zara Demo
+E|Selective Entry Maths & Reasoning|Aarav Demo
+E|Selective Entry Maths & Reasoning|Isla Demo
+E|Selective Entry Maths & Reasoning|Leo Demo
+E|Selective Interview Preparation|Aarav Demo
+E|Selective Interview Preparation|Isla Demo
+G|2
+C|NAPLAN Reading & Writing|true
+C|Selective Entry Maths & Reasoning|true
+C|Selective Interview Preparation|true
+A|Fractions practice set 3|published|false
+A|Fractions quick quiz|published|false
+A|Number patterns check|published|false
+A|Persuasive writing draft|published|false
+A|Ratio worksheet|draft|false
+A|Reasoning mock test 1|published|false
+A|Times tables warm-up|published|false
+A|Word problems set 1|published|false
+R|Number patterns check|Aarav Demo|returned|6.0|false|Great reasoning in the written question, Aarav. Revise square numbers: 16 is 4 × 4, so the next one is 5 × 5.
+R|Reasoning mock test 1|Aarav Demo|marked|42.0|false|Strong on patterns; check units in question 7.
+R|Reasoning mock test 1|Isla Demo|submitted|-|true|
+R|Reasoning mock test 1|Leo Demo|not_submitted|-|true|
+R|Word problems set 1|Aarav Demo|submitted|1.0|true|
+ANS|86a01e0ebbc1ec9f766126da0603b582

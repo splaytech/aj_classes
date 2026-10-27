@@ -1,0 +1,63 @@
+/* The posts arrive after the page shows. Filling the first screen keeps the footer below the
+   fold, so the list arriving doesn't push a visible footer down (layout shift, CLS < 0.1). */
+.page {
+  min-height: calc(100svh - var(--header-height) - 2 * var(--section-gap));
+}
+
+.intro {
+  font-size: var(--font-size-lg);
+}
+
+.posts {
+  display: grid;
+  /* minmax(0, …): a long unbroken word or URL must not widen the track past the screen. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+  margin: var(--space-8) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.post {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere; /* long titles and links wrap inside the card, never scroll sideways */
+  gap: var(--space-2);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-subtle) 100%);
+  box-shadow: var(--shadow-card);
+}
+
+.post h2 {
+  margin: 0;
+  font-size: var(--font-size-h3);
+}
+
+.date {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.body {
+  white-space: pre-wrap;
+}
+
+/* Loading, empty and error lines (ADR-0001): same spacing as the list they stand in for. */
+.status {
+  margin: var(--space-8) 0 0;
+}
+
+.status p {
+  margin: 0;
+}
+
+.status .statusLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}

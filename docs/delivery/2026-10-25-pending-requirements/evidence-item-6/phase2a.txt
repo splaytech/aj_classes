@@ -1,0 +1,28 @@
+== E-20
+exit 0
+      23
+0
+       0
+SUPABASE_ANON_KEY equal
+SUPABASE_SERVICE_ROLE_KEY equal
+VITE_SUPABASE_PUBLISHABLE_KEY equal
+3
+       3
+0
+same
+== E-21
+a exit 1 out=0 err: local-env: the stack's API_URL is "https://example.supabase.co", not http://127.0.0.1:55321; refusing
+b exit 1 out=0 err: local-env: `supabase status` has no PUBLISHABLE_KEY
+c exit 1 out=0 err: local-env: `supabase status -o json` failed; start the local stack first (pnpm db:start)
+== E-22
+WEB_BASE_URL=https://example.supabase.co exit 1 listen 0
+Error: Config error: WEB_BASE_URL must be localhost or 127.0.0.1, not "example.supabase.co"
+SUPABASE_REST_URL=https://example.supabase.co exit 1 listen 0
+Error: Config error: SUPABASE_REST_URL must be localhost or 127.0.0.1, not "example.supabase.co"
+MAILPIT_URL=http://10.0.0.5:55324 exit 1 listen 0
+Error: Config error: MAILPIT_URL must be localhost or 127.0.0.1, not "10.0.0.5"
+PG_HOST=db.example.supabase.co exit 1 listen 0
+Error: Config error: PG_HOST must be localhost or 127.0.0.1, not "db.example.supabase.co"
+ADMIN_EMAIL= exit 1 listen 0
+Error: Missing required environment variable(s): ADMIN_EMAIL.
+Run `node e2e/scripts/local-env.mjs > e2e/.env` with the local stack up (docs/testing/ci-gates.md).

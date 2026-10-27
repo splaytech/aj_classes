@@ -404,9 +404,11 @@ Every one of these goes in the pre-rendered `<head>` of the home page. `/privacy
 </head>
 ```
 
+**Dropped (26 Oct 2026, pending-requirements item 9):** the `hreflang` and `geo.*` tags in the sample above. [Why](../../delivery/2026-10-25-pending-requirements/01b-requirement-items-4-9.md#item-9--hreflang--geo-head-tags-dropped)
+
 | ID | Requirement |
 |---|---|
-| F6.3.1 | All the tags above are present and filled with real values on production. |
+| F6.3.1 | All the tags above are present and filled with real values on production, **except the `hreflang` and `geo.*` tags, dropped** ([item 9](../../delivery/2026-10-25-pending-requirements/01b-requirement-items-4-9.md#item-9--hreflang--geo-head-tags-dropped)). |
 | F6.3.2 | **Favicon matters for branded search:** Google shows it next to the result. Provide a clear square logo mark (at least 48×48, ideally a multiple of 48) as `favicon.ico`, `icon.svg` and 192/512 PNGs. |
 | F6.3.3 | `og-image.png` (1200×630) with the logo, brand name and tagline. |
 | F6.3.4 | `meta keywords` is **not** added. Google ignores it and it only exposes keyword strategy to competitors. |
@@ -532,7 +534,7 @@ These have more influence on branded ranking than any tag. Most are **owner acti
 
 **Acceptance criteria (F6 overall)**
 - [ ] Pre-rendered HTML contains the full content and JSON-LD (F6.1)
-- [ ] Every tag in F6.3 is present in production HTML; Lighthouse SEO = 100
+- [ ] Every tag in F6.3 is present in production HTML (`hreflang` and `geo.*` dropped, [item 9](../../delivery/2026-10-25-pending-requirements/01b-requirement-items-4-9.md#item-9--hreflang--geo-head-tags-dropped)); Lighthouse SEO = 100
 - [ ] Rich Results Test: Organization / LocalBusiness detected with no errors
 - [ ] Search Console: property verified, sitemap "Success", home page "URL is on Google"
 - [ ] Bing Webmaster Tools verified and sitemap submitted

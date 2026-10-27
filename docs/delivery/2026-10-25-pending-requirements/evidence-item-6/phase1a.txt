@@ -1,0 +1,53 @@
+== E-11
+      54
+   1 apps/web/lighthouserc.json
+   1 apps/web/package.json
+  14 apps/web/scripts
+   3 apps/web/src
+  28 e2e
+   1 root:.github/workflows/ci.yml
+   1 root:.gitignore
+   1 root:.prettierignore
+   1 root:package.json
+   1 root:pnpm-lock.yaml
+   1 root:pnpm-workspace.yaml
+   1 root:README.md
+apps/web/src/components/portal/ProfileForm.test.tsx
+apps/web/src/routes/portal/admin-posts.test.tsx
+apps/web/src/test/user.ts
+cfg 0
+-    "typecheck": "pnpm --filter web typecheck",
+-    "test": "pnpm --filter web test",
++    "typecheck": "pnpm --filter web typecheck && pnpm --filter aj-classes-e2e typecheck",
++    "test": "pnpm --filter web test && pnpm --filter aj-classes-e2e test:unit",
+== E-12
+  14 same
+== E-13
+Stage  Job ID           Job name         Workflow name  Workflow file  Events           
+0      lighthouse       Lighthouse       CI             ci.yml         push,pull_request
+0      structured-data  Structured data  CI             ci.yml         push,pull_request
+0      web              web              CI             ci.yml         push,pull_request
+0      database         database         CI             ci.yml         push,pull_request
+0      e2e              E2E smoke        CI             ci.yml         push,pull_request
+14:on:
+15-  push:
+16-    branches: [main, develop]
+17-  pull_request:
+29:    timeout-minutes: 15
+49:    timeout-minutes: 20
+63:    timeout-minutes: 15
+107:    timeout-minutes: 10
+167:    timeout-minutes: 10
+0
+95:      - if: failure()
+144:        if: ${{ !cancelled() && steps.hosted-ref.outcome == 'success' }}
+147:        if: ${{ !cancelled() && steps.hosted-ref.outcome == 'success' }}
+149:      - if: always()
+155:      - if: failure()
+127:        id: hosted-ref
+19:permissions:
+20-  contents: read
+1
+102:          retention-days: 7
+154:          retention-days: 7
+162:          retention-days: 7

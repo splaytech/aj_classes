@@ -47,6 +47,8 @@ export const APP_CONFIG = {
     url: env.VITE_SUPABASE_URL || '',
     publishableKey: env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
     leadsFunctionPath: '/functions/v1/leads',
+    postsRestPath: '/rest/v1/posts', // public news reads, plain fetch (ADR-0001)
+    publicReadTimeoutMs: 5000, // a slow database hides the News link rather than holding it
   },
 
   // Cloudflare Turnstile "I am human" check on staff sign-in and password reset.
@@ -138,6 +140,16 @@ export const FORM_LIMITS = {
   nameMin: 2,
   nameMax: 100,
   messageMax: 2000,
+} as const;
+
+// Admin daily posts (posts.md). Must match the checks in the posts migration. listCap is the
+// most rows either posts page reads (services/post-rows.ts).
+export const POST_LIMITS = {
+  titleMin: 1, // counted after trimming spaces; the database counts untrimmed (05 dev notes)
+  titleMax: 120,
+  bodyMin: 1,
+  bodyMax: 5000,
+  listCap: 200,
 } as const;
 
 // Static files in /public.

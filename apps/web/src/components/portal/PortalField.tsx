@@ -59,7 +59,9 @@ type TextInputProps = {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  type?: 'text' | 'email';
+  type?: 'text' | 'email' | 'tel';
+  /** Which on-screen keyboard phones show, e.g. the phone keypad. */
+  inputMode?: 'tel';
   autoComplete?: string;
   error?: string;
   hint?: string;
@@ -72,6 +74,7 @@ export function TextInput({
   value,
   onChange,
   type = 'text',
+  inputMode,
   autoComplete,
   error,
   hint,
@@ -82,6 +85,7 @@ export function TextInput({
       <input
         id={id}
         type={type}
+        inputMode={inputMode}
         className={styles.input}
         autoComplete={autoComplete}
         maxLength={maxLength}

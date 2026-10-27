@@ -86,10 +86,16 @@ export type StaffProfile = {
   subjects: string[]; // keys, see SUBJECTS
   photoPath: string | null;
   photoUrl: string | null;
+  phone: string | null; // staff only, as +61…; shown to the person and to admins (item 4)
 };
 
 /** The text parts of a profile a person can change themselves. */
-export type ProfileChanges = Pick<StaffProfile, 'fullName' | 'bio' | 'qualifications' | 'subjects'>;
+export type ProfileChanges = Pick<
+  StaffProfile,
+  'fullName' | 'bio' | 'qualifications' | 'subjects'
+> & {
+  phone: string; // the field's text as typed; the database normalises it
+};
 
 // --- Staff management (R2a step 7) -----------------------------------------------
 
@@ -134,6 +140,47 @@ export type Enquiry = {
 
 /** What happened when an admin retried sending an enquiry to Zoho CRM. */
 export type ResyncOutcome = { crmStatus: CrmStatus; crmError: string | null };
+
+/** A daily post, as shown to admins and to any website visitor (posts.md). */
+export type Post = {
+  id: string;
+  publishedAt: string; // ISO; mapped from created_at
+  updatedAt: string; // ISO; mapped from updated_at
+  title: string;
+  body: string; // plain text, rendered escaped
+  authorId: string | null; // null once the author's account is removed
+};
+
+/** What the public /posts page reads: no author or edit time (Security item 1, finding 1). */
+export type PublicPost = Pick<Post, 'id' | 'publishedAt' | 'title' | 'body'>;
+
+/** What the compose/edit form on the admin page sends. */
+export type PostInput = { title: string; body: string };
+
+/** A student's or parent's email switches (Account → Notifications; ADR-0004). */
+export type NotificationSettings = { workReturned: boolean };
+
+/** One row of the admin Emails page: a "work returned" email that failed or is still waiting. */
+export type EmailProblemState = 'failed' | 'waiting';
+export type EmailProblemReason =
+  | 'rejected'
+  | 'rate_limited'
+  | 'server_error'
+  | 'network'
+  | 'no_address'
+  | 'max_attempts'
+  | 'config_missing'
+  | 'daily_limit'
+  | 'retrying'
+  | 'not_attempted';
+export type EmailProblem = {
+  id: string;
+  at: string; // ISO; when the work was returned (the row was queued)
+  recipientRole: 'student' | 'parent';
+  assignmentTitle: string;
+  state: EmailProblemState;
+  reason: EmailProblemReason;
+};
 
 export type ActivityAction =
   | 'invite_sent'
@@ -256,6 +303,8 @@ export type AssignmentSummary = {
   maxMark: number | null; // null: feedback only
   /** Drafts are visible to staff only (R3b FT2). */
   isPublished: boolean;
+  /** All-multiple-choice work waits for staff to return it (ADR-0007). Locked once published. */
+  holdResults: boolean;
   /** Online work has questions; paper homework has none (R3b D6). */
   questionCount: number;
   /** Sum of the question marks, or maxMark for paper homework; null: feedback only. */
@@ -318,8 +367,9 @@ export type Submission = {
   answers: SubmissionAnswer[];
 };
 
-/** The marks and feedback a tutor gives one answer. */
-export type AnswerMark = { questionId: string; awardedMarks: number | null; feedback: string };
+/** The tutor's mark and feedback on one answer. Multiple choice omits `awardedMarks`: it keeps
+ * its automatic mark, and only the feedback is saved (item 7 AC-7.4). */
+export type AnswerMark = { questionId: string; awardedMarks?: number | null; feedback: string };
 
 export type AssignmentInput = {
   id?: string;
@@ -387,6 +437,8 @@ export type FamilyAssignment = {
   /** Only once returned (F12). */
   mark: number | null;
   comment: string;
+  /** Returned work kept after leaving the class or the class ending (ADR-0007, rule (b)). */
+  isPastClass: boolean;
 };
 
 /** A question as a student (or parent) sees it. Marking fields are empty until returned. */
@@ -419,6 +471,7 @@ export type FamilyAssignmentView = Pick<
   | 'totalMarks'
   | 'mark'
   | 'comment'
+  | 'isPastClass'
 > & { instructions: string; questions: FamilyQuestion[] };
 
 export type ChildAccountStatus = 'none' | 'invited' | 'active' | 'deactivated';

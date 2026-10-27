@@ -1,5 +1,6 @@
 // Marking one student's online work (R3b story FT3): their answers, marks and feedback for the
-// written answers (multiple choice marks itself), an overall comment, then Return to student.
+// written answers, feedback for multiple choice (it marks itself; item 7 AC-7.4), an overall
+// comment, then Return to student.
 // The database refuses marks above a question's marks and returning with unmarked answers.
 
 import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined';
@@ -70,17 +71,15 @@ function SubmissionForm({ submission, onSaved }: { submission: Submission; onSav
 
   const [drafts, setDrafts] = useState<Record<string, MarkDraft>>(() =>
     Object.fromEntries(
-      assignment.questions
-        .filter((question) => question.kind === 'written')
-        .map((question) => {
-          const answer = answerFor(question.id);
-          const marks = answer?.awardedMarks ?? null;
-          const draft = {
-            markText: marks === null ? '' : String(marks),
-            feedback: answer?.feedback ?? '',
-          };
-          return [question.id, draft];
-        }),
+      assignment.questions.map((question) => {
+        const answer = answerFor(question.id);
+        const marks = answer?.awardedMarks ?? null;
+        const draft = {
+          markText: marks === null ? '' : String(marks),
+          feedback: answer?.feedback ?? '',
+        };
+        return [question.id, draft];
+      }),
     ),
   );
   const [comment, setComment] = useState(result?.feedback ?? '');
@@ -92,20 +91,21 @@ function SubmissionForm({ submission, onSaved }: { submission: Submission; onSav
     setDrafts({ ...drafts, [questionId]: { ...drafts[questionId], ...change } as MarkDraft });
   }
 
-  /** The written answers' marks, or the problems to fix first. */
+  /** Every answer's mark (written) and feedback, or the problems to fix first. */
   function collectMarks(): { marks: AnswerMark[]; problems: Record<string, string> } {
     const problems: Record<string, string> = {};
-    const marks = assignment.questions
-      .filter((question) => question.kind === 'written')
-      .map((question) => {
-        const draft = drafts[question.id] ?? { markText: '', feedback: '' };
-        const parsed = parseAnswerMark(draft.markText, question.marks);
-        if (parsed.error) problems[question.id] = parsed.error;
-        else if (draft.feedback.length > QUESTION_LIMITS.answerFeedbackMax) {
-          problems[question.id] = SUBMISSION_PAGE.feedbackLength;
-        }
-        return { questionId: question.id, awardedMarks: parsed.value, feedback: draft.feedback };
-      });
+    const marks = assignment.questions.map((question): AnswerMark => {
+      const draft = drafts[question.id] ?? { markText: '', feedback: '' };
+      const tooLong = draft.feedback.length > QUESTION_LIMITS.answerFeedbackMax;
+      if (question.kind === 'multiple_choice') {
+        if (tooLong) problems[question.id] = SUBMISSION_PAGE.feedbackLength;
+        return { questionId: question.id, feedback: draft.feedback }; // the automatic mark stays
+      }
+      const parsed = parseAnswerMark(draft.markText, question.marks);
+      if (parsed.error) problems[question.id] = parsed.error;
+      else if (tooLong) problems[question.id] = SUBMISSION_PAGE.feedbackLength;
+      return { questionId: question.id, awardedMarks: parsed.value, feedback: draft.feedback };
+    });
     return { marks, problems };
   }
 
@@ -271,6 +271,21 @@ function AnswerCard({ number, question, answer, draft, error, onChange }: Answer
               {answer?.response.trim() ? answer.response : SUBMISSION_PAGE.noAnswer}
             </Typography>
           </Paper>
+        )}
+
+        {question.kind === 'multiple_choice' && draft && (
+          <TextField
+            size="small"
+            label={SUBMISSION_PAGE.feedbackLabel}
+            value={draft.feedback}
+            onChange={(event) => onChange({ feedback: event.target.value })}
+            error={Boolean(error)}
+            helperText={error}
+            slotProps={{ htmlInput: { maxLength: QUESTION_LIMITS.answerFeedbackMax } }}
+            multiline
+            minRows={2}
+            fullWidth
+          />
         )}
 
         {question.kind === 'written' && draft && (

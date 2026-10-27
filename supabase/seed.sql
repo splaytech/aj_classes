@@ -148,6 +148,12 @@ begin
     (v_mock, v_aarav, 'marked', 42, 'Strong on patterns; check units in question 7.'),
     (v_mock, v_isla, 'submitted', null, ''),
     (v_mock, v_leo, 'not_submitted', null, '');
+
+  -- The tutor marked Aarav's test, as the portal would record it. An insert from here has no
+  -- signed-in staff member, so the trigger leaves marked_by empty; setting it afterwards keeps the
+  -- marking rules happy and lets the local "work returned" demo send when it's returned.
+  update public.assignment_results set marked_by = v_tutor
+  where assignment_id = v_mock and student_id = v_aarav;
 end;
 $$;
 
@@ -298,3 +304,11 @@ begin
   where assignment_id = v_patterns and student_id = v_aarav;
 end;
 $$;
+
+-- "Work returned" email worker (ADR-0004), LOCAL ONLY: where pg_cron's kick reaches the local
+-- notifications function, and the local-only shared secret (matches NOTIFY_WORKER_SECRET in
+-- config.toml). Hosted values are a release step (supabase/README.md), never committed.
+-- The tutor's return above queued emails for Aarav and his parent; the worker sends them to the
+-- local Mailpit within 5 minutes of `db reset`.
+select vault.create_secret('http://supabase_kong_aj_classes:8000/functions/v1/notifications', 'notify_worker_url');
+select vault.create_secret('local-notify-secret', 'notify_worker_secret');

@@ -37,6 +37,7 @@ export function Approach() {
                 <span className={styles.stepLabel}>{APPROACH.stepLabel(index + 1, total)}</span>
               </div>
               <h3>{step.name}</h3>
+              {step.assertion ? <p className={styles.assertion}>{step.assertion}</p> : null}
               <p>{step.text}</p>
             </li>
           );

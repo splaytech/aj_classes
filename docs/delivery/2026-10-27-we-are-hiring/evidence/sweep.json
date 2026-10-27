@@ -1,0 +1,564 @@
+{
+ "375 /": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 134.1875,
+   "y": 631.9375,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 0,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/",
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg"
+  ]
+ },
+ "375 /programmes/vce": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 134.1875,
+   "y": 631.890625,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 0,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg",
+   "http://127.0.0.1:4173/programmes/vce"
+  ]
+ },
+ "375 /resources": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 134.1875,
+   "y": 632.046875,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 0,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg",
+   "http://127.0.0.1:4173/resources"
+  ]
+ },
+ "375 /resources/victorian-selective-entry-exam": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 134.1875,
+   "y": 632.375,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 0,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg",
+   "http://127.0.0.1:4173/resources/victorian-selective-entry-exam"
+  ]
+ },
+ "375 /posts": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 134.1875,
+   "y": 631.984375,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 0,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg",
+   "http://127.0.0.1:4173/posts"
+  ]
+ },
+ "375 /privacy": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 134.1875,
+   "y": 631.546875,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 0,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg",
+   "http://127.0.0.1:4173/privacy"
+  ]
+ },
+ "375 /subscribed": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 134.1875,
+   "y": 632.0625,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 1,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg",
+   "http://127.0.0.1:4173/subscribed"
+  ]
+ },
+ "375 /nope": {
+  "status": 404,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 134.1875,
+   "y": 631.875,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 1,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [
+   "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg",
+   "http://127.0.0.1:4173/nope"
+  ]
+ },
+ "375 /careers": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 134.1875,
+   "y": 631.6875,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 0,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/careers",
+   "http://127.0.0.1:4173/logo.svg"
+  ]
+ },
+ "1280 /": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 967.125,
+   "y": 680.15625,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 0,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/",
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg"
+  ]
+ },
+ "1280 /programmes/vce": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 967.125,
+   "y": 680.296875,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 0,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg",
+   "http://127.0.0.1:4173/programmes/vce"
+  ]
+ },
+ "1280 /resources": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 967.125,
+   "y": 679.765625,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 0,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg",
+   "http://127.0.0.1:4173/resources"
+  ]
+ },
+ "1280 /resources/victorian-selective-entry-exam": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 967.125,
+   "y": 680.453125,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 0,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg",
+   "http://127.0.0.1:4173/resources/victorian-selective-entry-exam"
+  ]
+ },
+ "1280 /posts": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 967.125,
+   "y": 679.59375,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 0,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg",
+   "http://127.0.0.1:4173/posts"
+  ]
+ },
+ "1280 /privacy": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 967.125,
+   "y": 680.140625,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 0,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg",
+   "http://127.0.0.1:4173/privacy"
+  ]
+ },
+ "1280 /subscribed": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 967.125,
+   "y": 680.171875,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 1,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg",
+   "http://127.0.0.1:4173/subscribed"
+  ]
+ },
+ "1280 /nope": {
+  "status": 404,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 967.125,
+   "y": 679.578125,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 1,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [
+   "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/logo.svg",
+   "http://127.0.0.1:4173/nope"
+  ]
+ },
+ "1280 /careers": {
+  "status": 200,
+  "count": 1,
+  "visible": true,
+  "target": null,
+  "sameStyleAsGuides": true,
+  "style": "rgb(248, 250, 252)|15px|400|underline|Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "box": {
+   "x": 967.125,
+   "y": 679.90625,
+   "width": 82.125,
+   "height": 24
+  },
+  "scroll": 0,
+  "h1": 1,
+  "robots": 0,
+  "legal": [
+   [
+    "Parent guides",
+    "We're hiring",
+    "Privacy Policy"
+   ]
+  ],
+  "msgs": [],
+  "reqs": [
+   "http://127.0.0.1:4173/_vercel/insights/script.js",
+   "http://127.0.0.1:4173/assets/*",
+   "http://127.0.0.1:4173/careers",
+   "http://127.0.0.1:4173/logo.svg"
+  ]
+ }
+}

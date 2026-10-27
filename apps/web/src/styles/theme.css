@@ -1,7 +1,7 @@
 /*
  * Brand theme (PRP F1). The ONLY place colours, fonts, sizes and spacing are defined.
  * Components use these variables and never hard-code values.
- * Colours come from the final logo ("Lines · 45° · blue").
+ * Colours come from the brand palette (blue, navy, gold); the logo is "Embossed arrows · 45° · golden".
  *
  * Colours are light everywhere. The portal can switch to dark by setting
  * data-portal-theme="dark" on <html> (R3b design D10); the public site never does. Every text

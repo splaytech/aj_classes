@@ -3,3 +3,9 @@ build/
 .react-router/
 brand/
 docs/
+e2e/playwright-report/
+e2e/test-results/
+apps/web/.lighthouseci/
+apps/web/lighthouse-report/
+# Structured-data fixtures are kept byte-for-byte as built (one is deliberately broken JSON).
+apps/web/scripts/fixtures/

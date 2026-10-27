@@ -9,7 +9,12 @@
     "typecheck": "react-router typegen && tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "start:railway": "serve --config serve.railway.json --no-clipboard --listen tcp://0.0.0.0:${PORT:-3000}"
+    "start:railway": "serve --config serve.railway.json --no-clipboard --listen tcp://0.0.0.0:${PORT:-3000}",
+    "check:hosted-ref": "node scripts/check-hosted-ref.ts",
+    "mirror": "node scripts/serve-mirror.ts --stub-analytics",
+    "lighthouse": "lhci autorun",
+    "lighthouse:report": "node scripts/check-lighthouse-report.ts .lighthouseci",
+    "check:structured-data": "node scripts/check-structured-data.ts build/client"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -31,6 +36,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@lhci/cli": "0.15.1",
     "@react-router/dev": "^8.4.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",

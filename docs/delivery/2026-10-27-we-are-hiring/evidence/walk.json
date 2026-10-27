@@ -1,0 +1,66 @@
+{
+ "375": {
+  "stops": 16,
+  "noRing": [
+   "BODY|Skip to main contentAJ Classes"
+  ],
+  "order": [
+   "A|#main-content",
+   "A|/",
+   "BUTTON|Open menu",
+   "A|mailto:hello@ajclasses.com.au?subject=Tutor%20application",
+   "A|/",
+   "INPUT|",
+   "BUTTON|Subscribe",
+   "A|mailto:hello@ajclasses.com.au",
+   "A|tel:+61469800685",
+   "A|https://www.facebook.com/profile.php?id=61595519166933",
+   "A|https://wa.me/61469800685?text=Hi%20AJ%20Classes%2C%20I'd%20like%20to%20know%20more%20about%20your%20classes.",
+   "A|/resources",
+   "A|/careers",
+   "A|/privacy",
+   "A|https://wa.me/61469800685?text=Hi%20AJ%20Classes%2C%20I'd%20like%20to%20know%20more%20about%20your%20classes.",
+   "BODY|Skip to main contentAJ Classes"
+  ],
+  "descLen": 136
+ },
+ "1280": {
+  "stops": 30,
+  "noRing": [
+   "BODY|Skip to main contentAJ Classes"
+  ],
+  "order": [
+   "A|#main-content",
+   "A|/",
+   "A|/#programmes",
+   "A|/programmes/selective-entry",
+   "A|/programmes/interviews",
+   "A|/programmes/seal-and-scholarships",
+   "A|/programmes/naplan",
+   "A|/programmes/icas",
+   "A|/programmes/maths-science-english",
+   "A|/programmes/vce",
+   "A|/programmes/vce-subject-selection",
+   "A|/programmes/ucat-and-gamsat",
+   "A|/#approach",
+   "A|/#about",
+   "A|/#faq",
+   "A|/#contact",
+   "A|/#contact",
+   "A|mailto:hello@ajclasses.com.au?subject=Tutor%20application",
+   "A|/",
+   "INPUT|",
+   "BUTTON|Subscribe",
+   "A|mailto:hello@ajclasses.com.au",
+   "A|tel:+61469800685",
+   "A|https://www.facebook.com/profile.php?id=61595519166933",
+   "A|https://wa.me/61469800685?text=Hi%20AJ%20Classes%2C%20I'd%20like%20to%20know%20more%20about%20your%20classes.",
+   "A|/resources",
+   "A|/careers",
+   "A|/privacy",
+   "A|https://wa.me/61469800685?text=Hi%20AJ%20Classes%2C%20I'd%20like%20to%20know%20more%20about%20your%20classes.",
+   "BODY|Skip to main contentAJ Classes"
+  ],
+  "descLen": 136
+ }
+}

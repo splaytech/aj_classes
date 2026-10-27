@@ -7,6 +7,7 @@ import type { StaffRole } from '@/constants';
 import { toErrorKey } from './auth-errors';
 import { attempt, fail, succeed } from './result';
 import { callAccountAdmin } from './account-admin.client';
+import { getAdminClient } from './staff-client';
 import { getSupabase } from './supabase.client';
 import type { Result, StaffMember } from './types';
 
@@ -42,7 +43,8 @@ function toStaffMember(row: StaffRow): StaffMember {
 
 export async function listStaff(): Promise<Result<StaffMember[]>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getAdminClient();
+    if (!supabase) return fail('notAllowed'); // not an admin with two-step: the layout shows the right page
     const { data, error } = await supabase.rpc('admin_list_staff');
     if (error) return fail(toErrorKey(error));
     return succeed((data as StaffRow[]).map(toStaffMember));
@@ -51,7 +53,8 @@ export async function listStaff(): Promise<Result<StaffMember[]>> {
 
 export async function getStaffMember(userId: string): Promise<Result<StaffMember>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getAdminClient();
+    if (!supabase) return fail('notAllowed'); // not an admin with two-step: the layout shows the right page
     const { data, error } = await supabase.rpc('admin_list_staff', { target: userId });
     if (error) return fail(toErrorKey(error));
     const row = (data as StaffRow[])[0];

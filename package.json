@@ -3,26 +3,27 @@
   "private": true,
   "packageManager": "pnpm@11.1.2",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.18"
   },
   "scripts": {
     "dev": "pnpm --filter web dev",
     "build": "pnpm --filter web build",
     "preview": "pnpm --filter web preview",
     "lint": "pnpm --filter web lint",
-    "typecheck": "pnpm --filter web typecheck",
-    "test": "pnpm --filter web test",
+    "typecheck": "pnpm --filter web typecheck && pnpm --filter aj-classes-e2e typecheck",
+    "test": "pnpm --filter web test && pnpm --filter aj-classes-e2e test:unit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "start:railway": "pnpm --filter web start:railway",
+    "mirror": "pnpm --filter web mirror",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:test": "supabase test db",
     "db:status": "supabase status",
     "db:types": "supabase gen types typescript --local > apps/web/src/services/database.types.ts && prettier --write apps/web/src/services/database.types.ts",
-    "test:functions": "node supabase/scripts/test-account-admin.mjs && node supabase/scripts/test-leads.mjs"
+    "test:functions": "node supabase/scripts/test-account-admin.mjs && node supabase/scripts/test-leads.mjs && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/scripts/test-notifications.mjs"
   },
   "devDependencies": {
     "prettier": "^3.9.9"

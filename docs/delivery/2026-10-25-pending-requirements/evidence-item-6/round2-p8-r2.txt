@@ -1,0 +1,34 @@
+== E-73 stripped count 6
+== E-74
+commits 25
+58600f2 test: add item 6 TSR round 1, BUG-13 and BUG-14
+1ea4405 docs: give the e2e typecheck step and the act clean-up in the CI runbook
+e83b81e docs(delivery): freeze the item 6 test plan
+0
+status 0 stash 0
+== E-80
+start 0
+mount 1 maxver 20261026100000
+diff-empty
+profiles 6 posts 0 enquiries 0 e2e 0 
+== E-81
+act-broken-db-r2.txt ref 0 hosts 
+act-broken-lh-r2.txt ref 0 hosts 
+act-broken-r2.txt ref 0 hosts 
+act-broken-sd-r2.txt ref 0 hosts 
+act-broken-web-r2.txt ref 0 hosts 
+act-db-r2.txt ref 0 hosts 
+act-e2e-r2.txt ref 0 hosts 
+act-hosted-r2.txt ref 0 hosts example.supabase.co/ 
+act-hostedref-r2.txt ref 0 hosts 
+act-lh-r2.txt ref 0 hosts 
+act-sd-r2.txt ref 0 hosts 
+act-threshold-r2.txt ref 0 hosts 
+act-web-1-r2.txt ref 0 hosts 
+act-web-2-r2.txt ref 0 hosts 
+act-web-3-r2.txt ref 0 hosts 
+raw-logs-with-ref 0
+== E-82 (runbook clean-up line)
+act-before 2
+act-after 0
+ports 0 worktrees 3

@@ -1,0 +1,11 @@
+== E-45/48
+{"status":"submitted","mark":null,"comment":"","leak":0,"fb":["",""]}
+{"status":"submitted","mark":null,"comment":""}
+{"status":"submitted","mark":null,"comment":"","leak":0,"fb":["",""]}
+{"status":"submitted","mark":null,"comment":""}
+student@local.test assignment_questions: 200 []
+student@local.test assignment_answers: 200 []
+student@local.test assignment_results: 200 []
+parent@local.test assignment_questions: 200 []
+parent@local.test assignment_answers: 200 []
+parent@local.test assignment_results: 200 []

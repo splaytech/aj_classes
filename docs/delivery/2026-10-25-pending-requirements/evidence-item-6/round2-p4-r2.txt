@@ -1,0 +1,34 @@
+== E-40
+build 0
+$ node scripts/check-hosted-ref.ts build/client
+check-hosted-ref: 0 files (of 153 scanned)
+exit 0
+check-structured-data: 18 pages, 0 problems
+stderr: [$ node scripts/check-structured-data.ts build/client]
+node exit 0 stderr 0
+== E-41
+11
+index.html 1 EducationalOrganization+LocalBusiness,WebSite,FAQPage
+resources/victorian-selective-entry-exam/index.html 1 Article,BreadcrumbList
+PROBLEMS 0
+9
+== E-42
+exit 0
+ Test Files  2 passed (2)
+      Tests  34 passed (34)
+1 1 1 1 1 1 1 1 1 
+== E-43
+a rc=1 out=[check-structured-data: 18 pages, 1 problems] err=[  programmes/vce/index.html: JSON-LD block 1 is not valid JSON (Expected ':' after property name in JSON at position 11 (line 1 column 12))|]
+b rc=1 out=[check-structured-data: 18 pages, 1 problems] err=[  programmes/vce/index.html: Course is missing "provider"|]
+c rc=1 out=[check-structured-data: 18 pages, 1 problems] err=[  programmes/vce/index.html: Course is missing "provider.name"|]
+d rc=1 out=[check-structured-data: 18 pages, 1 problems] err=[  programmes/vce/index.html: "item" is "/programmes/vce", not an absolute https://ajclasses.com.au URL|]
+e rc=1 out=[check-structured-data: 18 pages, 1 problems] err=[  programmes/vce/index.html: "url" is "http://localhost:5173/", not an absolute https://ajclasses.com.au URL|]
+f rc=1 out=[check-structured-data: 18 pages, 1 problems] err=[  resources/victorian-selective-entry-exam/index.html: has a node of type Review, which the site must not publish (R1 F6.4.3)|]
+g rc=1 out=[check-structured-data: 18 pages, 1 problems] err=[  resources/victorian-selective-entry-exam/index.html: has a node of type Review, which the site must not publish (R1 F6.4.3)|]
+h rc=1 out=[check-structured-data: 18 pages, 1 problems] err=[  programmes/vce/index.html: "url" is "https://ajclasses.com.au.example.com/", not an absolute https://ajclasses.com.au URL|]
+i rc=1 out=[check-structured-data: 18 pages, 1 problems] err=[  programmes/vce/index.html: "url" is "https://www.ajclasses.com.au/programmes/vce", not an absolute https://ajclasses.com.au URL|]
+j rc=1 out=[check-structured-data: 18 pages, 1 problems] err=[  index.html: "sameAs" is "http://example.com/x", not an absolute https:// URL|]
+k rc=1 out=[check-structured-data: 8 pages, 0 problems] err=[check-structured-data: no programme, guide page in sd-k; is it a full build?|]
+l rc=1 out=[check-structured-data: 0 pages, 0 problems] err=[check-structured-data: no home, programme, guide page in sd-l; is it a full build?|]
+m rc=1 err=[check-structured-data: no such folder: nope]
+n rc=1 err=[check-structured-data: no such folder: (none given)]

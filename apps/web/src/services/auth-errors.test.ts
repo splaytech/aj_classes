@@ -50,6 +50,21 @@ describe('toErrorKey', () => {
     expect(toErrorKey({ code: 'already_exists' })).toBe('alreadyExists');
   });
 
+  it('maps the phone checks raised by the profile and setup saves', () => {
+    expect(toErrorKey({ code: 'P0001', message: 'phone_required' })).toBe('phoneRequired');
+    expect(toErrorKey({ code: 'P0001', message: 'invalid_phone' })).toBe('invalidPhone');
+    expect(toErrorKey({ code: 'P0001', message: 'insufficient_aal' })).toBe('needsTwoStep');
+  });
+
+  it('maps the hold-results checks raised by the assignment save', () => {
+    expect(toErrorKey({ code: 'P0001', message: 'hold_needs_questions' })).toBe(
+      'holdNeedsQuestions',
+    );
+    expect(toErrorKey({ code: 'P0001', message: 'assignment_published' })).toBe(
+      'assignmentPublished',
+    );
+  });
+
   it('falls back to a generic message', () => {
     expect(toErrorKey(undefined)).toBe('unknown');
     expect(toErrorKey({ code: 'something_new' })).toBe('unknown');

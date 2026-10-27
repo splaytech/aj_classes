@@ -1,0 +1,90 @@
+{
+ "E-49": {
+  "empty": "",
+  "hint": [
+   "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website."
+  ],
+  "first": {
+   "status": [
+    "Profile saved."
+   ],
+   "alerts": [],
+   "described": [
+    "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website."
+   ],
+   "db": "Local Tutor|B|{}|{}|null",
+   "patches": 1
+  },
+  "second": {
+   "field": "0491 570 159",
+   "db": "Local Tutor|B|{}|{}|+61491570159"
+  },
+  "restored": "Local Tutor||{}|{}|+61400000000"
+ },
+ "E-50": {
+  "keep": {
+   "name": "Local Tutor D",
+   "bio": " D",
+   "ticked": 1,
+   "quals": [
+    "Test cert"
+   ]
+  },
+  "err": {
+   "described": [
+    "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
+    "Please enter an Australian phone number, like 0412 345 678."
+   ],
+   "saved": 0,
+   "patches": 0
+  },
+  "ok": {
+   "status": [
+    "Profile saved."
+   ],
+   "saved": 1,
+   "patches": 1
+  },
+  "headerHasName": true,
+  "db": "Local Tutor D|D|{\"Test cert\"}|{maths}|+61491570157"
+ },
+ "E-51": {
+  "first": {
+   "described": [
+    "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
+    "Please enter an Australian phone number, like 0412 345 678."
+   ],
+   "alerts": [],
+   "saved": 0,
+   "bio": " E",
+   "db": "Local Tutor||{}|{}|+61400000000"
+  },
+  "second": {
+   "described": [
+    "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
+    "Please enter a phone number. You can change it, but you can't remove it."
+   ],
+   "alerts": []
+  },
+  "fourxx": [
+   "400 PATCH /rest/v1/profiles",
+   "400 PATCH /rest/v1/profiles"
+  ]
+ },
+ "E-52": {
+  "patches": 1,
+  "saved": 1,
+  "alerts": [],
+  "db": "+61491570158"
+ },
+ "E-53": {
+  "alerts": [
+   "We couldn't reach the server. Check your connection and try again."
+  ],
+  "described": [
+   "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website."
+  ],
+  "value": "0491 570 159",
+  "db": "+61400000000"
+ }
+}

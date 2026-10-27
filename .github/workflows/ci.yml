@@ -1,6 +1,13 @@
-# Checks every push and pull request (R2 PRP "Site hardening": GitHub Actions CI).
-#   web       — format, lint, typecheck, unit tests, production build
-#   database  — the pgTAP tests against a fresh local Supabase database (Docker)
+# Checks every push and pull request (R2 PRP "Site hardening": GitHub Actions CI; item 6 gates).
+#   web              — format, lint, typecheck, unit tests, production build
+#   database         — the pgTAP tests against a fresh local Supabase database (Docker)
+#   E2E smoke        — the Playwright suite (e2e/) on the dev server against a fresh local Supabase
+#   Lighthouse       — mobile Lighthouse budget and the CSP sweep on the local production mirror
+#   Structured data  — the JSON-LD on every pre-rendered page
+# No job may reach the hosted Supabase project (AC-6.14, ADR-0006): E2E uses only the local
+# stack's keys, read at run time; Lighthouse and structured data build with no Supabase config.
+# This file holds no hosted URL, key or secret. How to run each gate locally:
+# docs/testing/ci-gates.md.
 
 name: CI
 
@@ -44,8 +51,136 @@ jobs:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.120.0 # pinned, so CI doesn't drift from the local CLI
       - name: Start a local database with every migration
         run: supabase db start
       - name: Database tests (row-level security, functions, triggers)
         run: supabase test db
+
+  e2e:
+    name: E2E smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Read by the dev server that global setup starts (03b §6.2). All local or public test
+      # values: the local API, Cloudflare's always-pass Turnstile test key, a placeholder
+      # Web3Forms key (Web3Forms is mocked), and lead capture on (AC-6.3).
+      VITE_SUPABASE_URL: http://127.0.0.1:55321
+      VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+      VITE_FORM_ACCESS_KEY: local-placeholder
+      VITE_LEAD_CAPTURE: 'on'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: No hosted project reference in the workflow or the specs
+        run: pnpm --filter web check:hosted-ref ../../.github/workflows ../../e2e
+      - run: pnpm --filter aj-classes-e2e typecheck
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.120.0
+      # stdout dropped: it's the status table with the local keys, printed before any mask.
+      # local-env.mjs reads them from `supabase status -o json` instead; errors still show.
+      - name: Start local Supabase (only the services the specs use)
+        run: supabase start -x studio,imgproxy,logflare,vector,supavisor,postgres-meta > /dev/null
+      - name: Local keys into the job env (masked)
+        run: node e2e/scripts/local-env.mjs >> "$GITHUB_ENV"
+      - run: pnpm --filter aj-classes-e2e exec playwright install --with-deps chromium
+      - name: E2E smoke (global setup starts the dev server on 5173)
+        run: pnpm --filter aj-classes-e2e test:smoke
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 7
+
+  lighthouse:
+    name: Lighthouse
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build with no Supabase config (never the hosted project)
+        run: pnpm build
+        env:
+          VITE_APP_ENV: production
+          VITE_SUPABASE_URL: ''
+          VITE_SUPABASE_PUBLISHABLE_KEY: ''
+          VITE_LEAD_CAPTURE: ''
+          # Placeholders, so the CSP sweep exercises the enquiry and subscribe code. Both are mocked.
+          VITE_FORM_ACCESS_KEY: local-placeholder
+          VITE_KIT_FORM_ID: '0000000'
+      - name: No hosted project reference in the build
+        id: hosted-ref
+        run: pnpm --filter web check:hosted-ref build/client
+      - run: pnpm --filter aj-classes-e2e exec playwright install --with-deps chromium
+      # One browser, pinned by the Playwright version, for Lighthouse and the CSP sweep, rather
+      # than the runner's Chrome, which updates under us.
+      - name: Lighthouse uses Playwright's Chromium
+        working-directory: e2e
+        run: >-
+          node -e "import('@playwright/test').then(({ chromium }) =>
+          console.log('CHROME_PATH=' + chromium.executablePath()))" >> "$GITHUB_ENV"
+      # --no-sandbox: Chrome for Testing has no usable sandbox on Ubuntu 24.04 runners (or as root
+      # in act). It only ever opens this job's own local build.
+      - name: Lighthouse (mobile, median of 3; thresholds in apps/web/lighthouserc.json)
+        run: pnpm --filter web lighthouse --collect.settings.chromeFlags=--no-sandbox
+      # A Lighthouse score miss mustn't hide these two results, but a build that failed the
+      # hosted-ref check is never served.
+      - name: No Supabase requests; JS size per page
+        if: ${{ !cancelled() && steps.hosted-ref.outcome == 'success' }}
+        run: pnpm --filter web lighthouse:report
+      - name: CSP sweep on the mirror (item 5, AC-5.3 and AC-5.8)
+        if: ${{ !cancelled() && steps.hosted-ref.outcome == 'success' }}
+        run: pnpm --filter aj-classes-e2e test:csp
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: apps/web/lighthouse-report
+          retention-days: 7
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: csp-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 7
+
+  structured-data:
+    name: Structured data
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build with no Supabase config
+        run: pnpm build
+        env:
+          VITE_APP_ENV: production
+          VITE_SUPABASE_URL: ''
+          VITE_SUPABASE_PUBLISHABLE_KEY: ''
+          VITE_LEAD_CAPTURE: ''
+      - name: No hosted project reference in the build
+        run: pnpm --filter web check:hosted-ref build/client
+      - name: JSON-LD on every pre-rendered page
+        run: pnpm --filter web check:structured-data

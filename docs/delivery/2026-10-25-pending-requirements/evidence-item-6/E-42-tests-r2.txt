@@ -1,0 +1,36 @@
+ ✓ scripts/lighthouse-report.test.ts > reportFor > finds a request to a supabase.co host 1ms
+ ✓ scripts/lighthouse-report.test.ts > reportFor > finds a supabase.co request the CSP blocked before it reached the network 0ms
+ ✓ scripts/lighthouse-report.test.ts > reportFor > counts a URL once when it was both requested and reported 0ms
+ ✓ scripts/lighthouse-report.test.ts > reportFor > finds none on a clean run, and reads the script transfer size 0ms
+ ✓ scripts/lighthouse-report.test.ts > reportFor > copes with a result that has no resource-summary or inspector-issues 0ms
+ ✓ scripts/lighthouse-report.test.ts > reportFor > fails a result whose network-requests audit has no list, so it cannot pass unseen 0ms
+ ✓ scripts/lighthouse-report.test.ts > reportFor > rejects something that is not a Lighthouse result 0ms
+ ✓ scripts/lighthouse-report.test.ts > medianScriptBytes > takes the median of the runs for each page 0ms
+ ✓ scripts/lighthouse-report.test.ts > summaryTable > shows each page by path, in KB 0ms
+ ✓ scripts/structured-data.test.ts > pageKindFor > index.html is a home page 1ms
+ ✓ scripts/structured-data.test.ts > pageKindFor > programmes/vce/index.html is a programme page 0ms
+ ✓ scripts/structured-data.test.ts > pageKindFor > programmes/selective-entry/index.html is a programme page 0ms
+ ✓ scripts/structured-data.test.ts > pageKindFor > resources/victorian-selective-entry-exam/index.html is a guide page 0ms
+ ✓ scripts/structured-data.test.ts > pageKindFor > resources/index.html is a other page 0ms
+ ✓ scripts/structured-data.test.ts > pageKindFor > privacy/index.html is a other page 0ms
+ ✓ scripts/structured-data.test.ts > pageKindFor > 404.html is a other page 0ms
+ ✓ scripts/structured-data.test.ts > pageKindFor > __spa-fallback.html is a other page 0ms
+ ✓ scripts/structured-data.test.ts > missingPageKinds > finds nothing missing in a build with a home, a programme and a guide page 0ms
+ ✓ scripts/structured-data.test.ts > missingPageKinds > names each kind a partial build lacks, so its rules cannot switch off silently 0ms
+ ✓ scripts/structured-data.test.ts > extractJsonLd > returns each block in order and ignores other scripts 0ms
+ ✓ scripts/structured-data.test.ts > checkPage: valid pages from a real build (AC-6.9) > index.html passes 1ms
+ ✓ scripts/structured-data.test.ts > checkPage: valid pages from a real build (AC-6.9) > programmes/vce/index.html passes 0ms
+ ✓ scripts/structured-data.test.ts > checkPage: valid pages from a real build (AC-6.9) > resources/victorian-selective-entry-exam/index.html passes 0ms
+ ✓ scripts/structured-data.test.ts > checkPage: valid pages from a real build (AC-6.9) > accepts a page type with no JSON-LD and no rules 0ms
+ ✓ scripts/structured-data.test.ts > checkPage: required types > fails a programme page that carries a guide’s types 0ms
+ ✓ scripts/structured-data.test.ts > checkPage: required types > fails a home page with no JSON-LD, naming every missing type 0ms
+ ✓ scripts/structured-data.test.ts > checkPage: required types > fails a question with no answer text 0ms
+ ✓ scripts/structured-data.test.ts > checkPage: invalid states (AC-6.10) > broken JSON 1ms
+ ✓ scripts/structured-data.test.ts > checkPage: invalid states (AC-6.10) > a missing required property 0ms
+ ✓ scripts/structured-data.test.ts > checkPage: invalid states (AC-6.10) > a relative URL 0ms
+ ✓ scripts/structured-data.test.ts > checkPage: invalid states (AC-6.10) > a non-production URL 0ms
+ ✓ scripts/structured-data.test.ts > checkPage: invalid states (AC-6.10) > a review or rating 0ms
+ ✓ scripts/structured-data.test.ts > checkPage: invalid states (AC-6.10) > a review property on another node 0ms
+ ✓ scripts/structured-data.test.ts > checkPage: invalid states (AC-6.10) > a sameAs link that is not absolute https 0ms
+ Test Files  2 passed (2)
+      Tests  34 passed (34)

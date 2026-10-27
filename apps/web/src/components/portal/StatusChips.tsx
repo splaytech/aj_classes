@@ -8,6 +8,7 @@ import {
   CONSENT_CHOICES,
   CONSENT_KINDS,
   CRM_STATUS_LABELS,
+  FAMILY_TAGS,
   ROLE_LABELS,
 } from '@/constants';
 import type { CrmStatus, StaffRole } from '@/constants';
@@ -87,4 +88,9 @@ export function PermissionChips({ consents, label }: { consents: Consents; label
       ))}
     </Stack>
   );
+}
+
+/** Returned work from a class the student has left or that has ended (ADR-0007, AC-7.12). */
+export function PastClassChip() {
+  return <Chip size="small" variant="outlined" label={FAMILY_TAGS.pastClass} />;
 }

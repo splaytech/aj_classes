@@ -1,0 +1,57 @@
+wt-before 3
+== E-50
+add 0
+status 0 envnm 0
+ls: ci-check/node_modules: No such file or directory
+== E-51
+pnpm install
+pnpm --filter aj-classes-e2e typecheck
+pnpm db:start
+node e2e/scripts/local-env.mjs > e2e/.env
+pnpm --filter aj-classes-e2e exec playwright install chromium
+pnpm --filter aj-classes-e2e test:smoke
+lsof -t -nP -iTCP:5173 -sTCP:LISTEN | xargs kill
+cmd1 exit 0
+cmd2 exit 0
+cmd3 exit 0
+cmd4 exit 0
+cmd5 exit 0
+cmd6 exit 0
+cwd ci-check/apps/web
+cmd7 exit 0
+  9 passed (49.5s)
+listen 0
+== E-52
+VITE_APP_ENV=production VITE_SUPABASE_URL= VITE_SUPABASE_PUBLISHABLE_KEY= VITE_LEAD_CAPTURE= VITE_FORM_ACCESS_KEY=local-placeholder VITE_KIT_FORM_ID=0000000 pnpm build
+pnpm --filter web check:hosted-ref build/client
+pnpm --filter web lighthouse
+pnpm --filter web lighthouse:report
+pnpm --filter aj-classes-e2e test:csp
+cmd1 exit 0
+cmd2 exit 0
+cmd3 exit 0
+cmd4 exit 0
+cmd5 exit 0
+check-hosted-ref: 0 files (of 153 scanned)
+Healthcheck passed!
+lighthouse-report: 18 runs, 0 supabase.co requests
+  19 passed (29.8s)
+listen 0
+== E-53
+VITE_APP_ENV=production VITE_SUPABASE_URL= VITE_SUPABASE_PUBLISHABLE_KEY= VITE_LEAD_CAPTURE= pnpm build
+pnpm --filter web check:hosted-ref build/client
+pnpm --filter web check:structured-data
+cmd1 exit 0
+cmd2 exit 0
+cmd3 exit 0
+check-hosted-ref: 0 files (of 153 scanned)
+check-structured-data: 18 pages, 0 problems
+== E-54
+1
+1
+1
+1
+wtstatus 0
+remove 0
+list 0 wt-after 3
+1

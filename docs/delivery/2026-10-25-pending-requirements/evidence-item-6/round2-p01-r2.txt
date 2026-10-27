@@ -1,0 +1,48 @@
+== E-01
+58600f2
+feature/ci-quality-gates
+anc 0
+codediff 0
+docs/testing/ci-gates.md
+       0
+http://127.0.0.1:55321
+equal
+(names end)
+0
+act version 0.2.89
+       1
+2.120.0
+v24.15.0
+11.1.2
+488dde1
+       0
+0
+== E-02
+reset 0
+mount 1
+maxver 20261026100000 newest 20261026100000_staff_phone_edit.sql
+profiles 6
+posts 0
+enquiries 0
+e2e 0
+== E-10
+### exit 0 : pnpm format:check
+### exit 0 : pnpm lint
+### exit 0 : pnpm typecheck
+### exit 0 : pnpm test
+### exit 0 : env VITE_APP_ENV=production pnpm build
+### exit 0 : pnpm --filter web check:hosted-ref build/client
+### exit 0 : pnpm db:test
+### exit 0 : pnpm test:functions
+ Test Files  56 passed (56)
+      Tests  496 passed (496)
+ℹ tests 6
+ℹ suites 2
+ℹ pass 6
+ℹ fail 0
+check-hosted-ref: 0 files (of 153 scanned)
+Files=14, Tests=507,  0 wallclock secs ( 0.03 usr  0.02 sys +  0.04 cusr  0.03 csys =  0.12 CPU)
+Result: PASS
+ok 169 notok 0
+1
+nfiles 153

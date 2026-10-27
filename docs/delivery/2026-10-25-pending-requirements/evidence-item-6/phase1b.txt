@@ -1,0 +1,49 @@
+== E-14
+0
+0
+e2e/.env exists
+$ node scripts/check-hosted-ref.ts ../../.github/workflows ../../e2e
+check-hosted-ref: 0 files (of 30 scanned)
+exit 0
+      29
+12:      VITE_LEAD_CAPTURE: 'on'
+30:        run: supabase start -x studio,imgproxy,logflare,vector,supavisor,postgres-meta > /dev/null
+32:        run: node e2e/scripts/local-env.mjs >> "$GITHUB_ENV"
+apps/web/.env.example
+apps/web/.env.production
+e2e/.env.example
+SUPABASE_ANON_KEY=<from supabase status>
+SUPABASE_SERVICE_ROLE_KEY=<from supabase status>
+VITE_SUPABASE_PUBLISHABLE_KEY=<from supabase status>
+ignored 0
+       0
+0
+== E-15
+{"startServerCommand":"node scripts/serve-mirror.ts --stub-analytics","startServerReadyPattern":"Accepting connections","numberOfRuns":3,"settings":{"formFactor":"mobile","screenEmulation":{"mobile":true}},"url":["http://127.0.0.1:4173/","http://127.0.0.1:4173/programmes/vce","http://127.0.0.1:4173/programmes/selective-entry","http://127.0.0.1:4173/resources","http://127.0.0.1:4173/resources/victorian-selective-entry-exam","http://127.0.0.1:4173/privacy"]}
+{"categories:performance":["error",{"minScore":0.9,"aggregationMethod":"median"}],"categories:accessibility":["error",{"minScore":0.9,"aggregationMethod":"median"}],"categories:best-practices":["error",{"minScore":0.9,"aggregationMethod":"median"}],"categories:seo":["error",{"minScore":1,"aggregationMethod":"median"}]}
+{"target":"filesystem","outputDir":"./lighthouse-report"}
+apps/web/lighthouserc.json:19:        "categories:performance": ["error", { "minScore": 0.9, "aggregationMethod": "median" }],
+apps/web/lighthouserc.json:20:        "categories:accessibility": ["error", { "minScore": 0.9, "aggregationMethod": "median" }],
+apps/web/lighthouserc.json:21:        "categories:best-practices": ["error", { "minScore": 0.9, "aggregationMethod": "median" }],
+apps/web/lighthouserc.json:22:        "categories:seo": ["error", { "minScore": 1, "aggregationMethod": "median" }]
+       0
+0
+false
+== E-16
+{"d":null,"dd":{"@playwright/test":"1.64.0","@supabase/supabase-js":"^2.117.2","@types/node":"^26.6.3","@types/pg":"8.23.1","dotenv":"18.0.7","pg":"8.23.1","typescript":"^6.0.3"}}
+deps 0
+2a3
+>   "@lhci/cli": "0.15.1",
+5
+ `@playwright/test`  0
+ `pg`  0
+ `@types/pg`  0
+ `dotenv`  0
+ `@lhci/cli`  0
+== E-17
+grep: invalid option -- P
+usage: grep [-abcdDEFGHhIiJLlMmnOopqRSsUVvwXxZz] [-A num] [-B num] [-C[num]]
+	[-e pattern] [-f file] [--binary-files=value] [--color=when]
+	[--context[=num]] [--directories=action] [--label] [--line-buffered]
+	[--null] [pattern] [file ...]
+       0

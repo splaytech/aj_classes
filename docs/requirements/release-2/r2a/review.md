@@ -2,6 +2,11 @@
 
 > **Date:** 6 Oct 2026 · **Result:** 44 gaps found in the first draft and fixed in the design and stories. A second check found 14 more problems, also fixed. Build step 1 (the database, run against a real local Supabase) found 6 more (V15–V20), fixed in the docs before going on. 10 behaviours still need confirming while building (spikes SP1–SP10 in design §19). 6 questions are open for the owner, and none of them blocks starting.
 > **Design:** [design.md](design.md) · **Stories:** [stories.md](stories.md) · **PRP:** [../PRP.md](../PRP.md#r2a--tutor--admin-logins)
+>
+> **22–23 Oct update:** the accept-invite flow reviewed here (US2, G5/G12) was replaced by a closed
+> onboarding step shared with students and parents, and optional parent consents and a consolidated
+> header sign-in link were added. That work has its own rules and gap review (C1–C7) in
+> [invite-onboarding.md](../../invite-onboarding.md); this file is not updated for it.
 
 ## 1. What Was Reviewed, and How
 

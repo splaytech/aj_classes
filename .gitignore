@@ -14,3 +14,17 @@ coverage/
 .editorconfig
 # Ad-hoc raw requirement inputs from the client (kept local only)
 docs/requirements/raw_user_inputs/
+# Personal AI playbook and third-party legacy code review (kept local only; repo is public)
+docs/ai-playbook/
+docs/legacy-erp/
+
+# KINET — generated/local files (remove these lines to commit them instead)
+.kinet
+CLAUDE.md
+kinet.config.json
+
+# E2E suite output (e2e/) and Lighthouse CI output (apps/web)
+e2e/playwright-report/
+e2e/test-results/
+apps/web/.lighthouseci/
+apps/web/lighthouse-report/
