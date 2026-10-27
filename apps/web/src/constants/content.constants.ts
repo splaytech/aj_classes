@@ -380,7 +380,7 @@ export const PRIVACY = {
   sections: [
     {
       heading: 'What we collect',
-      text: "When you register interest, contact us or subscribe, we collect the details you give us: your name, email address, and, if you choose to give them, your phone number and message. We don't ask for sensitive information.",
+      text: "When you register interest, contact us or subscribe, we collect the details you give us: your name, email address, and, if you choose to give them, your phone number and message. We don't ask for sensitive information, except for the Working with Children Check or VIT registration details we ask job applicants for (see Job applications).",
     },
     {
       heading: 'Why we collect it',
@@ -409,8 +409,13 @@ export const PRIVACY = {
       text: 'When parents set up their portal account, they can choose, separately and only if they want to: to receive news, offers and enrolment updates by email and SMS; to let us share their child’s name and selective school or scholarship result on our website and social media; and to let us publish a testimonial video they provide. None of these is needed to use the portal. Parents can change or withdraw any of them at any time in Account → Your choices, or by emailing hello@ajclasses.com.au; withdrawing stops future use, though we can’t always remove something already shared. Emails, SMS and calls about classes, accounts and invoices are part of our service and are covered by our Terms.',
     },
     {
+      // We're hiring page (06-security findings 7 and 8). Retention set by the owner, 27 Oct 2026.
+      heading: 'Job applications',
+      text: "If you apply to work with us, you email us at hello@ajclasses.com.au; this website doesn't collect applications through a form. We use what you send us, such as your name, contact details, CV, experience and your Working with Children Check or VIT registration details, only to consider your application and to confirm your check or registration with the body that issued it. Applications stay in our email inbox; we don't add them to our customer records or use them for marketing. If you aren't offered a role, we delete your application 12 months after we receive it. You can ask us to delete it sooner at any time by emailing hello@ajclasses.com.au.",
+    },
+    {
       heading: 'How long we keep it',
-      text: 'Only as long as we need it to respond to you and provide our services, then we delete it.',
+      text: 'Only as long as we need it to respond to you and provide our services, then we delete it. Job applications are kept for up to 12 months, as described above.',
     },
     {
       heading: 'Children',

@@ -11,6 +11,18 @@ describe('Privacy Policy content', () => {
     expect(section?.text).toContain('None of these is needed');
   });
 
+  it('says how job applications are used and kept (we are hiring, 06-security 7-8)', () => {
+    const section = PRIVACY.sections.find((item) => item.heading === 'Job applications');
+    expect(section?.text).toContain('only to consider your application');
+    expect(section?.text).toContain(
+      "we don't add them to our customer records or use them for marketing",
+    );
+    expect(section?.text).toContain('we delete your application 12 months after we receive it');
+    const collect = PRIVACY.sections.find((item) => item.heading === 'What we collect');
+    expect(collect?.text).not.toMatch(/sensitive information\.$/);
+    expect(collect?.text).toContain('(see Job applications)');
+  });
+
   it('has each section once (merges have duplicated sections before)', () => {
     const headings = PRIVACY.sections.map((section) => section.heading);
     expect(new Set(headings).size).toBe(headings.length);
