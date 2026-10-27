@@ -12,6 +12,7 @@ export const ROUTES = {
   robots: '/robots.txt',
   subscribed: '/subscribed', // Kit sends people here after they confirm their subscription
   posts: '/posts', // admin daily posts, public (posts.md)
+  careers: '/careers', // "We're hiring" page (we-are-hiring 01)
 } as const;
 
 // Portal (R2a staff, R3b students and parents). Everything private lives under /portal, so each

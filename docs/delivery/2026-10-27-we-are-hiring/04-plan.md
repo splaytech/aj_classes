@@ -2,11 +2,17 @@
 
 Stage 4 of `/deliver`, Manager. Date: 2026-10-27. Inputs: [01](01-requirement.md), [02](02-architecture.md), [03](03-design.md), reviews 1-3 (all approved). Design section numbers (§) refer to 03.
 
-Every check below was run once on this branch on 2026-10-27 (baseline: 62 files / 527 tests pass, prettier clean, `/careers` returns 404 as expected). Run commands from the worktree root. `CI_ENV` means: `VITE_APP_ENV=production VITE_SUPABASE_URL= VITE_SUPABASE_PUBLISHABLE_KEY= VITE_LEAD_CAPTURE= VITE_FORM_ACCESS_KEY=local-placeholder VITE_KIT_FORM_ID=0000000`. The worktree has no `.env.local`, so a bare `pnpm build` (and so `pnpm check`) fails with `VITE_APP_ENV must be one of ...`; always prefix `CI_ENV`. Prettier is clean repo-wide, so `pnpm format` is safe. One commit per task, Conventional Commits.
+Every check below was run once on this branch on 2026-10-27 (baseline: 62 files / 527 tests pass, prettier clean, `/careers` returns 404 as expected). Run commands from the worktree root. `CI_ENV` means: `VITE_APP_ENV=production VITE_SUPABASE_URL= VITE_SUPABASE_PUBLISHABLE_KEY= VITE_LEAD_CAPTURE= VITE_FORM_ACCESS_KEY=local-placeholder VITE_KIT_FORM_ID=0000000`. The worktree has no `.env.local`, so a bare `pnpm build` (and so `pnpm check`) fails with `VITE_APP_ENV must be one of ...`; always prefix `CI_ENV`.
+
+`CI_ENV` is shorthand (review-4 item 1). Export the placeholders once per shell before the build or check, exactly as in `ci.yml:116-124` (no real keys, no hosted reference):
+
+```
+export VITE_APP_ENV=production VITE_SUPABASE_URL= VITE_SUPABASE_PUBLISHABLE_KEY= VITE_LEAD_CAPTURE= VITE_FORM_ACCESS_KEY=local-placeholder VITE_KIT_FORM_ID=0000000
+``` Prettier is clean repo-wide, so `pnpm format` is safe. One commit per task, Conventional Commits.
 
 ## Tasks
 
-- [ ] **T1 — Constants, route, page renders.** New `apps/web/src/constants/careers.constants.ts` (§2), barrel line in `constants/index.ts`, `ROUTES.careers` in `routes.constants.ts`, new `routes/careers.tsx` + `careers.module.css` (§3-4, incl. `ErrorBoundary`), `route()` in `src/routes.ts`, `ROUTES.careers` in `react-router.config.ts` prerender (§5). **Check:** `CI_ENV pnpm build`, then `grep -c 'Tutor (casual)' apps/web/build/client/careers/index.html` ≥ 1 (AC-7).
+- [x] **T1 — Constants, route, page renders.** New `apps/web/src/constants/careers.constants.ts` (§2), barrel line in `constants/index.ts`, `ROUTES.careers` in `routes.constants.ts`, new `routes/careers.tsx` + `careers.module.css` (§3-4, incl. `ErrorBoundary`), `route()` in `src/routes.ts`, `ROUTES.careers` in `react-router.config.ts` prerender (§5). **Check:** `CI_ENV pnpm build`, then `grep -c 'Tutor (casual)' apps/web/build/client/careers/index.html` ≥ 1 (AC-7).
 - [ ] **T2 — Footer link.** `components/layout/footer/Footer.tsx` (§6). **Check:** rebuild, `grep -c 'href="/careers"' apps/web/build/client/privacy/index.html` ≥ 1.
 - [ ] **T3 — Sitemap.** `ROUTES.careers` in `ALWAYS_LISTED`, `src/routes/sitemap.ts` (§5). **Check:** rebuild, `grep -c '/careers' apps/web/build/client/sitemap.xml` returns 1 (AC-20).
 - [ ] **T4 — CSP and Lighthouse lists.** `/careers` in `apps/web/src/hosting-csp.test.ts`, `e2e/csp/public-csp.spec.ts` `PAGES`, `apps/web/lighthouserc.json` `collect.url` (§7). No change to `vercel.json`, `serve.railway.json`, `robots.ts`. **Check:** `pnpm --filter web exec vitest run src/hosting-csp.test.ts`.
