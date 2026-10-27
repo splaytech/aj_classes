@@ -16,7 +16,7 @@ export VITE_APP_ENV=production VITE_SUPABASE_URL= VITE_SUPABASE_PUBLISHABLE_KEY=
 - [x] **T2 — Footer link.** `components/layout/footer/Footer.tsx` (§6). **Check:** rebuild, `grep -c 'href="/careers"' apps/web/build/client/privacy/index.html` ≥ 1.
 - [x] **T3 — Sitemap.** `ROUTES.careers` in `ALWAYS_LISTED`, `src/routes/sitemap.ts` (§5). **Check:** rebuild, `grep -c '/careers' apps/web/build/client/sitemap.xml` returns 1 (AC-20).
 - [x] **T4 — CSP and Lighthouse lists.** `/careers` in `apps/web/src/hosting-csp.test.ts`, `e2e/csp/public-csp.spec.ts` `PAGES`, `apps/web/lighthouserc.json` `collect.url` (§7). No change to `vercel.json`, `serve.railway.json`, `robots.ts`. **Check:** `pnpm --filter web exec vitest run src/hosting-csp.test.ts`.
-- [ ] **T5 — Unit tests.** New `routes/careers.test.tsx` (1a-1j), extend `Footer.test.tsx` (2a-2b) and `sitemap.test.ts` (3), per §8, incl. AC-13 wording in 1d. **Check:** `pnpm --filter web exec vitest run src/routes/careers.test.tsx src/routes/sitemap.test.ts src/components/layout/footer/Footer.test.tsx`.
+- [x] **T5 — Unit tests.** New `routes/careers.test.tsx` (1a-1j), extend `Footer.test.tsx` (2a-2b) and `sitemap.test.ts` (3), per §8, incl. AC-13 wording in 1d. **Check:** `pnpm --filter web exec vitest run src/routes/careers.test.tsx src/routes/sitemap.test.ts src/components/layout/footer/Footer.test.tsx`.
 - [ ] **T6 — Full gate (CI order, review-3 item 1).** Nothing may listen on 4173 (`lsof -i :4173 -sTCP:LISTEN` empty), because lhci starts its own server there.
   1. `CI_ENV pnpm check`
   2. `CI_ENV pnpm build && pnpm --filter web check:hosted-ref build/client` ("0 files")
