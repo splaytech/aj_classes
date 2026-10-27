@@ -30,4 +30,4 @@ APPROVED
 
 ## Pending for Saurabh
 
-Findings 7 and 8: the privacy-policy line and a retention period. These sit alongside 01 Q1–Q6 (copy sign-off).
+Findings 7 and 8: the privacy-policy line and a retention period. **Resolve finding 7 before this goes to production** (add the line, or decide to skip it), because the policy's "We don't ask for sensitive information" conflicts with asking applicants about WWCC/VIT. These sit alongside 01 Q1–Q6 (copy sign-off).
