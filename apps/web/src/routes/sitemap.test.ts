@@ -17,6 +17,11 @@ describe('sitemap pages', () => {
     expect(paths).toContain(ROUTES.privacy);
   });
 
+  it('lists /careers with and without Supabase (AC-20)', () => {
+    expect(publicSitemapPaths(true)).toContain(ROUTES.careers);
+    expect(publicSitemapPaths(false)).toContain(ROUTES.careers);
+  });
+
   it('never lists the 404 page or the portal', () => {
     const paths = publicSitemapPaths(true);
     expect(paths).not.toContain(ROUTES.notFound);

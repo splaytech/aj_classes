@@ -1,0 +1,12 @@
+{
+  "note": "TC-26b, measured 2026-10-27: branch 27963cb on :4173 vs develop 8e2af88 on :4174, both CI placeholder env",
+  "ctaBar375": {
+    "branch": {"top":0,"afterHero":1,"box":[719,81,375],"text":"Register Interest","atForm":1,"careers":0},
+    "develop": {"top":0,"afterHero":1,"box":[719,81,375],"text":"Register Interest","atForm":1,"careers":0},
+    "screenshotSha1Prefix": {"branch":"95b024b609a0","develop":"95b024b609a0"}
+  },
+  "homeBoxes": {
+    "branch":  {"375":{"header":"0,0,375,72","whatsapp":"303,656,56,56"},"1280":{"header":"0,0,1280,72","whatsapp":"1208,728,56,56"}},
+    "develop": {"375":{"header":"0,0,375,72","whatsapp":"303,656,56,56"},"1280":{"header":"0,0,1280,72","whatsapp":"1208,728,56,56"}}
+  }
+}

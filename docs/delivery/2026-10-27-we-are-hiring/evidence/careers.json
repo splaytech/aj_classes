@@ -1,0 +1,266 @@
+{
+ "375 careers": {
+  "headings": [
+   "H1:We're hiring",
+   "H2:Roles",
+   "H2:Who we're looking for",
+   "H2:What you'll need",
+   "H2:How to apply"
+  ],
+  "listStyles": [
+   "disc",
+   "disc",
+   "disc"
+  ],
+  "listItems": [
+   1,
+   4,
+   3
+  ],
+  "mailtoInMain": [
+   "mailto:hello@ajclasses.com.au?subject=Tutor%20application"
+  ],
+  "backHome": [
+   "/"
+  ],
+  "emailText": true,
+  "footerOverlap": false,
+  "h1Font": "34.6px",
+  "h2Font": "28.025px",
+  "mainPadTop": "56px",
+  "skipHref": "Skip to main content",
+  "mainId": "main-content",
+  "applyBox": {
+   "x": 16,
+   "y": 1319.109375,
+   "width": 241.015625,
+   "height": 56.796875
+  },
+  "applyTarget": null,
+  "skip": {
+   "presses": 1,
+   "text": "Skip to main content",
+   "href": "#main-content",
+   "tag": "A",
+   "outline": "solid 3px rgb(37, 99, 235)",
+   "focusVisible": true
+  },
+  "afterSkip": {
+   "active": "BODY",
+   "hash": "#main-content"
+  },
+  "toApply": {
+   "presses": 4,
+   "text": "Email your application",
+   "href": "mailto:hello@ajclasses.com.au?subject=Tutor%20application",
+   "tag": "A",
+   "outline": "solid 3px rgb(37, 99, 235)",
+   "focusVisible": true
+  },
+  "toFooter": {
+   "presses": 9,
+   "text": "We're hiring",
+   "href": "/careers",
+   "tag": "A",
+   "outline": "solid 3px rgb(37, 99, 235)",
+   "focusVisible": true
+  }
+ },
+ "375 privacy": {
+  "h1Font": "34.6px",
+  "h2Font": "28.025px",
+  "mainPadTop": "56px"
+ },
+ "375 home->footer": {
+  "homeFooter": {
+   "presses": 53,
+   "text": "We're hiring",
+   "href": "/careers",
+   "tag": "A",
+   "outline": "solid 3px rgb(37, 99, 235)",
+   "focusVisible": true
+  },
+  "urlAfterEnter": "http://127.0.0.1:4173/careers",
+  "title": "Careers | AJ Classes"
+ },
+ "375 portal": {
+  "hiringLinks": 0,
+  "careersHrefs": 0,
+  "contentinfo": 0,
+  "h1": [
+   "Sign-in isn't available right now"
+  ],
+  "title": "Sign in | AJ Classes Portal"
+ },
+ "375 home": {
+  "navLinks": [],
+  "navVisible": false,
+  "forms": [
+   {
+    "id": "ask-a-question",
+    "fields": [
+     "name",
+     "email",
+     "phone",
+     "message",
+     "botcheck"
+    ],
+    "submit": "Register interest"
+   },
+   {
+    "id": "",
+    "fields": [
+     "subscribe-email"
+    ],
+    "submit": "Subscribe"
+   }
+  ],
+  "whatsapp": 2
+ },
+ "375 menu": {
+  "toggles": 1,
+  "linksAfterOpen": [
+   "Programmes",
+   "Selective Entry Exam",
+   "Interviews",
+   "SEAL and Scholarships",
+   "NAPLAN",
+   "ICAS",
+   "Maths, Science and English",
+   "VCE Tutoring",
+   "VCE Subject Selection",
+   "UCAT and GAMSATNew",
+   "Our Approach",
+   "About",
+   "FAQ",
+   "Contact",
+   "Register Interest"
+  ],
+  "hiringInMenu": 0
+ },
+ "1280 careers": {
+  "headings": [
+   "H1:We're hiring",
+   "H2:Roles",
+   "H2:Who we're looking for",
+   "H2:What you'll need",
+   "H2:How to apply"
+  ],
+  "listStyles": [
+   "disc",
+   "disc",
+   "disc"
+  ],
+  "listItems": [
+   1,
+   4,
+   3
+  ],
+  "mailtoInMain": [
+   "mailto:hello@ajclasses.com.au?subject=Tutor%20application"
+  ],
+  "backHome": [
+   "/"
+  ],
+  "emailText": true,
+  "footerOverlap": false,
+  "h1Font": "52px",
+  "h2Font": "38px",
+  "mainPadTop": "80px",
+  "skipHref": "Skip to main content",
+  "mainId": "main-content",
+  "applyBox": {
+   "x": 112,
+   "y": 1008.71875,
+   "width": 241.015625,
+   "height": 56.796875
+  },
+  "applyTarget": null,
+  "skip": {
+   "presses": 1,
+   "text": "Skip to main content",
+   "href": "#main-content",
+   "tag": "A",
+   "outline": "solid 3px rgb(37, 99, 235)",
+   "focusVisible": true
+  },
+  "afterSkip": {
+   "active": "BODY",
+   "hash": "#main-content"
+  },
+  "toApply": {
+   "presses": 18,
+   "text": "Email your application",
+   "href": "mailto:hello@ajclasses.com.au?subject=Tutor%20application",
+   "tag": "A",
+   "outline": "solid 3px rgb(37, 99, 235)",
+   "focusVisible": true
+  },
+  "toFooter": {
+   "presses": 9,
+   "text": "We're hiring",
+   "href": "/careers",
+   "tag": "A",
+   "outline": "solid 3px rgb(37, 99, 235)",
+   "focusVisible": true
+  }
+ },
+ "1280 privacy": {
+  "h1Font": "52px",
+  "h2Font": "38px",
+  "mainPadTop": "80px"
+ },
+ "1280 home->footer": {
+  "homeFooter": {
+   "presses": 67,
+   "text": "We're hiring",
+   "href": "/careers",
+   "tag": "A",
+   "outline": "solid 3px rgb(37, 99, 235)",
+   "focusVisible": true
+  },
+  "urlAfterEnter": "http://127.0.0.1:4173/careers",
+  "title": "Careers | AJ Classes"
+ },
+ "1280 portal": {
+  "hiringLinks": 0,
+  "careersHrefs": 0,
+  "contentinfo": 0,
+  "h1": [
+   "Sign-in isn't available right now"
+  ],
+  "title": "Sign in | AJ Classes Portal"
+ },
+ "1280 home": {
+  "navLinks": [
+   "Programmes",
+   "Our Approach",
+   "About",
+   "FAQ",
+   "Contact",
+   "Register Interest"
+  ],
+  "navVisible": true,
+  "forms": [
+   {
+    "id": "ask-a-question",
+    "fields": [
+     "name",
+     "email",
+     "phone",
+     "message",
+     "botcheck"
+    ],
+    "submit": "Register interest"
+   },
+   {
+    "id": "",
+    "fields": [
+     "subscribe-email"
+    ],
+    "submit": "Subscribe"
+   }
+  ],
+  "whatsapp": 2
+ }
+}
