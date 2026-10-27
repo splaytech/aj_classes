@@ -415,7 +415,7 @@ export const PRIVACY = {
     },
     {
       heading: 'How long we keep it',
-      text: 'Only as long as we need it to respond to you and provide our services, then we delete it. Job applications are kept for up to 12 months, as described above.',
+      text: "Only as long as we need it to respond to you and provide our services, then we delete it. Applications from people we don't hire are kept for up to 12 months, as described above.",
     },
     {
       heading: 'Children',

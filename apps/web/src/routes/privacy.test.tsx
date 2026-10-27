@@ -19,7 +19,7 @@ describe('Privacy Policy content', () => {
     );
     expect(section?.text).toContain('we delete your application 12 months after we receive it');
     const collect = PRIVACY.sections.find((item) => item.heading === 'What we collect');
-    expect(collect?.text).not.toMatch(/sensitive information\.$/);
+    expect(collect?.text).toContain('except for the Working with Children Check');
     expect(collect?.text).toContain('(see Job applications)');
   });
 
