@@ -143,5 +143,34 @@ select is_empty(
 
 reset role;
 
+-- ---------------------------------------------------------------------------
+-- Tutor with two-step (aal2): still refused, so the RLS admin check is what stops them
+-- (06-security finding 1)
+-- ---------------------------------------------------------------------------
+
+select tests.add_verified_factor('00000000-0000-0000-0000-0000000000b1');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000b1', 'aal2');
+
+select throws_ok(
+  $$ insert into public.classes (name, subject, year_levels, delivery)
+     values ('Tutor class', 'maths', '{7,8}', 'hybrid') $$,
+  '42501', null, 'A tutor with two-step cannot create a class');
+select is_empty(
+  $$ update public.classes set year_levels = '{7}'
+     where id = '00000000-0000-0000-0000-00000000c001' returning id $$,
+  'A tutor with two-step cannot change their class''s years');
+select is_empty(
+  $$ update public.classes set delivery = 'hybrid'
+     where id = '00000000-0000-0000-0000-00000000c001' returning id $$,
+  'A tutor with two-step cannot change their class''s delivery');
+
+reset role;
+
+select results_eq(
+  $$ select year_levels, delivery from public.classes
+     where id = '00000000-0000-0000-0000-00000000c001' $$,
+  $$ values ('{11}'::smallint[], 'in_person'::text) $$,
+  'The tutor''s class is unchanged after every tutor attempt');
+
 select * from finish();
 rollback;
