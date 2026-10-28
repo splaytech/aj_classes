@@ -27,7 +27,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <Links />
       </head>
       <body>
-        <EnvironmentMarker />
+        <EnvironmentMarker inPortal={isPortalPage} />
         {children}
         <ScrollRestoration />
         <Scripts />

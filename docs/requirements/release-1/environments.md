@@ -24,7 +24,7 @@ A build with the setting missing or misspelt **fails** instead of guessing (§4 
 | Tab title | unchanged | `[STAGING] …` | `[DEV] …` |
 | Tab icon | gold logo | amber tile with navy "S" | red tile with white "D" |
 | Ribbon | none | 5px amber strip across the top | 5px red strip |
-| Corner label | none | "STAGING · develop · a847dd0" under the header, top left | "DEV" (plus branch and commit when known) |
+| Corner label | none | "STAGING · develop · a847dd0" under the header, top left (portal pages: bottom right, so it never covers the signed-in name) | "DEV" (plus branch and commit when known) |
 | Phone browser bar colour | brand blue | amber | red |
 | Search engines | allowed | `noindex` on every page, `robots.txt` disallows all | same as staging |
 | Vercel Analytics | on | off | off |
@@ -51,7 +51,7 @@ Not code, but recommended:
 | G1 | REQ | A forgotten setting could mark production as staging, or make staging look like production. | Builds fail at the start, with a message naming `VITE_APP_ENV`, without a valid value (checked in `vite.config.ts`); only the local dev server has a default. |
 | G2 | DES | Blue would blend with the brand colour. | Amber for staging (owner's choice), red for dev. |
 | G3 | DES | The gold tab icon makes an amber dot invisible. | Staging and dev get their own letter tiles. |
-| G4 | A11Y | A fixed strip or label could cover links or confuse screen readers. | `aria-hidden`, `pointer-events: none`, 5px strip; the label is small and sits below the header. |
+| G4 | A11Y | A fixed strip or label could cover links or confuse screen readers. | `aria-hidden`, `pointer-events: none`, 5px strip; the label is small and sits below the header (bottom right on portal pages, 2026-10-29). |
 | G5 | A11Y | Label text contrast. | Navy on amber and white on red, both above 4.5:1. |
 | G6 | SEO | Staging pages copying production into Google. | `noindex` meta and a disallow-all `robots.txt` outside production; Vercel's login protection also blocks crawlers. Canonical links already point to the production domain. |
 | G7 | DES | No hard-coded colours in CSS (F1.2). | Colours are theme variables; the phone bar colour and icon files hold their own values, like the existing brand blue. |
