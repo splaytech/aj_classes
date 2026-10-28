@@ -1284,7 +1284,7 @@ empty text `STUDENT_HOME.returned.empty` is unchanged (AC-7.12).
 | Key | Text |
 |---|---|
 | `HOLD_RESULTS.label` | `Hold results until I return them` |
-| `HOLD_RESULTS.hint` | ~~`Students see their marks and the correct answers only when you return their work. This matters only when every question is multiple choice: work with a written question is always held until you return it.`~~ Shortened 2026-10-29 to two lines at 360 px (actionItems 27c, Saurabh approved): `Marks and answers stay hidden until you return the work. Written work is always held.` |
+| `HOLD_RESULTS.hint` | ~~`Students see their marks and the correct answers only when you return their work. This matters only when every question is multiple choice: work with a written question is always held until you return it.`~~ Shortened 2026-10-29 for phones (actionItems 27c; 3 lines at 360 px, from 5; wording per ADR-0007, any written question holds everything): `Marks and answers stay hidden until you return the work. Any written question holds it all.` |
 | `HOLD_RESULTS.lockedNote` | `Locked because the assignment is published. Move it back to draft to change this.` |
 | `PORTAL_ERRORS.holdNeedsQuestions` | `Add at least one question before holding results.` |
 | `FAMILY_TAGS.pastClass` | `Past class` |

@@ -56,8 +56,9 @@ Supabase (`unzjnxctkyahtmrkinyr.supabase.co`), Web3Forms (`api.web3forms.com`) a
 means editing the public CSP in **both** `apps/web/vercel.json` and `apps/web/serve.railway.json`;
 `src/hosting-csp.test.ts` fails if they differ. The portal keeps its own CSP on `/portal/*`, and the
 two rules never overlap. The portal's `img-src` also allows `blob:`, so the photo editor can show
-a preview of a chosen photo before upload (FU-K1); the public CSP does not. Locally, `pnpm mirror` serves a gate build with these headers, the local
-Supabase origin in place of the hosted one.
+a preview of a chosen photo before upload (FU-K1); the public CSP does not. Locally,
+`pnpm mirror` serves a gate build with these headers, the local Supabase origin in place of the
+hosted one.
 
 **4. Backend (hosted Supabase, Sydney)**
 
