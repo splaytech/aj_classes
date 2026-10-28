@@ -63,3 +63,22 @@ CHANGES_REQUESTED
 5. P5 / D14 docs and §5 line ranges accurate.
 
 **Lead note:** this is the third CHANGES_REQUESTED in a row for item 8's code stage (rounds 1, 2, 3), which is the /deliver pause condition. Item 8 is paused for Saurabh here.
+
+## Round 4
+
+APPROVED
+
+Scope: ff6871b..bcee7a1, plus the whole branch diff against origin/develop @ 82a60ef. Lint, typecheck and test pass. The dev notes record pgTAP at 17 files / 747 PASS.
+
+1. Blocking 1 resolved: `20261029100000_more_email_alerts.sql:128-130` is the exact fix requested. Checked read-only on the local DB:
+   - natural expiry ends too_late;
+   - moved earlier into the past ends skipped;
+   - moved later stays relevant;
+   - a null queued_due_on falls back to the old rule.
+
+   The fixtures are realistic. The skipped case and the natural-expiry case are added, and the mutation test fails 5 times without the fix.
+2. Non-blocking 2 resolved: the meaningless assertion is replaced.
+3. The rename to 20261029100000 sorts after develop's 20261028110000. That migration redefines none of item 8's functions, so no body needed rebuilding (ADR-0007 §4).
+4. No regression from the merge. The test plan refs point to the new stamp; the old stamp remains only in historical stage records.
+5. Non-blocking follow-up: a narrow window when a due date is added later (`:111-113`). It is documented and needs no change this round.
+6. For Saurabh at deploy: run `supabase migration list` and confirm 20261028100000 was never applied to hosted.
