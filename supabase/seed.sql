@@ -101,18 +101,18 @@ declare
   v_mia uuid;
   v_mock uuid;
 begin
-  insert into public.classes (name, subject, year_level, delivery, location, tutor_id, starts_on, ends_on)
-  values ('Selective Entry Maths & Reasoning', 'maths', 8, 'in_person', 'Truganina, Room 1',
+  insert into public.classes (name, subject, year_levels, delivery, location, tutor_id, starts_on, ends_on)
+  values ('Selective Entry Maths & Reasoning', 'maths', '{7,8,9}', 'hybrid', 'Truganina, Room 1 and Zoom',
           v_tutor, current_date - 14, current_date + 70)
   returning id into v_maths;
 
-  insert into public.classes (name, subject, year_level, delivery, location, tutor_id, starts_on, ends_on)
-  values ('NAPLAN Reading & Writing', 'english', 5, 'in_person', 'Truganina, Room 2',
+  insert into public.classes (name, subject, year_levels, delivery, location, tutor_id, starts_on, ends_on)
+  values ('NAPLAN Reading & Writing', 'english', '{5}', 'in_person', 'Truganina, Room 2',
           v_admin, current_date - 14, current_date + 70)
   returning id into v_english;
 
-  insert into public.classes (name, subject, year_level, delivery, location, tutor_id)
-  values ('Selective Interview Preparation', 'interview-preparation', 8, 'online', 'Zoom', v_tutor)
+  insert into public.classes (name, subject, year_levels, delivery, location, tutor_id)
+  values ('Selective Interview Preparation', 'interview-preparation', '{8}', 'online', 'Zoom', v_tutor)
   returning id into v_interview;
 
   insert into public.class_sessions (class_id, day_of_week, start_time, end_time) values
