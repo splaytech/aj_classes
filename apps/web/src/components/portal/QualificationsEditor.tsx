@@ -1,7 +1,7 @@
 // A short list of qualifications: one text box per line, with Add and Remove.
 // Adding a line moves focus into the new box, so people can type straight away.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Ref } from 'react';
 
 import { PROFILE_LIMITS, PROFILE_PAGE } from '@/constants';
@@ -27,10 +27,11 @@ export function QualificationsEditor({
   const errorId = `${idPrefix}-error`;
   const canAdd = lines.length < PROFILE_LIMITS.qualificationsMax;
   const [lineToFocus, setLineToFocus] = useState<number | null>(null);
+  const newLineRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (lineToFocus !== null) document.getElementById(lineId(idPrefix, lineToFocus))?.focus();
-  }, [idPrefix, lineToFocus]);
+    if (lineToFocus !== null) newLineRef.current?.focus();
+  }, [lineToFocus]);
 
   function add() {
     onChange([...lines, '']);
@@ -53,6 +54,7 @@ export function QualificationsEditor({
       {lines.map((line, index) => (
         <div key={index} className={styles.listRow}>
           <input
+            ref={index === lineToFocus ? newLineRef : undefined}
             id={lineId(idPrefix, index)}
             className={styles.input}
             aria-label={PROFILE_PAGE.qualificationLabel(index + 1)}
