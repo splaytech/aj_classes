@@ -736,7 +736,6 @@ export const CLASSES_PAGE = {
   archived: 'Archived',
   noSchedule: 'No times yet',
   empty: 'No classes yet.',
-  saved: 'Class saved.',
 } as const;
 
 export const CLASS_DIALOG = {
