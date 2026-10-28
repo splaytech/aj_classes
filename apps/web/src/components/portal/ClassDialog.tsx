@@ -8,7 +8,14 @@ import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import { useState } from 'react';
 
-import { CLASS_DIALOG, DELIVERY_LABELS, SUBJECTS, YEAR_LEVEL_TEXT, YEAR_LEVELS } from '@/constants';
+import {
+  CLASS_DIALOG,
+  DELIVERIES,
+  DELIVERY_LABELS,
+  SUBJECTS,
+  YEAR_LEVEL_TEXT,
+  YEAR_LEVELS,
+} from '@/constants';
 import { validateClass } from '@/lib/class-validation';
 import type { TutorOption } from '@/lib/staff-options';
 import type { ClassErrors } from '@/lib/class-validation';
@@ -20,7 +27,6 @@ import { FormDialog } from './FormDialog';
 const ANY_YEAR = 'any';
 const NO_TUTOR = 'none';
 const ISO_DATE = 'YYYY-MM-DD';
-const DELIVERIES: Delivery[] = ['in_person', 'online'];
 
 type ClassDialogProps = {
   open: boolean;

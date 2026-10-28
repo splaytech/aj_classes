@@ -39,6 +39,13 @@ describe('validateClass', () => {
     });
   });
 
+  it('keeps the 100-character location rule for hybrid classes', () => {
+    expect(validateClass({ ...valid, delivery: 'hybrid', location: 'x'.repeat(100) })).toEqual({});
+    expect(validateClass({ ...valid, delivery: 'hybrid', location: 'x'.repeat(101) })).toEqual({
+      location: CLASS_VALIDATION.locationLength,
+    });
+  });
+
   it('allows no term dates, or only one', () => {
     expect(validateClass({ ...valid, startsOn: null, endsOn: null })).toEqual({});
     expect(validateClass({ ...valid, startsOn: null })).toEqual({});

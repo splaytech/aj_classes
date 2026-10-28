@@ -702,10 +702,14 @@ export const YEAR_LEVEL_TEXT = {
   any: 'Any year',
 } as const;
 
+/** Delivery options in the order the class form lists them (AC 1). */
+export const DELIVERIES = ['in_person', 'online', 'hybrid'] as const;
+
 export const DELIVERY_LABELS = {
   in_person: 'In person',
   online: 'Online',
-} as const;
+  hybrid: 'Hybrid',
+} as const satisfies Record<(typeof DELIVERIES)[number], string>;
 
 export const DELIVERY_WITH_LOCATION = (delivery: string, location: string) =>
   `${delivery} · ${location}`;
@@ -746,7 +750,7 @@ export const CLASS_DIALOG = {
     endsOn: 'Term ends',
   },
   hints: {
-    location: 'Room, or the online meeting place (e.g. Zoom).',
+    location: 'Room, the online meeting place (e.g. Zoom), or both for hybrid.',
     term: 'Optional. Next sessions only appear between these dates.',
   },
   noTutor: 'No tutor yet',
