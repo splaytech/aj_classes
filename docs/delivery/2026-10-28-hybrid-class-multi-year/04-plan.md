@@ -50,7 +50,7 @@ Developer runs tests (team-lead rule, aj_classes item 8).
 
 ## Slices (one commit each; the build stays green after every slice)
 
-- [ ] **S1. Database.** New migration (P1 name, §2 steps 1–8 in order), new
+- [x] **S1. Database.** New migration (P1 name, §2 steps 1–8 in order), new
   `supabase/tests/database/classes_years_delivery.test.sql` (§3 cases 1–15), and the
   `supabase/seed.sql:104-116` edit (§4). The seed has to land with the migration.
   **Verify:** `pnpm db:reset && pnpm db:test` passes all files; `\d public.classes` (command above)
@@ -59,7 +59,7 @@ Developer runs tests (team-lead rule, aj_classes item 8).
   still writes `year_level` (428C9).
   **Commit:** `feat(db): add hybrid delivery and a year_levels array to classes`
   **Closes:** AC 8, AC 15, the database half of AC 17.
-- [ ] **S2. Hybrid on the web.** `portal.constants.ts`: `DELIVERIES`, `DELIVERY_LABELS.hybrid` with
+- [x] **S2. Hybrid on the web.** `portal.constants.ts`: `DELIVERIES`, `DELIVERY_LABELS.hybrid` with
   `satisfies`, and the location hint (§7.1, 7.2, 7.4 location line). `services/types.ts`: derive
   `Delivery` from `DELIVERIES` (§5.2, first bullet). `ClassDialog.tsx`: import `DELIVERIES` and drop
   the local const (§9.1 step 7, plus the `DELIVERIES` part of step 3). `class-validation.test.ts`:
@@ -70,7 +70,7 @@ Developer runs tests (team-lead rule, aj_classes item 8).
   nothing.
   **Commit:** `feat(portal): offer hybrid as a class delivery option`
   **Closes:** AC 1, 2, 4, 5, 6, and AC 3 and 7 in code (the browser check is in S6).
-- [ ] **S3. Several year levels on the web.** This slice is one commit because typecheck links
+- [x] **S3. Several year levels on the web.** This slice is one commit because typecheck links
   every reader of `yearLevel`. Run `pnpm db:types` (P2). Then:
   - `types.ts`: `ClassSummary` and `ClassInput` get `yearLevels` (§5.2).
   - `classes.service.ts`: switch to `year_levels`, and add `sortedYears` (§6.1–6.4) with a new
@@ -89,13 +89,13 @@ Developer runs tests (team-lead rule, aj_classes item 8).
   code only.
   **Commit:** `feat(portal): let a class have several year levels`
   **Closes:** AC 9, 10, 11, 13, 14, 16, AC 19 (the unit test), and AC 12 in code.
-- [ ] **S4. ClassDialog tests.** New `components/portal/ClassDialog.test.tsx`, set up as in §12
+- [x] **S4. ClassDialog tests.** New `components/portal/ClassDialog.test.tsx`, set up as in §12
   (LocalizationProvider, queries by role and constant). It covers delivery order and Hybrid
   preselected, the location hint, Any year when empty, toggling 11, 7 and 9, and `onSave` payloads.
   **Verify:** `pnpm --filter web exec vitest run src/components/portal/ClassDialog.test.tsx`.
   **Commit:** `test(portal): cover hybrid delivery and multi-year selection in the class dialog`
   **Closes:** AC 1, 2, 3, 6, 9, 10, 11 (the unit level).
-- [ ] **S5. Docs.**
+- [x] **S5. Docs.**
   - In `supabase/README.md:37`, say the demo Maths class is hybrid and for Years 7–9.
   - Mark ADR-0009 as Accepted, in the file and in its row in `docs/decisions/README.md`.
   - Commit this delivery folder, the ADR and the README row (all currently uncommitted).
@@ -155,3 +155,23 @@ hybrid (Saurabh to confirm it's offered).
 2. **S3 grep:** the check is that no `ClassSummary`/`ClassInput` `yearLevel` readers remain. Remaining hits in `CLASS_DIALOG.labels/hints.yearLevel` and student/onboarding code are expected.
 3. **Commits:** 01–04 and reviews 1–4 are committed now by the team lead (`docs(delivery): ...`). The TSR gets its own `test: add TSR for hybrid and multi-year classes` commit. DoD 4 becomes "S1–S5 plus the docs and TSR commits".
 4. **ADR-0009:** S5 sets it to Accepted in the Developer's diff. This supersedes 03 §11.
+
+## Developer notes (Stage 5, 2026-10-28)
+
+S1–S5 built as planned, one commit each, every slice's verify commands green before its commit.
+
+1. **Migration filename** is `20261028110000_classes_hybrid_multi_year.sql` (P1). 02 and 03 still
+   name `20261028100000`; P1 supersedes them.
+2. **Delivery folder** (01–04, reviews 1–4) was already committed by the team lead in `a72f548`, so
+   S5 commits only this plan's ticks and notes, ADR-0009 (now Accepted), its README row and the
+   `supabase/README.md` demo-data line.
+3. **`ClassDialog.test.tsx` reads the Year level field with `hidden: true` while its menu is open.**
+   MUI marks the rest of the page `aria-hidden` while a Select menu is open, so a plain
+   `getByRole('combobox')` finds nothing there. Test-only; the component is as designed (§9.1).
+4. **The dialog passes years to `onSave` in the order they were ticked** (e.g. `[11, 7]`);
+   `sortedYears` in `saveClass` puts them in the stored order. This is the §6.4 split, and the test
+   asserts it so a reader sees where sorting happens.
+5. **`classYearLabel`** removes repeats and sorts its own copy (§8 step 1), so it never depends on
+   the caller's order.
+6. **Not done here:** S6 (Tester: AC 12 backfill by hand, browser pass in four roles and both
+   themes, AC 18 mobile check, TSR). No browser pass was run by the Developer.
