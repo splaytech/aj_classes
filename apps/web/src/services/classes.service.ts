@@ -19,7 +19,7 @@ import type {
 } from './types';
 
 const CLASS_COLUMNS = `
-  id, name, subject, year_level, delivery, location, tutor_id, starts_on, ends_on, is_active,
+  id, name, subject, year_levels, delivery, location, tutor_id, starts_on, ends_on, is_active,
   tutor:profiles(full_name, is_active),
   class_sessions(id, class_id, day_of_week, start_time, end_time),
   enrolments(count)
@@ -37,7 +37,7 @@ type ClassRow = {
   id: string;
   name: string;
   subject: string;
-  year_level: number | null;
+  year_levels: number[];
   delivery: string;
   location: string;
   tutor_id: string | null;
@@ -64,7 +64,7 @@ function toClassSummary(row: ClassRow): ClassSummary {
     id: row.id,
     name: row.name,
     subject: row.subject,
-    yearLevel: row.year_level,
+    yearLevels: row.year_levels,
     delivery: row.delivery as Delivery,
     location: row.location,
     tutorId: row.tutor_id,
@@ -115,12 +115,17 @@ export async function getClass(classId: string): Promise<Result<ClassDetail>> {
   });
 }
 
+/** Ascending with no repeats: the only form the database accepts (DEC-HM-1). */
+export function sortedYears(years: readonly number[]): number[] {
+  return [...new Set(years)].sort((a, b) => a - b);
+}
+
 /** Creates or updates a class (admins). Returns its id. */
 export async function saveClass(input: ClassInput): Promise<Result<string>> {
   const columns = {
     name: input.name.trim(),
     subject: input.subject,
-    year_level: input.yearLevel,
+    year_levels: sortedYears(input.yearLevels),
     delivery: input.delivery,
     location: input.location.trim(),
     tutor_id: input.tutorId,

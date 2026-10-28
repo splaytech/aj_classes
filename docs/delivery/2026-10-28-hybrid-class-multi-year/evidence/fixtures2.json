@@ -1,0 +1,46 @@
+{
+  "tc10_box": "Any year",
+  "tc10_q": "{}||in_person|",
+  "tc10_chip": "Any year",
+  "tc10_list": "Any year",
+  "tc10_cleanup": "DELETE 1",
+  "tc7h_q": "TP Hybrid no room|{8}|8|hybrid|",
+  "tc7h_delivery": "Hybrid",
+  "tc7h_time_fields": [
+    "Starts *\n03:\n00 \nPM\nStarts *",
+    "Ends *\n04:\n00 \nPM\nEnds *"
+  ],
+  "tc7h_session": "5|15:00:00|16:00:00",
+  "tc7h_bullets": {
+    "hybridAlone": 1,
+    "seededHybrid": 2
+  },
+  "tc7h_cleanup": "DELETE 1",
+  "tc7h_after_sessions": "4",
+  "tc7h_after_bullets": {
+    "hybridAlone": 0,
+    "hy": 2,
+    "ip": 1,
+    "on": 1
+  },
+  "tc12b_box": "Year 5",
+  "tc12b_delivery": "In person",
+  "tc12b_ticked": [
+    "Year 5"
+  ],
+  "tc12b_q": "{5}|5|in_person|Truganina, Room 2",
+  "tc12b_updated_moved": true,
+  "tc12b_interview": [
+    "Year 8",
+    "Online"
+  ],
+  "tcD_count": "1",
+  "tcD_url": "/portal/classes/a7277ace-183c-4be5-a576-074fccd9236c",
+  "tcD_cleanup": "DELETE 1",
+  "r1_q": "TP Plain 2|{}||in_person|",
+  "r1_active_after_archive": "f",
+  "r1_archived_row": "TP Plain 2\nArchived\n\tMaths\tAny year\t\nNo tutor\n\tNo times yet\t0",
+  "r1_active_after_restore": "t",
+  "r1_cleanup": "none/DELETE 1",
+  "errors": []
+}

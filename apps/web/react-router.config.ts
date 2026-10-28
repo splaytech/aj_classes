@@ -12,6 +12,7 @@ export default {
   prerender: [
     ROUTES.home,
     ROUTES.privacy,
+    ROUTES.careers,
     ...PROGRAMME_PATHS, // includes VCE
     ROUTES.resources,
     ROUTES.posts, // shell only; posts load live in the browser (ADR-0001)

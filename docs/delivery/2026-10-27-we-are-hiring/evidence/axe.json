@@ -1,0 +1,38 @@
+{
+ "375 /careers": {
+  "axe": [
+   "moderate:region:1"
+  ],
+  "tabAfterSkip": {
+   "text": "Email your application",
+   "inMain": true
+  }
+ },
+ "375 /privacy": {
+  "axe": [
+   "moderate:region:1"
+  ],
+  "tabAfterSkip": {
+   "text": "hello@ajclasses.com.au",
+   "inMain": true
+  }
+ },
+ "1280 /careers": {
+  "axe": [
+   "moderate:region:1"
+  ],
+  "tabAfterSkip": {
+   "text": "Email your application",
+   "inMain": true
+  }
+ },
+ "1280 /privacy": {
+  "axe": [
+   "moderate:region:1"
+  ],
+  "tabAfterSkip": {
+   "text": "hello@ajclasses.com.au",
+   "inMain": true
+  }
+ }
+}

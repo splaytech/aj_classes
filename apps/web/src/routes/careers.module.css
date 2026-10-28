@@ -1,0 +1,9 @@
+/* Lists wrap at the same width as paragraphs; bullets stay the browser default (AC-14). */
+.list {
+  max-width: var(--measure);
+}
+
+/* Room between the "How to apply" text and its button. */
+.apply {
+  margin-top: var(--space-6);
+}

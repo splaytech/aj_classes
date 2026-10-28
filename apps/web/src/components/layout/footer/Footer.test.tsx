@@ -1,7 +1,7 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { FOOTER, ROUTES } from '@/constants';
+import { APP_CONFIG, CAREERS, FOOTER, FOOTER_PORTAL, RESOURCES, ROUTES } from '@/constants';
 import { useHasNews } from '@/lib/use-has-news';
 import { renderAt } from '@/test/render';
 
@@ -28,4 +28,41 @@ describe('footer News link (ADR-0001)', () => {
     expect(screen.queryByRole('link', { name: FOOTER.newsLink })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: FOOTER.privacyLink })).toBeInTheDocument();
   });
+});
+
+describe('footer legal row (we-are-hiring)', () => {
+  // The Resources link always shows, so its parent is the legal row whatever the flags are.
+  function legalRowLinkTexts(): string[] {
+    const row = screen.getByRole('link', { name: RESOURCES.footerLink }).parentElement;
+    if (!row) throw new Error('legal row not found');
+    return within(row)
+      .getAllByRole('link')
+      .map((link) => link.textContent ?? '');
+  }
+
+  function expectedOrder(hasNews: boolean): string[] {
+    return [
+      ...(hasNews ? [FOOTER.newsLink] : []),
+      RESOURCES.footerLink,
+      CAREERS.footerLink,
+      FOOTER.privacyLink,
+      ...(APP_CONFIG.features.portal ? [FOOTER_PORTAL.signIn] : []),
+    ];
+  }
+
+  it('links to /careers in the same tab (AC-1, AC-2)', () => {
+    renderAt(<Footer />);
+    const link = screen.getByRole('link', { name: CAREERS.footerLink });
+    expect(link).toHaveAttribute('href', ROUTES.careers);
+    expect(link).not.toHaveAttribute('target');
+  });
+
+  it.each([false, true])(
+    'sits between Resources and Privacy Policy (news %s) (AC-3)',
+    (hasNews) => {
+      vi.mocked(useHasNews).mockReturnValue(hasNews);
+      renderAt(<Footer />);
+      expect(legalRowLinkTexts()).toEqual(expectedOrder(hasNews));
+    },
+  );
 });
