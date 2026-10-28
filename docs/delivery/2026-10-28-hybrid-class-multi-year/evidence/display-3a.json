@@ -1,0 +1,164 @@
+{
+  "tc14_admin_list": [
+    [
+      "NAPLAN Reading & Writing",
+      "Year 5"
+    ],
+    [
+      "Selective Entry Maths & Reasoning",
+      "Years 7–9"
+    ],
+    [
+      "Selective Interview Preparation",
+      "Year 8"
+    ]
+  ],
+  "tc14_maths_chips": [
+    "Maths",
+    "Years 7–9",
+    "Hybrid"
+  ],
+  "tc7a_delivery": "Hybrid · Truganina, Room 1 and Zoom",
+  "tc14_naplan_chips": [
+    "English",
+    "Year 5",
+    "In person"
+  ],
+  "tc7c": {
+    "hy": 2,
+    "ip": 1,
+    "on": 1
+  },
+  "tc16a": [
+    [
+      "Aarav Demo",
+      "Year 8"
+    ],
+    [
+      "Isla Demo",
+      "Year 8"
+    ],
+    [
+      "Leo Demo",
+      "Year 8"
+    ],
+    [
+      "Mia Demo",
+      "Other (e.g. UCAT, GAMSAT)"
+    ],
+    [
+      "Noah Demo",
+      "Year 5"
+    ],
+    [
+      "Zara Demo",
+      "Year 5"
+    ]
+  ],
+  "tc16d": {
+    "multiselectable": null,
+    "selected": [
+      "Year 8"
+    ],
+    "boxText": [
+      "Year 8"
+    ]
+  },
+  "tc16b": [
+    [
+      "Aarav Demo",
+      "Year 8"
+    ],
+    [
+      "Isla Demo",
+      "Year 8"
+    ],
+    [
+      "Leo Demo",
+      "Year 8"
+    ]
+  ],
+  "tc16c": [
+    "Mia Demo · Other (e.g. UCAT, GAMSAT)",
+    "Noah Demo · Year 5",
+    "Zara Demo · Year 5"
+  ],
+  "tc16c_enrol_count_after": "3",
+  "tc16e": [
+    "Aarav Demo\n\nYear 8"
+  ],
+  "admin_errors": [],
+  "tutor_landing": "/portal/tutor",
+  "tc14_tutor_list": [
+    [
+      "Selective Entry Maths & Reasoning",
+      "Years 7–9"
+    ],
+    [
+      "Selective Interview Preparation",
+      "Year 8"
+    ]
+  ],
+  "tc17d_tutor_list": {
+    "newClass": 0,
+    "headers": [
+      "Class",
+      "Subject",
+      "Year",
+      "Schedule",
+      "Students"
+    ]
+  },
+  "tc7b_chips": [
+    "Maths",
+    "Years 7–9",
+    "Hybrid"
+  ],
+  "tc7b_delivery": "Hybrid · Truganina, Room 1 and Zoom",
+  "tc17d_tutor_detail": [],
+  "tc7d": {
+    "hy": 2,
+    "ip": 0,
+    "on": 1
+  },
+  "tutor_errors": [],
+  "student_landing": "/portal/student",
+  "tc7e": {
+    "hy": 2,
+    "ip": 0,
+    "on": 1
+  },
+  "tc17d_student_classes_url": "/portal/classes",
+  "student_errors": [],
+  "parent_landing": "/portal/parent",
+  "tc16f": [
+    [
+      "Aarav Demo",
+      "Year 8 · Selective Entry Maths & Reasoning · Selective Interview Preparation"
+    ],
+    [
+      "Noah Demo",
+      "Year 5 · NAPLAN Reading & Writing"
+    ],
+    [
+      "Fees and invoices",
+      "See and pay your invoices online, and download receipts, in our secure billing portal (Zoho Invoice)."
+    ]
+  ],
+  "tc7f": {
+    "hy": 2,
+    "ip": 0,
+    "on": 1
+  },
+  "tc16g": [
+    "Year 8 · Selective Entry Maths & Reasoning · Selective Interview Preparation"
+  ],
+  "tc7g": {
+    "hy": 0,
+    "ip": 1,
+    "on": 0
+  },
+  "tc7g_hybrid_prefix": 0,
+  "tc17d_parent_classes_url": "/portal/classes",
+  "parent_errors": []
+}
