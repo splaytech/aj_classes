@@ -1,7 +1,13 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { PORTAL_ERRORS, PORTAL_VALIDATION, PROFILE_PAGE, PROFILE_VALIDATION } from '@/constants';
+import {
+  PORTAL_ERRORS,
+  PORTAL_VALIDATION,
+  PROFILE_LIMITS,
+  PROFILE_PAGE,
+  PROFILE_VALIDATION,
+} from '@/constants';
 import type { StaffProfile } from '@/services';
 import { setupUser } from '@/test/user';
 
@@ -18,6 +24,11 @@ const PROFILE: StaffProfile = {
   photoUrl: null,
   phone: '+61412345678',
 };
+
+// The scroll tests spy on Element.prototype.scrollIntoView; never let one leak into the next test.
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 function renderForm(profile: StaffProfile = PROFILE) {
   const onSave = vi.fn();
@@ -84,7 +95,21 @@ describe('ProfileForm phone field (item 4)', () => {
     expect(scrolled).toHaveBeenCalledTimes(1);
     expect(scrolled.mock.contexts[0]).toBe(fullName);
     expect(scrolled).toHaveBeenCalledWith({ block: 'center' });
-    scrolled.mockRestore();
+  });
+
+  it('focuses the first qualification box for a qualifications error, not the fieldset', async () => {
+    const scrolled = vi.spyOn(Element.prototype, 'scrollIntoView');
+    const user = setupUser();
+    const tooLong = 'x'.repeat(PROFILE_LIMITS.qualificationMax + 1);
+    const { onSave } = renderForm({ ...PROFILE, qualifications: [tooLong] });
+
+    await user.click(screen.getByRole('button', { name: PROFILE_PAGE.save }));
+
+    const firstLine = screen.getByLabelText(PROFILE_PAGE.qualificationLabel(1));
+    expect(onSave).not.toHaveBeenCalled();
+    expect(screen.getByText(PROFILE_VALIDATION.qualificationTooLong)).toBeInTheDocument();
+    expect(firstLine).toHaveFocus();
+    expect(scrolled.mock.contexts[0]).toBe(firstLine);
   });
 
   it('brings the phone field into view when the server refuses the number (27d)', async () => {
@@ -97,7 +122,6 @@ describe('ProfileForm phone field (item 4)', () => {
 
     await waitFor(() => expect(phoneField()).toHaveFocus());
     expect(scrolled.mock.contexts[0]).toBe(phoneField());
-    scrolled.mockRestore();
   });
 
   it('shows a server refusal on the phone field, not as a form alert (AC-4.3)', async () => {

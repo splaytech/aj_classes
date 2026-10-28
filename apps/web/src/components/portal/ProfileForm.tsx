@@ -53,7 +53,7 @@ export function ProfileForm({ profile, onSave, onSaved }: ProfileFormProps) {
   const fullNameRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const bioRef = useRef<HTMLTextAreaElement>(null);
-  const qualificationsRef = useRef<HTMLFieldSetElement>(null);
+  const qualificationsRef = useRef<HTMLInputElement>(null); // the first line's box
 
   function fieldElement(field: ProfileField): HTMLElement | null {
     const elements = {

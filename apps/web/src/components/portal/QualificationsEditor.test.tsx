@@ -32,4 +32,16 @@ describe('QualificationsEditor', () => {
 
     expect(screen.getByLabelText(PROFILE_PAGE.qualificationLabel(2))).toHaveFocus();
   });
+
+  it('focuses the new box again after adding, removing and adding the same line', async () => {
+    const user = setupUser();
+    render(<Editor initial={['B.Ed, Monash University']} />);
+    const add = screen.getByRole('button', { name: PROFILE_PAGE.addQualification });
+
+    await user.click(add);
+    await user.click(screen.getByRole('button', { name: PROFILE_PAGE.removeQualification(2) }));
+    await user.click(add);
+
+    expect(screen.getByLabelText(PROFILE_PAGE.qualificationLabel(2))).toHaveFocus();
+  });
 });
