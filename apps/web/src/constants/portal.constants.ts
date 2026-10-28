@@ -700,6 +700,9 @@ export const YEAR_LEVEL_TEXT = {
   label: (year: number) => `Year ${year}`,
   other: 'Other (e.g. UCAT, GAMSAT)',
   any: 'Any year',
+  several: (years: string) => `Years ${years}`,
+  rangeSeparator: '–', // en dash, AC 13
+  listSeparator: ', ',
 } as const;
 
 /** Delivery options in the order the class form lists them (AC 1). */
@@ -751,6 +754,7 @@ export const CLASS_DIALOG = {
   },
   hints: {
     location: 'Room, the online meeting place (e.g. Zoom), or both for hybrid.',
+    yearLevel: 'Choose one or more, or none for any year.',
     term: 'Optional. Next sessions only appear between these dates.',
   },
   noTutor: 'No tutor yet',

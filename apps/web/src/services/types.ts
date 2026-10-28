@@ -221,7 +221,7 @@ export type ClassSummary = {
   id: string;
   name: string;
   subject: string;
-  yearLevel: number | null;
+  yearLevels: number[]; // ascending; empty = Any year
   delivery: Delivery;
   location: string;
   tutorId: string | null;
@@ -268,7 +268,7 @@ export type ClassInput = {
   id?: string;
   name: string;
   subject: string;
-  yearLevel: number | null;
+  yearLevels: number[];
   delivery: Delivery;
   location: string;
   tutorId: string | null;
