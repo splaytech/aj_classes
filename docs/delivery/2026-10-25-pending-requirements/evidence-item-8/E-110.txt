@@ -1,0 +1,23 @@
+work_returned:parent:pending:-
+work_returned:student:pending:-
+worker=200 {"ok":true,"data":{"claimed":2,"sent":2,"retrying":0,"failed":0}}
+== student
+Your work has been marked: Reasoning mock test 1
+Hi Aarav,
+Your tutor has marked "Reasoning mock test 1" for Selective Entry Maths & Reasoning and returned it to you.
+View feedback: http://localhost:5173/portal/student/assignments/$MOCK
+You're getting this because you have an AJ Classes portal account.
+To stop these emails, go to Account → Notifications: http://localhost:5173/portal/account#notifications
+leak=0 leak_html=0 amp=1 header=1
+== parent
+Aarav's work has been marked: Reasoning mock test 1
+Hi Local,
+Aarav's tutor has marked "Reasoning mock test 1" for Selective Entry Maths & Reasoning and returned it.
+View feedback: http://localhost:5173/portal/parent/children/$AARAV/assignments/$MOCK
+You're getting this because you have an AJ Classes portal account.
+To stop these emails, go to Account → Notifications: http://localhost:5173/portal/account#notifications
+leak=0 leak_html=0 amp=1 header=1
+keys_ok=0
+UPDATE 1
+DELETE 2
+marked|-

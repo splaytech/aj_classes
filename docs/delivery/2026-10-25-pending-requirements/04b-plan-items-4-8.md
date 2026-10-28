@@ -588,7 +588,7 @@ Design: 03b §8 (25 files), ADR-0008, extending ADR-0004. One migration and one 
 no new dependency. AC-8.1–8.17. The file hand-in parts of AC-8.1 and AC-8.5 move to T2.15. All
 email goes to Mailpit.
 
-- [ ] **T8.0 Branch, migration file, constraint names.**
+- [x] **T8.0 Branch, migration file, constraint names.**
   - **Run:** `git checkout develop && git pull --ff-only && git checkout -b feature/more-email-alerts && pnpm db:reset`.
   - **File:** create `20261028100000_more_email_alerts.sql`, or a fresh stamp later than item 7's (§1 rule 2).
   - **Precondition:** the latest `develop` CI run is green (the T7.0 command).
@@ -596,7 +596,7 @@ email goes to Mailpit.
     1. §0 stack checks 1 and 2. Check 2 prints item 7's stamp before this item's file is created.
        Check 1 matters most here, because item 8 changes the `notifications` function.
     2. `docker exec supabase_db_aj_classes psql -U postgres -Atc "select conname from pg_constraint where conrelid='public.email_outbox'::regclass"` lists `email_outbox_kind_check`, `email_outbox_reason_check` and `email_outbox_once`. They were already confirmed on 26 Oct 2026; re-check on the branch.
-- [ ] **T8.1 Switches, outbox columns, Melbourne helpers (DB).**
+- [x] **T8.1 Switches, outbox columns, Melbourne helpers (DB).**
   - **Files:** 03b #1 steps 1–3; #2 `email_alerts.test.sql` (fixture block copied from `email_outbox.test.sql`, the 03b §8.10 set-up rules).
   - **Tests:**
     - the "DST and schedule" row: every `is_reminder_hour` true and false case, and `melbourne_day_start`;
@@ -604,12 +604,12 @@ email goes to Mailpit.
     - the new columns default true;
     - `email_outbox.test.sql` stays green.
   - **Run:** `pnpm db:reset && pnpm db:test`.
-- [ ] **T8.2 One recipient function (DB).**
+- [x] **T8.2 One recipient function (DB).**
   - **Files:** #1 steps 4 and 7 (`email_still_relevant`, `email_recipients`; `queue_work_returned_email` copied from `20261025110000` lines 149–163 and switched to `email_recipients('work_returned', …)`); #3a `fair_results.test.sql` (its one AC-7.14 call renamed).
   - **Leave for now:** `work_returned_recipients` stays until T8.4, because the old claim still calls it.
   - **Tests:** item 3's AC-3.1 and AC-3.2 cases in `email_outbox.test.sql` stay green; the switch-per-kind cases.
   - **Run:** `pnpm db:reset && pnpm db:test`.
-- [ ] **T8.3 Queue on publish, and the hourly reminder job (DB).**
+- [x] **T8.3 Queue on publish, and the hourly reminder job (DB).**
   - **Files:** #1 steps 5–6 (`queue_new_assignment_emails` and its trigger; `queue_due_tomorrow_emails_for`, `queue_due_tomorrow_emails`, `cron.schedule('due-tomorrow-reminders', '10 * * * *', …)`); #3 `email_outbox.test.sql` (delete the outbox again after its fixtures).
   - **Tests:**
     - AC-8.1: incl. two rows for parent2 across two children, paper, and inserted as published;
@@ -622,7 +622,7 @@ email goes to Mailpit.
     - publishing after the due date queues nothing;
     - `cron.job` has the new job.
   - **Run:** `pnpm db:reset && pnpm db:test`.
-- [ ] **T8.4 Claim, sweep, admin list, clean-up (DB).**
+- [x] **T8.4 Claim, sweep, admin list, clean-up (DB).**
   - **Files:**
     - #1 steps 8–11: drop and recreate `notify_claim_emails(supported_kinds text[] default array['work_returned'])` with the claim order; the `kick_email_worker` sweep (body lines 299–336); drop and recreate `admin_email_problems` with `kind`; drop `work_returned_recipients`; the grants.
     - #3: the `proargnames` checks filtered by `proargmodes = 't'`.
@@ -634,7 +634,7 @@ email goes to Mailpit.
   - **Deploy-order proof (old worker against the new DB):** with the function **not yet changed**, `pnpm test:functions` still passes item 3's checks.
   - **Then:** `pnpm db:types`.
   - **Run:** `pnpm db:reset && pnpm db:test && pnpm test:functions && pnpm db:types && pnpm typecheck`.
-- [ ] **T8.5 Worker renders three kinds.**
+- [x] **T8.5 Worker renders three kinds.**
   - **Files:** #4 `copy.ts` (`EMAIL_KINDS`, the 03b §8.5 wording), #5 `template.ts` (`ClaimedRow.kind` and `.due_on`, `formatDueDate`, `renderShell`, the three renderers, `renderEmail`), #6 `index.ts` (`supported_kinds: [...EMAIL_KINDS]`), #7 `test-notifications.mjs`.
   - **Unit tests:**
     - AC-8.2: `formatDueDate`, the new-assignment body with and without a due date, the button and links, no instructions;
@@ -645,20 +645,20 @@ email goes to Mailpit.
   - **Test:** AC-8.16: `From` and the header block.
   - **Then:** after the run, `select jobname, active from cron.job` shows both jobs `t`.
   - **Run:** `pnpm test:functions`.
-- [ ] **T8.6 Three switches on Account → Notifications.**
+- [x] **T8.6 Three switches on Account → Notifications.**
   - **Files:** #9 `types.ts` (`NotificationSettings`, `EmailKind`, `EmailProblem.kind`, `'too_late'`), #10 `notifications.service.ts`, #11 its test, #13 `account.tsx` (three rows, one Save), #17 `ACCOUNT_PAGE.notifications.newAssignment` / `.dueTomorrow`, #24 `account.module.css` only if needed.
   - **Tests (AC-8.10):** the select lists three columns; no row means all true; save sends all three.
   - **Visible:** as the student and the parent, three switches, Save shows "Saved…", and they survive sign-out. Staff see none.
   - **Run:** `pnpm --filter web exec vitest run src/services/notifications.service.test.ts`.
-- [ ] **T8.7 Admin → Emails "Type" column.**
+- [x] **T8.7 Admin → Emails "Type" column.**
   - **Files:** #14 `admin-emails.tsx`, #15 `lib/email-problems.ts`, #16 its test, #17 `EMAILS_PAGE.columns.type`, `.kinds`, `.reasons.too_late`, `.intro`, and the extended comment.
   - **Tests:** every kind and `too_late` are labelled (AC-8.7, 8.13).
   - **Visible:** a hand-made `too_late` row shows "Due tomorrow · Too late to send".
   - **Run:** `pnpm --filter web exec vitest run src/lib/email-problems.test.ts`.
-- [ ] **T8.8 Privacy sentence.**
+- [x] **T8.8 Privacy sentence.**
   - **Files:** #18 `PRIVACY` (the 03b §8.9 sentence replaces item 3's two), #19 `privacy.test.tsx`.
   - **Run:** `pnpm --filter web exec vitest run src/routes/privacy.test.tsx`.
-- [ ] **T8.9 Docs.**
+- [x] **T8.9 Docs.**
   - **Files:**
     - #8 `supabase/README.md`: "Portal emails"; three kinds; the job and its kill switch `select cron.unschedule('due-tomorrow-reminders');`; migration first, then the function;
     - #20 `arch.md`;
@@ -666,12 +666,16 @@ email goes to Mailpit.
     - #22 `release-5/PRP.md`;
     - #23 `release-2/go-live.md`: §6.5's steps as unticked boxes.
   - **Run:** `pnpm format:check`.
-- [ ] **T8.10 Manual passes.** Record each in the dev notes.
+- [x] **T8.10 Manual passes.** Record each in the dev notes.
   - the AC-8.2 signed-out link → sign-in → assignment page;
   - AC-8.12: publish with `docker stop supabase_edge_runtime_aj_classes` and see no error, then `docker start` it;
   - AC-8.13 and AC-8.17 at 360 px, light and dark, with both new emails in Mailpit's preview at 360 px.
-- [ ] **T8.11 Full check.** §0 steps 1–4 (in-repo E2E).
-- [ ] **T8.12 Dev notes.** `05-dev-notes-item-8.md`. It names the copied bodies for T2.15.
+- [x] **T8.11 Full check.** §0 steps 1–4 (in-repo E2E).
+- [x] **T8.12 Dev notes.** `05-dev-notes-item-8.md`. It names the copied bodies for T2.15.
+> **Paused 26 Oct 2026 by Saurabh** after three CHANGES_REQUESTED rounds on review 5 (see
+> `review-5-item-8.md` round 3, Blocking 1). Item 8 stays unmerged on `feature/more-email-alerts`;
+> the test plan is a DRAFT (not frozen).
+
 - [ ] **T8.13 Reviewer pass.** `review-5-item-8.md`, until it's APPROVED. The reviewer checks the `supported_kinds` default, the claim order, and that the sweep runs before the early return.
 - [ ] **T8.14 Test plan.** `06-test-plan-item-8.md`. It includes item 3's full regression (the claim, the cap, the kick, the admin list) and item 7's AC-7.14 under the new function.
 - [ ] **T8.15 Security review.** `06-security-item-8.md`. It covers:

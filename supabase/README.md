@@ -32,7 +32,7 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 
 **Edge functions** (`supabase/functions/`) are served by the local stack at http://127.0.0.1:55321/functions/v1/. `account-admin` (was `staff-admin` before R3b) handles staff, student and parent invites, deactivation and two-step resets; its allowed browser origins are set in `config.toml` (`[edge_runtime.secrets]`). Hosted: run `supabase/scripts/deploy.sh`. **Hosted function secrets change only through `deploy.sh`**: never run `supabase secrets set` by hand, because it also copies the local values in `[edge_runtime.secrets]` (the Mailpit transport, `localhost` site URL and the public local worker secret) to the hosted project.
 
-**"Work returned" emails locally** (ADR-0004): when a tutor returns work, the database queues one email per active student and parent (`email_outbox`). Every 5 minutes `pg_cron` calls the local `notifications` function, which sends them to **Mailpit** (http://127.0.0.1:55324), never out. The seed's returned work queues two on every `pnpm db:reset`. The function's local settings are in `config.toml` (`[edge_runtime.secrets]`: `EMAIL_TRANSPORT=mailpit`, the local-only `NOTIFY_WORKER_SECRET`); its address and secret for the cron job are in local Vault (`seed.sql`). To send without waiting: `curl -X POST http://127.0.0.1:55321/functions/v1/notifications -H 'x-notify-secret: local-notify-secret'`. After changing `config.toml`, restart the stack (`pnpm db:stop && pnpm db:start`) so the function sees it.
+**Portal emails locally** (ADR-0004, ADR-0008): when a tutor returns work or publishes new work, the database queues one email per active student and parent (`email_outbox`); at 15:10 Melbourne time the `due-tomorrow-reminders` job queues a reminder for online work due the next day that isn't handed in. Every 5 minutes `pg_cron` calls the local `notifications` function, which sends them to **Mailpit** (http://127.0.0.1:55324), never out. The seed's returned and published work queues eight on every `pnpm db:reset` (two "work returned", six "new assignment"). The function's local settings are in `config.toml` (`[edge_runtime.secrets]`: `EMAIL_TRANSPORT=mailpit`, the local-only `NOTIFY_WORKER_SECRET`); its address and secret for the cron job are in local Vault (`seed.sql`). To send without waiting: `curl -X POST http://127.0.0.1:55321/functions/v1/notifications -H 'x-notify-secret: local-notify-secret'`. After changing `config.toml`, restart the stack (`pnpm db:stop && pnpm db:start`) so the function sees it.
 
 **Demo data:** `seed.sql` also creates three classes with weekly times, six fictional students ("… Demo") and a few assignments, so every staff page has something to show. The Maths class is hybrid and for Years 7–9 (ADR-0009), so the multi-year label and `Hybrid · <location>` show on the class pages and on the staff, student and parent timetables; the other two classes are single-year (Year 5 in person, Year 8 online).
 
@@ -118,9 +118,21 @@ supabase db push
 
 Test on staging, then repeat with the prod ref. `db push` does not run `seed.sql`.
 
-### Work returned emails (ADR-0004)
+### Portal emails (ADR-0004, ADR-0008)
 
-How it works: a staff return queues rows in `public.email_outbox` (no address or body stored); the `email-worker-kick` cron job (every 5 min) calls the `notifications` function, which sends through Resend's HTTP API (hosted) and marks each row sent. App cap: **70 in any rolling 24 hours**, so sign-in emails always keep 30 of Resend Free's 100 a day. Admins see failed sends, and sends still waiting after ~2 hours, at **Portal → Admin → Emails**.
+(Called "Work returned emails" before item 8; `deploy.sh` and the item 3 migration still point here by that name.)
+
+Three kinds, one outbox, one worker, one cap. Each person can turn each kind off in Account → Notifications (on by default):
+
+| Kind (Admin → Emails "Type") | Queued by                                                                                                                                                            | Deadline (`send_before`)                                                                                           |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Work returned                | a staff return (trigger on `assignment_results`)                                                                                                                     | none                                                                                                               |
+| New assignment               | work becoming published (trigger on `assignments`), for the students enrolled then                                                                                   | end of the due date (Melbourne), or 7 days after publishing with no due date; nothing is queued once it has passed |
+| Due tomorrow                 | the `due-tomorrow-reminders` cron job: hourly at `:10`, acting only at 15:10 Melbourne; online work due the next day, not handed in, published before the day before | start of the due date (Melbourne)                                                                                  |
+
+How it works: rows go into `public.email_outbox` (no address or body stored); the `email-worker-kick` cron job (every 5 min) first fails pending rows past their deadline as "Too late to send", then calls the `notifications` function, which claims reminders first and everything else oldest first, sends through Resend's HTTP API (hosted) and marks each row sent. App cap: **70 in any rolling 24 hours, shared by all three kinds**, so sign-in emails always keep 30 of Resend Free's 100 a day. Admins see failed sends, and sends still waiting after ~2 hours, at **Portal → Admin → Emails**.
+
+**Deploy order: migration first, then the function.** `deploy.sh` pushes migrations and then deploys functions, so one run is safe. By hand: `supabase db push`, then `supabase functions deploy notifications`. Don't deploy the function first: the new worker calls `notify_claim_emails(supported_kinds)`, which the old database doesn't have (`PGRST202`). It then falls back to the old claim, so "work returned" keeps sending, but "new assignment" and "due tomorrow" don't exist until the migration lands; the function log shows `notifications claim: old database, work returned only`. The other way round is safe: today's worker calls it with no argument and keeps claiming only "work returned"; new-kind rows wait (Waiting / "Not attempted" after 2 hours, then "Too late to send") until the function is deployed.
 
 **Set up once on the hosted project** (after `deploy.sh`, which prints these lines). Dashboard → SQL Editor, with `NOTIFY_WORKER_SECRET` from the password manager (never pasted into chat or git):
 
@@ -144,16 +156,22 @@ To change the secret later: `select vault.update_secret(id, '<new value>') from 
 3. As the test tutor, return it with a mark.
 4. Within 5 minutes both aliases get "… has been marked" from `hello@ajclasses.com.au`; **View feedback** opens the right page.
 5. Portal → Admin → Emails says "No failed or waiting emails".
-6. Delete the test class (its outbox rows go with it), then the test accounts.
+6. New assignment: in the same test class, publish one paper assignment. Within 5 minutes both aliases get "New work set" / "New work for …" (03b §8.11).
+7. Due tomorrow: set up one online assignment in the test class due tomorrow, published 2 or more days earlier. After 15:10 Melbourne both aliases get "Due tomorrow" / "… is due tomorrow".
+8. Delete the test class (its outbox rows go with it), then the test accounts.
+
+**On the first 15:10 run after item 8's deploy**, already-published online work due the next day sends reminders to real families. That's by design (04b Q31).
+
+**Stop the "due tomorrow" reminders only:** `select cron.unschedule('due-tomorrow-reminders');`. Nothing new is queued; reminders already queued still go out (or expire). Turn back on with the `cron.schedule('due-tomorrow-reminders', …)` line in `migrations/20261029100000_more_email_alerts.sql`.
 
 **Stop all sends at once (kill switch):** `select cron.unschedule('email-worker-kick');`. Rows wait; nothing is lost. Turn back on with the `cron.schedule('email-worker-kick', …)` line in `migrations/20261025110000_work_returned_email.sql`. Or `supabase secrets unset EMAIL_TRANSPORT --project-ref unzjnxctkyahtmrkinyr` (an `unset` copies nothing from `config.toml`; only `set` does): from the next kick the worker sends nothing, flags waiting rows, and returns 503 before it even checks the secret, so they show as Waiting / "Set-up error" (after the usual ~2 hours), never "Not attempted". Turn it back on by running `deploy.sh` again.
 
-**Admin Emails page reasons:** "Not attempted" after 2 hours means the cron job or the Vault entries are missing; "Set-up error" means `EMAIL_TRANSPORT`, `RESEND_API_KEY` or `SITE_URL` is missing on the function, or the hosted function has local-only values (`EMAIL_TRANSPORT=mailpit`, the local worker secret or a non-https `SITE_URL`: run `deploy.sh` again); "Daily limit" means 70 were sent in the last 24 hours (they go out as earlier ones age out); "Gave up after 3 tries" means Resend kept failing. When Resend is busy (429) or can't be reached, the worker stops the batch and puts the unsent rows back; each of those still uses one of its 3 attempts, so a long outage can end rows as "Gave up after 3 tries" even though Resend never accepted them.
+**Admin Emails page reasons:** "Too late to send" means a "new assignment" or "due tomorrow" email was still waiting at its deadline (usually the daily limit, or an outage), so it was never sent; if these recur, it's 02b Decision 1's Resend upgrade trigger (`docs/budget.md` §5). "Not attempted" after 2 hours means the cron job or the Vault entries are missing (or, for the new kinds only, the `notifications` function hasn't been deployed since the migration); "Set-up error" means `EMAIL_TRANSPORT`, `RESEND_API_KEY` or `SITE_URL` is missing on the function, or the hosted function has local-only values (`EMAIL_TRANSPORT=mailpit`, the local worker secret or a non-https `SITE_URL`: run `deploy.sh` again); "Daily limit" means 70 were sent in the last 24 hours (they go out as earlier ones age out); "Gave up after 3 tries" means Resend kept failing. When Resend is busy (429) or can't be reached, the worker stops the batch and puts the unsent rows back; each of those still uses one of its 3 attempts, so a long outage can end rows as "Gave up after 3 tries" even though Resend never accepted them.
 
-**If `pnpm test:functions` was interrupted** and local emails stop: the notifications script pauses the cron job while it runs and resumes it on exit or Ctrl-C. If that ever didn't happen:
+**If `pnpm test:functions` was interrupted** and local emails stop: the notifications script pauses the `email-worker-kick` and `due-tomorrow-reminders` cron jobs while it runs and resumes them on exit or Ctrl-C. If that ever didn't happen:
 
 ```bash
-docker exec supabase_db_aj_classes psql -U postgres -c "select cron.alter_job(jobid, active := true) from cron.job where jobname = 'email-worker-kick'"
+docker exec supabase_db_aj_classes psql -U postgres -c "select cron.alter_job(jobid, active := true) from cron.job where jobname in ('email-worker-kick', 'due-tomorrow-reminders')"
 ```
 
 `pnpm db:reset` also restores it.

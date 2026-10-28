@@ -71,9 +71,13 @@ production — there is one database, not two. The web app talks to it via `@sup
   classes they're enrolled in; admins and tutors have broader access.
 * **Storage:** the `avatars` bucket.
 * **Edge Functions:** `leads` (public `submit`, admin `resync` — see below), `account-admin`, and
-  `notifications` (sends the "work returned" emails; called only by `pg_cron`, see §7).
-* **Scheduled jobs:** `pg_cron` runs `email-worker-kick` every 5 minutes (calls `notifications`
-  through `pg_net` when emails are waiting) and a daily trim (cron log to 7 days; sent, skipped and failed emails after 90 days).
+  `notifications` (sends the "work returned", "new assignment" and "due tomorrow" emails; called
+  only by `pg_cron`, see §7).
+* **Scheduled jobs:** `pg_cron` runs `email-worker-kick` every 5 minutes (fails emails past their
+  deadline as "too late", then calls `notifications` through `pg_net` when emails are waiting),
+  `due-tomorrow-reminders` hourly at `:10` (acts only at 15:10 Melbourne, whatever time zone
+  `pg_cron` uses; ADR-0008), and a daily trim (cron log to 7 days; sent, skipped and failed emails
+  after 90 days).
 
 **5. Lead capture (Zoho CRM Free)**
 
@@ -96,11 +100,19 @@ Payments are PayID / bank transfer today — no Stripe integration exists yet.
 All auth-related email (invites, password resets, confirmations) is sent via **Resend**, configured
 against the `ajclasses.com.au` domain.
 
-App email (ADR-0004): the **"work returned"** email to students and parents. A trigger queues it in
-`email_outbox` when staff return work; the `notifications` edge function sends it through Resend's
-HTTP API (Mailpit locally). The app sends at most **70 in any rolling 24 hours**, leaving at least
-30 of Resend Free's 100 a day for sign-in email. Families turn it off in Account → Notifications;
-admins see failed and waiting sends in Admin → Emails.
+App email (ADR-0004, extended by ADR-0008): three emails to students and parents, all through one
+`email_outbox`:
+- **"work returned"**: a trigger queues it when staff return work;
+- **"new assignment"**: a trigger queues it when work is published, for the students enrolled then;
+- **"due tomorrow"**: the `due-tomorrow-reminders` job queues it at 15:10 Melbourne for online work
+  due the next day that isn't handed in.
+
+The `notifications` edge function sends them through Resend's HTTP API (Mailpit locally), reminders
+first, then oldest first. The two new kinds carry a deadline and are never sent late: the kick fails
+them as "Too late to send". The app sends at most **70 in any rolling 24 hours** across all three,
+leaving at least 30 of Resend Free's 100 a day for sign-in email. Families turn each one off in
+Account → Notifications; admins see failed and waiting sends, with their type, in Admin → Emails.
+Deploy order: the migration first, then the function (ADR-0008 decision 6).
 
 This is a solo-developer-friendly setup: one hosted Postgres/Auth backend (Supabase), one hosting
 platform for the web app (Vercel), and a small set of managed SaaS tools (Zoho CRM/Invoice, Resend,
@@ -141,7 +153,7 @@ flowchart TD
     %% Managed Backend
     subgraph BackendLayer [4. Supabase - Sydney, one hosted project]
         G <-->|API| H(Supabase Edge Functions: leads, account-admin, notifications):::backend
-        J -->|pg_cron every 5 min, pg_net| H
+        J -->|pg_cron every 5 min, pg_net; reminder queue hourly| H
         G <-->|API| I[Auth / GoTrue]:::backend
         H <--> J[(PostgreSQL + RLS)]:::backend
         G <--> K[Storage: avatars bucket]:::backend
@@ -150,7 +162,7 @@ flowchart TD
     %% External Services
     subgraph ExternalLayer [5. External Services]
         I -->|Auth emails| L[Resend]:::external
-        H -->|Work returned emails, max 70 per 24 h| L
+        H -->|Portal emails: work returned, new assignment, due tomorrow; max 70 per 24 h| L
         H -->|Lead upsert| N[Zoho CRM Free]:::external
         N -->|Convert on enrolment| O[Zoho Invoice - customer portal]:::external
         G -->|Spam protection on forms| P[Cloudflare Turnstile]:::external

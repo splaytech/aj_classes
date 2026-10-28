@@ -1,0 +1,52 @@
+Fractions quick quiz:new_assignment:parent:sent
+Fractions quick quiz:new_assignment:student:sent
+Number patterns check:work_returned:parent:sent
+Number patterns check:work_returned:student:sent
+Times tables warm-up:new_assignment:parent:sent
+Times tables warm-up:new_assignment:student:sent
+Word problems set 1:new_assignment:parent:sent
+Word problems set 1:new_assignment:student:sent
+-- student
+Due tomorrow: Fractions quick quiz
+New work set: Fractions quick quiz
+New work set: Fractions quick quiz
+New work set: Times tables warm-up
+New work set: Times tables warm-up
+New work set: Word problems set 1
+New work set: Word problems set 1
+Your work has been marked: Number patterns check
+Your work has been marked: Number patterns check
+-- parent
+Aarav's work has been marked: Number patterns check
+Aarav's work has been marked: Number patterns check
+Aarav's work is due tomorrow: Fractions quick quiz
+New work for Aarav: Fractions quick quiz
+New work for Aarav: Fractions quick quiz
+New work for Aarav: Times tables warm-up
+New work for Aarav: Times tables warm-up
+New work for Aarav: Word problems set 1
+New work for Aarav: Word problems set 1
+keys_ok=0
+sent24=8
+others=0
+students=Aarav Demo
+mp_total=18
+email-worker-kick succeeded 2026-10-28 22:50:00.012157+00
+2026-10-28T22:36:40.087Z parent@local.test Aarav's work is due tomorrow: Fractions quick quiz
+2026-10-28T22:36:40.695Z student@local.test Due tomorrow: Fractions quick quiz
+2026-10-28T22:40:00.233Z student@local.test New work set: Times tables warm-up
+2026-10-28T22:40:00.848Z student@local.test New work set: Word problems set 1
+2026-10-28T22:40:01.463Z student@local.test Your work has been marked: Number patterns check
+2026-10-28T22:40:02.075Z student@local.test New work set: Fractions quick quiz
+2026-10-28T22:40:02.685Z parent@local.test New work for Aarav: Fractions quick quiz
+2026-10-28T22:40:03.298Z parent@local.test Aarav's work has been marked: Number patterns check
+2026-10-28T22:40:03.908Z parent@local.test New work for Aarav: Word problems set 1
+2026-10-28T22:40:04.526Z parent@local.test New work for Aarav: Times tables warm-up
+2026-10-28T22:50:00.288Z parent@local.test New work for Aarav: Fractions quick quiz
+2026-10-28T22:50:00.906Z student@local.test New work set: Word problems set 1
+2026-10-28T22:50:01.524Z parent@local.test New work for Aarav: Word problems set 1
+2026-10-28T22:50:02.143Z student@local.test New work set: Times tables warm-up
+2026-10-28T22:50:02.761Z student@local.test Your work has been marked: Number patterns check
+2026-10-28T22:50:03.369Z parent@local.test Aarav's work has been marked: Number patterns check
+2026-10-28T22:50:03.981Z student@local.test New work set: Fractions quick quiz
+2026-10-28T22:50:04.592Z parent@local.test New work for Aarav: Times tables warm-up

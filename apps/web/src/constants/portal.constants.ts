@@ -257,6 +257,8 @@ export const ACCOUNT_PAGE = {
     heading: 'Notifications',
     intro: 'Emails we send about schoolwork.',
     workReturned: 'Email me when work is marked and returned',
+    newAssignment: 'Email me when new work is set',
+    dueTomorrow: 'Email me the day before work is due',
     save: 'Save',
     saving: 'Saving…',
     saved: "Saved. We'll remember this choice.",
@@ -645,17 +647,24 @@ export const ACTIVITY_PAGE = {
   listSeparator: ' · ',
 } as const;
 
-// Admin → Emails (AC-3.8; ADR-0004). Reason keys must match the codes admin_email_problems returns.
+// Admin → Emails (AC-3.8, AC-8.13; ADR-0004, ADR-0008). Reason keys must match the codes
+// admin_email_problems returns, and kind keys the email_outbox.kind values.
 export const EMAILS_PAGE = {
   heading: 'Emails',
   intro:
-    '"Work returned" emails that failed, or haven\'t gone out about 2 hours after the work was returned. Sent emails aren\'t listed.',
+    "Portal emails that failed, or haven't gone out about 2 hours after they were queued. Sent emails aren't listed.",
   columns: {
     when: 'When',
+    type: 'Type',
     recipient: 'Recipient',
     assignment: 'Assignment',
     state: 'State',
     reason: 'Reason',
+  },
+  kinds: {
+    work_returned: 'Work returned',
+    new_assignment: 'New assignment',
+    due_tomorrow: 'Due tomorrow',
   },
   roles: { student: 'Student', parent: 'Parent' },
   states: { failed: 'Failed', waiting: 'Waiting' },
@@ -667,6 +676,7 @@ export const EMAILS_PAGE = {
     no_address: 'Recipient address missing',
     max_attempts: 'Gave up after 3 tries',
     config_missing: 'Set-up error',
+    too_late: 'Too late to send',
     daily_limit: 'Daily limit',
     retrying: 'Retrying',
     not_attempted: 'Not attempted',

@@ -1,0 +1,16 @@
+1: http://127.0.0.1:55321
+equal
+2:
+.env.example
+.env.production
+e2e/.env hosted refs: 0
+3:
+(end 3)
+4: f1aca74ee12d1dfa76084b50b5bf24795f1bb935
+anc=0
+diff=1
+feature/more-email-alerts
+porcelain(tracked)=0 untracked=docs/delivery/2026-10-25-pending-requirements/TSR-item-8.md
+docs/delivery/2026-10-25-pending-requirements/evidence-item-8/
+docs/delivery/2026-10-25-pending-requirements/run-item-8/
+5: 22:45 UTC

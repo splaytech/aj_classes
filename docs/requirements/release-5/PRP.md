@@ -27,6 +27,12 @@ Launch the Flutter mobile app to reach students on their phones, and drive engag
 > [pending-requirements delivery, item 3](../../delivery/2026-10-25-pending-requirements/03-design.md)
 > (ADR-0004). It uses an outbox table, `pg_cron` and an edge function, which the other triggers
 > (new assignment, due date approaching) reuse. Push notifications are out of scope.
+>
+> **Built (web, 26 Oct 2026, not yet released):** R5-02's "New assignment posted" and "Due date
+> approaching" emails, and R5-04's other two switches, so Account → Notifications has one switch
+> per email ([items 4–8 delivery, item 8](../../delivery/2026-10-25-pending-requirements/03b-design-items-4-8.md),
+> ADR-0008). "Due date approaching" is one reminder at 3 pm Melbourne the day before, for online
+> work not handed in yet. R5-03 "Join request approved" is still blocked on R4 (B12).
 
 ## Architecture Mapping
 

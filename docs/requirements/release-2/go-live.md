@@ -102,7 +102,7 @@ approved (Q7 / B17); B1 done first, or released together at the same SHA.
 - [ ] Step 0, before deploying: in Dashboard → SQL Editor (read only) this returns 0, or the posts migration will fail: `select count(*) from public.posts where btrim(title, E' \t\n\r') = '' or btrim(body, E' \t\n\r') = '' or char_length(title) > 120 or char_length(body) > 5000;`
 - [ ] Put a new long random `NOTIFY_WORKER_SECRET` and the Resend key in the password manager and in `supabase/.env.deploy` (git-ignored).
 - [ ] `git fetch && git checkout -b release/work-returned-email <item 3 develop merge SHA>`, then from that branch run `supabase/scripts/deploy.sh`. It applies the migration (enables `pg_cron` and `pg_net`; if `db push` refuses, enable both in Dashboard → Database → Extensions and run it again), deploys `notifications` and sets the function settings.
-- [ ] Straight after the deploy (before merging to `main`), run the two Vault lines the script printed, in Dashboard → SQL Editor (supabase/README.md → "Work returned emails"), then delete that query from the editor's snippets and history.
+- [ ] Straight after the deploy (before merging to `main`), run the two Vault lines the script printed, in Dashboard → SQL Editor (supabase/README.md → "Portal emails", formerly "Work returned emails"), then delete that query from the editor's snippets and history.
 - [ ] Confirm the script printed "Hosted function settings checked". First run only: confirm `supabase secrets list -o json` shows SHA-256 hex digests; if not, fix the check before relying on it.
 - [ ] Merge `release/work-returned-email` (the same SHA, not `develop`) into `main` through a PR.
 - [ ] Dashboard → Project Settings → API → Exposed schemas is still only `public` and `graphql_public` (never `net`).
@@ -118,6 +118,20 @@ Release steps for Saurabh, then the team (03b §5.8). No migration or function.
 - [ ] `curl -sI https://ajclasses.com.au/__spa-fallback | grep -ci '^content-security-policy:'` prints `1`, the portal one, with `X-Robots-Tag: noindex, nofollow` and `Cache-Control: no-store`.
 - [ ] `curl -sI https://ajclasses.com.au/_vercel/insights/script.js` → 200, and the live home page shows 0 CSP violations in Chrome.
 - [ ] If `/portal/*` or `/__spa-fallback` ever shows two CSPs, revert the release (config only).
+
+## 7d. "New assignment" and "due tomorrow" emails (pending-requirements item 8, ADR-0008)
+
+Release steps for Saurabh (04b §8.5, 03b §8.11). Preconditions: **Q27 answered** (Resend volume
+rule; gates this release only); the item 8 Privacy sentence approved (Q7 / B17); item 3 released
+and its AC-3.11 check done; Q31 accepted.
+
+- [ ] `git fetch && git checkout -b release/more-email-alerts <item 8 develop merge SHA>`.
+- [ ] From that branch: `supabase/scripts/deploy.sh`. One run pushes the migration and **then** deploys `notifications`. By hand: `supabase db push` first, then `supabase functions deploy notifications`. **Not the function first**: it falls back to sending only "work returned" until the migration lands (log line `notifications claim: old database, work returned only`).
+- [ ] Merge `release/more-email-alerts` (the same SHA, not `develop`) into `main` through a PR.
+- [ ] Release check with the seeded fake family and the test class only (supabase/README.md → "Portal emails", steps 6–7): publish one paper assignment, and both test inboxes get "New work set" within 5 minutes; set up one online assignment due tomorrow, published 2 or more days earlier, and after 15:10 Melbourne both get "Due tomorrow"; Admin → Emails is empty. Delete the test class afterwards.
+- [ ] Expect the first 15:10 run to send reminders to real families for already-published online work due the next day (by design, Q31).
+- [ ] For the first fortnight, watch Admin → Emails for "Daily limit" and "Too late to send" (Q27's trigger, `docs/budget.md` §5).
+- [ ] Kill switch if needed: `select cron.unschedule('due-tomorrow-reminders');` in the SQL Editor.
 
 ## 8. Smoke test
 

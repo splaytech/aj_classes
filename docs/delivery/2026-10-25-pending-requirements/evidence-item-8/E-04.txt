@@ -1,0 +1,21 @@
+1:
+423:NOTIFY_WORKER_SECRET = "local-notify-secret"
+424:EMAIL_TRANSPORT = "mailpit"
+425:MAILPIT_URL = "http://supabase_inbucket_aj_classes:8025"
+426:SITE_URL = "http://localhost:5173"
+cfgdiff=0
+2:
+EMAIL_TRANSPORT=mailpit
+MAILPIT_URL=http://supabase_inbucket_aj_classes:8025
+SITE_URL=http://localhost:5173
+SUPABASE_URL=http://kong:8000
+RESEND_API_KEY=unset
+3:
+http://supabase_kong_aj_classes:8000/functions/v1/notifications
+4:
+false
+5:
+supabase/functions/notifications/transport.ts:15:const RESEND_URL = 'https://api.resend.com/emails';
+supabase/functions/notifications/transport.ts:32:/** POST https://api.resend.com/emails. The outbox id as Idempotency-Key means a row re-sent after
+21:  if (kind === 'resend') {
+105:  return transport.kind === 'resend'

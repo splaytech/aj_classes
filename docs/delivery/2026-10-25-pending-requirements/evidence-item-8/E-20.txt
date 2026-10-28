@@ -1,0 +1,13 @@
+200 [{"id":"$PA","status":"published"}]
+new_assignment:parent:pending:-
+new_assignment:student:pending:-
+t
+0
+worker=200 {"ok":true,"data":{"claimed":2,"sent":2,"retrying":0,"failed":0}}
+new_assignment:parent:sent:-
+new_assignment:student:sent:-
+-- student
+New work set: e2e-item8 Paper A
+-- parent
+New work for Aarav: e2e-item8 Paper A
+tutor=0 admin=0 keys_ok=0

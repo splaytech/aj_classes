@@ -1,4 +1,4 @@
-// notifications: sends queued "work returned" emails (ADR-0004; design 03 §3.4).
+// notifications: sends queued portal emails (ADR-0004, ADR-0008; design 03 §3.4, 03b §8.4).
 // Called only by pg_cron's kick through pg_net, every 5 minutes when rows are waiting, with the
 // shared secret header. The gateway doesn't check a token (config.toml); the secret check is here.
 //   200 ran (counts) · 405 not POST · 401 wrong or unset secret
@@ -11,9 +11,9 @@ import { serviceClient } from '../_shared/clients.ts';
 import { fail, respond, succeed } from '../_shared/responses.ts';
 
 import { processBatch } from './batch.ts';
+import { claimRows } from './claim.ts';
 import { gateRequest } from './config.ts';
-import { renderWorkReturned } from './template.ts';
-import type { ClaimedRow } from './template.ts';
+import { renderEmail } from './template.ts';
 import { pickTransport, sendEmail } from './transport.ts';
 import type { SendOutcome } from './transport.ts';
 
@@ -47,8 +47,12 @@ Deno.serve(async (request) => {
       return respond(fail('config_missing'), null, 503);
     }
 
-    const { data, error } = await service.rpc('notify_claim_emails');
-    if (error) throw error;
+    // Only the kinds this worker can render (ADR-0008 decision 6). If this function was deployed
+    // before migration 20261029100000, claimRows falls back to the old claim (work returned only).
+    const { rows, usedOldClaim } = await claimRows((args) =>
+      service.rpc('notify_claim_emails', args),
+    );
+    if (usedOldClaim) console.warn('notifications claim: old database, work returned only');
 
     const record = async (outboxId: string, outcome: SendOutcome) => {
       const { error: recordError } = await service.rpc('notify_record_result', {
@@ -59,8 +63,8 @@ Deno.serve(async (request) => {
       if (recordError) throw recordError;
     };
 
-    const counts = await processBatch((data ?? []) as ClaimedRow[], {
-      render: (row) => renderWorkReturned(row, siteUrl),
+    const counts = await processBatch(rows, {
+      render: (row) => renderEmail(row, siteUrl),
       send: (message, outboxId) => sendEmail(transport, message, outboxId),
       record,
       pause,

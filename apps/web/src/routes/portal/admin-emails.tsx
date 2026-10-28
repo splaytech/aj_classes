@@ -1,6 +1,6 @@
-// Admin → Emails (AC-3.8; ADR-0004): "work returned" emails that failed, or are still waiting about
-// 2 hours after the return (a missing cron job, Vault secret or transport shows up here). Newest
-// first. No address or email body is ever shown.
+// Admin → Emails (AC-3.8, AC-8.13; ADR-0004, ADR-0008): portal emails of every type that failed,
+// or are still waiting about 2 hours after they were queued (a missing cron job, Vault secret or
+// transport shows up here). Newest first. No address or email body is ever shown.
 
 import Chip from '@mui/material/Chip';
 import Paper from '@mui/material/Paper';
@@ -46,6 +46,7 @@ export default function AdminEmailsPage() {
           <TableHead>
             <TableRow>
               <TableCell>{EMAILS_PAGE.columns.when}</TableCell>
+              <TableCell>{EMAILS_PAGE.columns.type}</TableCell>
               <TableCell>{EMAILS_PAGE.columns.recipient}</TableCell>
               <TableCell>{EMAILS_PAGE.columns.assignment}</TableCell>
               <TableCell>{EMAILS_PAGE.columns.state}</TableCell>
@@ -58,6 +59,7 @@ export default function AdminEmailsPage() {
               return (
                 <TableRow key={problem.id}>
                   <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDateTime(problem.at)}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{labels.type}</TableCell>
                   <TableCell>{labels.role}</TableCell>
                   <TableCell sx={{ overflowWrap: 'anywhere' }}>{problem.assignmentTitle}</TableCell>
                   <TableCell>
@@ -74,7 +76,7 @@ export default function AdminEmailsPage() {
             })}
             {loaded.data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5}>{EMAILS_PAGE.empty}</TableCell>
+                <TableCell colSpan={6}>{EMAILS_PAGE.empty}</TableCell>
               </TableRow>
             )}
           </TableBody>

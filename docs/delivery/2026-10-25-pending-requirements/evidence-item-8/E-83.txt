@@ -1,0 +1,19 @@
+200 [{"id":"$PK","status":"published"}]
+UPDATE 1
+
+due_tomorrow:parent:Aarav Demo
+due_tomorrow:parent:Isla Demo
+due_tomorrow:student:Aarav Demo
+new_assignment:parent:Aarav Demo
+new_assignment:parent:Isla Demo
+new_assignment:student:Aarav Demo
+worker=200 {"ok":true,"data":{"claimed":6,"sent":6,"retrying":0,"failed":0}}
+-- parent
+Aarav's work is due tomorrow: Fractions quick quiz
+Isla's work is due tomorrow: Fractions quick quiz
+New work for Aarav: e2e-item8 Two children
+New work for Isla: e2e-item8 Two children
+-- student
+Due tomorrow: Fractions quick quiz
+New work set: e2e-item8 Two children
+keys_ok=0

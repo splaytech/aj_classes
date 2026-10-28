@@ -1,0 +1,32 @@
+== student
+Due tomorrow: Fractions quick quiz
+[{"Name":"AJ Classes","Address":"hello@ajclasses.com.au"},[{"Name":"","Address":"hello@ajclasses.com.au"}]]
+Hi Aarav,
+
+"Fractions quick quiz" for Selective Entry Maths & Reasoning is due tomorrow (Friday 30 October) and hasn't been handed in yet.
+
+View assignment: http://localhost:5173/portal/student/assignments/b5677867-34a0-4145-819f-7543361d23a3
+
+You're getting this because you have an AJ Classes portal account.
+To stop these emails, go to Account → Notifications: http://localhost:5173/portal/account#notifications
+
+dueline=1
+leak_text=0
+leak_html=0
+amp=1 ampamp=0 header=1 navy=1 label=
+== parent
+Aarav's work is due tomorrow: Fractions quick quiz
+[{"Name":"AJ Classes","Address":"hello@ajclasses.com.au"},[{"Name":"","Address":"hello@ajclasses.com.au"}]]
+Hi Local,
+
+Aarav's "Fractions quick quiz" for Selective Entry Maths & Reasoning is due tomorrow (Friday 30 October) and hasn't been handed in yet.
+
+View assignment: http://localhost:5173/portal/parent/children/c5da9ce9-806a-4cf9-8f0c-9f7d18ea7474/assignments/b5677867-34a0-4145-819f-7543361d23a3
+
+You're getting this because you have an AJ Classes portal account.
+To stop these emails, go to Account → Notifications: http://localhost:5173/portal/account#notifications
+
+dueline=1
+leak_text=0
+leak_html=0
+amp=1 ampamp=0 header=1 navy=1 label=

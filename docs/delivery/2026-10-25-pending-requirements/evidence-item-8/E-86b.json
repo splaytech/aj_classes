@@ -1,0 +1,86 @@
+[
+  {
+    "leg": "E-86 matrix 1280 Light",
+    "overflow": 0,
+    "tableScroll": 0,
+    "typeLines": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "typeContrast": [
+      16.27,
+      16.27,
+      16.27,
+      16.27,
+      16.27,
+      16.27
+    ]
+  },
+  {
+    "leg": "E-86 matrix 1280 Dark",
+    "overflow": 0,
+    "tableScroll": 0,
+    "typeLines": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "typeContrast": [
+      13.76,
+      13.76,
+      13.76,
+      13.76,
+      13.76,
+      13.76
+    ]
+  },
+  {
+    "leg": "E-86 matrix 360 Light",
+    "overflow": 0,
+    "tableScroll": 389,
+    "typeLines": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "typeContrast": [
+      16.27,
+      16.27,
+      16.27,
+      16.27,
+      16.27,
+      16.27
+    ]
+  },
+  {
+    "leg": "E-86 matrix 360 Dark",
+    "overflow": 0,
+    "tableScroll": 389,
+    "typeLines": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "typeContrast": [
+      13.76,
+      13.76,
+      13.76,
+      13.76,
+      13.76,
+      13.76
+    ]
+  }
+]
