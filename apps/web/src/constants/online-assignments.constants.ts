@@ -79,7 +79,8 @@ export const QUESTION_BUILDER = {
 /** The "hold results" switch on a draft with questions (ADR-0007, item 7). */
 export const HOLD_RESULTS = {
   label: 'Hold results until I return them',
-  hint: 'Students see their marks and the correct answers only when you return their work. This matters only when every question is multiple choice: work with a written question is always held until you return it.',
+  // Two lines at 360 px (actionItems 27c); the full rule is in ADR-0007.
+  hint: 'Marks and answers stay hidden until you return the work. Written work is always held.',
   lockedNote: 'Locked because the assignment is published. Move it back to draft to change this.',
 } as const;
 

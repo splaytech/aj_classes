@@ -37,6 +37,12 @@ describe('HoldResultsSetting (item 7)', () => {
     expect(checkbox).toHaveAccessibleDescription(HOLD_RESULTS.hint);
   });
 
+  it('keeps the hint to two lines on a 360 px phone (actionItems 27c)', () => {
+    // 85 characters measured as 2 lines at 360 px in Chromium; the old 204-character hint was 5.
+    expect(HOLD_RESULTS.hint.length).toBeLessThanOrEqual(85);
+    expect(HOLD_RESULTS.hint).toContain('until you return');
+  });
+
   it('saves on a draft, then lets the page reload (AC-7.1)', async () => {
     vi.mocked(setHoldResults).mockResolvedValue({ ok: true, data: undefined });
     const user = setupUser();

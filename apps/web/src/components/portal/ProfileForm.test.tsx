@@ -41,6 +41,13 @@ describe('ProfileForm phone field (item 4)', () => {
     expect(phoneField()).toHaveAccessibleDescription(PROFILE_PAGE.hints.phone);
   });
 
+  it('keeps the phone hint to two lines on a 360 px phone, and its promise (27c, AC-4.1)', () => {
+    // 79 characters measured as 2 lines at 360 px in Chromium; the old 119-character hint was 3.
+    expect(PROFILE_PAGE.hints.phone.length).toBeLessThanOrEqual(85);
+    expect(PROFILE_PAGE.hints.phone).toContain('Only admins see it');
+    expect(PROFILE_PAGE.hints.phone).toContain('never on the website');
+  });
+
   it('is empty for staff who have no number yet', () => {
     renderForm({ ...PROFILE, phone: null });
 

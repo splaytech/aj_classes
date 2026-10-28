@@ -472,8 +472,8 @@ export const PROFILE_PAGE = {
   },
   hints: {
     // The page intro says the profile may appear on the website; the phone never does (AC-4.1).
-    phone:
-      "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
+    // Two lines at 360 px (actionItems 27c).
+    phone: "So AJ Classes can reach you. Only admins see it; it's never on the website.",
     subjects: 'Tick all that apply.',
     bio: 'A few sentences about your teaching. Plain text only.',
     qualifications: 'One per line, for example "B.Ed (Secondary Maths), Monash University".',
