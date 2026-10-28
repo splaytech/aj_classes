@@ -1,0 +1,13 @@
+200 [{"id":"$PD","status":"published"}]
+200 [{"id":"$PD","status":"published"}]
+new_assignment:parent:pending:-
+new_assignment:student:pending:-
+-- draft+republish
+200 [{"id":"$PD","status":"draft"}]
+200 [{"id":"$PD","status":"published"}]
+new_assignment:parent:pending:-
+new_assignment:student:pending:-
+worker=200 {"ok":true,"data":{"claimed":2,"sent":2,"retrying":0,"failed":0}}
+new_assignment:parent:sent:-
+new_assignment:student:sent:-
+stu=1 par=1 keys_ok=0

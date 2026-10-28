@@ -4,6 +4,7 @@ import type { AppRole } from '@/constants';
 
 import { listActivity } from './activity.service';
 import { getAssignment } from './assignments.service';
+import { listEmailProblems } from './notifications.service';
 import { getMyProfile, getProfile } from './profile.service';
 import { getStaffMember, listStaff } from './staff.service';
 import { getSubmission } from './submissions.service';
@@ -58,6 +59,7 @@ const ADMIN_READS = [
   ['listStaff', () => listStaff()],
   ['getStaffMember', () => getStaffMember('someone-else')],
   ['listActivity', () => listActivity()],
+  ['listEmailProblems', () => listEmailProblems()], // Admin → Emails (item 8 test plan P2)
 ] as const;
 
 const ROLES: AppRole[] = ['student', 'parent', 'tutor', 'admin'];

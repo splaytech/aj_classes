@@ -1,0 +1,16 @@
+200 [{"id":"$PC","status":"published"}]
+COMMIT
+new_assignment:parent:pending:-
+new_assignment:student:pending:-
+work_returned:parent:pending:-
+work_returned:student:pending:-
+w1={"ok":true,"data":{"claimed":4,"sent":4,"retrying":0,"failed":0}}
+w2={"ok":true,"data":{"claimed":0,"sent":0,"retrying":0,"failed":0}}
+mp=4
+new_assignment:parent:sent:-
+new_assignment:student:sent:-
+work_returned:parent:sent:-
+work_returned:student:sent:-
+keys_ok=0
+UPDATE 1
+DELETE 4

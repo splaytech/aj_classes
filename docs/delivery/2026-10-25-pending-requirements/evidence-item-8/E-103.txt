@@ -1,0 +1,19 @@
+CREATE FUNCTION
+70
+10959221d4b9a204c610a6c7b996604ce3c630912b95bf025b35b50c676de379
+10959221d4b9a204c610a6c7b996604ce3c630912b95bf025b35b50c676de379
+DELETE 1
+UPDATE 1
+UPDATE 1
+INSERT 0 1
+DELETE 4
+DELETE 6
+kick=t sent24=36
+E|Selective Interview Preparation|Aarav Demo
+E|Selective Interview Preparation|Isla Demo
+A|Fractions quick quiz|published|2026-11-01|2026-10-28 22:45:37.116967+00|false
+A|Times tables warm-up|published|2026-11-03|2026-10-28 22:45:37.116967+00|false
+E|Selective Interview Preparation|Aarav Demo
+E|Selective Interview Preparation|Isla Demo
+A|Fractions quick quiz|published|2026-11-01|2026-10-28 22:45:37.116967+00|false
+A|Times tables warm-up|published|2026-11-03|2026-10-28 22:45:37.116967+00|false
