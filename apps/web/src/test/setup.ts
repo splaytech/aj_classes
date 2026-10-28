@@ -15,6 +15,12 @@ beforeEach(() => {
   );
 });
 
+// jsdom does no layout, so it has no scrollIntoView; forms call it to bring a bad field into view.
+// A no-op here; a test that checks the scrolling spies on it. (Node-environment files have no DOM.)
+if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = function scrollIntoView() {};
+}
+
 // Remove whatever the previous test rendered, so tests never see each other's output.
 afterEach(() => {
   cleanup();

@@ -69,6 +69,37 @@ describe('ProfileForm phone field (item 4)', () => {
     expect(phoneField()).toHaveFocus();
   });
 
+  it('scrolls the first bad field to the middle of the screen, not just focuses it (27d)', async () => {
+    const scrolled = vi.spyOn(Element.prototype, 'scrollIntoView');
+    const user = setupUser();
+    renderForm();
+
+    await user.clear(screen.getByLabelText(PROFILE_PAGE.labels.fullName));
+    await user.clear(phoneField());
+    await user.type(phoneField(), '12345');
+    await user.click(screen.getByRole('button', { name: PROFILE_PAGE.save }));
+
+    const fullName = screen.getByLabelText(PROFILE_PAGE.labels.fullName);
+    expect(fullName).toHaveFocus();
+    expect(scrolled).toHaveBeenCalledTimes(1);
+    expect(scrolled.mock.contexts[0]).toBe(fullName);
+    expect(scrolled).toHaveBeenCalledWith({ block: 'center' });
+    scrolled.mockRestore();
+  });
+
+  it('brings the phone field into view when the server refuses the number (27d)', async () => {
+    const scrolled = vi.spyOn(Element.prototype, 'scrollIntoView');
+    const user = setupUser();
+    const { onSave } = renderForm();
+    onSave.mockResolvedValue({ ok: false, error: 'invalidPhone' });
+
+    await user.click(screen.getByRole('button', { name: PROFILE_PAGE.save }));
+
+    await waitFor(() => expect(phoneField()).toHaveFocus());
+    expect(scrolled.mock.contexts[0]).toBe(phoneField());
+    scrolled.mockRestore();
+  });
+
   it('shows a server refusal on the phone field, not as a form alert (AC-4.3)', async () => {
     const user = setupUser();
     const { onSave } = renderForm();

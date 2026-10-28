@@ -2,6 +2,7 @@
 // Adding a line moves focus into the new box, so people can type straight away.
 
 import { useEffect, useState } from 'react';
+import type { Ref } from 'react';
 
 import { PROFILE_LIMITS, PROFILE_PAGE } from '@/constants';
 
@@ -12,6 +13,8 @@ type QualificationsEditorProps = {
   lines: string[];
   onChange: (lines: string[]) => void;
   error?: string;
+  /** The whole list, so a form can bring it into view when it has an error. */
+  ref?: Ref<HTMLFieldSetElement>;
 };
 
 export function QualificationsEditor({
@@ -19,6 +22,7 @@ export function QualificationsEditor({
   lines,
   onChange,
   error,
+  ref,
 }: QualificationsEditorProps) {
   const errorId = `${idPrefix}-error`;
   const canAdd = lines.length < PROFILE_LIMITS.qualificationsMax;
@@ -42,7 +46,7 @@ export function QualificationsEditor({
   }
 
   return (
-    <fieldset className={styles.fieldset} aria-describedby={error ? errorId : undefined}>
+    <fieldset ref={ref} className={styles.fieldset} aria-describedby={error ? errorId : undefined}>
       <legend className={styles.label}>{PROFILE_PAGE.labels.qualifications}</legend>
       <p className={styles.hint}>{PROFILE_PAGE.hints.qualifications}</p>
 
