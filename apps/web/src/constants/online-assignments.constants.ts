@@ -79,8 +79,8 @@ export const QUESTION_BUILDER = {
 /** The "hold results" switch on a draft with questions (ADR-0007, item 7). */
 export const HOLD_RESULTS = {
   label: 'Hold results until I return them',
-  // Short for phones (actionItems 27c): 3 lines at 360 px, from 5. Rule: ADR-0007.
-  hint: 'Marks and answers stay hidden until you return the work. Any written question holds it all.',
+  // Two lines at 360 px (actionItems 27c), from 5. Rule: ADR-0007.
+  hint: 'Results stay hidden until you return the work. Any written question holds it all.',
   lockedNote: 'Locked because the assignment is published. Move it back to draft to change this.',
 } as const;
 

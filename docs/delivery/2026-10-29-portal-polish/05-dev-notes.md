@@ -11,7 +11,7 @@ dev notes (O1, O2, O3, O5).
 | 1 | FU-K1: photo preview | The portal CSP `img-src` allows `blob:`, so a newly chosen profile photo shows its preview before upload. Changed on `/portal/*` and `/__spa-fallback` (Vercel) and `__spa-fallback.html` (Railway mirror). The public CSP is unchanged. | `apps/web/vercel.json`, `apps/web/serve.railway.json`, `hosting-csp.test.ts`, `docs/architecture/arch.md` |
 | 2a | DEV badge over the name | On portal pages the environment label sits bottom right. The top strip is unchanged, and public pages keep the label top left under the header. The label moves just after hydration: portal pages hydrate from the pre-rendered fallback, and React keeps a pre-rendered class name that differs. | `EnvironmentMarker.tsx` and its `.module.css`, `root.tsx`, `environments.md` |
 | 2b | Grey text not grey | MUI 9 removed system props, so `<Typography color="text.secondary">` was ignored and rendered in the body colour. All **75 uses in 26 files** now use `color="textSecondary"`, which maps to `--color-text-muted`. A test fails if `color="text.*"` comes back. | 26 portal files, `lib/portal-theme-text.test.tsx` |
-| 2c | Long hints | Staff phone hint: "So AJ Classes can reach you. Only admins see it; it's never on the website." Hold-results hint: "Marks and answers stay hidden until you return the work. Any written question holds it all." (review follow-up, matching ADR-0007). At 360 px the phone hint is 2 lines, from 3, and the hold hint is 3 lines, from 5. | `portal.constants.ts`, `online-assignments.constants.ts`, 03b design table |
+| 2c | Long hints | Staff phone hint: "So AJ Classes can reach you. Only admins see it; it's never on the website." Hold-results hint: "Results stay hidden until you return the work. Any written question holds it all." (review follow-up, matching ADR-0007). Both are 2 lines at 360 px. They were 3 and 5. | `portal.constants.ts`, `online-assignments.constants.ts`, 03b design table |
 | 2d | Focus without scroll | If Save finds a problem on My profile or the admin staff page, the first bad field gets focus and scrolls to the middle of the screen, so its label and error show. A phone number the server refuses is shown the same way. Fields are reached through refs, not `document.getElementById`. | `ProfileForm.tsx`, `PortalField.tsx`, `QualificationsEditor.tsx`, `lib/reveal-field.ts`, `test/setup.ts` |
 | 3 | Footer focus ring (item 53) | New token `--color-focus-inverse` (`#93c5fd`). The footer and the navy feature band (`Section` `inverse`) point `--color-focus` at it, so the global `:focus-visible` ring uses it. | `theme.css`, `Footer.module.css`, `Section.module.css`, `theme-contrast.test.ts` |
 | 4 | Dead constant | `CLASSES_PAGE.saved` removed. Nothing referenced it, directly or by destructuring, and the text "Class saved." appears nowhere else. | `portal.constants.ts` |
@@ -43,10 +43,8 @@ with `serve.railway.json` on `127.0.0.1:4181` and drove it in Playwright Chromiu
    label stayed top left in the real build even though the unit tests passed.
 3. **Footer ring:** the measurements in the table above.
 4. **Hint lengths**, measured in Chromium at the 360 px widths (328 px field at 15 px; 302 px
-   card at 14 px): the phone hint is 2 lines and the hold hint is 3. The old wording measured 3
-   and 5 lines, which matches the earlier reports. A 2-line hold option with the same rule (81
-   characters, measured): "Results stay hidden until you return the work. Any written question
-   holds it all." It is not applied.
+   card at 14 px): both hints are 2 lines (phone 79 characters, hold 81). The old wording
+   measured 3 and 5 lines, which matches the earlier reports.
 
 ## How to verify in a browser (Tester or Saurabh: needs a signed-in local portal)
 
@@ -61,7 +59,7 @@ Use 360 × 800, then 1280 × 800, in light and then dark (the theme switch in th
 3. **Muted text:** on My work, an assignment's "Total N marks", the question explanations and the
    hold-results hint are grey, not body colour. Expect `#4B5563` in light and `#A6B3C7` in dark.
 4. **Hints:** on My profile, the phone hint is 2 lines at 360 px. On an assignment draft with
-   questions, the hold-results hint is 3 lines.
+   questions, the hold-results hint is 2 lines.
 5. **Focus and scroll:** on My profile (tutor) and Admin → staff member, clear Full name, scroll
    to Save and press it. The page scrolls so Full name sits mid-screen with its error showing,
    and it has focus. Repeat with a bad phone (`12345`).
