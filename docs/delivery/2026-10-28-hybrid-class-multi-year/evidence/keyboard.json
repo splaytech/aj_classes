@@ -1,0 +1,87 @@
+{
+  "order": [
+    {
+      "role": "dialog",
+      "label": "New class",
+      "focusedClass": false
+    },
+    {
+      "role": "INPUT",
+      "label": "Class name *",
+      "focusedClass": true
+    },
+    {
+      "role": "combobox",
+      "label": "Subject *",
+      "focusedClass": true
+    },
+    {
+      "role": "combobox",
+      "label": "Year level",
+      "focusedClass": true
+    },
+    {
+      "role": "combobox",
+      "label": "Delivery",
+      "focusedClass": true
+    },
+    {
+      "role": "INPUT",
+      "label": "Location",
+      "focusedClass": true
+    },
+    {
+      "role": "combobox",
+      "label": "Tutor",
+      "focusedClass": true
+    },
+    {
+      "role": "spinbutton",
+      "label": "Day",
+      "focusedClass": true
+    },
+    {
+      "role": "BUTTON",
+      "label": "Choose date",
+      "focusedClass": true
+    },
+    {
+      "role": "spinbutton",
+      "label": "Day",
+      "focusedClass": true
+    },
+    {
+      "role": "BUTTON",
+      "label": "Choose date",
+      "focusedClass": true
+    },
+    {
+      "role": "BUTTON",
+      "label": "Cancel",
+      "focusedClass": true
+    },
+    {
+      "role": "BUTTON",
+      "label": "Save class",
+      "focusedClass": true
+    }
+  ],
+  "year_focus_ring": true,
+  "opened_with_enter": true,
+  "reach_Year 7": true,
+  "open_after_Year 7": 1,
+  "reach_Year 8": true,
+  "open_after_Year 8": 1,
+  "reach_Year 9": true,
+  "open_after_Year 9": 1,
+  "box_after_ticks": "Years 7–9",
+  "after_escape": {
+    "role": "combobox",
+    "label": "Year level",
+    "focusedClass": true
+  },
+  "delivery_box": "Hybrid",
+  "q": "{7,8,9}||hybrid|",
+  "cleanup": "DELETE 1",
+  "errors": []
+}

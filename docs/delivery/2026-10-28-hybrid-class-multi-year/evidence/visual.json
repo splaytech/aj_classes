@@ -1,0 +1,36 @@
+{
+  "light_bg": "rgb(255, 255, 255)",
+  "dark_bg": "rgb(11, 18, 32)",
+  "tct_errors": [],
+  "tcw_classes_no_sideways": true,
+  "tcw_table_scrolls_inside": {
+    "scrollW": 545,
+    "clientW": 341,
+    "overflowX": "auto"
+  },
+  "tcw_box": "Years 2, 4, 6, 8, 10, 12",
+  "tcw_box_geom": {
+    "textOverflow": "ellipsis",
+    "overflow": "hidden",
+    "whiteSpace": "nowrap",
+    "scrollW": 263,
+    "clientW": 263,
+    "boxRight": 319,
+    "iconLeft": 288
+  },
+  "tcw_dialog_no_sideways": true,
+  "tcw_tabs": [
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+    "Sun"
+  ],
+  "tcw_tue_hybrid": 1,
+  "tcw_tue_visible": 1,
+  "tcw_timetable_no_sideways": true,
+  "tcw_errors": [],
+  "no_new_classes": "3"
+}

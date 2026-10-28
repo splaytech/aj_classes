@@ -34,7 +34,7 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 
 **"Work returned" emails locally** (ADR-0004): when a tutor returns work, the database queues one email per active student and parent (`email_outbox`). Every 5 minutes `pg_cron` calls the local `notifications` function, which sends them to **Mailpit** (http://127.0.0.1:55324), never out. The seed's returned work queues two on every `pnpm db:reset`. The function's local settings are in `config.toml` (`[edge_runtime.secrets]`: `EMAIL_TRANSPORT=mailpit`, the local-only `NOTIFY_WORKER_SECRET`); its address and secret for the cron job are in local Vault (`seed.sql`). To send without waiting: `curl -X POST http://127.0.0.1:55321/functions/v1/notifications -H 'x-notify-secret: local-notify-secret'`. After changing `config.toml`, restart the stack (`pnpm db:stop && pnpm db:start`) so the function sees it.
 
-**Demo data:** `seed.sql` also creates three classes with weekly times, six fictional students ("… Demo") and a few assignments, so every staff page has something to show.
+**Demo data:** `seed.sql` also creates three classes with weekly times, six fictional students ("… Demo") and a few assignments, so every staff page has something to show. The Maths class is hybrid and for Years 7–9 (ADR-0009), so the multi-year label and `Hybrid · <location>` show on the class pages and on the staff, student and parent timetables; the other two classes are single-year (Year 5 in person, Year 8 online).
 
 **Captcha locally** uses Cloudflare Turnstile's always-pass test keys. API calls need `"gotrue_meta_security": {"captcha_token": "XXXX.DUMMY.TOKEN.XXXX"}`.
 

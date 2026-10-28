@@ -15,3 +15,4 @@ Status is Proposed, Accepted or Superseded (link the replacement). Same format a
 | [0006](0006-ci-gates-e2e-in-repo.md) | E2E specs live in this repo, and CI gates run only against local services | Accepted |
 | [0007](0007-returned-work-outlives-enrolment.md) | Returned work stays readable after leaving a class; writes still follow enrolment; results can be held | Accepted |
 | [0008](0008-scheduled-and-multi-kind-email.md) | "New assignment" and "due tomorrow" emails reuse the outbox (extends 0004) | Accepted |
+| [0009](0009-class-year-levels-array-with-compat-column.md) | Class year levels are an array; `year_level` is a generated compat column; delivery gains `hybrid` | Accepted |

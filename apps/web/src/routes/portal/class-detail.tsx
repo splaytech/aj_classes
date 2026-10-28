@@ -113,7 +113,7 @@ export default function ClassDetailPage() {
         meta={
           <>
             <Chip size="small" label={subjectLabel(item.subject)} />
-            <Chip size="small" variant="outlined" label={classYearLabel(item.yearLevel)} />
+            <Chip size="small" variant="outlined" label={classYearLabel(item.yearLevels)} />
             <Chip size="small" variant="outlined" label={deliveryLabel(item.delivery)} />
             {!item.isActive && <Chip size="small" color="warning" label={CLASSES_PAGE.archived} />}
           </>

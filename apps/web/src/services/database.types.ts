@@ -331,6 +331,7 @@ export type Database = {
           tutor_id: string | null;
           updated_at: string;
           year_level: number | null;
+          year_levels: number[];
         };
         ComputedFields: never;
         Insert: {
@@ -345,7 +346,8 @@ export type Database = {
           subject: string;
           tutor_id?: string | null;
           updated_at?: string;
-          year_level?: number | null;
+          year_level?: never;
+          year_levels?: number[];
         };
         Update: {
           created_at?: string;
@@ -359,7 +361,8 @@ export type Database = {
           subject?: string;
           tutor_id?: string | null;
           updated_at?: string;
-          year_level?: number | null;
+          year_level?: never;
+          year_levels?: number[];
         };
         Relationships: [
           {

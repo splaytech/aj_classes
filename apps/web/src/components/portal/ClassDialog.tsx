@@ -1,5 +1,7 @@
-// Create or edit a class (R3a story AS1): name, subject, year, delivery, location, tutor, term.
+// Create or edit a class (R3a story AS1): name, subject, years, delivery, location, tutor, term.
 
+import Checkbox from '@mui/material/Checkbox';
+import ListItemText from '@mui/material/ListItemText';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -8,8 +10,16 @@ import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import { useState } from 'react';
 
-import { CLASS_DIALOG, DELIVERY_LABELS, SUBJECTS, YEAR_LEVEL_TEXT, YEAR_LEVELS } from '@/constants';
+import {
+  CLASS_DIALOG,
+  DELIVERIES,
+  DELIVERY_LABELS,
+  SUBJECTS,
+  YEAR_LEVEL_TEXT,
+  YEAR_LEVELS,
+} from '@/constants';
 import { validateClass } from '@/lib/class-validation';
+import { classYearLabel } from '@/lib/labels';
 import type { TutorOption } from '@/lib/staff-options';
 import type { ClassErrors } from '@/lib/class-validation';
 import { usePortalAction } from '@/lib/use-portal-action';
@@ -17,10 +27,8 @@ import type { ClassInput, ClassSummary, Delivery, Result } from '@/services';
 
 import { FormDialog } from './FormDialog';
 
-const ANY_YEAR = 'any';
 const NO_TUTOR = 'none';
 const ISO_DATE = 'YYYY-MM-DD';
-const DELIVERIES: Delivery[] = ['in_person', 'online'];
 
 type ClassDialogProps = {
   open: boolean;
@@ -36,7 +44,7 @@ function emptyInput(): ClassInput {
   return {
     name: '',
     subject: '',
-    yearLevel: null,
+    yearLevels: [],
     delivery: 'in_person',
     location: '',
     tutorId: null,
@@ -50,13 +58,18 @@ function inputFrom(existing: ClassSummary): ClassInput {
     id: existing.id,
     name: existing.name,
     subject: existing.subject,
-    yearLevel: existing.yearLevel,
+    yearLevels: existing.yearLevels,
     delivery: existing.delivery,
     location: existing.location,
     tutorId: existing.tutorId,
     startsOn: existing.startsOn,
     endsOn: existing.endsOn,
   };
+}
+
+// A multiple Select reports its value as an array; anything else means nothing is chosen.
+function toYearLevels(value: unknown): number[] {
+  return Array.isArray(value) ? value.map(Number) : [];
 }
 
 function toIso(value: Dayjs | null): string | null {
@@ -139,17 +152,23 @@ export function ClassDialog({
           select
           fullWidth
           label={CLASS_DIALOG.labels.yearLevel}
-          value={input.yearLevel === null ? ANY_YEAR : String(input.yearLevel)}
-          onChange={(event) =>
-            update({
-              yearLevel: event.target.value === ANY_YEAR ? null : Number(event.target.value),
-            })
-          }
+          value={input.yearLevels}
+          onChange={(event) => update({ yearLevels: toYearLevels(event.target.value) })}
+          helperText={CLASS_DIALOG.hints.yearLevel}
+          slotProps={{
+            select: {
+              multiple: true,
+              // displayEmpty + shrink so "Any year" shows in the box with the label above it.
+              displayEmpty: true,
+              renderValue: (selected) => classYearLabel(toYearLevels(selected)),
+            },
+            inputLabel: { shrink: true },
+          }}
         >
-          <MenuItem value={ANY_YEAR}>{YEAR_LEVEL_TEXT.any}</MenuItem>
           {YEAR_LEVELS.map((year) => (
-            <MenuItem key={year} value={String(year)}>
-              {YEAR_LEVEL_TEXT.label(year)}
+            <MenuItem key={year} value={year}>
+              <Checkbox checked={input.yearLevels.includes(year)} tabIndex={-1} disableRipple />
+              <ListItemText primary={YEAR_LEVEL_TEXT.label(year)} />
             </MenuItem>
           ))}
         </TextField>

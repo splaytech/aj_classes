@@ -5,6 +5,7 @@ import type {
   ConsentKind,
   ConsentSource,
   CrmStatus,
+  DELIVERIES,
   FamilyStatus,
   PORTAL_ERRORS,
   QuestionKind,
@@ -204,7 +205,8 @@ export type ActivityAction =
 /** ISO day of the week: 1 = Monday … 7 = Sunday. */
 export type DayOfWeek = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
-export type Delivery = 'in_person' | 'online';
+/** How a class is attended. Derived from the form's list so the two can't drift. */
+export type Delivery = (typeof DELIVERIES)[number];
 
 /** A weekly time slot. Times are "HH:MM:SS", Melbourne wall-clock (R3a design D5). */
 export type ClassSession = {
@@ -219,7 +221,7 @@ export type ClassSummary = {
   id: string;
   name: string;
   subject: string;
-  yearLevel: number | null;
+  yearLevels: number[]; // ascending; empty = Any year
   delivery: Delivery;
   location: string;
   tutorId: string | null;
@@ -266,7 +268,7 @@ export type ClassInput = {
   id?: string;
   name: string;
   subject: string;
-  yearLevel: number | null;
+  yearLevels: number[];
   delivery: Delivery;
   location: string;
   tutorId: string | null;

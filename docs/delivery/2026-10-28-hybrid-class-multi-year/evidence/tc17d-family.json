@@ -1,0 +1,36 @@
+{
+  "student_list": {
+    "url": "/portal/classes",
+    "h1": [
+      "You don't have access to this page"
+    ],
+    "mathsText": 0,
+    "body": "You don't have access to this page\n\nThis page isn't part of your account.\n\nGo to your home page"
+  },
+  "student_detail": {
+    "url": "/portal/classes/3c5798c9-1d4e-44b1-81e9-19db3d498011",
+    "h1": [
+      "You don't have access to this page"
+    ],
+    "mathsText": 0,
+    "body": "You don't have access to this page\n\nThis page isn't part of your account.\n\nGo to your home page"
+  },
+  "student_errors": [],
+  "parent_list": {
+    "url": "/portal/classes",
+    "h1": [
+      "You don't have access to this page"
+    ],
+    "mathsText": 0,
+    "body": "You don't have access to this page\n\nThis page isn't part of your account.\n\nGo to your home page"
+  },
+  "parent_detail": {
+    "url": "/portal/classes/3c5798c9-1d4e-44b1-81e9-19db3d498011",
+    "h1": [
+      "You don't have access to this page"
+    ],
+    "mathsText": 0,
+    "body": "You don't have access to this page\n\nThis page isn't part of your account.\n\nGo to your home page"
+  },
+  "parent_errors": []
+}
