@@ -48,7 +48,7 @@ Deno.serve(async (request) => {
     }
 
     // Only the kinds this worker can render (ADR-0008 decision 6). If this function was deployed
-    // before migration 20261028100000, claimRows falls back to the old claim (work returned only).
+    // before migration 20261029100000, claimRows falls back to the old claim (work returned only).
     const { rows, usedOldClaim } = await claimRows((args) =>
       service.rpc('notify_claim_emails', args),
     );

@@ -1,7 +1,7 @@
 // Claims the rows this worker will send (ADR-0008 decision 6, Security item 8 S2). The claim call
 // is passed in, so the Node test script can run it without Deno or a database.
 //   * Normal: notify_claim_emails(supported_kinds) with every kind this worker can render.
-//   * The function was deployed before migration 20261028100000 (the unsafe order): that call
+//   * The function was deployed before migration 20261029100000 (the unsafe order): that call
 //     gets PGRST202. Retry once with no argument, the old database's claim, so "work returned"
 //     keeps sending. That claim only knows work_returned and returns no kind or due date, so each
 //     row is marked work_returned and rendered as such.

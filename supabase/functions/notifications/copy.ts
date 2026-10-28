@@ -6,7 +6,7 @@
 
 export type RecipientRole = 'student' | 'parent';
 
-// Must match the email_outbox.kind check (migration 20261028100000) and EmailKind in
+// Must match the email_outbox.kind check (migration 20261029100000) and EmailKind in
 // apps/web/src/services/types.ts.
 export const EMAIL_KINDS = ['work_returned', 'new_assignment', 'due_tomorrow'] as const;
 export type EmailKind = (typeof EMAIL_KINDS)[number];

@@ -4,7 +4,7 @@ import type { EmailKind, EmailProblem, EmailProblemReason, EmailProblemState } f
 
 import { describeEmailProblem } from './email-problems';
 
-// Every code admin_email_problems can return (migrations 20261025110000 step 8, 20261028100000
+// Every code admin_email_problems can return (migrations 20261025110000 step 8, 20261029100000
 // step 10), and every email_outbox.kind.
 const KINDS: EmailKind[] = ['work_returned', 'new_assignment', 'due_tomorrow'];
 const STATES: EmailProblemState[] = ['failed', 'waiting'];

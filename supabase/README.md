@@ -162,7 +162,7 @@ To change the secret later: `select vault.update_secret(id, '<new value>') from 
 
 **On the first 15:10 run after item 8's deploy**, already-published online work due the next day sends reminders to real families. That's by design (04b Q31).
 
-**Stop the "due tomorrow" reminders only:** `select cron.unschedule('due-tomorrow-reminders');`. Nothing new is queued; reminders already queued still go out (or expire). Turn back on with the `cron.schedule('due-tomorrow-reminders', …)` line in `migrations/20261028100000_more_email_alerts.sql`.
+**Stop the "due tomorrow" reminders only:** `select cron.unschedule('due-tomorrow-reminders');`. Nothing new is queued; reminders already queued still go out (or expire). Turn back on with the `cron.schedule('due-tomorrow-reminders', …)` line in `migrations/20261029100000_more_email_alerts.sql`.
 
 **Stop all sends at once (kill switch):** `select cron.unschedule('email-worker-kick');`. Rows wait; nothing is lost. Turn back on with the `cron.schedule('email-worker-kick', …)` line in `migrations/20261025110000_work_returned_email.sql`. Or `supabase secrets unset EMAIL_TRANSPORT --project-ref unzjnxctkyahtmrkinyr` (an `unset` copies nothing from `config.toml`; only `set` does): from the next kick the worker sends nothing, flags waiting rows, and returns 503 before it even checks the secret, so they show as Waiting / "Set-up error" (after the usual ~2 hours), never "Not attempted". Turn it back on by running `deploy.sh` again.
 
