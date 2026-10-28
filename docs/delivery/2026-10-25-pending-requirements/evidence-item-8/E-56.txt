@@ -1,0 +1,8 @@
+anon 401 {"code":"42501","details":null,"hint":null,"message":"permission denied for function admin_email_problems"}
+tutor@local.test 403 {"code":"42501","details":null,"hint":null,"message":"not_admin"}
+student@local.test 403 {"code":"42501","details":null,"hint":null,"message":"not_admin"}
+parent@local.test 403 {"code":"42501","details":null,"hint":null,"message":"not_admin"}
+newadmin@local.test 403 {"code":"42501","details":null,"hint":null,"message":"not_admin"}
+admin-aal1 403 {"code":"42501","details":null,"hint":null,"message":"not_admin"}
+aal2 200 []
+kick=t

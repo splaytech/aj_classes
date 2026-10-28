@@ -1,0 +1,24 @@
+== student
+New work set: e2e-item8 UI paper
+[{"Name":"AJ Classes","Address":"hello@ajclasses.com.au"},[{"Name":"","Address":"hello@ajclasses.com.au"}]]
+Hi Aarav,
+
+Your tutor has set "e2e-item8 UI paper" for Selective Entry Maths & Reasoning. It's due Monday 2 November.
+
+View assignment: http://localhost:5173/portal/student/assignments/$PU
+
+You're getting this because you have an AJ Classes portal account.
+To stop these emails, go to Account → Notifications: http://localhost:5173/portal/account#notifications
+mark_text=0 mark_html=0 amp=1 ampamp=0 header=1 label=Students 
+== parent
+New work for Aarav: e2e-item8 UI paper
+[{"Name":"AJ Classes","Address":"hello@ajclasses.com.au"},[{"Name":"","Address":"hello@ajclasses.com.au"}]]
+Hi Local,
+
+Aarav's tutor has set "e2e-item8 UI paper" for Selective Entry Maths & Reasoning. It's due Monday 2 November.
+
+View assignment: http://localhost:5173/portal/parent/children/$AARAV/assignments/$PU
+
+You're getting this because you have an AJ Classes portal account.
+To stop these emails, go to Account → Notifications: http://localhost:5173/portal/account#notifications
+mark_text=0 mark_html=0 amp=1 ampamp=0 header=1 label=Parents 

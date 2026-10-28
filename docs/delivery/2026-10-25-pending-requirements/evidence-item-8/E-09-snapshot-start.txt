@@ -1,0 +1,54 @@
+P|admin@local.test|admin|active|true
+P|inactive@local.test|tutor|active|false
+P|newadmin@local.test|admin|active|true
+P|parent@local.test|parent|active|true
+P|student@local.test|student|active|true
+P|tutor@local.test|tutor|active|true
+S|Aarav Demo|true|false|parent|false
+S|Isla Demo|true|true|-|true
+S|Leo Demo|true|true|-|true
+S|Mia Demo|true|true|-|true
+S|Noah Demo|true|true|-|true
+S|Zara Demo|true|true|-|true
+E|NAPLAN Reading & Writing|Noah Demo
+E|NAPLAN Reading & Writing|Zara Demo
+E|Selective Entry Maths & Reasoning|Aarav Demo
+E|Selective Entry Maths & Reasoning|Isla Demo
+E|Selective Entry Maths & Reasoning|Leo Demo
+E|Selective Interview Preparation|Aarav Demo
+E|Selective Interview Preparation|Isla Demo
+G|Aarav Demo|parent@local.test
+G|Noah Demo|parent@local.test
+C|NAPLAN Reading & Writing|true
+C|Selective Entry Maths & Reasoning|true
+C|Selective Interview Preparation|true
+A|Fractions practice set 3|published|2026-10-31|2026-10-28 22:45:37.116967+00|false
+A|Fractions quick quiz|published|2026-11-01|2026-10-28 22:45:37.116967+00|false
+A|Number patterns check|published|2026-10-25|2026-10-21 22:45:37.116967+00|false
+A|Persuasive writing draft|published|2026-11-02|2026-10-28 22:45:37.116967+00|false
+A|Ratio worksheet|draft|2026-11-07|-|false
+A|Reasoning mock test 1|published|2026-10-26|2026-10-28 22:45:37.116967+00|false
+A|Times tables warm-up|published|2026-11-03|2026-10-28 22:45:37.116967+00|false
+A|Word problems set 1|published|2026-10-29|2026-10-26 22:45:37.116967+00|false
+R|Number patterns check|Aarav Demo|returned|6.0|Great reasoning in the written question, Aarav. Revise square numbers: 16 is 4 × 4, so the next one is 5 × 5.|2026-10-24 22:45:37.116967+00|2026-10-28 22:45:37.116967+00|false
+R|Reasoning mock test 1|Aarav Demo|marked|42.0|Strong on patterns; check units in question 7.|-|-|false
+R|Reasoning mock test 1|Isla Demo|submitted|-||2026-10-28 22:45:37.116967+00|-|true
+R|Reasoning mock test 1|Leo Demo|not_submitted|-||-|-|true
+R|Word problems set 1|Aarav Demo|submitted|1.0||2026-10-28 22:45:37.116967+00|-|true
+ANS|fd16b2deec084c08cd43ae40d52a7950
+O|new_assignment|Fractions quick quiz|parent|sent|-
+O|new_assignment|Fractions quick quiz|student|sent|-
+O|new_assignment|Times tables warm-up|parent|sent|-
+O|new_assignment|Times tables warm-up|student|sent|-
+O|new_assignment|Word problems set 1|parent|sent|-
+O|new_assignment|Word problems set 1|student|sent|-
+O|work_returned|Number patterns check|parent|sent|-
+O|work_returned|Number patterns check|student|sent|-
+N|0
+AU|13
+V|2
+CAP|70|560ad008651bc16cf74ff8ec8612c762
+J|daily-history-trim|30 17 * * *|select private.trim_history()
+J|due-tomorrow-reminders|10 * * * *|select private.queue_due_tomorrow_emails()
+J|email-worker-kick|*/5 * * * *|select private.kick_email_worker()
+U|0

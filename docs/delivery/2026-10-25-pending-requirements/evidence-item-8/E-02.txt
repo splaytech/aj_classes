@@ -1,0 +1,7 @@
+mount=1
+20261029100000
+20261029100000_more_email_alerts.sql
+17
+daily-history-trim|30 17 * * *|select private.trim_history()|true
+due-tomorrow-reminders|10 * * * *|select private.queue_due_tomorrow_emails()|true
+email-worker-kick|*/5 * * * *|select private.kick_email_worker()|true

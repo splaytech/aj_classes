@@ -54,7 +54,7 @@ removed — see §2).
 | **Supabase** | DB, Auth, Storage, Edge Functions | Free tier: 500 MB DB, 1 GB storage, 5 GB egress, 50k MAU, 500k function calls. **Pauses after 1 week idle. No backups** | A$0 (planned upgrade to Pro — see §3.1) |
 | **Zoho CRM** | Lead capture from the enquiry form, converted to contacts on enrolment | Free edition: API included, 5,000 API credits / day, 5,000 records | A$0 |
 | **Zoho Invoice** | Family invoicing, customer portal, connected to Zoho CRM | Free / included with the CRM Free setup; finance integrations (e.g. Connect) may not be in CRM Free — see [leads-and-crm.md §4](requirements/release-2/leads-and-crm.md) | A$0 |
-| **Resend** | Auth + transactional email (sign-in, invite, reset, Zoho-adjacent enquiry mail), and the app's "work returned" emails (app cap: 70 per rolling 24 h, so sign-in always keeps 30) | 3,000 / mo, **100 / day**, 3 domains | A$0 |
+| **Resend** | Auth + transactional email (sign-in, invite, reset, Zoho-adjacent enquiry mail), and the app's portal emails: "work returned", "new assignment" and "due tomorrow" (one app cap for all three: 70 per rolling 24 h, so sign-in always keeps 30; ADR-0008) | 3,000 / mo, **100 / day**, 3 domains | A$0 |
 | **Cloudflare Turnstile** | Anti-spam widget on the enquiry/leads form and portal sign-in — the *only* Cloudflare product in use, not Pages, Access or DNS | Free | A$0 |
 | **Mux** | Private tutoring video | 10 stored videos, 100k delivery min / mo, signed URLs. Mux badge on the player | A$0 |
 | **YouTube (Unlisted)** | Public testimonial videos | Free | A$0 |
@@ -151,7 +151,7 @@ The fixed costs are the domain and Google Workspace: **A$12.65 / mo** (A$152 / y
 | Supabase project **pauses after 7 days idle** | The project may pause before real users arrive or between quiet periods | A daily cron/health check keeps it warm, or restore from the dashboard in about a minute |
 | Supabase **no backups** on Free | Losing data (student submissions, marks, enquiries) can't be undone | Until the Pro move (O3), take manual `pg_dump` snapshots periodically; this is the main reason Pro is planned |
 | Supabase **1 GB storage** | Submissions (PDF / JPG / DOCX) are the main thing that fills it | 10 MB per-file limit, compress images on the client |
-| Resend **100 emails / day** | A busy day (invites, resets, enquiry-adjacent mail) could approach the limit | "Work returned" emails are capped at 70 per rolling 24 h; overflow waits and shows as "Daily limit" in Admin → Emails. Monitor that page; upgrade trigger below |
+| Resend **100 emails / day** | A busy day (invites, resets, enquiry-adjacent mail) could approach the limit | Portal emails (all three kinds together) are capped at 70 per rolling 24 h; overflow waits and shows as "Daily limit" in Admin → Emails, and "new assignment" / "due tomorrow" emails that would go out after their deadline show as "Too late to send". At item 3's planning volume the three kinds come to ≈ 135 a day, so the cap covers about **30 active portal students** (02b §8.6). Monitor that page; upgrade trigger below |
 | Zoho CRM Free **5,000 API credits / day** | Shared across all lead-sync calls | Far above a tutoring business's enquiry volume today (see [leads-and-crm.md G7](requirements/release-2/leads-and-crm.md)) |
 | Mux **10 videos** | Caps private tutoring video library | Switch to pay-as-you-go when the library grows (see below) |
 
@@ -165,6 +165,7 @@ The fixed costs are the domain and Google Workspace: **A$12.65 / mo** (A$152 / y
 | Vercel Hobby's non-commercial restriction becomes a compliance concern, or usage exceeds Hobby limits | Vercel **Pro** (see §3.2) | **≈ A$31** (US$20), **≈ A$62** with password-protected preview |
 | More than 10 private videos, or you want the Mux badge removed | Mux pay-as-you-go (includes US$20 / mo usage credit) | **≈ A$0** at small scale (a card on file is required) |
 | More than 100 emails / day | Resend Pro (50k / mo) | **≈ A$31** (US$20) |
+| Portal emails outgrow the 70-a-day app cap: active portal students go over about 30, or "Daily limit" rows show up on Admin → Emails in two separate weeks (02b Decision 1's proposed rule, **pending Q27**: Saurabh hasn't approved it yet, and it gates item 8's release only) | Resend Pro (50k / mo), then raise the app cap | **≈ A$31** (US$20) |
 | A second developer joins | Google Workspace user #2, additional Vercel seat | Varies |
 
 **Likely first upgrade:** Supabase Pro, once real family data is stored — this is already an

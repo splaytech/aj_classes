@@ -1,0 +1,13 @@
+BEGIN
+INSERT 0 1
+CREATE FUNCTION
+DELETE 1
+{"sub" : "25aff653-dc66-4f6b-b187-427fb09a088b", "role" : "authenticated"}
+SET
+UPDATE 1
+RESET
+before:2|true
+kick:
+after:2|true
+ROLLBACK
+vault=1 cap=70

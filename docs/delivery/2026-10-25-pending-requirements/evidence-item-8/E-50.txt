@@ -1,0 +1,10 @@
+A3:due_tomorrow,work_returned,new_assignment
+A2:due_tomorrow,work_returned
+A1:due_tomorrow
+D:work_returned
+D2:due_tomorrow:pending,new_assignment:pending,work_returned:sending
+E:0
+F:1
+cap=70
+26
+seed outbox rows unchanged (non-e2e rows = E-09's 8)

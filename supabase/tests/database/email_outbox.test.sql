@@ -69,6 +69,7 @@ insert into public.assignment_questions (id, assignment_id, kind, prompt, option
   ('00000000-0000-0000-0000-00000000f001', '00000000-0000-0000-0000-00000000e001', 'written', 'Explain', '{}', null, 3),
   ('00000000-0000-0000-0000-00000000f003', '00000000-0000-0000-0000-00000000e003', 'multiple_choice', 'Pick A', '{A,B}', 0, 1);
 update public.assignments set status = 'published';
+delete from public.email_outbox; -- item 8: publishing queues "new assignment" rows; this file tests work_returned
 
 -- Expected recipients for Kid One: kid1, parent1, parent2 (parent3 is deactivated).
 create temporary table kid_one_recipients (recipient_id uuid, recipient_role text);
@@ -325,12 +326,13 @@ select results_eq(
             ('parent', 'parent4@test.local', 'Test', 'Kid', 'Paper one', 'Class one'),
             ('student', 'kid1@test.local', 'Test', 'Kid', 'Paper one', 'Class one') $$,
   'The claim returns only still-eligible rows, with the email''s details');
+-- Output columns only (proargmodes 't'): item 8 added the supported_kinds input, and kind and due_on.
 select is(
-  (select array_agg(n order by n) from unnest(
-     (select proargnames[1:] from pg_proc where proname = 'notify_claim_emails')) n
-   where n not in ('id')),
-  array['assignment_id', 'assignment_title', 'child_first_name', 'class_name', 'email',
-        'recipient_first_name', 'recipient_role', 'student_id'],
+  (select array_agg(n.name order by n.name)
+   from pg_proc f, unnest(f.proargnames, f.proargmodes) as n(name, mode)
+   where f.proname = 'notify_claim_emails' and n.mode = 't' and n.name not in ('id')),
+  array['assignment_id', 'assignment_title', 'child_first_name', 'class_name', 'due_on', 'email',
+        'kind', 'recipient_first_name', 'recipient_role', 'student_id'],
   'The claim has no mark, score or feedback column (AC-3.3)');
 select results_eq(
   $$ select status, count(*)::int from public.email_outbox
@@ -543,7 +545,7 @@ reset role;
 select is(
   (select array_agg(n order by n) from unnest(
      (select proargnames from pg_proc where proname = 'admin_email_problems')) n),
-  array['assignment_title', 'created_at', 'id', 'max_rows', 'reason', 'recipient_role', 'state'],
+  array['assignment_title', 'created_at', 'id', 'kind', 'max_rows', 'reason', 'recipient_role', 'state'],
   'The admin list returns no address, name or body (AC-3.8)');
 
 update public.email_outbox set attempts = 1, reason = 'network'
@@ -632,6 +634,7 @@ delete from public.email_outbox;
 insert into public.assignments (id, class_id, title, max_mark) values
   ('00000000-0000-0000-0000-00000000e011', '00000000-0000-0000-0000-00000000c001', 'Imported paper', 10);
 update public.assignments set status = 'published' where id = '00000000-0000-0000-0000-00000000e011';
+delete from public.email_outbox; -- the publish queued "new assignment" rows (item 8)
 select set_config('request.jwt.claims', '', true); -- no signed-in staff: like a seed or an import
 insert into public.assignment_results (assignment_id, student_id, status, mark)
 values ('00000000-0000-0000-0000-00000000e011', '00000000-0000-0000-0000-00000000d001', 'marked', 6);

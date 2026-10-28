@@ -1,0 +1,44 @@
+2: porcelain(tracked)=0
+ supabase/functions/notifications/copy.ts     |  56 ++---------
+ supabase/functions/notifications/index.ts    |  18 ++--
+ supabase/functions/notifications/template.ts | 136 +++++----------------------
+ 3 files changed, 39 insertions(+), 171 deletions(-)
+noarg-claim=1
+imports-claim=3
+back=401
+old index.ts doesn't import claim.ts (only comments + rpc('notify_claim_emails'))
+3: worker=200 {"ok":true,"data":{"claimed":2,"sent":2,"retrying":0,"failed":0}}
+due_tomorrow:parent:pending:-
+due_tomorrow:student:pending:-
+new_assignment:parent:pending:-
+new_assignment:student:pending:-
+work_returned:parent:sent:-
+work_returned:student:sent:-
+due_tomorrow:0
+due_tomorrow:0
+new_assignment:0
+new_assignment:0
+Your work has been marked: Reasoning mock test 1
+Aarav's work has been marked: Reasoning mock test 1
+keys_ok=0
+log=0
+UPDATE 4
+4:
+due_tomorrow:waiting:not_attempted
+due_tomorrow:waiting:not_attempted
+new_assignment:waiting:not_attempted
+new_assignment:waiting:not_attempted
+5: porcelain(tracked)=0
+back=401
+6: worker=200 {"ok":true,"data":{"claimed":4,"sent":4,"retrying":0,"failed":0}}
+due_tomorrow
+due_tomorrow
+new_assignment
+new_assignment
+mp=6 keys_ok=0
+7:
+UPDATE 1
+UPDATE 1
+DELETE 6
+kick=t porcelain(tracked)=0
+1

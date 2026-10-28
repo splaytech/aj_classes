@@ -1,0 +1,8 @@
+E-77 student@local.test 1280 Light ovf=0 h1=1 lines=1/1/1 inside=true/true/true c=16.27/16.27/16.27 intro=7.56 save=5.17
+E-77 student@local.test 1280 Dark ovf=0 h1=1 lines=1/1/1 inside=true/true/true c=15.19/15.19/15.19 intro=8.82 save=7.36
+E-77 student@local.test 360 Light ovf=0 h1=1 lines=2/1/1 inside=true/true/true c=16.27/16.27/16.27 intro=7.56 save=5.17
+E-77 student@local.test 360 Dark ovf=0 h1=1 lines=2/1/1 inside=true/true/true c=15.19/15.19/15.19 intro=8.82 save=7.36
+E-77 parent@local.test 1280 Light ovf=0 h1=1 lines=1/1/1 inside=true/true/true c=16.27/16.27/16.27 intro=7.56 save=5.17
+E-77 parent@local.test 1280 Dark ovf=0 h1=1 lines=1/1/1 inside=true/true/true c=15.19/15.19/15.19 intro=8.82 save=7.36
+E-77 parent@local.test 360 Light ovf=0 h1=1 lines=2/1/1 inside=true/true/true c=16.27/16.27/16.27 intro=7.56 save=5.17
+E-77 parent@local.test 360 Dark ovf=0 h1=1 lines=2/1/1 inside=true/true/true c=15.19/15.19/15.19 intro=8.82 save=7.36

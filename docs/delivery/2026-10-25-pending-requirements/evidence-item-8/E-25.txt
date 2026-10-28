@@ -1,0 +1,7 @@
+200 [{"id":"$PJ","status":"published"}]
+rows:
+INSERT 0 1
+after re-enrol rows:
+worker=200 {"ok":true,"data":{"claimed":0,"sent":0,"retrying":0,"failed":0}}
+listed=1
+mp=0

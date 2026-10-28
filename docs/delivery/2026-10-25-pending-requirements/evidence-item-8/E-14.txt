@@ -1,0 +1,14 @@
+1
+supabase/README.md:1
+docs/requirements/release-2/go-live.md:1
+supabase/README.md:0
+docs/requirements/release-2/go-live.md:0
+supabase/README.md:1
+docs/requirements/release-2/go-live.md:1
+1
+2
+1
+1
+1
+---
+135:**Deploy order: migration first, then the function.** `deploy.sh` pushes migrations and then deploys functions, so one run is safe. By hand: `supabase db push`, then `supabase functions deploy notifications`. Don't deploy the function first: the new worker calls `notify_claim_emails(supported_kinds)`, which the old database doesn't have (`PGRST202`). It then falls back to the old claim, so "work returned" keeps sending, but "new assignment" and "due tomorrow" don't exist until the migration lands; the function log shows `notifications claim: old database, work returned only`. The other way round is safe: today's worker calls it with no argument and keeps claiming only "work returned"; new-kind rows wait (Waiting / "Not attempted" after 2 hours, then "Too late to send") until the function is deployed.

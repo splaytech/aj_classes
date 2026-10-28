@@ -1,0 +1,13 @@
+format:check 0; lint 0 (eslint . no output); typecheck 0
+ Test Files  66 passed (66)
+      Tests  581 passed (581)
+ℹ tests 6
+ℹ pass 6
+ℹ fail 0
+check-hosted-ref: 0 files (of 155 scanned)
+Files=17, Tests=747,  0 wallclock secs ( 0.04 usr  0.02 sys +  0.06 cusr  0.04 csys =  0.16 CPU)
+Result: PASS
+email_alerts.test.sql alone: 125
+test:functions ok=232 not_ok=0 all_passed=3
+ok     Both email cron jobs are active again
+after: DT=f kick=t

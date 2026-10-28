@@ -1,0 +1,115 @@
+{
+  "h1": [
+    "Emails"
+  ],
+  "intro": "Portal emails that failed, or haven't gone out about 2 hours after they were queued. Sent emails aren't listed.",
+  "headers": [
+    "When",
+    "Type",
+    "Recipient",
+    "Assignment",
+    "State",
+    "Reason"
+  ],
+  "rows": [
+    [
+      "29 Oct 2026, 10:02 am",
+      "Due tomorrow",
+      "Student",
+      "Fractions quick quiz",
+      "Failed",
+      "Too late to send"
+    ],
+    [
+      "29 Oct 2026, 9:52 am",
+      "New assignment",
+      "Parent",
+      "Fractions practice set 3",
+      "Failed",
+      "Rejected by email service"
+    ],
+    [
+      "29 Oct 2026, 7:32 am",
+      "New assignment",
+      "Student",
+      "Reasoning mock test 1",
+      "Waiting",
+      "Not attempted"
+    ],
+    [
+      "29 Oct 2026, 6:32 am",
+      "Due tomorrow",
+      "Student",
+      "Times tables warm-up",
+      "Waiting",
+      "Retrying"
+    ],
+    [
+      "29 Oct 2026, 5:32 am",
+      "Work returned",
+      "Parent",
+      "Reasoning mock test 1",
+      "Waiting",
+      "Set-up error"
+    ],
+    [
+      "29 Oct 2026, 4:32 am",
+      "Work returned",
+      "Student",
+      "Word problems set 1",
+      "Failed",
+      "Gave up after 3 tries"
+    ]
+  ],
+  "addresses": 0,
+  "capZeroRows": [
+    [
+      "29 Oct 2026, 10:02 am",
+      "Due tomorrow",
+      "Student",
+      "Fractions quick quiz",
+      "Failed",
+      "Too late to send"
+    ],
+    [
+      "29 Oct 2026, 9:52 am",
+      "New assignment",
+      "Parent",
+      "Fractions practice set 3",
+      "Failed",
+      "Rejected by email service"
+    ],
+    [
+      "29 Oct 2026, 7:32 am",
+      "New assignment",
+      "Student",
+      "Reasoning mock test 1",
+      "Waiting",
+      "Daily limit"
+    ],
+    [
+      "29 Oct 2026, 6:32 am",
+      "Due tomorrow",
+      "Student",
+      "Times tables warm-up",
+      "Waiting",
+      "Daily limit"
+    ],
+    [
+      "29 Oct 2026, 5:32 am",
+      "Work returned",
+      "Parent",
+      "Reasoning mock test 1",
+      "Waiting",
+      "Set-up error"
+    ],
+    [
+      "29 Oct 2026, 4:32 am",
+      "Work returned",
+      "Student",
+      "Word problems set 1",
+      "Failed",
+      "Gave up after 3 tries"
+    ]
+  ]
+}

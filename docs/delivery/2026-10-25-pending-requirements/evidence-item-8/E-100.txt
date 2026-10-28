@@ -1,0 +1,16 @@
+S=36
+200 [{"id":"$PCAP","status":"published"}]
+UPDATE 1
+
+ids=4
+CREATE FUNCTION
+cap=37
+w1=200 {"ok":true,"data":{"claimed":1,"sent":1,"retrying":0,"failed":0}}
+due_tomorrow
+w2=200 {"ok":true,"data":{"claimed":0,"sent":0,"retrying":0,"failed":0}}
+due_tomorrow:parent:sent:-
+due_tomorrow:student:pending:-
+new_assignment:parent:pending:-
+new_assignment:student:pending:-
+Aarav's work is due tomorrow: Fractions quick quiz
+mp=1 keys_ok=0

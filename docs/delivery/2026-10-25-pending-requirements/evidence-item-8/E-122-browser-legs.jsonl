@@ -1,0 +1,78 @@
+{"case":"E-101","label":"E-86 empty","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-102d","label":"E-102 student hands in","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-102ui","label":"E-86 empty","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-110","label":"E-110 tutor returns mock","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-111a","label":"E-111 tutor marks and returns","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-111b","label":"E-111 admin removes Aarav","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-111c","label":"E-111 student@local.test opens link","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-111c","label":"E-111 parent@local.test opens link","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-111d","label":"E-111 admin re-enrols Aarav","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-112","label":"E-112 student pages","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-112","label":"E-112 parent pages","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-70","label":"E-70 /","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-70","label":"E-70 /portal/login","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-71","label":"E-71 admin@local.test","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-71","label":"E-71 newadmin@local.test","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-71","label":"E-71 tutor@local.test","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-71","label":"E-71 student@local.test","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-71","label":"E-71 parent@local.test","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-72","label":"E-72 inactive","errors":1,"hosted":0,"notif":0,"bad":1}
+{"case":"E-73","label":"E-73 student@local.test","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-73","label":"E-73 parent@local.test","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-73","label":"E-73 tutor@local.test","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-73","label":"E-73 admin@local.test","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-74","label":"E-74 student","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-74","label":"E-74 parent","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-75","label":"E-75 parent","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-76","label":"E-76 student","errors":5,"hosted":0,"notif":0,"bad":0}
+{"case":"E-77","label":"E-77 student@local.test 1280 Light","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-77","label":"E-77 student@local.test 1280 Dark","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-77","label":"E-77 student@local.test 360 Light","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-77","label":"E-77 student@local.test 360 Dark","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-77","label":"E-77 parent@local.test 1280 Light","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-77","label":"E-77 parent@local.test 1280 Dark","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-77","label":"E-77 parent@local.test 360 Light","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-77","label":"E-77 parent@local.test 360 Dark","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-78","label":"E-78 signed in","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-78","label":"E-78 signed out","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-79","label":"E-79 tutor publish","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-81","label":"E-81 student@local.test 1280","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-81","label":"E-81 student@local.test 360","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-81","label":"E-81 parent@local.test 1280","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-81","label":"E-81 parent@local.test 360","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-82a","label":"E-82 publish ratio","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-82b","label":"E-82 republish ratio","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-82c","label":"E-82 restore ratio","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-83link","label":"E-83 link parent","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-83open","label":"E-83 parent opens Isla link","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-83unlink","label":"E-83 remove parent","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-86a","label":"E-86 admin emails 1280","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-86b","label":"E-86 matrix 1280 Light","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-86b","label":"E-86 matrix 1280 Dark","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-86b","label":"E-86 matrix 360 Light","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-86b","label":"E-86 matrix 360 Dark","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-86c","label":"E-86 empty","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-87","label":"E-87 signed out","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-87","label":"E-87 tutor@local.test","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-87","label":"E-87 student@local.test","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-87","label":"E-87 parent@local.test","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-87","label":"E-87 newadmin@local.test","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-88","label":"E-88 e2e-item8 Cap zero paper","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-89","label":"E-89 privacy 1280","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-89","label":"E-89 privacy 360","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-90deact","label":"E-90 deactivate","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-90react","label":"E-90 reactivate","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-90react","label":"E-90 student signs in","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-91cancel","label":"E-91 cancel invite","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-91invite","label":"E-91 consent and invite","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-88","label":"E-88 e2e-item8 Stopped paper (first leg; file overwritten by leg 2, counters from its console output)","errors":0,"hosted":0,"notif":0,"bad":0}
+{"case":"E-85","label":"new-work parent light","errors":0,"hosted":0,"foreign":0}
+{"case":"E-85","label":"new-work parent dark","errors":0,"hosted":0,"foreign":0}
+{"case":"E-85","label":"new-work student light","errors":0,"hosted":0,"foreign":0}
+{"case":"E-85","label":"new-work student dark","errors":0,"hosted":0,"foreign":0}
+{"case":"E-85","label":"due-tomorrow parent light","errors":0,"hosted":0,"foreign":0}
+{"case":"E-85","label":"due-tomorrow parent dark","errors":0,"hosted":0,"foreign":0}
+{"case":"E-85","label":"due-tomorrow student light","errors":0,"hosted":0,"foreign":0}
+{"case":"E-85","label":"due-tomorrow student dark","errors":0,"hosted":0,"foreign":0}
+{"case":"E-85","label":"mailpit page new-work","errors":0,"hosted":0,"foreign":0}
+{"case":"E-85","label":"mailpit page due-tomorrow","errors":0,"hosted":0,"foreign":0}
