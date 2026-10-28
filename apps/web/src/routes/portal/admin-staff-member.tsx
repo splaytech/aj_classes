@@ -84,17 +84,17 @@ export default function AdminStaffMemberPage() {
             <RoleChip role={person.role} />
             <AccountStatusChip status={accountStatus(person, new Date())} />
             {person.joinedAt && (
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="textSecondary">
                 {STAFF_MEMBER_PAGE.joined(formatDate(person.joinedAt))}
               </Typography>
             )}
             {person.lastSignInAt && (
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="textSecondary">
                 {STAFF_MEMBER_PAGE.lastSignIn(formatDateTime(person.lastSignInAt))}
               </Typography>
             )}
             {person.phone && (
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="textSecondary">
                 {STAFF_MEMBER_PAGE.phone}{' '}
                 <Link href={STAFF_MEMBER_PAGE.phoneLink(person.phone)}>
                   {formatPhone(person.phone)}
@@ -102,7 +102,7 @@ export default function AdminStaffMemberPage() {
               </Typography>
             )}
             {person.termsAcceptedAt && (
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="textSecondary">
                 {STAFF_MEMBER_PAGE.termsAccepted(formatDate(person.termsAcceptedAt))}
               </Typography>
             )}
@@ -248,7 +248,7 @@ function AccessSection({ person, isYou, onChanged }: SectionProps) {
           </Button>
         </Stack>
         {isYou && (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="textSecondary">
             {texts.selfNote}
           </Typography>
         )}
@@ -297,7 +297,7 @@ function TwoStepSection({ person, isYou, onChanged }: SectionProps) {
       <Stack spacing={3}>
         <Typography>{person.hasTwoStep ? texts.on : texts.off}</Typography>
         {isYou ? (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="textSecondary">
             {texts.selfNote}
           </Typography>
         ) : (

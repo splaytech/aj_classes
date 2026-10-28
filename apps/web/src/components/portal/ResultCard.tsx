@@ -70,7 +70,7 @@ export function ResultCard({ assignmentId, maxMark, student, result, onSaved }: 
           <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 700 }}>
             {student.fullName}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="textSecondary">
             {studentYearLabel(student.yearLevel)}
           </Typography>
         </Stack>
@@ -140,7 +140,7 @@ export function ResultCard({ assignmentId, maxMark, student, result, onSaved }: 
             </Typography>
           )}
           {(saved?.status === 'marked' || saved?.status === 'returned') && saved.markedAt && (
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="textSecondary">
               {MARKING_PAGE.markedBy(saved.markedByName, formatDateTime(saved.markedAt))}
             </Typography>
           )}

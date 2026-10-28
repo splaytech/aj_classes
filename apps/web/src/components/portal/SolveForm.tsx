@@ -269,7 +269,7 @@ function SaveStatus({ state }: { state: SaveState | undefined }) {
   return (
     <Typography
       variant="caption"
-      color="text.secondary"
+      color="textSecondary"
       role="status"
       sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
     >

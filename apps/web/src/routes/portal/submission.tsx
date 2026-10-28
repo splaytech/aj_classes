@@ -143,13 +143,13 @@ function SubmissionForm({ submission, onSaved }: { submission: Submission; onSav
               label={ONLINE_STATUS_LABELS[result?.status ?? 'not_submitted']}
             />
             {result?.submittedAt && (
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="textSecondary">
                 {SUBMISSION_PAGE.submittedOn(formatDateTime(result.submittedAt))}
               </Typography>
             )}
             {late && <Chip size="small" color="warning" label={SUBMISSION_PAGE.late} />}
             {result?.returnedAt && (
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="textSecondary">
                 {SUBMISSION_PAGE.returnedOn(formatDateTime(result.returnedAt))}
               </Typography>
             )}
@@ -362,11 +362,9 @@ function MultipleChoiceAnswer({
           </Stack>
         ))}
       </Stack>
-      {chosen === null && (
-        <Typography color="text.secondary">{SUBMISSION_PAGE.noAnswer}</Typography>
-      )}
+      {chosen === null && <Typography color="textSecondary">{SUBMISSION_PAGE.noAnswer}</Typography>}
       {answer?.awardedMarks !== null && answer?.awardedMarks !== undefined && (
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="textSecondary">
           {SUBMISSION_PAGE.autoMarked(formatMarks(answer.awardedMarks), question.marks)}
         </Typography>
       )}

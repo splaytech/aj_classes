@@ -30,7 +30,7 @@ export default function StudentTimetablePage() {
         back={{ to: PORTAL_ROUTES.student, label: SOLVE_PAGE.back }}
       />
       {loaded.data.length === 0 ? (
-        <Typography color="text.secondary">{STUDENT_TIMETABLE_PAGE.empty}</Typography>
+        <Typography color="textSecondary">{STUDENT_TIMETABLE_PAGE.empty}</Typography>
       ) : (
         <WeekTimetable
           entries={loaded.data}

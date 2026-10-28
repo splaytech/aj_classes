@@ -77,7 +77,7 @@ export default function ParentChildPage() {
 
         <SectionCard title={PARENT_CHILD_PAGE.assignmentsHeading}>
           {ordered.length === 0 ? (
-            <Typography color="text.secondary">{PARENT_CHILD_PAGE.empty}</Typography>
+            <Typography color="textSecondary">{PARENT_CHILD_PAGE.empty}</Typography>
           ) : (
             <Stack spacing={2}>
               {ordered.map((item) => (
@@ -98,7 +98,7 @@ export default function ParentChildPage() {
 function ChildTimetable({ timetable }: { timetable: Result<TimetableEntry[]> }) {
   if (!timetable.ok) return <LoadError error={timetable.error} />;
   if (timetable.data.length === 0) {
-    return <Typography color="text.secondary">{PARENT_CHILD_PAGE.timetableEmpty}</Typography>;
+    return <Typography color="textSecondary">{PARENT_CHILD_PAGE.timetableEmpty}</Typography>;
   }
   return (
     <WeekTimetable
@@ -123,7 +123,7 @@ function AssignmentRow({ studentId, item }: { studentId: string; item: FamilyAss
         >
           {item.title}
         </Link>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="textSecondary">
           {item.className}
         </Typography>
         <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>

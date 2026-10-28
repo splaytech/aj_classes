@@ -75,7 +75,7 @@ export default function TimetablePage() {
         }
       />
       {loaded.data.length === 0 ? (
-        <Typography color="text.secondary">{TIMETABLE_PAGE.empty}</Typography>
+        <Typography color="textSecondary">{TIMETABLE_PAGE.empty}</Typography>
       ) : (
         <WeekTimetable entries={entries} today={isoDayOfWeek(new Date())} showTutor={isAdmin} />
       )}

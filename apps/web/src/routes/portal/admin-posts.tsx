@@ -177,7 +177,7 @@ export default function AdminPostsPage() {
                 {/* minWidth 0 + overflowWrap: long titles and links wrap instead of
                     pushing the card past the screen (BUG-4). */}
                 <Box sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant="caption" color="textSecondary">
                     {formatDateTime(post.publishedAt)}
                   </Typography>
                   <Typography variant="h6" component="h2">
@@ -203,7 +203,7 @@ export default function AdminPostsPage() {
           ),
         )}
         {loaded.data.length === 0 && (
-          <Typography color="text.secondary">{POSTS_PAGE.empty}</Typography>
+          <Typography color="textSecondary">{POSTS_PAGE.empty}</Typography>
         )}
       </Stack>
 

@@ -72,7 +72,7 @@ export function ScheduleTab({ detail, onChanged, isAdmin }: TabProps & { isAdmin
   return (
     <Stack spacing={3}>
       {sessions.length === 0 ? (
-        <Typography color="text.secondary">{CLASS_PAGE.schedule.empty}</Typography>
+        <Typography color="textSecondary">{CLASS_PAGE.schedule.empty}</Typography>
       ) : (
         <Paper variant="outlined">
           <List disablePadding>
@@ -158,7 +158,7 @@ export function StudentsTab({
   return (
     <Stack spacing={3}>
       {detail.students.length === 0 ? (
-        <Typography color="text.secondary">{CLASS_PAGE.students.empty}</Typography>
+        <Typography color="textSecondary">{CLASS_PAGE.students.empty}</Typography>
       ) : (
         <TableContainer component={Paper} variant="outlined">
           <Table size="small">
@@ -238,7 +238,7 @@ export function AssignmentsTab({
   return (
     <Stack spacing={3}>
       {sorted.length === 0 ? (
-        <Typography color="text.secondary">{CLASS_ASSIGNMENTS.empty}</Typography>
+        <Typography color="textSecondary">{CLASS_ASSIGNMENTS.empty}</Typography>
       ) : (
         <TableContainer component={Paper} variant="outlined">
           <Table size="small">

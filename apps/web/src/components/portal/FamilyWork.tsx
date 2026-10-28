@@ -67,7 +67,7 @@ export function ProgressSummary({ progress }: { progress: FamilyProgress }) {
             >
               {stat.value}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="textSecondary">
               {stat.label}
             </Typography>
           </CardContent>
@@ -193,7 +193,7 @@ function AnswerCard({
               </Stack>
             ))}
             {question.selectedOption === null && (
-              <Typography color="text.secondary">{RESULTS_TEXT.noAnswer}</Typography>
+              <Typography color="textSecondary">{RESULTS_TEXT.noAnswer}</Typography>
             )}
           </Stack>
         ) : (
@@ -210,7 +210,7 @@ function AnswerCard({
           </Typography>
         )}
         {question.explanation && (
-          <Typography color="text.secondary" sx={{ whiteSpace: 'pre-line' }}>
+          <Typography color="textSecondary" sx={{ whiteSpace: 'pre-line' }}>
             {RESULTS_TEXT.explanation(question.explanation)}
           </Typography>
         )}
