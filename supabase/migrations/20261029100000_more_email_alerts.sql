@@ -100,10 +100,17 @@ from public, anon, authenticated;
 -- Step 4. One recipient function for every kind (ADR-0008 decision 3)
 -- ---------------------------------------------------------------------------
 
--- Is this kind still worth sending for this student's work? queued_due_on: the due date a
--- reminder was queued for (from its send_before); a changed due date means skipped (AC-8.8).
--- "New assignment" also stops once its due date is in the past (Melbourne), e.g. re-dated after
--- queueing, so it's skipped instead of saying "It's due" a past date (AC-8.4, item 8 test plan P3).
+-- Is this kind still worth sending for this student's work? queued_due_on: the Melbourne date of
+-- the row's send_before (null while queueing). "Due tomorrow": send_before is the start of the due
+-- date, so a changed due date means skipped (AC-8.8).
+-- "New assignment": send_before is the start of the day after the due date, so queued_due_on is
+-- due + 1. It's skipped only when the due date moved earlier than queued and is now in the past
+-- (Melbourne), so it never says "It's due" a past date (AC-8.4, item 8 test plan P3). A row whose
+-- unchanged due date simply ran out stays relevant, so the kick fails it as too_late and admins
+-- see "Too late to send" (AC-8.7, review-5 item 8 round 3). While queueing, queued_due_on is null
+-- and the queue trigger has already checked the deadline. Queued with no due date (deadline 7 days
+-- after publishing), queued_due_on is that 7th day, so a due date added later only counts as
+-- "moved earlier" when it's 2 or more days before that day.
 create function private.email_still_relevant(
   target_kind text, target_assignment uuid, target_student uuid, queued_due_on date)
 returns boolean
@@ -118,7 +125,9 @@ as $$
       private.assignment_visible_to(target_student, target_assignment)
       and exists (select 1 from public.assignments a
                   where a.id = target_assignment
-                    and (a.due_on is null or a.due_on >= private.melbourne_date(now())))
+                    and (a.due_on is null
+                         or a.due_on >= private.melbourne_date(now())
+                         or a.due_on + 1 >= queued_due_on))
     when 'due_tomorrow' then
       private.assignment_visible_to(target_student, target_assignment)
       and private.is_online_assignment(target_assignment)

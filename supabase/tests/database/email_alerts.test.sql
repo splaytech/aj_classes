@@ -625,12 +625,18 @@ insert into public.assignments (id, class_id, title, due_on) values
 insert into public.assignment_questions (assignment_id, kind, prompt, options, correct_option, marks) values
   ('00000000-0000-0000-0000-00000000e812', 'multiple_choice', 'Pick A', '{A,B}', 0, 1);
 select pg_temp.publish('00000000-0000-0000-0000-00000000e812');
+-- Work due yesterday, its due date never changed: its "new assignment" deadline (the start of the
+-- day after the due date, so midnight this morning) has passed (review-5 item 8 round 3).
+insert into public.assignments (id, class_id, title, due_on, max_mark) values
+  ('00000000-0000-0000-0000-00000000e815', '00000000-0000-0000-0000-00000000c001', 'Due yesterday',
+   (select today - 1 from melbourne), 10);
+select pg_temp.publish('00000000-0000-0000-0000-00000000e815');
 delete from public.email_outbox;
 -- A reminder for work due today: its deadline (midnight this morning) has passed.
 select pg_temp.add_row('due_tomorrow', '00000000-0000-0000-0000-00000000e812', '00000000-0000-0000-0000-0000000006a1',
   now() - interval '20 hours', (select private.melbourne_day_start(today) from melbourne));
-select pg_temp.add_row('new_assignment', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-0000000006a2',
-  now() - interval '8 days', now() - interval '1 minute');
+select pg_temp.add_row('new_assignment', '00000000-0000-0000-0000-00000000e815', '00000000-0000-0000-0000-0000000006a2',
+  now() - interval '3 days', (select private.melbourne_day_start(today) from melbourne));
 select pg_temp.add_row('work_returned', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-0000000005a1',
   now() - interval '5 days');
 set local role service_role;
@@ -655,8 +661,8 @@ select pg_temp.as_system();
 
 -- The sweep runs even when the cap is full (it comes before the kick's early returns).
 delete from public.email_outbox;
-select pg_temp.add_row('new_assignment', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-0000000006a2',
-  now() - interval '8 days', now() - interval '1 minute');
+select pg_temp.add_row('new_assignment', '00000000-0000-0000-0000-00000000e815', '00000000-0000-0000-0000-0000000006a2',
+  now() - interval '3 days', (select private.melbourne_day_start(today) from melbourne));
 create or replace function private.email_daily_cap()
 returns int language sql immutable set search_path = '' as $$ select 0 $$;
 select private.kick_email_worker();
@@ -689,8 +695,9 @@ delete from public.email_outbox where assignment_id = '00000000-0000-0000-0000-0
 select pg_temp.add_row('new_assignment', '00000000-0000-0000-0000-00000000e814', '00000000-0000-0000-0000-0000000005a1',
   now() - interval '8 days', now() - interval '1 minute');
 insert into public.email_outbox (kind, assignment_id, student_id, recipient_id, recipient_role, created_at, send_before)
-values ('new_assignment', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-00000000d007',
-        '00000000-0000-0000-0000-0000000005a7', 'student', now() - interval '8 days', now() - interval '1 minute');
+values ('new_assignment', '00000000-0000-0000-0000-00000000e815', '00000000-0000-0000-0000-00000000d007',
+        '00000000-0000-0000-0000-0000000005a7', 'student', now() - interval '3 days',
+        (select private.melbourne_day_start(today) from melbourne));
 delete from public.enrolments
 where class_id = '00000000-0000-0000-0000-00000000c001' and student_id = '00000000-0000-0000-0000-00000000d007';
 select private.kick_email_worker();
@@ -700,8 +707,8 @@ select results_eq(
   $$ values
        ('due_tomorrow', '00000000-0000-0000-0000-00000000e812', '00000000-0000-0000-0000-0000000006a1', 'skipped', null::text),
        ('due_tomorrow', '00000000-0000-0000-0000-00000000e812', '00000000-0000-0000-0000-0000000006a4', 'failed', 'too_late'),
-       ('new_assignment', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-0000000005a7', 'skipped', null::text),
-       ('new_assignment', '00000000-0000-0000-0000-00000000e814', '00000000-0000-0000-0000-0000000005a1', 'skipped', null::text) $$,
+       ('new_assignment', '00000000-0000-0000-0000-00000000e814', '00000000-0000-0000-0000-0000000005a1', 'skipped', null::text),
+       ('new_assignment', '00000000-0000-0000-0000-00000000e815', '00000000-0000-0000-0000-0000000005a7', 'skipped', null::text) $$,
   'Cap full: handed in, back to draft and left the class end skipped; the still-relevant reminder ends too_late');
 select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
 select results_eq(
@@ -783,11 +790,38 @@ select results_eq($$ select kind from public.notify_claim_emails((select kinds f
   $$ values ('new_assignment') $$,
   'Re-dated to today: it still goes out, until the end of the due date');
 reset role;
+
+-- The kick's skip step agrees with the claim: re-dated to yesterday means skipped, even with the
+-- cap full, so it's never shown as "Too late to send".
+delete from public.email_outbox;
+select pg_temp.add_row('new_assignment', '00000000-0000-0000-0000-00000000e801', '00000000-0000-0000-0000-0000000006a1',
+  now() - interval '1 hour', (select private.melbourne_day_start(today + 6) from melbourne));
+update public.assignments set due_on = (select today - 1 from melbourne)
+where id = '00000000-0000-0000-0000-00000000e801';
+create or replace function private.email_daily_cap()
+returns int language sql immutable set search_path = '' as $$ select 0 $$;
+select private.kick_email_worker();
+select results_eq($$ select status, reason from public.email_outbox $$, $$ values ('skipped', null::text) $$,
+  'Kick: re-dated to yesterday after queueing ends skipped, not too_late (AC-8.4)');
+create or replace function private.email_daily_cap()
+returns int language sql immutable set search_path = '' as $$ select 70 $$;
+
+-- Natural expiry is not a re-date: work due yesterday whose due date never changed. The claim
+-- leaves it pending (it's past its deadline, so not claimed), and the kick fails it as too_late
+-- (AC-8.7, review-5 item 8 round 3).
+delete from public.email_outbox;
+select pg_temp.add_row('new_assignment', '00000000-0000-0000-0000-00000000e815', '00000000-0000-0000-0000-0000000006a1',
+  now() - interval '3 days', (select private.melbourne_day_start(today) from melbourne));
+set local role service_role;
+select is_empty($$ select 1 from public.notify_claim_emails((select kinds from all_kinds)) $$,
+  'Expired with its due date unchanged: the claim doesn''t return it');
+reset role;
+select results_eq($$ select status, reason from public.email_outbox $$, $$ values ('pending', null::text) $$,
+  'and doesn''t skip it either');
+select private.kick_email_worker();
+select results_eq($$ select status, reason from public.email_outbox $$, $$ values ('failed', 'too_late') $$,
+  'The kick fails it as too_late, so admins see "Too late to send" (AC-8.7)');
 rollback to savepoint redated;
-select is(
-  (select count(*)::int from private.email_recipients('due_tomorrow', '00000000-0000-0000-0000-00000000e805',
-     '00000000-0000-0000-0000-00000000d001', (select today + 1 from melbourne))),
-  3, 'The due-tomorrow check is unchanged by it');
 
 
 -- AC-8.6 (claim): handed in after queueing ---------------------------------------------------
