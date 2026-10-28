@@ -1,0 +1,7 @@
+notifications: claim, and the fallback to the old claim
+
+ok     New database: one claim, with every kind this worker can render
+ok     Old database (PGRST202): retries once with no argument
+ok     and renders the old claim's rows as work returned, the only kind it has
+ok     Any other error is thrown, with no retry
+ok     A failed fallback is thrown too (the run fails; rows wait)

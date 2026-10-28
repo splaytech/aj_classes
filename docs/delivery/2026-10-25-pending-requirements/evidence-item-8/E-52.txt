@@ -1,0 +1,3 @@
+R:due_tomorrow:failed:3:max_attempts
+R:new_assignment:pending:1:-
+R:work_returned:sending:1:-

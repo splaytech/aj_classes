@@ -1,0 +1,10 @@
+200 [{"id":"$PL","status":"published"}]
+new_assignment:parent:pending:-
+new_assignment:student:pending:-
+DELETE 1
+worker=200 {"ok":true,"data":{"claimed":0,"sent":0,"retrying":0,"failed":0}}
+new_assignment:parent:skipped:-
+new_assignment:student:skipped:-
+mp=0
+problems=200 []
+INSERT 0 1

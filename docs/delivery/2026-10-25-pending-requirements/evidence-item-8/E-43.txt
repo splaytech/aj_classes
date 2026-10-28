@@ -1,0 +1,10 @@
+legA: run succeeded|is_reminder_hour false|23:01:00; count 0
+legB run=succeeded|2026-10-28 23:03:00.024973+00
+Fractions quick quiz:parent:pending:true
+Fractions quick quiz:student:pending:true
+diff=0
+step5: stu=1 par=1 seconds<=105
+due_tomorrow:parent:sent:-
+due_tomorrow:student:sent:-
+keys_ok=0
+kick=f

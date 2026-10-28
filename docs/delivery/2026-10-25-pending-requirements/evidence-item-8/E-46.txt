@@ -1,0 +1,11 @@
+t
+0
+select cron.schedule('due-tomorrow-reminders', '10 * * * *', $$select private.queue_due_tomorrow_emails()$$);
+35:**Portal emails locally** (ADR-0004, ADR-0008): when a tutor returns work or publishes new work, the database queues one email per active student and parent (`email_outbox`); at 15:10 Melbourne time the `due-tomorrow-reminders` job queues a reminder for online work due the next day that isn't handed in. Every 5 minutes `pg_cron` calls the local `notifications` function, which sends them to **Mailpit** (http://127.0.0.1:55324), never out. The seed's returned and published work queues eight on every `pnpm db:reset` (two "work returned", six "new assignment"). The function's local settings are in `config.toml` (`[edge_runtime.secrets]`: `EMAIL_TRANSPORT=mailpit`, the local-only `NOTIFY_WORKER_SECRET`); its address and secret for the cron job are in local Vault (`seed.sql`). To send without waiting: `curl -X POST http://127.0.0.1:55321/functions/v1/notifications -H 'x-notify-secret: local-notify-secret'`. After changing `config.toml`, restart the stack (`pnpm db:stop && pnpm db:start`) so the function sees it.
+131:| Due tomorrow                 | the `due-tomorrow-reminders` cron job: hourly at `:10`, acting only at 15:10 Melbourne; online work due the next day, not handed in, published before the day before | start of the due date (Melbourne)                                                                                  |
+165:**Stop the "due tomorrow" reminders only:** `select cron.unschedule('due-tomorrow-reminders');`. Nothing new is queued; reminders already queued still go out (or expire). Turn back on with the `cron.schedule('due-tomorrow-reminders', …)` line in `migrations/20261029100000_more_email_alerts.sql`.
+171:**If `pnpm test:functions` was interrupted** and local emails stop: the notifications script pauses the `email-worker-kick` and `due-tomorrow-reminders` cron jobs while it runs and resumes them on exit or Ctrl-C. If that ever didn't happen:
+174:docker exec supabase_db_aj_classes psql -U postgres -c "select cron.alter_job(jobid, active := true) from cron.job where jobname in ('email-worker-kick', 'due-tomorrow-reminders')"
+4
+10 * * * *|select private.queue_due_tomorrow_emails()|true
+f

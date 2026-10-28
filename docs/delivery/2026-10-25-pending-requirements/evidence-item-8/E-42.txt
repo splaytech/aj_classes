@@ -1,0 +1,28 @@
+
+204 null
+204 null
+204 null
+204 null
+204 null
+200 "submitted"
+worker=200 {"ok":true,"data":{"claimed":0,"sent":0,"retrying":0,"failed":0}}
+due_tomorrow:parent:skipped:-
+due_tomorrow:student:skipped:-
+mp=0
+DELETE 1
+DELETE 2
+
+200 [{"due_on":"2026-10-31"}]
+TODAY+2=2026-10-31
+worker=200 {"ok":true,"data":{"claimed":0,"sent":0,"retrying":0,"failed":0}}
+due_tomorrow:parent:skipped:-
+due_tomorrow:student:skipped:-
+
+after eve:
+due_tomorrow:parent:skipped:-
+due_tomorrow:student:skipped:-
+mp=0
+problems=200 []
+UPDATE 1
+DELETE 2
+0

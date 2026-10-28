@@ -1,0 +1,19 @@
+{
+  "dateVia": "ui",
+  "draftNote": [
+    "Draft: students and parents can’t see this yet. Add questions for online work, or publish it as paper homework."
+  ],
+  "dialog": {
+    "title": "Publish this assignment?",
+    "text": "Publish this assignment?\n\nEvery student in Selective Entry Maths & Reasoning and their parents will see it.\n\nCancel\nPublish to class"
+  },
+  "notice": 1,
+  "alerts": [
+    "Published. Students can see it now."
+  ],
+  "writes": [
+    "POST /rest/v1/assignments {\"class_id\":\"2c9014ed-b05f-4b30-9a63-63529fc027a8\",\"title\":\"e2e-item8 UI paper\",\"instructions\":\"\",\"due_on\":\"2026-11-02\",\"max_mark\":null}",
+    "PATCH /rest/v1/assignments {\"status\":\"published\"}"
+  ],
+  "notif": 0
+}
