@@ -37,6 +37,9 @@
   --color-border: #d6deeb;
   --color-border-inverse: rgb(255 255 255 / 0.2); /* lines on the navy footer */
   --color-focus: #2563eb;
+  /* Focus ring on navy (footer, feature band): 8.2:1; #2563eb there was 2.84:1, under WCAG
+     1.4.11's 3:1 (actionItems 53). Those surfaces set --color-focus to this. */
+  --color-focus-inverse: #93c5fd;
   --color-error: #b91c1c;
   --color-success: #15803d;
   --color-warning: #b45309; /* amber: "due soon", "invite expired" (5:1 on white, WCAG AA) */
@@ -94,6 +97,7 @@
 
   --color-border: #2b3a55;
   --color-focus: #93c5fd;
+  --color-focus-inverse: #93c5fd; /* 5.7:1 on the dark navy */
   --color-error: #f87171;
   --color-success: #4ade80;
   --color-warning: #fbbf24;

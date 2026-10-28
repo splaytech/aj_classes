@@ -11,6 +11,8 @@
 }
 
 .inverse {
+  --color-focus: var(--color-focus-inverse); /* the blue ring is too faint on navy */
+
   background: var(--color-bg-inverse);
   color: var(--color-text-inverse);
 }
