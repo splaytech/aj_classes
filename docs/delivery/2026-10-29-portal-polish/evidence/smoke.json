@@ -1,0 +1,420 @@
+{
+  "signin-tutor": {
+    "width": 1280,
+    "consoleErrors": [],
+    "pageErrors": [],
+    "csp": [],
+    "hosted": 0,
+    "sawVerify": false,
+    "landed": "/portal/tutor",
+    "h1": [
+      "Welcome, Local"
+    ],
+    "afterReload": "/portal/tutor",
+    "h1AfterReload": [
+      "Welcome, Local"
+    ]
+  },
+  "nav-tutor-1280": [
+    {
+      "text": "Dashboard",
+      "href": "/portal/tutor",
+      "path": "/portal/tutor",
+      "h1": [
+        "Welcome, Local"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Timetable",
+      "href": "/portal/timetable",
+      "path": "/portal/timetable",
+      "h1": [
+        "Timetable"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Classes",
+      "href": "/portal/classes",
+      "path": "/portal/timetable",
+      "h1": [
+        "Timetable"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Assignments",
+      "href": "/portal/assignments",
+      "path": "/portal/assignments",
+      "h1": [
+        "Assignments"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "My profile",
+      "href": "/portal/profile",
+      "path": "/portal/profile",
+      "h1": [
+        "My profile"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Account",
+      "href": "/portal/account",
+      "path": "/portal/account",
+      "h1": [
+        "Your account"
+      ],
+      "newErrors": 0
+    }
+  ],
+  "nav-tutor-360": [
+    {
+      "text": "Dashboard",
+      "href": "/portal/tutor",
+      "path": "/portal/tutor",
+      "h1": [
+        "Welcome, Local"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Timetable",
+      "href": "/portal/timetable",
+      "path": "/portal/timetable",
+      "h1": [
+        "Timetable"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Classes",
+      "href": "/portal/classes",
+      "path": "/portal/classes",
+      "h1": [
+        "Classes"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Assignments",
+      "href": "/portal/assignments",
+      "path": "/portal/assignments",
+      "h1": [
+        "Assignments"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "My profile",
+      "href": "/portal/profile",
+      "path": "/portal/profile",
+      "h1": [
+        "My profile"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Account",
+      "href": "/portal/account",
+      "path": "/portal/account",
+      "h1": [
+        "Your account"
+      ],
+      "newErrors": 0
+    }
+  ],
+  "signin-admin": {
+    "width": 1280,
+    "consoleErrors": [],
+    "pageErrors": [],
+    "csp": [],
+    "hosted": 0,
+    "sawVerify": true,
+    "landed": "/portal/admin",
+    "h1": [
+      "Admin"
+    ],
+    "afterReload": "/portal/admin",
+    "h1AfterReload": [
+      "Admin"
+    ]
+  },
+  "nav-admin-1280": [
+    {
+      "text": "Dashboard",
+      "href": "/portal/tutor",
+      "path": "/portal/tutor",
+      "h1": [
+        "Welcome, Local"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Timetable",
+      "href": "/portal/timetable",
+      "path": "/portal/timetable",
+      "h1": [
+        "Timetable"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Classes",
+      "href": "/portal/classes",
+      "path": "/portal/classes",
+      "h1": [
+        "Classes"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Assignments",
+      "href": "/portal/assignments",
+      "path": "/portal/assignments",
+      "h1": [
+        "Assignments"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "My profile",
+      "href": "/portal/profile",
+      "path": "/portal/profile",
+      "h1": [
+        "My profile"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Admin",
+      "href": "/portal/admin",
+      "path": "/portal/admin",
+      "h1": [
+        "Admin"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Account",
+      "href": "/portal/account",
+      "path": "/portal/account",
+      "h1": [
+        "Your account"
+      ],
+      "newErrors": 0
+    }
+  ],
+  "nav-admin-360": [
+    {
+      "text": "Dashboard",
+      "href": "/portal/tutor",
+      "path": "/portal/tutor",
+      "h1": [
+        "Welcome, Local"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Timetable",
+      "href": "/portal/timetable",
+      "path": "/portal/timetable",
+      "h1": [
+        "Timetable"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Classes",
+      "href": "/portal/classes",
+      "path": "/portal/classes",
+      "h1": [
+        "Classes"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Assignments",
+      "href": "/portal/assignments",
+      "path": "/portal/assignments",
+      "h1": [
+        "Assignments"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "My profile",
+      "href": "/portal/profile",
+      "path": "/portal/profile",
+      "h1": [
+        "My profile"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Admin",
+      "href": "/portal/admin",
+      "path": "/portal/admin",
+      "h1": [
+        "Admin"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Account",
+      "href": "/portal/account",
+      "path": "/portal/account",
+      "h1": [
+        "Your account"
+      ],
+      "newErrors": 0
+    }
+  ],
+  "signin-student": {
+    "width": 1280,
+    "consoleErrors": [],
+    "pageErrors": [],
+    "csp": [],
+    "hosted": 0,
+    "sawVerify": false,
+    "landed": "/portal/student",
+    "h1": [
+      "Hi Aarav"
+    ],
+    "afterReload": "/portal/student",
+    "h1AfterReload": [
+      "Hi Aarav"
+    ]
+  },
+  "nav-student-1280": [
+    {
+      "text": "My work",
+      "href": "/portal/student",
+      "path": "/portal/student",
+      "h1": [
+        "Hi Aarav"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Timetable",
+      "href": "/portal/student/timetable",
+      "path": "/portal/student/timetable",
+      "h1": [
+        "My timetable"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Account",
+      "href": "/portal/account",
+      "path": "/portal/account",
+      "h1": [
+        "Your account"
+      ],
+      "newErrors": 0
+    }
+  ],
+  "nav-student-360": [
+    {
+      "text": "My work",
+      "href": "/portal/student",
+      "path": "/portal/student",
+      "h1": [
+        "Hi Aarav"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Timetable",
+      "href": "/portal/student/timetable",
+      "path": "/portal/student/timetable",
+      "h1": [
+        "My timetable"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Account",
+      "href": "/portal/account",
+      "path": "/portal/account",
+      "h1": [
+        "Your account"
+      ],
+      "newErrors": 0
+    }
+  ],
+  "signin-parent": {
+    "width": 1280,
+    "consoleErrors": [],
+    "pageErrors": [],
+    "csp": [],
+    "hosted": 0,
+    "sawVerify": false,
+    "landed": "/portal/parent",
+    "h1": [
+      "Hi Local"
+    ],
+    "afterReload": "/portal/parent",
+    "h1AfterReload": [
+      "Hi Local"
+    ]
+  },
+  "nav-parent-1280": [
+    {
+      "text": "My children",
+      "href": "/portal/parent",
+      "path": "/portal/parent",
+      "h1": [
+        "Hi Local"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Account",
+      "href": "/portal/account",
+      "path": "/portal/account",
+      "h1": [
+        "Your account"
+      ],
+      "newErrors": 0
+    }
+  ],
+  "nav-parent-360": [
+    {
+      "text": "My children",
+      "href": "/portal/parent",
+      "path": "/portal/parent",
+      "h1": [
+        "Hi Local"
+      ],
+      "newErrors": 0
+    },
+    {
+      "text": "Account",
+      "href": "/portal/account",
+      "path": "/portal/account",
+      "h1": [
+        "Your account"
+      ],
+      "newErrors": 0
+    }
+  ],
+  "inactive": {
+    "width": 1280,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+    ],
+    "pageErrors": [],
+    "csp": [],
+    "hosted": 0,
+    "path": "/portal/login",
+    "alert": [
+      "Email or password is incorrect."
+    ],
+    "tokenKeys": 0
+  }
+}

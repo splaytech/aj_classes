@@ -1,0 +1,144 @@
+{
+  "C2d-6": [
+    {
+      "width": 360,
+      "seq": [
+        [
+          "add",
+          "Qualification 1"
+        ],
+        [
+          "add",
+          "Qualification 2"
+        ],
+        [
+          "remove 2",
+          null
+        ],
+        [
+          "add",
+          "Qualification 2"
+        ],
+        [
+          "add again",
+          "Qualification 2"
+        ],
+        [
+          "add",
+          "Qualification 3"
+        ]
+      ]
+    },
+    {
+      "width": 1280,
+      "seq": [
+        [
+          "add",
+          "Qualification 1"
+        ],
+        [
+          "add",
+          "Qualification 2"
+        ],
+        [
+          "remove 2",
+          null
+        ],
+        [
+          "add",
+          "Qualification 2"
+        ],
+        [
+          "add again",
+          "Qualification 2"
+        ],
+        [
+          "add",
+          "Qualification 3"
+        ]
+      ]
+    }
+  ],
+  "C2d-5": [
+    {
+      "width": 360,
+      "maxLength": 150,
+      "valueLength": 151,
+      "scrolledFrom": 1644,
+      "active": {
+        "tag": "input",
+        "id": "profile-qualifications-0",
+        "aria": "Qualification 1"
+      },
+      "field": {
+        "top": 489,
+        "bottom": 544,
+        "inView": true
+      },
+      "fieldVisible": true,
+      "label": null,
+      "labelVisible": null,
+      "error": {
+        "top": 671,
+        "bottom": 719,
+        "inView": true
+      },
+      "errorText": "Please keep each qualification under 150 characters.",
+      "errorVisible": true,
+      "centreOffset": 117,
+      "scrollY": 1644,
+      "maxScroll": 1700,
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "maxLength": 150,
+      "valueLength": 151,
+      "scrolledFrom": 1089,
+      "active": {
+        "tag": "input",
+        "id": "profile-qualifications-0",
+        "aria": "Qualification 1"
+      },
+      "field": {
+        "top": 490,
+        "bottom": 544,
+        "inView": true
+      },
+      "fieldVisible": true,
+      "label": null,
+      "labelVisible": null,
+      "error": {
+        "top": 671,
+        "bottom": 695,
+        "inView": true
+      },
+      "errorText": "Please keep each qualification under 150 characters.",
+      "errorVisible": true,
+      "centreOffset": 117,
+      "scrollY": 1089,
+      "maxScroll": 1121,
+      "errors": []
+    }
+  ],
+  "C2d-7": [
+    {
+      "width": 360,
+      "status": [
+        "Profile saved."
+      ],
+      "alerts": [],
+      "fieldErrors": 0,
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "status": [
+        "Profile saved."
+      ],
+      "alerts": [],
+      "fieldErrors": 0,
+      "errors": []
+    }
+  ]
+}

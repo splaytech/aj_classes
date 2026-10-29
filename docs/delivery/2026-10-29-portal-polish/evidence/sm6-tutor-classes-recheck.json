@@ -1,0 +1,29 @@
+[
+  {
+    "run": 0,
+    "path": "/portal/classes",
+    "ms": 86,
+    "h1": [
+      "Classes"
+    ],
+    "errors": []
+  },
+  {
+    "run": 1,
+    "path": "/portal/classes",
+    "ms": 69,
+    "h1": [
+      "Classes"
+    ],
+    "errors": []
+  },
+  {
+    "run": 2,
+    "path": "/portal/classes",
+    "ms": 84,
+    "h1": [
+      "Classes"
+    ],
+    "errors": []
+  }
+]

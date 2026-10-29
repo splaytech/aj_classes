@@ -1,0 +1,12 @@
+== /portal/login
+HTTP/1.1 200 OK
+img-src: img-src 'self' data: blob: http://127.0.0.1:55321
+== /portal/profile
+HTTP/1.1 200 OK
+img-src: img-src 'self' data: blob: http://127.0.0.1:55321
+== /__spa-fallback
+HTTP/1.1 200 OK
+img-src: img-src 'self' data: blob: http://127.0.0.1:55321
+== /
+HTTP/1.1 200 OK
+img-src: img-src 'self' data:
