@@ -1,3 +1,22 @@
 packages:
   - 'apps/*'
   - 'e2e'
+
+# Security floors for transitive packages (docs/delivery/2026-10-29-dependabot/05-dev-notes.md).
+# Each stays within the major its parents already use. Remove one once its parents resolve a
+# fixed version on their own.
+overrides:
+  # serve and @lhci/cli resolve compression@1.8.1 (GHSA-vc2v-76pw-4v95).
+  'compression@<1.8.2': ^1.8.2
+  # postcss allows ^1.2.1, but the lockfile held 1.2.1 (GHSA-68fv-2mgg-jv7q).
+  'source-map-js@>=1.0.0 <1.2.2': ^1.2.2
+  # jsdom resolves undici@8.11.2 (GHSA-xjj6-f33q-929c and seven more).
+  'undici@>=8.0.0 <8.12.2': ^8.12.2
+  # serve > ajv resolves fast-uri@3.1.8 (GHSA-w74x-v6f9-j3xg and three more).
+  'fast-uri@>=3.0.0 <3.1.9': ^3.1.9
+  # eslint-plugin-react-hooks resolves zod@4.6.5 (GHSA-mrhx-c7xc-m3w5). The zod@3 copy under
+  # @lhci/cli has no 3.x fix, so it is deferred rather than forced onto zod 4.
+  'zod@>=4.0.0 <4.6.6': ^4.6.6
+  # @lhci/cli resolves tmp@0.0.33 and 0.1.0 (GHSA-ph9p-34f9-6g65, GHSA-52f5-9888-hmc6). Its only
+  # call, tmp.fileSync({ postfix }), is unchanged in 0.2.
+  'tmp@<0.2.6': ^0.2.6
