@@ -54,7 +54,7 @@ removed — see §2).
 | **Supabase** | DB, Auth, Storage, Edge Functions | Free tier: 500 MB DB, 1 GB storage, 5 GB egress, 50k MAU, 500k function calls. **Pauses after 1 week idle. No backups** | A$0 (planned upgrade to Pro — see §3.1) |
 | **Zoho CRM** | Lead capture from the enquiry form, converted to contacts on enrolment | Free edition: API included, 5,000 API credits / day, 5,000 records | A$0 |
 | **Zoho Invoice** | Family invoicing, customer portal, connected to Zoho CRM | Free / included with the CRM Free setup; finance integrations (e.g. Connect) may not be in CRM Free — see [leads-and-crm.md §4](requirements/release-2/leads-and-crm.md) | A$0 |
-| **Resend** | Auth + transactional email (sign-in, invite, reset, Zoho-adjacent enquiry mail), and the app's portal emails: "work returned", "new assignment" and "due tomorrow" (one app cap for all three: 70 per rolling 24 h, so sign-in always keeps 30; ADR-0008) | 3,000 / mo, **100 / day**, 3 domains | A$0 |
+| **Resend** | Auth + transactional email (sign-in, invite (Resend API since ADR-0010), reset, Zoho-adjacent enquiry mail), and the app's portal emails: "work returned", "new assignment" and "due tomorrow" (one app cap for all three: 70 per rolling 24 h, so sign-in always keeps 30; ADR-0008) | 3,000 / mo, **100 / day**, 3 domains | A$0 |
 | **Cloudflare Turnstile** | Anti-spam widget on the enquiry/leads form and portal sign-in — the *only* Cloudflare product in use, not Pages, Access or DNS | Free | A$0 |
 | **Mux** | Private tutoring video | 10 stored videos, 100k delivery min / mo, signed URLs. Mux badge on the player | A$0 |
 | **YouTube (Unlisted)** | Public testimonial videos | Free | A$0 |

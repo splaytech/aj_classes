@@ -139,8 +139,8 @@ Per-file proof: `pnpm --filter web exec vitest run <test file>`. Whole-web proof
 
 ### T7. Docs (03 §6)
 
-- [ ] **T7.1** Make the `supabase/README.md` edits in 03 §6 item 1: the `test:functions` row, the Edge functions paragraph with the "start from the worktree you test" line, First admin (from S3), the new `### Invites (ADR-0010)` section, both kill switches, and the restore SQL.
-- [ ] **T7.2** Edit `docs/architecture/arch.md`, `docs/budget.md:57` and `docs/requirements/invite-onboarding.md` (03 §6 items 2–4).
+- [x] **T7.1** Make the `supabase/README.md` edits in 03 §6 item 1: the `test:functions` row, the Edge functions paragraph with the "start from the worktree you test" line, First admin (from S3), the new `### Invites (ADR-0010)` section, both kill switches, and the restore SQL.
+- [x] **T7.2** Edit `docs/architecture/arch.md`, `docs/budget.md:57` and `docs/requirements/invite-onboarding.md` (03 §6 items 2–4).
   - **Verify:** `pnpm format:check` is clean. Every path and command quoted in the new README text exists, or was run once.
 
 ADR-0010 → Accepted, DEC-IN-1…8 into `_knowledge/decisions.md`, and the Tester addendum's smoke count (9 → 10) are the **team lead's** at stage close, not this diff.

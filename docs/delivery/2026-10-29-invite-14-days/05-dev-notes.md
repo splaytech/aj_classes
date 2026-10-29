@@ -179,3 +179,19 @@ supabase_edge_runtime_aj_classes` before testing.**
   the address bar), and it avoids reading a ref during render.
 - **Whole web:** `pnpm lint && pnpm typecheck && pnpm test` green: web **74 files, 645 tests**
   (baseline 69 / 606), e2e unit 6/6.
+
+## T7. Docs
+
+- `supabase/README.md`: `test:functions` row; Edge functions paragraph (invites through
+  `EMAIL_TRANSPORT`, `invite-redeem` with `verify_jwt = false`, "start the stack from the worktree
+  you test" with the mount check, and **`docker restart supabase_edge_runtime_aj_classes` after
+  editing function code**, from the T3/T4 finding); First admin rewritten with the S3 labels
+  (**Add user → Create new user**, password required, **Send password recovery**; don't use **Send
+  invitation**); new `### Invites (ADR-0010)` before "Portal emails" (lifetime, storage, local flow,
+  rate-limit clear command, troubleshooting, Auth-log note, restore SQL); both kill switches.
+- `docs/architecture/arch.md` (Auth bullet, functions list, §7 email), `docs/budget.md` (Resend row),
+  `docs/requirements/invite-onboarding.md` (pointer line).
+- Every quoted command was run once on the local stack: the mount check, the edge-runtime restart,
+  the rate-limit `delete`, the restore SQL (`UPDATE 0`). The First-admin path was run in a browser:
+  a confirmed user with a password + a recovery link → Continue → `/portal/join`.
+- `pnpm format:check` clean.
