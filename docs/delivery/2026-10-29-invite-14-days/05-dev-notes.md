@@ -128,3 +128,36 @@ supabase_edge_runtime_aj_classes` before testing.**
   this worktree). Mailpit: subject `You're invited to the AJ Classes portal`, link
   `http://localhost:5173/portal/invite?token=<43 chars>`, line `This link expires in 14 days and
   works once. …`.
+
+## T5. invite-redeem
+
+- `invite-redeem/redeem.ts` (pure) and `index.ts` (wiring) per 03 §4.3. Logging lives in
+  `logRedeemOutcome()` in `redeem.ts`, so the unit section can assert it (reason name only;
+  `rate_limited`, `mismatch`, `stray_user_removed` at warn).
+- **T5.1** unit section: every branch; the five-row identity table (both `recovery` rows: `deleteUser`
+  never called, `release` once; only "another user, magiclink, < 60 s" deletes); release on each
+  post-claim refusal and on a thrown `emailOf`/`recoveryLink`; a thrown claim releases nothing.
+- **T5.2** boot proof after the T5.4 restart: `OPTIONS` → `204`; `POST {"token":"x"}` →
+  `200 {"ok":false,"code":"invite_invalid"}`.
+- **T5.3** `git diff supabase/config.toml` adds only the `[functions.invite-redeem]` block;
+  `otp_expiry = 3600` unchanged. `deploy.sh` `FUNCTIONS=(account-admin invite-redeem leads
+  notifications)`; `bash -n` passes.
+- **T5.4** stack restarted (announced at stage start; nobody on `aj_classes-hiring`). T0.3: mount
+  `1`, migration `20261030100000` = newest file, 5173 cwd this worktree's `apps/web`.
+- **T5.5** integration section: HTTP cases 1–6 (case 7, a 500, needs a failing database or Auth and
+  is covered by the unit section; the script prints a `skip` line), AC 1–4, 7, 10–18, 16, S1 on
+  real accounts, rate limit (fresh `x-forwarded-for` per redeem; 11th from one address refused,
+  another address works), REST `Accept-Profile: private` → `406 PGRST106` for both tables as the
+  publishable key and as a tutor, `generateLink` unknown e-mail → `404` with no user created,
+  **S4b automated** (re-send to `has space@local.test` → `email_failed`; `invited_at` and
+  `invite_resent` unchanged; the previous link still signs in), and the AC 8 leak check (token,
+  its hash and the returned `tokenHash` absent from `docker logs supabase_edge_runtime_aj_classes`
+  and `audit_log`). AC 11: 14 refusal kinds, all `200` and byte-identical.
+- **Deviation (fixture only):** AC 17's password sign-in needs a confirmed e-mail
+  (`email_not_confirmed` otherwise). A real joined account always confirmed it when it signed in
+  to finish setup, so the fixture's `PUT /auth/v1/admin/users/<id>` sends
+  `{ password, email_confirm: true }` (03 §8.1 item 6 sends only the password). The Tester should
+  do the same.
+- `package.json` `test:functions` runs four scripts: **green, 416 checks** (`test-account-admin` 92,
+  `test-leads` 30, `test-notifications` 153, `test-invite-redeem` 141). The function log holds only
+  `invite-redeem <reason>` lines.

@@ -103,16 +103,16 @@ Local stack only, with the service key from `supabase status -o json` kept in a 
 
 ### T5. `invite-redeem` (03 §4.3)
 
-- [ ] **T5.1** Write `invite-redeem/redeem.ts`, and add every `redeemInvite` branch to the unit section, including the five-row identity table (03 §8.2): **no `deleteUser` on `recovery`**, and release on each refusal after the claim and on a throw.
+- [x] **T5.1** Write `invite-redeem/redeem.ts`, and add every `redeemInvite` branch to the unit section, including the five-row identity table (03 §8.2): **no `deleteUser` on `recovery`**, and release on each refusal after the claim and on a throw.
   - **Verify:** `node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/scripts/test-invite-redeem.mjs` is green, and its unit section asserts all five identity rows. In both `recovery` rows the fake `deleteUser` is **never called**, and `release` is called once.
-- [ ] **T5.2** Write `invite-redeem/index.ts` (wiring and logging per 03 §4.3).
+- [x] **T5.2** Write `invite-redeem/index.ts` (wiring and logging per 03 §4.3).
   - **Verify:** no Deno CLI is installed here (`which deno` finds nothing), and the repo has no type check for functions, so the proof is that the function boots. After the T5.4 restart:
     `curl -s -o /dev/null -w '%{http_code}\n' -X OPTIONS http://127.0.0.1:55321/functions/v1/invite-redeem -H 'Origin: http://localhost:5173'`
     must print `204`. A `503` with `BOOT_ERROR` in the body means an import or syntax error: check `docker logs supabase_edge_runtime_aj_classes --since 5m`. Tried on 29 Oct 2026: `leads` gave `503 BOOT_ERROR` while the mount pointed at a deleted folder, so the check does catch failures. The Reviewer also reads the `jsr:` imports against `leads/index.ts`.
-- [ ] **T5.3** Add the `[functions.invite-redeem]` block to `config.toml`, and `invite-redeem` to `FUNCTIONS` in `deploy.sh`.
+- [x] **T5.3** Add the `[functions.invite-redeem]` block to `config.toml`, and `invite-redeem` to `FUNCTIONS` in `deploy.sh`.
   - **Verify:** `git diff supabase/config.toml` shows only that block (AC 33), and `bash -n supabase/scripts/deploy.sh` passes.
-- [ ] **T5.4** Restart the stack (the new `verify_jwt` setting). Announce it first, as in T0.1, then rerun the T0.3 checks.
-- [ ] **T5.5** Add the integration section of `test-invite-redeem.mjs`:
+- [x] **T5.4** Restart the stack (the new `verify_jwt` setting). Announce it first, as in T0.1, then rerun the T0.3 checks.
+- [x] **T5.5** Add the integration section of `test-invite-redeem.mjs`:
   - HTTP cases 1–7 and the "Script" ACs of 03 §8.2;
   - REST can't reach `private` (406 `PGRST106`);
   - the rate limit with a unique `x-forwarded-for` per run;

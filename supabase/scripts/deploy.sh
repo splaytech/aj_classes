@@ -24,7 +24,7 @@ PUBLISHABLE_KEY="sb_publishable_RcrO-f-2jyjJyfTWNWy0IQ_1NwGbnhb" # public, same 
 SITE_ORIGINS="https://ajclasses.com.au,https://staging.ajclasses.com.au"
 SITE_URL="https://ajclasses.com.au" # links in app emails; one database serves staging and prod
 LOCAL_NOTIFY_SECRET="local-notify-secret" # supabase/config.toml, local only: never hosted
-FUNCTIONS=(account-admin leads notifications)
+FUNCTIONS=(account-admin invite-redeem leads notifications)
 
 # Secrets can also come from supabase/.env.deploy (git-ignored), so they never pass through chat
 # or shell history. Values already in the environment win.
