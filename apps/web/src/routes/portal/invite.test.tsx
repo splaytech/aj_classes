@@ -6,7 +6,7 @@ import {
   AUTH_CONFIRM_PAGE,
   PORTAL_COMMON,
   PORTAL_ERRORS,
-  PORTAL_QUERY,
+  PORTAL_FRAGMENT,
   PORTAL_ROUTES,
   PORTAL_SEO,
 } from '@/constants';
@@ -27,7 +27,7 @@ function renderPage(search: string) {
   render(<Stub initialEntries={[`${PORTAL_ROUTES.invite}${search}`]} />);
 }
 
-const withToken = `?${PORTAL_QUERY.inviteToken}=${TOKEN}`;
+const withToken = `#${PORTAL_FRAGMENT.inviteToken}=${TOKEN}`;
 const continueButton = () => screen.getByRole('button', { name: AUTH_CONFIRM_PAGE.continue });
 
 let replaceState: ReturnType<typeof vi.spyOn>;
@@ -53,6 +53,19 @@ describe('invite page (ADR-0010)', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
+  it('wipes the token from the address bar as soon as the page loads (AC 8)', () => {
+    renderPage(withToken);
+
+    expect(replaceState).toHaveBeenCalledWith(null, '', PORTAL_ROUTES.invite);
+    expect(redeemInvite).not.toHaveBeenCalled();
+  });
+
+  it('ignores a token in the query string: links carry it in the fragment', () => {
+    renderPage(`?${PORTAL_FRAGMENT.inviteToken}=${TOKEN}`);
+
+    expect(screen.getByText(AUTH_CONFIRM_PAGE.invalidLink)).toBeInTheDocument();
+  });
+
   it('waits for Continue: opening the page uses nothing up (AC 6)', () => {
     renderPage(withToken);
 
@@ -66,12 +79,12 @@ describe('invite page (ADR-0010)', () => {
   });
 
   it('shows Continue for a garbled token too; the server refuses it (AC 10)', () => {
-    renderPage(`?${PORTAL_QUERY.inviteToken}=abc`);
+    renderPage(`#${PORTAL_FRAGMENT.inviteToken}=abc`);
 
     expect(continueButton()).toBeInTheDocument();
   });
 
-  it('clears the address bar before the redeem, signs in and opens the setup form (AC 1, 8)', async () => {
+  it('signs in and opens the setup form, with the address bar already cleared (AC 1, 8)', async () => {
     const user = setupUser();
     renderPage(withToken);
 

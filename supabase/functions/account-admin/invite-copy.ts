@@ -7,8 +7,10 @@
 export const INVITE_LIFETIME_HOURS = 336;
 const INVITE_LIFETIME_DAYS = INVITE_LIFETIME_HOURS / 24;
 
-// Must match PORTAL_ROUTES.invite and PORTAL_QUERY.inviteToken in
-// apps/web/src/constants/routes.constants.ts.
+// Must match PORTAL_ROUTES.invite and PORTAL_FRAGMENT.inviteToken in
+// apps/web/src/constants/routes.constants.ts. The token travels in the fragment (`#token=…`),
+// which browsers never send to a server, so it stays out of request logs and Referer headers
+// (06-security finding 1).
 export const INVITE_PATH = '/portal/invite';
 export const INVITE_TOKEN_PARAM = 'token';
 

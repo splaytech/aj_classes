@@ -24,7 +24,7 @@ const accountAdmin = (token, body, headers) =>
 const rpc = (token, name, body) => api(`/rest/v1/rpc/${name}`, { token, body });
 const mailText = async (summary) => mailpitText(summary.ID);
 const INVITE_LINK =
-  /http:\/\/localhost:5173\/portal\/invite\?token=([A-Za-z0-9_-]{43})(?![A-Za-z0-9_-])/;
+  /http:\/\/localhost:5173\/portal\/invite#token=([A-Za-z0-9_-]{43})(?![A-Za-z0-9_-])/;
 const sha256 = (text) => createHash('sha256').update(text).digest('hex');
 const tokenRow = (profileId) =>
   sql(
@@ -39,7 +39,7 @@ async function checkInviteMail(label, address, profileId) {
   const mail = await latestMailTo(address);
   const text = mail ? await mailText(mail) : '';
   const token = text.match(INVITE_LINK)?.[1] ?? '';
-  check(`${label}: the e-mail links to /portal/invite?token=<43 chars>`, token !== '', text);
+  check(`${label}: the e-mail links to /portal/invite#token=<43 chars>`, token !== '', text);
   check(
     `${label}: the e-mail has no Supabase or old confirm link`,
     !/supabase|auth\/confirm/.test(text),

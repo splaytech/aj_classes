@@ -12,7 +12,7 @@ interface ProfileRow {
 
 // The invite email links to the app's own /portal/invite page with our 14-day token (ADR-0010):
 // nothing is used up until the person clicks "Continue" there.
-const INVITE_LINK_PATTERN = /https?:\/\/[^\s")]+\/portal\/invite\?token=[A-Za-z0-9_-]{43}/;
+const INVITE_LINK_PATTERN = /https?:\/\/[^\s")]+\/portal\/invite#token=[A-Za-z0-9_-]{43}/;
 const REFUSED_TEXT =
   'This invitation link has expired. Please contact your AJ Classes administrator to request a new invite.';
 
@@ -77,15 +77,21 @@ test.describe('Invite onboarding', () => {
     expect(invitedProfile.status).toBe('invited');
 
     // The page does nothing until "Continue" is clicked, so an email scanner opening it any number
-    // of times can't use up the single-use link (AC 6). The click redeems it, signs in and opens
-    // /portal/join, with the token gone from the address bar (AC 8).
+    // of times can't use up the single-use link (AC 6). The token is in the fragment and is wiped
+    // from the address bar as soon as the page loads (AC 8, 06-security finding 1). The click
+    // redeems it, signs in and opens /portal/join.
     // A link sent 13 days ago still works (AC 1): links last 14 days from the send.
     await backdateInvite(email, '13 days');
     await clearInviteRedeemAttempts();
     for (let open = 0; open < 3; open += 1) await inviteePage.goto(inviteLink);
-    await inviteePage.getByRole('button', { name: /^continue$/i }).click();
+    const continueButton = inviteePage.getByRole('button', { name: /^continue$/i });
+    await expect(continueButton).toBeVisible();
+    expect(await inviteePage.evaluate(() => window.location.href)).toMatch(/\/portal\/invite$/);
+    await continueButton.click();
     await inviteePage.waitForURL(/\/portal\/join/);
-    expect(await inviteePage.evaluate(() => window.location.search)).toBe('');
+    expect(await inviteePage.evaluate(() => window.location.search + window.location.hash)).toBe(
+      '',
+    );
     await inviteePage.locator('#join-full-name').fill(fullName);
     await inviteePage.locator('#join-phone').fill('0412345678');
     await inviteePage.locator('#join-password').fill('e2e-onboarding-password-123');

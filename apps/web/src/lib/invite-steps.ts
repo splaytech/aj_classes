@@ -3,7 +3,13 @@
 // ends in the refused message; anything else can be tried again. Try again after a failed sign-in
 // keeps the hop token, because the invite link itself is already used up.
 
+import { PORTAL_FRAGMENT } from '@/constants';
 import type { ErrorKey, Result } from '@/services';
+
+/** The invite token from the address fragment (`#token=…`), or '' when there isn't one. */
+export function inviteTokenFromHash(hash: string): string {
+  return new URLSearchParams(hash.replace(/^#/, '')).get(PORTAL_FRAGMENT.inviteToken) ?? '';
+}
 
 export type InviteStep =
   | { kind: 'ready' }

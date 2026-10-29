@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
-import { afterHop, afterRedeem } from './invite-steps';
+import { afterHop, afterRedeem, inviteTokenFromHash } from './invite-steps';
+
+describe('inviteTokenFromHash', () => {
+  it('reads the token from #token=…', () => {
+    expect(inviteTokenFromHash(`#token=${'a'.repeat(43)}`)).toBe('a'.repeat(43));
+  });
+
+  it('is empty with no fragment, or no token in it', () => {
+    expect(inviteTokenFromHash('')).toBe('');
+    expect(inviteTokenFromHash('#other=1')).toBe('');
+  });
+});
 
 // Every row of the 03-design §5.4 table.
 describe('afterRedeem', () => {

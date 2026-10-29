@@ -17,9 +17,9 @@ export function inviteAudience(role: string): InviteAudience {
   return 'staff';
 }
 
-/** The token is base64url, so it needs no encoding. */
+/** `…/portal/invite#token=…`. The token is base64url, so it needs no encoding. */
 export function inviteLink(siteUrl: string, token: string): string {
-  return `${siteUrl.replace(/\/+$/, '')}${INVITE_PATH}?${INVITE_TOKEN_PARAM}=${token}`;
+  return `${siteUrl.replace(/\/+$/, '')}${INVITE_PATH}#${INVITE_TOKEN_PARAM}=${token}`;
 }
 
 function introFor(audience: InviteAudience): string {

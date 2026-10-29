@@ -101,8 +101,13 @@ export const PORTAL_QUERY = {
   next: 'next', // where to go after signing in
   reason: 'reason', // why the person was sent to the sign-in page
   tokenHash: 'token_hash', // from reset emails (supabase/templates/recovery.html) and old invite links
-  inviteToken: 'token', // invite email link (ADR-0010); must match INVITE_TOKEN_PARAM
   linkType: 'type',
+} as const;
+
+// Names read from the address fragment (`#name=value`), which never reaches a server, its logs or
+// a Referer header (06-security finding 1).
+export const PORTAL_FRAGMENT = {
+  inviteToken: 'token', // invite email link (ADR-0010); must match INVITE_TOKEN_PARAM
 } as const;
 
 // Values of PORTAL_QUERY.reason.
