@@ -195,3 +195,16 @@ supabase_edge_runtime_aj_classes` before testing.**
   the rate-limit `delete`, the restore SQL (`UPDATE 0`). The First-admin path was run in a browser:
   a confirmed user with a password + a recovery link → Continue → `/portal/join`.
 - `pnpm format:check` clean.
+
+## T8. e2e
+
+- `e2e/src/db/invites.ts`: `clearInviteRedeemAttempts()`, `backdateInvite(email, interval)`.
+- `invite-onboarding.spec.ts`: new link pattern; the link is back-dated 13 days before use (AC 1
+  in the browser, and the reason `backdateInvite` is used, not just exported); the rate limit is
+  cleared; the link is opened 3 times before Continue (AC 6); `location.search` is `''` after
+  Continue (AC 8); after the account is active, the same link in a new context shows AC 9 (AC 7).
+  New second test: an invited `auth.users` row with no `invited_at` shows `Invite expired`, the
+  expired warning and no `Invited on` on the staff member page (AC 25).
+- Smoke: **10/10 passed** (1.2 min) against the stack and a 5173 dev server both from this
+  worktree. Afterwards: 0 `e2e-%` profiles, auth users and posts; the only listener on 5173 is the
+  Developer's dev server (cwd `aj_classes-invites/apps/web`).

@@ -147,8 +147,8 @@ ADR-0010 → Accepted, DEC-IN-1…8 into `_knowledge/decisions.md`, and the Test
 
 ### T8. e2e (03 §8.3 item 6)
 
-- [ ] **T8.1** Add `e2e/src/db/invites.ts` (`clearInviteRedeemAttempts`, `backdateInvite`).
-- [ ] **T8.2** Edit `invite-onboarding.spec.ts`: the new link pattern, clearing the rate limit, three opens before `Continue`, empty `location.search`, and the reused link refused in a new context. Add the second AC 25 test.
+- [x] **T8.1** Add `e2e/src/db/invites.ts` (`clearInviteRedeemAttempts`, `backdateInvite`).
+- [x] **T8.2** Edit `invite-onboarding.spec.ts`: the new link pattern, clearing the rate limit, three opens before `Continue`, empty `location.search`, and the reused link refused in a new context. Add the second AC 25 test.
   - **Verify:** `pnpm --filter aj-classes-e2e test:smoke` gives **10/10**. Afterwards, no `e2e-%` rows are left and nothing the smoke started holds 5173.
 
 ### T9. Full check, manual proofs, handover
