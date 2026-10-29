@@ -43,3 +43,7 @@ Round 2 #1 is fixed (`invite.tsx:49-65`), checked on the gate build: a same-tab 
 ### Non-blocking (fixed in this branch)
 
 1. **A late result from the first link can overwrite a re-opened link's screen** (`invite.tsx:57-58`, `:66-74`). Open A and click Continue (hangs); open B in the same tab and click Continue; A answers `invite_invalid`, and the page shows "expired" while valid B is in flight. Not a security issue, but the message is untrue. Fix: remember the token each request started for, drop the result after each `await` if it changed, and add a unit test.
+
+## Fix batch 3 (`aa7f1ee`): team lead read
+
+Round 3 #1 is fixed as asked. `handleContinue` records the token it started for, checks it after the redeem (inside `redeemAndSignIn`) and again after the result, and drops a superseded result. The ref follows `token` through an effect. The new unit test fails on fix-batch-2 code and passes now. Full check green (web 76 / 657). No further review round: the change is 25 lines in one file, and the Tester re-runs every case on this HEAD.
