@@ -263,7 +263,10 @@ function PendingInvite({
         <Button
           variant="contained"
           disabled={action.busy}
-          onClick={() => action.run(() => resendInvite(account.id), texts.resent)}
+          onClick={async () => {
+            // Reload, so the status and "Invited on" show the new send (AC 24).
+            if (await action.run(() => resendInvite(account.id), texts.resent)) onChanged();
+          }}
         >
           {texts.resend}
         </Button>
@@ -419,7 +422,12 @@ function ParentsSection({ student, onChanged }: SectionProps) {
                     <Button
                       size="small"
                       disabled={action.busy}
-                      onClick={() => action.run(() => resendInvite(parent.id), texts.resent)}
+                      onClick={async () => {
+                        // Reload, so the status chip shows the new send (AC 24).
+                        if (await action.run(() => resendInvite(parent.id), texts.resent)) {
+                          onChanged();
+                        }
+                      }}
                     >
                       {texts.resend}
                     </Button>
