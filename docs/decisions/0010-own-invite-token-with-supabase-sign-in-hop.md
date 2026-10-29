@@ -1,6 +1,6 @@
 # ADR-0010: Invites use our own 14-day token, then a one-time Supabase sign-in hop
 
-- **Status:** Proposed (2026-10-29, Architect, `/deliver` invite-14-days, Stage 2; revised after review-2)
+- **Status:** Accepted (2026-10-29, released to `develop` after TSR 75/75; proposed by the Architect at Stage 2, revised after review-2)
 - **Source:** `docs/delivery/2026-10-29-invite-14-days/02-architecture.md` §2–§6
 
 ## Context

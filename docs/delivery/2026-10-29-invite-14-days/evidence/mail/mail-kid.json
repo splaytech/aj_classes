@@ -1,0 +1,17 @@
+{
+ "from": "AJ Classes <hello@ajclasses.com.au>",
+ "subject": "You're invited to the AJ Classes portal",
+ "text": [
+  "You're invited to AJ Classes",
+  "",
+  "You've been invited to the AJ Classes student portal, where you can see your classes and do your assignments online. Click the button, then fill in a few details and choose your password.",
+  "",
+  "Accept invite: http://localhost:5173/portal/invite#token=<TOKEN>",
+  "",
+  "This link expires in 14 days and works once. If it has expired, ask AJ Classes to send you a new one.",
+  "",
+  "If you didn't expect this email, you can ignore it.",
+  ""
+ ],
+ "html": "<!doctype html>\n<html lang=\"en\">\n  <body style=\"margin: 0; padding: 24px; background: #f5f9ff; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; color: #172033\">\n    <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 16px\">\n      <tr>\n        <td style=\"padding: 24px 32px; background: #172554; border-radius: 16px 16px 0 0; color: #ffffff; font-size: 20px\">\n          <strong>AJ</strong> Classes <span style=\"color: #f9c62b; font-size: 14px\">&nbsp;Students</span>\n        </td>\n      </tr>\n      <tr>\n        <td style=\"padding: 32px; font-size: 16px; line-height: 1.6\">\n          <h1 style=\"margin: 0 0 16px; font-size: 22px; color: #172554\">You&#39;re invited to AJ Classes</h1>\n          <p style=\"margin: 0\">You&#39;ve been invited to the AJ Classes student portal, where you can see your classes and do your assignments online. Click the button, then fill in a few details and choose your password.</p>\n          <p style=\"margin: 24px 0\">\n            <a href=\"http://localhost:5173/portal/invite#token=<TOKEN>\" style=\"display: inline-block; padding: 12px 24px; background: #2563eb; color: #ffffff; border-radius: 8px; font-weight: 700; text-decoration: none\">Accept invite</a>\n          </p>\n          <p style=\"margin: 0; color: #4b5563; font-size: 14px\">This link expires in 14 days and works once. If it has expired, ask AJ Classes to send you a new one.</p>\n          <p style=\"margin: 24px 0 0; color: #4b5563; font-size: 14px\">If you didn&#39;t expect this email, you can ignore it.</p>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>\n"
+}

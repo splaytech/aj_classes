@@ -1,0 +1,3 @@
+{"loadedHref":"http://localhost:5173/portal/invite#token=<TOK>","path":"/portal/invite","search":"","hash":"","h1":["Welcome to AJ Classes"],"alert":"This invitation link has expired. Please contact your AJ Classes administrator to request a new invite.","sideways":false,"h1Count":1,"robots":1,"showsEmail":null,"errors":[]}
+{"path":"/portal/tutor","h1":"Welcome, TP","alert":["Your profile is missing a bio or subjects. Families will see it later.Complete your profile"]}
+{"afterReload":"/portal/tutor"}

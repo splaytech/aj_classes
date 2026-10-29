@@ -1,0 +1,10 @@
+invite_cancelled|1
+invite_resent|3
+invite_sent|2
+parent_invited|1
+student_invited|1
+invite_cancelled|email
+invite_resent|email
+invite_sent|email
+parent_invited|email,student_id,student_name
+student_invited|email,student_id,student_name

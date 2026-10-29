@@ -1,0 +1,4 @@
+{"confirmText":["Cancel this invite?","The pending account for tp-r5-1793248131@local.test will be removed. You can invite them again later.","Cancel","Cancel invite"],"nowPath":"/portal/admin/staff","alerts":[],"stillListed":false}
+{"confirmText":["Cancel this invite?","The pending account for tp-k-14-1793248131@local.test will be removed. You can invite the student again later.","Cancel","Cancel invite"],"nowPath":"/portal/admin/students/f225d17b-3326-4e64-a390-315e5e676aa5","alerts":["Invite cancelled."],"stillListed":false}
+{"years":[["NAPLAN Reading & Writing","Year 5"],["Selective Entry Maths & Reasoning","Years 7–9"],["Selective Interview Preparation","Year 8"]],"hybridBullets":2}
+{"path":"/portal/classes/dc54cc59-6881-42e5-bc48-854149c9f3dc","dts":[["Tutor","Local Tutor"],["Term","15 Oct 2026 – 7 Jan 2027"],["Delivery","Hybrid · Truganina, Room 1 and Zoom"]],"chips":["Maths","Years 7–9","Hybrid"]}

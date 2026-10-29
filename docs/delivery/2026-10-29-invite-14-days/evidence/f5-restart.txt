@@ -1,0 +1,1 @@
+F-5 restart: stop exit=0, start exit=0, config.toml untouched, CHK mount 1 / migration 20261030100000 / options 204 / EMAIL_TRANSPORT mailpit
