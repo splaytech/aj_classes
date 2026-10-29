@@ -273,3 +273,20 @@ Run 40251932344 (push, `68f1729`), conclusion **success**. Collected by the team
 | O1 | 1 of 3 | `web` green on its first GitHub run |
 
 P-05 (empty-variable override) and P-07 (step summary) are not separately collected yet; the green Lighthouse run with 0 `supabase.co` and the hosted-ref step passing cover P-05's intent but not its exact measure.
+
+## Post-merge evidence (runs 2 and 3, 29 Oct 2026)
+P-02 asked for three real GitHub run times. The personal access token can't call `gh run rerun`, so
+the next two `develop` push runs stand in for the reruns. Both use the same workflow file as run 1.
+Collected by the team lead from `gh run view --json jobs`.
+
+| Job (limit) | Run 1 `40251932344` (`68f1729`) | Run 2 `40779769449` (`82a60ef`) | Run 3 `40790708775` (`9059d0a`) |
+|-------------|------|------|------|
+| `web` | 1 min 1 s | 1 min 25 s | 1 min 3 s |
+| `database` | 1 min 43 s | 1 min 15 s | 2 min 32 s |
+| `E2E smoke` (≤ 15 min) | 3 min 22 s | 2 min 41 s | 3 min 22 s |
+| `Lighthouse` (≤ 10 min) | 5 min 7 s | 5 min 41 s | 5 min 35 s |
+| `Structured data` | 28 s | 35 s | 27 s |
+| Workflow (≤ 20 min) | about 5 min 8 s | 5 min 45 s | 5 min 39 s |
+
+- **P-02: PASS.** Three runs, all `success`, all within the limits.
+- **O1: closed.** `web` was green on all three GitHub runs.
