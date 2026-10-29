@@ -1,7 +1,8 @@
 // A short list of qualifications: one text box per line, with Add and Remove.
 // Adding a line moves focus into the new box, so people can type straight away.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useImperativeHandle, useRef, useState } from 'react';
+import type { Ref } from 'react';
 
 import { PROFILE_LIMITS, PROFILE_PAGE } from '@/constants';
 
@@ -12,6 +13,8 @@ type QualificationsEditorProps = {
   lines: string[];
   onChange: (lines: string[]) => void;
   error?: string;
+  /** The first line's box, so a form can focus the list when it has an error. */
+  ref?: Ref<HTMLInputElement | null>;
 };
 
 export function QualificationsEditor({
@@ -19,18 +22,28 @@ export function QualificationsEditor({
   lines,
   onChange,
   error,
+  ref,
 }: QualificationsEditorProps) {
   const errorId = `${idPrefix}-error`;
   const canAdd = lines.length < PROFILE_LIMITS.qualificationsMax;
-  const [lineToFocus, setLineToFocus] = useState<number | null>(null);
+  // A new object on every Add, so the effect runs even when the index is the same as last time
+  // (add line 2, remove it, add it again).
+  const [focusRequest, setFocusRequest] = useState<{ line: number } | null>(null);
+  const lineRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    if (lineToFocus !== null) document.getElementById(lineId(idPrefix, lineToFocus))?.focus();
-  }, [idPrefix, lineToFocus]);
+    if (focusRequest) lineRefs.current[focusRequest.line]?.focus();
+  }, [focusRequest]);
+
+  // No dependency list: the first box can be replaced on any render, so hand over the current one.
+  useImperativeHandle<HTMLInputElement | null, HTMLInputElement | null>(
+    ref,
+    () => lineRefs.current[0] ?? null,
+  );
 
   function add() {
     onChange([...lines, '']);
-    setLineToFocus(lines.length);
+    setFocusRequest({ line: lines.length });
   }
 
   function update(index: number, value: string) {
@@ -49,6 +62,9 @@ export function QualificationsEditor({
       {lines.map((line, index) => (
         <div key={index} className={styles.listRow}>
           <input
+            ref={(element) => {
+              lineRefs.current[index] = element;
+            }}
             id={lineId(idPrefix, index)}
             className={styles.input}
             aria-label={PROFILE_PAGE.qualificationLabel(index + 1)}

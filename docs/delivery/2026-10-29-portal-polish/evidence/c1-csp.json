@@ -1,0 +1,108 @@
+{
+  "c1b": [
+    {
+      "width": 360,
+      "theme": "light",
+      "fileChooser": true,
+      "multiple": false,
+      "accept": "image/jpeg,image/png,image/webp",
+      "img": {
+        "scheme": "blob",
+        "complete": true,
+        "naturalWidth": 48
+      },
+      "csp": [],
+      "cspConsole": [],
+      "errors": [],
+      "hosted": 0,
+      "previewGoneAfterCancel": 0
+    },
+    {
+      "width": 360,
+      "theme": "dark",
+      "fileChooser": true,
+      "multiple": false,
+      "accept": "image/jpeg,image/png,image/webp",
+      "img": {
+        "scheme": "blob",
+        "complete": true,
+        "naturalWidth": 48
+      },
+      "csp": [],
+      "cspConsole": [],
+      "errors": [],
+      "hosted": 0,
+      "previewGoneAfterCancel": 0
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "fileChooser": true,
+      "multiple": false,
+      "accept": "image/jpeg,image/png,image/webp",
+      "img": {
+        "scheme": "blob",
+        "complete": true,
+        "naturalWidth": 48
+      },
+      "csp": [],
+      "cspConsole": [],
+      "errors": [],
+      "hosted": 0,
+      "previewGoneAfterCancel": 0
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "fileChooser": true,
+      "multiple": false,
+      "accept": "image/jpeg,image/png,image/webp",
+      "img": {
+        "scheme": "blob",
+        "complete": true,
+        "naturalWidth": 48
+      },
+      "csp": [],
+      "cspConsole": [],
+      "errors": [],
+      "hosted": 0,
+      "previewGoneAfterCancel": 0
+    }
+  ],
+  "c1c": [
+    {
+      "width": 360,
+      "probe": {
+        "event": "error",
+        "naturalWidth": 0
+      },
+      "csp": [
+        "img-src|blob|enforce"
+      ],
+      "cspConsole": [
+        "Loading the image 'blob:<id>' violates the following Content Security Policy directive: \"img-src 'self' data:\". The action has been blocked."
+      ]
+    },
+    {
+      "width": 1280,
+      "probe": {
+        "event": "error",
+        "naturalWidth": 0
+      },
+      "csp": [
+        "img-src|blob|enforce"
+      ],
+      "cspConsole": [
+        "Loading the image 'blob:<id>' violates the following Content Security Policy directive: \"img-src 'self' data:\". The action has been blocked."
+      ]
+    }
+  ],
+  "portalBlobControl": {
+    "event": "load",
+    "naturalWidth": 8
+  },
+  "avatarObjects": {
+    "before": "0",
+    "after": "0"
+  }
+}

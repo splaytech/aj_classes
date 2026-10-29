@@ -1,0 +1,463 @@
+{
+  "ratio": "1c436e21-69e4-4855-ace4-d88b52ba33bd",
+  "c2b1": [
+    {
+      "width": 360,
+      "theme": "light",
+      "total": [
+        {
+          "text": "Total 3 marks",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 97,
+          "font": "16px"
+        }
+      ],
+      "explanation": [
+        {
+          "text": "Explanation (shown after return): Divide both parts by 6.",
+          "color": "rgb(75, 85, 99)",
+          "lines": 2,
+          "width": 268,
+          "font": "14px"
+        },
+        {
+          "text": "Explanation (shown after return): 3 + 5 = 8 parts, and $40 ÷",
+          "color": "rgb(75, 85, 99)",
+          "lines": 3,
+          "width": 268,
+          "font": "14px"
+        }
+      ],
+      "hold": [
+        {
+          "text": "Results stay hidden until you return the work. Any written q",
+          "color": "rgb(75, 85, 99)",
+          "lines": 2,
+          "width": 302,
+          "font": "14px"
+        }
+      ],
+      "prompt": [
+        {
+          "text": "Simplify the ratio 12 : 18.",
+          "color": "rgb(23, 32, 51)",
+          "lines": 1,
+          "width": 268,
+          "font": "16px"
+        }
+      ],
+      "bodyColor": "rgb(23, 32, 51)",
+      "h1Color": "rgb(23, 37, 84)",
+      "errors": []
+    },
+    {
+      "width": 360,
+      "theme": "dark",
+      "total": [
+        {
+          "text": "Total 3 marks",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 97,
+          "font": "16px"
+        }
+      ],
+      "explanation": [
+        {
+          "text": "Explanation (shown after return): Divide both parts by 6.",
+          "color": "rgb(166, 179, 199)",
+          "lines": 2,
+          "width": 268,
+          "font": "14px"
+        },
+        {
+          "text": "Explanation (shown after return): 3 + 5 = 8 parts, and $40 ÷",
+          "color": "rgb(166, 179, 199)",
+          "lines": 3,
+          "width": 268,
+          "font": "14px"
+        }
+      ],
+      "hold": [
+        {
+          "text": "Results stay hidden until you return the work. Any written q",
+          "color": "rgb(166, 179, 199)",
+          "lines": 2,
+          "width": 302,
+          "font": "14px"
+        }
+      ],
+      "prompt": [
+        {
+          "text": "Simplify the ratio 12 : 18.",
+          "color": "rgb(226, 232, 240)",
+          "lines": 1,
+          "width": 268,
+          "font": "16px"
+        }
+      ],
+      "bodyColor": "rgb(226, 232, 240)",
+      "h1Color": "rgb(241, 245, 249)",
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "total": [
+        {
+          "text": "Total 3 marks",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 97,
+          "font": "16px"
+        }
+      ],
+      "explanation": [
+        {
+          "text": "Explanation (shown after return): Divide both parts by 6.",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 617,
+          "font": "14px"
+        },
+        {
+          "text": "Explanation (shown after return): 3 + 5 = 8 parts, and $40 ÷",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 617,
+          "font": "14px"
+        }
+      ],
+      "hold": [
+        {
+          "text": "Results stay hidden until you return the work. Any written q",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 617,
+          "font": "14px"
+        }
+      ],
+      "prompt": [
+        {
+          "text": "Simplify the ratio 12 : 18.",
+          "color": "rgb(23, 32, 51)",
+          "lines": 1,
+          "width": 705,
+          "font": "16px"
+        }
+      ],
+      "bodyColor": "rgb(23, 32, 51)",
+      "h1Color": "rgb(23, 37, 84)",
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "total": [
+        {
+          "text": "Total 3 marks",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 97,
+          "font": "16px"
+        }
+      ],
+      "explanation": [
+        {
+          "text": "Explanation (shown after return): Divide both parts by 6.",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 617,
+          "font": "14px"
+        },
+        {
+          "text": "Explanation (shown after return): 3 + 5 = 8 parts, and $40 ÷",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 617,
+          "font": "14px"
+        }
+      ],
+      "hold": [
+        {
+          "text": "Results stay hidden until you return the work. Any written q",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 617,
+          "font": "14px"
+        }
+      ],
+      "prompt": [
+        {
+          "text": "Simplify the ratio 12 : 18.",
+          "color": "rgb(226, 232, 240)",
+          "lines": 1,
+          "width": 705,
+          "font": "16px"
+        }
+      ],
+      "bodyColor": "rgb(226, 232, 240)",
+      "h1Color": "rgb(241, 245, 249)",
+      "errors": []
+    }
+  ],
+  "c2b2": [
+    {
+      "width": 360,
+      "theme": "light",
+      "className": [
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 268,
+          "font": "14px"
+        },
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 268,
+          "font": "14px"
+        },
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 268,
+          "font": "14px"
+        },
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 268,
+          "font": "14px"
+        }
+      ],
+      "bodyColor": "rgb(23, 32, 51)",
+      "h1Color": "rgb(23, 37, 84)",
+      "errors": []
+    },
+    {
+      "width": 360,
+      "theme": "dark",
+      "className": [
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 268,
+          "font": "14px"
+        },
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 268,
+          "font": "14px"
+        },
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 268,
+          "font": "14px"
+        },
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 268,
+          "font": "14px"
+        }
+      ],
+      "bodyColor": "rgb(226, 232, 240)",
+      "h1Color": "rgb(241, 245, 249)",
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "className": [
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 399,
+          "font": "14px"
+        },
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 225,
+          "font": "14px"
+        },
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 225,
+          "font": "14px"
+        },
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 617,
+          "font": "14px"
+        }
+      ],
+      "bodyColor": "rgb(23, 32, 51)",
+      "h1Color": "rgb(23, 37, 84)",
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "className": [
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 399,
+          "font": "14px"
+        },
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 225,
+          "font": "14px"
+        },
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 225,
+          "font": "14px"
+        },
+        {
+          "text": "Selective Entry Maths & Reasoning",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 617,
+          "font": "14px"
+        }
+      ],
+      "bodyColor": "rgb(226, 232, 240)",
+      "h1Color": "rgb(241, 245, 249)",
+      "errors": []
+    }
+  ],
+  "c2c1": [
+    {
+      "width": 360,
+      "theme": "light",
+      "phone": [
+        {
+          "text": "So AJ Classes can reach you. Only admins see it; it's never ",
+          "color": "rgb(75, 85, 99)",
+          "lines": 2,
+          "width": 328,
+          "font": "15px"
+        }
+      ]
+    },
+    {
+      "width": 360,
+      "theme": "dark",
+      "phone": [
+        {
+          "text": "So AJ Classes can reach you. Only admins see it; it's never ",
+          "color": "rgb(166, 179, 199)",
+          "lines": 2,
+          "width": 328,
+          "font": "15px"
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "phone": [
+        {
+          "text": "So AJ Classes can reach you. Only admins see it; it's never ",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 640,
+          "font": "15px"
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "phone": [
+        {
+          "text": "So AJ Classes can reach you. Only admins see it; it's never ",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 640,
+          "font": "15px"
+        }
+      ]
+    }
+  ],
+  "c2c2": [
+    {
+      "width": 360,
+      "theme": "light",
+      "hold": [
+        {
+          "text": "Results stay hidden until you return the work. Any written q",
+          "color": "rgb(75, 85, 99)",
+          "lines": 2,
+          "width": 302,
+          "font": "14px"
+        }
+      ]
+    },
+    {
+      "width": 360,
+      "theme": "dark",
+      "hold": [
+        {
+          "text": "Results stay hidden until you return the work. Any written q",
+          "color": "rgb(166, 179, 199)",
+          "lines": 2,
+          "width": 302,
+          "font": "14px"
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "hold": [
+        {
+          "text": "Results stay hidden until you return the work. Any written q",
+          "color": "rgb(75, 85, 99)",
+          "lines": 1,
+          "width": 617,
+          "font": "14px"
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "hold": [
+        {
+          "text": "Results stay hidden until you return the work. Any written q",
+          "color": "rgb(166, 179, 199)",
+          "lines": 1,
+          "width": 617,
+          "font": "14px"
+        }
+      ]
+    }
+  ]
+}

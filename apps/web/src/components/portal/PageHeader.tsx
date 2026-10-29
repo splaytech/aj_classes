@@ -34,7 +34,7 @@ export function PageHeader({ title, intro, back, meta, actions }: PageHeaderProp
             {title}
           </Typography>
           {intro && (
-            <Typography color="text.secondary" sx={{ mt: 1 }}>
+            <Typography color="textSecondary" sx={{ mt: 1 }}>
               {intro}
             </Typography>
           )}

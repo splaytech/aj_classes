@@ -160,7 +160,7 @@ export default function ClassDetailPage() {
           mb: 6,
         }}
       >
-        <Typography component="dt" color="text.secondary">
+        <Typography component="dt" color="textSecondary">
           {CLASS_PAGE.facts.tutor}
         </Typography>
         <Stack component="dd" direction="row" spacing={2} sx={{ m: 0, alignItems: 'center' }}>
@@ -174,13 +174,13 @@ export default function ClassDetailPage() {
             />
           )}
         </Stack>
-        <Typography component="dt" color="text.secondary">
+        <Typography component="dt" color="textSecondary">
           {CLASS_PAGE.facts.term}
         </Typography>
         <Typography component="dd" sx={{ m: 0 }}>
           {termText(item)}
         </Typography>
-        <Typography component="dt" color="text.secondary">
+        <Typography component="dt" color="textSecondary">
           {CLASS_PAGE.facts.delivery}
         </Typography>
         <Typography component="dd" sx={{ m: 0 }}>

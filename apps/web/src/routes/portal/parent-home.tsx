@@ -131,7 +131,7 @@ function ChildCard({ child, assignments, onConsented }: ChildCardProps) {
       }
     >
       <Stack spacing={2}>
-        <Typography color="text.secondary">
+        <Typography color="textSecondary">
           {studentYearLabel(child.yearLevel)}
           {CLOCK.listSeparator}
           {classes}

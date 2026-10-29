@@ -90,7 +90,7 @@ export function HoldResultsSetting({
           }
           label={HOLD_RESULTS.label}
         />
-        <Typography id={hintId} variant="body2" color="text.secondary">
+        <Typography id={hintId} variant="body2" color="textSecondary">
           {isPublished ? HOLD_RESULTS.lockedNote : HOLD_RESULTS.hint}
         </Typography>
         {action.error && <Alert severity="error">{action.error}</Alert>}

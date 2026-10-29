@@ -91,7 +91,7 @@ export default function AdminDashboard() {
                 <Typography variant="h4" component="p" sx={{ fontWeight: 700 }}>
                   {counts[key]}
                 </Typography>
-                <Typography color="text.secondary">{ADMIN_DASHBOARD.stats[key]}</Typography>
+                <Typography color="textSecondary">{ADMIN_DASHBOARD.stats[key]}</Typography>
               </CardContent>
             </CardActionArea>
           </Card>
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
           }
         >
           {recent.length === 0 ? (
-            <Typography color="text.secondary">{ADMIN_DASHBOARD.recent.empty}</Typography>
+            <Typography color="textSecondary">{ADMIN_DASHBOARD.recent.empty}</Typography>
           ) : (
             <List dense disablePadding>
               {recent.map((entry) => (

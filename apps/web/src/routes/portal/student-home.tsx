@@ -67,7 +67,7 @@ export default function StudentHomePage() {
 
         <SectionCard title={STUDENT_HOME.toDo.heading}>
           {groups.toDo.length === 0 ? (
-            <Typography color="text.secondary">{STUDENT_HOME.toDo.empty}</Typography>
+            <Typography color="textSecondary">{STUDENT_HOME.toDo.empty}</Typography>
           ) : (
             <Stack spacing={2}>
               {groups.toDo.map((item) => (
@@ -96,7 +96,7 @@ export default function StudentHomePage() {
                     {item.title}
                   </Link>
                   {item.submittedAt && (
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="textSecondary">
                       {STUDENT_HOME.submitted.handedIn(formatDateTime(item.submittedAt))}
                     </Typography>
                   )}
@@ -109,7 +109,7 @@ export default function StudentHomePage() {
 
         <SectionCard title={STUDENT_HOME.returned.heading}>
           {groups.returned.length === 0 ? (
-            <Typography color="text.secondary">{STUDENT_HOME.returned.empty}</Typography>
+            <Typography color="textSecondary">{STUDENT_HOME.returned.empty}</Typography>
           ) : (
             <Stack spacing={2}>
               {groups.returned.map((item) => (
@@ -141,7 +141,7 @@ function ToDoItem({ item }: { item: FamilyAssignment }) {
       >
         <Box>
           <Typography sx={{ fontWeight: 700 }}>{item.title}</Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="textSecondary">
             {item.className}
           </Typography>
           <Stack direction="row" spacing={1} useFlexGap sx={{ mt: 1, flexWrap: 'wrap' }}>
@@ -175,7 +175,7 @@ function ReturnedItem({ item }: { item: FamilyAssignment }) {
       >
         <Box sx={{ minWidth: 0 }}>
           <Typography sx={{ fontWeight: 700 }}>{item.title}</Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="textSecondary">
             {item.className}
           </Typography>
           {item.isPastClass && (
@@ -187,7 +187,7 @@ function ReturnedItem({ item }: { item: FamilyAssignment }) {
           {item.comment && (
             <Typography
               variant="body2"
-              color="text.secondary"
+              color="textSecondary"
               sx={{
                 display: '-webkit-box',
                 WebkitLineClamp: 2,

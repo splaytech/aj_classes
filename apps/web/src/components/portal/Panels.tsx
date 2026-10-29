@@ -17,7 +17,7 @@ export function NotFoundPanel() {
       <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
         {NOT_FOUND_PANEL.heading}
       </Typography>
-      <Typography color="text.secondary">{NOT_FOUND_PANEL.text}</Typography>
+      <Typography color="textSecondary">{NOT_FOUND_PANEL.text}</Typography>
     </Stack>
   );
 }

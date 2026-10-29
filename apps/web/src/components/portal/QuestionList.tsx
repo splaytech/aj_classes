@@ -59,7 +59,7 @@ export function QuestionList({ assignmentId, questions, editable, onChanged }: Q
       title={QUESTION_BUILDER.heading}
       action={
         questions.length > 0 && (
-          <Typography color="text.secondary">
+          <Typography color="textSecondary">
             {QUESTION_BUILDER.total(totalMarks(questions))}
           </Typography>
         )
@@ -71,7 +71,7 @@ export function QuestionList({ assignmentId, questions, editable, onChanged }: Q
         )}
         {action.error && <Alert severity="error">{action.error}</Alert>}
         {questions.length === 0 && (
-          <Typography color="text.secondary">{QUESTION_BUILDER.empty}</Typography>
+          <Typography color="textSecondary">{QUESTION_BUILDER.empty}</Typography>
         )}
 
         {questions.map((question, index) => (
@@ -116,7 +116,7 @@ export function QuestionList({ assignmentId, questions, editable, onChanged }: Q
               </Button>
             </Box>
           ) : (
-            <Typography color="text.secondary">{QUESTION_BUILDER.limitReached}</Typography>
+            <Typography color="textSecondary">{QUESTION_BUILDER.limitReached}</Typography>
           ))}
       </Stack>
 
@@ -215,7 +215,7 @@ function QuestionCard({ question, number, actions }: QuestionCardProps) {
         )}
 
         {question.explanation && (
-          <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-line' }}>
+          <Typography variant="body2" color="textSecondary" sx={{ whiteSpace: 'pre-line' }}>
             {QUESTION_BUILDER.explanation(question.explanation)}
           </Typography>
         )}

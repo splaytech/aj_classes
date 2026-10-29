@@ -1,0 +1,543 @@
+{
+  "c2a1": [
+    {
+      "role": "tutor",
+      "width": 360,
+      "theme": "light",
+      "shown": "light",
+      "path": "/portal/tutor",
+      "found": true,
+      "lab": {
+        "text": "DEV",
+        "left": 317.46875,
+        "top": 772.8125,
+        "right": 360,
+        "bottom": 800,
+        "vw": 360,
+        "vh": 800
+      },
+      "nameInfo": {
+        "text": "Local TutorTutor",
+        "rect": [
+          16,
+          77.203125,
+          111.859375,
+          116.796875
+        ],
+        "scrollW": 96,
+        "clientW": 96,
+        "intersectsLabel": false,
+        "inViewport": true
+      },
+      "markerAria": "true",
+      "pe": [
+        "none",
+        "none"
+      ],
+      "errors": []
+    },
+    {
+      "role": "tutor",
+      "width": 360,
+      "theme": "dark",
+      "shown": "dark",
+      "path": "/portal/tutor",
+      "found": true,
+      "lab": {
+        "text": "DEV",
+        "left": 317.46875,
+        "top": 772.8125,
+        "right": 360,
+        "bottom": 800,
+        "vw": 360,
+        "vh": 800
+      },
+      "nameInfo": {
+        "text": "Local TutorTutor",
+        "rect": [
+          16,
+          77.203125,
+          111.859375,
+          116.796875
+        ],
+        "scrollW": 96,
+        "clientW": 96,
+        "intersectsLabel": false,
+        "inViewport": true
+      },
+      "markerAria": "true",
+      "pe": [
+        "none",
+        "none"
+      ],
+      "errors": []
+    },
+    {
+      "role": "tutor",
+      "width": 1280,
+      "theme": "light",
+      "shown": "light",
+      "path": "/portal/tutor",
+      "found": true,
+      "lab": {
+        "text": "DEV",
+        "left": 1237.46875,
+        "top": 772.8125,
+        "right": 1280,
+        "bottom": 800,
+        "vw": 1280,
+        "vh": 800
+      },
+      "nameInfo": {
+        "text": "Local TutorTutor",
+        "rect": [
+          899.5625,
+          21.203125,
+          995.421875,
+          60.796875
+        ],
+        "scrollW": 96,
+        "clientW": 96,
+        "intersectsLabel": false,
+        "inViewport": true
+      },
+      "markerAria": "true",
+      "pe": [
+        "none",
+        "none"
+      ],
+      "errors": []
+    },
+    {
+      "role": "tutor",
+      "width": 1280,
+      "theme": "dark",
+      "shown": "dark",
+      "path": "/portal/tutor",
+      "found": true,
+      "lab": {
+        "text": "DEV",
+        "left": 1237.46875,
+        "top": 772.8125,
+        "right": 1280,
+        "bottom": 800,
+        "vw": 1280,
+        "vh": 800
+      },
+      "nameInfo": {
+        "text": "Local TutorTutor",
+        "rect": [
+          899.5625,
+          21.203125,
+          995.421875,
+          60.796875
+        ],
+        "scrollW": 96,
+        "clientW": 96,
+        "intersectsLabel": false,
+        "inViewport": true
+      },
+      "markerAria": "true",
+      "pe": [
+        "none",
+        "none"
+      ],
+      "errors": []
+    }
+  ],
+  "c2a2": [
+    {
+      "role": "tutor",
+      "width": 360,
+      "theme": "light",
+      "shown": "light",
+      "path": "/portal/tutor",
+      "found": true,
+      "lab": {
+        "text": "DEV",
+        "left": 317.46875,
+        "top": 772.8125,
+        "right": 360,
+        "bottom": 800,
+        "vw": 360,
+        "vh": 800
+      },
+      "nameInfo": {
+        "text": "Local TutorTutor",
+        "rect": [
+          16,
+          77.203125,
+          111.859375,
+          116.796875
+        ],
+        "scrollW": 96,
+        "clientW": 96,
+        "intersectsLabel": false,
+        "inViewport": true
+      },
+      "markerAria": "true",
+      "pe": [
+        "none",
+        "none"
+      ],
+      "errors": []
+    },
+    {
+      "role": "tutor",
+      "width": 360,
+      "theme": "dark",
+      "shown": "dark",
+      "path": "/portal/tutor",
+      "found": true,
+      "lab": {
+        "text": "DEV",
+        "left": 317.46875,
+        "top": 772.8125,
+        "right": 360,
+        "bottom": 800,
+        "vw": 360,
+        "vh": 800
+      },
+      "nameInfo": {
+        "text": "Local TutorTutor",
+        "rect": [
+          16,
+          77.203125,
+          111.859375,
+          116.796875
+        ],
+        "scrollW": 96,
+        "clientW": 96,
+        "intersectsLabel": false,
+        "inViewport": true
+      },
+      "markerAria": "true",
+      "pe": [
+        "none",
+        "none"
+      ],
+      "errors": []
+    },
+    {
+      "role": "admin",
+      "width": 360,
+      "theme": "light",
+      "shown": "light",
+      "path": "/portal/admin",
+      "found": true,
+      "lab": {
+        "text": "DEV",
+        "left": 317.46875,
+        "top": 772.8125,
+        "right": 360,
+        "bottom": 800,
+        "vw": 360,
+        "vh": 800
+      },
+      "nameInfo": {
+        "text": "Local AdminAdmin",
+        "rect": [
+          16,
+          77.203125,
+          120.921875,
+          116.796875
+        ],
+        "scrollW": 105,
+        "clientW": 105,
+        "intersectsLabel": false,
+        "inViewport": true
+      },
+      "markerAria": "true",
+      "pe": [
+        "none",
+        "none"
+      ],
+      "errors": []
+    },
+    {
+      "role": "admin",
+      "width": 360,
+      "theme": "dark",
+      "shown": "dark",
+      "path": "/portal/admin",
+      "found": true,
+      "lab": {
+        "text": "DEV",
+        "left": 317.46875,
+        "top": 772.8125,
+        "right": 360,
+        "bottom": 800,
+        "vw": 360,
+        "vh": 800
+      },
+      "nameInfo": {
+        "text": "Local AdminAdmin",
+        "rect": [
+          16,
+          77.203125,
+          120.921875,
+          116.796875
+        ],
+        "scrollW": 105,
+        "clientW": 105,
+        "intersectsLabel": false,
+        "inViewport": true
+      },
+      "markerAria": "true",
+      "pe": [
+        "none",
+        "none"
+      ],
+      "errors": []
+    },
+    {
+      "role": "student",
+      "width": 360,
+      "theme": "light",
+      "shown": "light",
+      "path": "/portal/student",
+      "found": true,
+      "lab": {
+        "text": "DEV",
+        "left": 317.46875,
+        "top": 772.8125,
+        "right": 360,
+        "bottom": 800,
+        "vw": 360,
+        "vh": 800
+      },
+      "nameInfo": {
+        "text": "Aarav DemoStudent",
+        "rect": [
+          16,
+          77.203125,
+          120.1875,
+          116.796875
+        ],
+        "scrollW": 104,
+        "clientW": 104,
+        "intersectsLabel": false,
+        "inViewport": true
+      },
+      "markerAria": "true",
+      "pe": [
+        "none",
+        "none"
+      ],
+      "errors": []
+    },
+    {
+      "role": "student",
+      "width": 360,
+      "theme": "dark",
+      "shown": "dark",
+      "path": "/portal/student",
+      "found": true,
+      "lab": {
+        "text": "DEV",
+        "left": 317.46875,
+        "top": 772.8125,
+        "right": 360,
+        "bottom": 800,
+        "vw": 360,
+        "vh": 800
+      },
+      "nameInfo": {
+        "text": "Aarav DemoStudent",
+        "rect": [
+          16,
+          77.203125,
+          120.1875,
+          116.796875
+        ],
+        "scrollW": 104,
+        "clientW": 104,
+        "intersectsLabel": false,
+        "inViewport": true
+      },
+      "markerAria": "true",
+      "pe": [
+        "none",
+        "none"
+      ],
+      "errors": []
+    },
+    {
+      "role": "parent",
+      "width": 360,
+      "theme": "light",
+      "shown": "light",
+      "path": "/portal/parent",
+      "found": true,
+      "lab": {
+        "text": "DEV",
+        "left": 317.46875,
+        "top": 772.8125,
+        "right": 360,
+        "bottom": 800,
+        "vw": 360,
+        "vh": 800
+      },
+      "nameInfo": {
+        "text": "Local ParentParent",
+        "rect": [
+          16,
+          77.203125,
+          122.3125,
+          116.796875
+        ],
+        "scrollW": 106,
+        "clientW": 106,
+        "intersectsLabel": false,
+        "inViewport": true
+      },
+      "markerAria": "true",
+      "pe": [
+        "none",
+        "none"
+      ],
+      "errors": []
+    },
+    {
+      "role": "parent",
+      "width": 360,
+      "theme": "dark",
+      "shown": "dark",
+      "path": "/portal/parent",
+      "found": true,
+      "lab": {
+        "text": "DEV",
+        "left": 317.46875,
+        "top": 772.8125,
+        "right": 360,
+        "bottom": 800,
+        "vw": 360,
+        "vh": 800
+      },
+      "nameInfo": {
+        "text": "Local ParentParent",
+        "rect": [
+          16,
+          77.203125,
+          122.3125,
+          116.796875
+        ],
+        "scrollW": 106,
+        "clientW": 106,
+        "intersectsLabel": false,
+        "inViewport": true
+      },
+      "markerAria": "true",
+      "pe": [
+        "none",
+        "none"
+      ],
+      "errors": []
+    }
+  ],
+  "c2a3": [
+    {
+      "width": 360,
+      "found": true,
+      "lab": {
+        "text": "DEV",
+        "left": 0,
+        "top": 72,
+        "right": 42.53125,
+        "bottom": 99.1875,
+        "vw": 360,
+        "vh": 800
+      },
+      "nameInfo": null,
+      "markerAria": "true",
+      "pe": [
+        "none",
+        "none"
+      ],
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "found": true,
+      "lab": {
+        "text": "DEV",
+        "left": 0,
+        "top": 72,
+        "right": 42.53125,
+        "bottom": 99.1875,
+        "vw": 1280,
+        "vh": 800
+      },
+      "nameInfo": null,
+      "markerAria": "true",
+      "pe": [
+        "none",
+        "none"
+      ],
+      "errors": []
+    }
+  ],
+  "c2a4": [
+    {
+      "width": 360,
+      "afterNav": {
+        "text": "DEV",
+        "left": 317.46875,
+        "top": 772.8125,
+        "right": 360,
+        "bottom": 800,
+        "vw": 360,
+        "vh": 800
+      },
+      "afterReload": {
+        "text": "DEV",
+        "left": 317.46875,
+        "top": 772.8125,
+        "right": 360,
+        "bottom": 800,
+        "vw": 360,
+        "vh": 800
+      }
+    },
+    {
+      "width": 1280,
+      "afterNav": {
+        "text": "DEV",
+        "left": 1237.46875,
+        "top": 772.8125,
+        "right": 1280,
+        "bottom": 800,
+        "vw": 1280,
+        "vh": 800
+      },
+      "afterReload": {
+        "text": "DEV",
+        "left": 1237.46875,
+        "top": 772.8125,
+        "right": 1280,
+        "bottom": 800,
+        "vw": 1280,
+        "vh": 800
+      }
+    }
+  ],
+  "c2a5": {
+    "markerAria": "true",
+    "pointerEvents": [
+      "none",
+      "none"
+    ]
+  },
+  "overlap": [
+    {
+      "width": 360,
+      "page": "/portal/profile bottom",
+      "under": []
+    },
+    {
+      "width": 1280,
+      "page": "/portal/profile bottom",
+      "under": []
+    }
+  ]
+}

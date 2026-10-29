@@ -10,6 +10,8 @@ import { describe, expect, it } from 'vitest';
 const themeCss = readFileSync(new URL('./theme.css', import.meta.url), 'utf8');
 
 const AA_TEXT = 4.5;
+// WCAG 1.4.11: focus rings and other non-text parts need 3:1 against what's next to them.
+const AA_NON_TEXT = 3;
 
 // [text token, background token] pairs the portal actually uses.
 const TEXT_PAIRS = [
@@ -28,6 +30,20 @@ const TEXT_PAIRS = [
   ['--color-warning', '--color-surface'],
   ['--color-text-inverse', '--color-bg-inverse'],
 ] as const;
+
+// [focus ring token, background token]: the ring sits on the background, offset 2 px.
+const FOCUS_PAIRS = [
+  ['--color-focus', '--color-bg'],
+  ['--color-focus', '--color-surface'],
+  ['--color-focus', '--color-bg-subtle'],
+  ['--color-focus-inverse', '--color-bg-inverse'],
+] as const;
+
+// The navy surfaces with links or buttons, which must switch to the inverse ring (item 53).
+const NAVY_SURFACE_STYLES = [
+  '../components/layout/footer/Footer.module.css',
+  '../components/ui/Section.module.css',
+];
 
 /** The hex colours declared in the first block whose selector contains `selector`. */
 function colourTokens(selector: string): Record<string, string> {
@@ -69,5 +85,21 @@ describe.each([
     expect(contrast(tokens[text] as string, tokens[background] as string)).toBeGreaterThanOrEqual(
       AA_TEXT,
     );
+  });
+
+  it.each(FOCUS_PAIRS)('%s on %s meets WCAG 1.4.11 (3:1)', (ring, background) => {
+    expect(tokens[ring]).toBeDefined();
+    expect(tokens[background]).toBeDefined();
+    expect(contrast(tokens[ring] as string, tokens[background] as string)).toBeGreaterThanOrEqual(
+      AA_NON_TEXT,
+    );
+  });
+});
+
+describe('navy surfaces', () => {
+  it.each(NAVY_SURFACE_STYLES)('%s uses the inverse focus ring', (path) => {
+    const css = readFileSync(new URL(path, import.meta.url), 'utf8');
+
+    expect(css).toContain('--color-focus: var(--color-focus-inverse)');
   });
 });

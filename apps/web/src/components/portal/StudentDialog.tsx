@@ -74,7 +74,7 @@ export function StudentDialog({ open, existing, onSave, onSaved, onClose }: Stud
         ))}
         <MenuItem value={OTHER_YEAR}>{YEAR_LEVEL_TEXT.other}</MenuItem>
       </TextField>
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" color="textSecondary">
         {STUDENT_DIALOG.privacyNote}
       </Typography>
     </FormDialog>

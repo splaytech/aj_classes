@@ -1,7 +1,7 @@
 // Edit name, phone, subjects, bio and qualifications (R2a story US12; item 4 for the phone).
 // Takes the save function as a prop, so admins can reuse it for other staff (story US18).
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 
 import { Button } from '@/components/ui';
@@ -9,6 +9,7 @@ import { PORTAL_ERRORS, PROFILE_LIMITS, PROFILE_PAGE, SUBJECTS } from '@/constan
 import { formatPhone } from '@/lib/format';
 import { cleanQualifications, subjectsToSave, validateProfile } from '@/lib/profile-validation';
 import type { ProfileErrors } from '@/lib/profile-validation';
+import { revealField } from '@/lib/reveal-field';
 import type { ErrorKey, ProfileChanges, Result, StaffProfile } from '@/services';
 
 import { FormAlert, FormStatus, TextAreaInput, TextInput } from './PortalField';
@@ -22,6 +23,8 @@ const FIELD_IDS = {
   bio: 'profile-bio',
   qualifications: 'profile-qualifications',
 } as const;
+
+type ProfileField = keyof ProfileErrors;
 
 const OFFERED_SUBJECTS = SUBJECTS.map((subject) => subject.key);
 
@@ -46,6 +49,21 @@ export function ProfileForm({ profile, onSave, onSaved }: ProfileFormProps) {
   const [formError, setFormError] = useState('');
   const [status, setStatus] = useState('');
   const [saving, setSaving] = useState(false);
+  // The fields an error can point at, so Save can bring the first bad one into view (27d).
+  const fullNameRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const bioRef = useRef<HTMLTextAreaElement>(null);
+  const qualificationsRef = useRef<HTMLInputElement>(null); // the first line's box
+
+  function fieldElement(field: ProfileField): HTMLElement | null {
+    const elements = {
+      fullName: fullNameRef.current,
+      phone: phoneRef.current,
+      bio: bioRef.current,
+      qualifications: qualificationsRef.current,
+    };
+    return elements[field];
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -61,7 +79,7 @@ export function ProfileForm({ profile, onSave, onSaved }: ProfileFormProps) {
     const found = validateProfile(changes, profile.phone);
     setErrors(found);
     if (Object.keys(found).length > 0) {
-      document.getElementById(FIELD_IDS[Object.keys(found)[0] as keyof ProfileErrors])?.focus();
+      revealField(fieldElement(Object.keys(found)[0] as ProfileField));
       return;
     }
 
@@ -74,6 +92,7 @@ export function ProfileForm({ profile, onSave, onSaved }: ProfileFormProps) {
     if (!result.ok) {
       if (PHONE_ERROR_KEYS.includes(result.error)) {
         setErrors({ phone: PORTAL_ERRORS[result.error] });
+        revealField(phoneRef.current);
       } else {
         setFormError(PORTAL_ERRORS[result.error]);
       }
@@ -95,6 +114,7 @@ export function ProfileForm({ profile, onSave, onSaved }: ProfileFormProps) {
         value={fullName}
         onChange={setFullName}
         error={errors.fullName}
+        ref={fullNameRef}
       />
       <TextInput
         id={FIELD_IDS.phone}
@@ -106,6 +126,7 @@ export function ProfileForm({ profile, onSave, onSaved }: ProfileFormProps) {
         value={phone}
         onChange={setPhone}
         error={errors.phone}
+        ref={phoneRef}
       />
       <SubjectPicker
         legend={PROFILE_PAGE.labels.subjects}
@@ -122,12 +143,14 @@ export function ProfileForm({ profile, onSave, onSaved }: ProfileFormProps) {
         onChange={setBio}
         error={errors.bio}
         counter={PROFILE_PAGE.bioCount(bio.length)}
+        ref={bioRef}
       />
       <QualificationsEditor
         idPrefix={FIELD_IDS.qualifications}
         lines={qualifications}
         onChange={setQualifications}
         error={errors.qualifications}
+        ref={qualificationsRef}
       />
       <FormAlert message={formError} />
       <FormStatus message={status} />

@@ -116,7 +116,7 @@ export default function AssignmentDetailPage() {
               }
             />
             {assignment.isPublished && (
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="textSecondary">
                 {isOnline
                   ? SUBMISSIONS.progress(progress.returned, progress.total)
                   : MARKING_PAGE.progress(progress.marked, progress.total)}
@@ -164,7 +164,7 @@ export default function AssignmentDetailPage() {
 
       <Stack spacing={4}>
         <SectionCard title={MARKING_PAGE.instructionsHeading}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
             {MARKING_PAGE.className}
             {PORTAL_COMMON.space}
             <Link component={RouterLink} to={classPath(assignment.classId)}>
@@ -248,15 +248,15 @@ type StudentWorkProps = { assignment: AssignmentDetail; isOnline: boolean; onCha
 /** Drafts collect nothing yet; online work is marked per submission; paper homework per card. */
 function StudentWork({ assignment, isOnline, onChanged }: StudentWorkProps) {
   if (!assignment.isPublished) {
-    return <Typography color="text.secondary">{SUBMISSIONS.draftNote}</Typography>;
+    return <Typography color="textSecondary">{SUBMISSIONS.draftNote}</Typography>;
   }
   if (isOnline) return <SubmissionsTable assignment={assignment} />;
   if (assignment.students.length === 0) {
-    return <Typography color="text.secondary">{MARKING_PAGE.noStudents}</Typography>;
+    return <Typography color="textSecondary">{MARKING_PAGE.noStudents}</Typography>;
   }
   return (
     <>
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" color="textSecondary">
         {MARKING_PAGE.returnedNote}
       </Typography>
       {assignment.students.map((student) => (

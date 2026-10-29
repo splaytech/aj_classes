@@ -1,0 +1,863 @@
+{
+  "c31": [
+    {
+      "width": 360,
+      "footerStops": [
+        {
+          "tag": "a",
+          "text": "hello@ajclasses.com.au",
+          "href": "mailto:hello@ajclasses.com.au",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "+61 469 800 685",
+          "href": "tel:+61469800685",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Facebook",
+          "href": "https://www.facebook.com/profile.php?id=61595519166933",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "WhatsApp",
+          "href": "https://wa.me/61469800685?text=Hi%20AJ%20Classes%2C%20I'd%20like%20to%20know%20more%20about%20your%20classes.",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Parent guides",
+          "href": "/resources",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "We're hiring",
+          "href": "/careers",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Privacy Policy",
+          "href": "/privacy",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "href": "/portal/login",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "hello@ajclasses.com.au",
+          "href": "mailto:hello@ajclasses.com.au",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "+61 469 800 685",
+          "href": "tel:+61469800685",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Facebook",
+          "href": "https://www.facebook.com/profile.php?id=61595519166933",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "WhatsApp",
+          "href": "https://wa.me/61469800685?text=Hi%20AJ%20Classes%2C%20I'd%20like%20to%20know%20more%20about%20your%20classes.",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Parent guides",
+          "href": "/resources",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "We're hiring",
+          "href": "/careers",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Privacy Policy",
+          "href": "/privacy",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "href": "/portal/login",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "footerStops": [
+        {
+          "tag": "a",
+          "text": "hello@ajclasses.com.au",
+          "href": "mailto:hello@ajclasses.com.au",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "+61 469 800 685",
+          "href": "tel:+61469800685",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Facebook",
+          "href": "https://www.facebook.com/profile.php?id=61595519166933",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "WhatsApp",
+          "href": "https://wa.me/61469800685?text=Hi%20AJ%20Classes%2C%20I'd%20like%20to%20know%20more%20about%20your%20classes.",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Parent guides",
+          "href": "/resources",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "We're hiring",
+          "href": "/careers",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Privacy Policy",
+          "href": "/privacy",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "href": "/portal/login",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "hello@ajclasses.com.au",
+          "href": "mailto:hello@ajclasses.com.au",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "+61 469 800 685",
+          "href": "tel:+61469800685",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Facebook",
+          "href": "https://www.facebook.com/profile.php?id=61595519166933",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "WhatsApp",
+          "href": "https://wa.me/61469800685?text=Hi%20AJ%20Classes%2C%20I'd%20like%20to%20know%20more%20about%20your%20classes.",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Parent guides",
+          "href": "/resources",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "We're hiring",
+          "href": "/careers",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Privacy Policy",
+          "href": "/privacy",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "href": "/portal/login",
+          "inFooter": true,
+          "section": null,
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": "rgb(23, 37, 84)"
+        }
+      ]
+    }
+  ],
+  "c32": [
+    {
+      "width": 360,
+      "inverseStops": [
+        {
+          "tag": "a",
+          "text": "Register Interest",
+          "href": "/#contact",
+          "inFooter": false,
+          "section": "get-started",
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": null
+        },
+        {
+          "tag": "a",
+          "text": "Register Interest",
+          "href": "/#contact",
+          "inFooter": false,
+          "section": "get-started",
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": null
+        },
+        {
+          "tag": "a",
+          "text": "Register Interest",
+          "href": "/#contact",
+          "inFooter": false,
+          "section": "get-started",
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": null
+        }
+      ],
+      "whiteStops": [
+        {
+          "tag": "a",
+          "text": "🔥Enrolling now for 2027:Register intere",
+          "href": "/#contact",
+          "inFooter": false,
+          "section": "hero",
+          "outline": "solid 3px rgb(37, 99, 235)",
+          "focusVisible": true,
+          "bg": "rgb(255, 255, 255)",
+          "footerBg": null
+        },
+        {
+          "tag": "a",
+          "text": "Register Interest",
+          "href": "/#contact",
+          "inFooter": false,
+          "section": "hero",
+          "outline": "solid 3px rgb(37, 99, 235)",
+          "focusVisible": true,
+          "bg": "rgb(255, 255, 255)",
+          "footerBg": null
+        },
+        {
+          "tag": "a",
+          "text": "Ask a Question",
+          "href": "/#ask-a-question",
+          "inFooter": false,
+          "section": "hero",
+          "outline": "solid 3px rgb(37, 99, 235)",
+          "focusVisible": true,
+          "bg": "rgb(255, 255, 255)",
+          "footerBg": null
+        }
+      ],
+      "allStops": 148
+    },
+    {
+      "width": 1280,
+      "inverseStops": [
+        {
+          "tag": "a",
+          "text": "Register Interest",
+          "href": "/#contact",
+          "inFooter": false,
+          "section": "get-started",
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": null
+        },
+        {
+          "tag": "a",
+          "text": "Register Interest",
+          "href": "/#contact",
+          "inFooter": false,
+          "section": "get-started",
+          "outline": "solid 3px rgb(147, 197, 253)",
+          "focusVisible": true,
+          "bg": "rgb(23, 37, 84)",
+          "footerBg": null
+        }
+      ],
+      "whiteStops": [
+        {
+          "tag": "a",
+          "text": "🔥Enrolling now for 2027:Register intere",
+          "href": "/#contact",
+          "inFooter": false,
+          "section": "hero",
+          "outline": "solid 3px rgb(37, 99, 235)",
+          "focusVisible": true,
+          "bg": "rgb(255, 255, 255)",
+          "footerBg": null
+        },
+        {
+          "tag": "a",
+          "text": "Register Interest",
+          "href": "/#contact",
+          "inFooter": false,
+          "section": "hero",
+          "outline": "solid 3px rgb(37, 99, 235)",
+          "focusVisible": true,
+          "bg": "rgb(255, 255, 255)",
+          "footerBg": null
+        },
+        {
+          "tag": "a",
+          "text": "Ask a Question",
+          "href": "/#ask-a-question",
+          "inFooter": false,
+          "section": "hero",
+          "outline": "solid 3px rgb(37, 99, 235)",
+          "focusVisible": true,
+          "bg": "rgb(255, 255, 255)",
+          "footerBg": null
+        }
+      ],
+      "allStops": 148
+    }
+  ],
+  "r1": [
+    {
+      "width": 360,
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "errors": []
+    }
+  ],
+  "r2": [
+    {
+      "text": "hello@ajclasses.com.au",
+      "href": "mailto:hello@ajclasses.com.au"
+    },
+    {
+      "text": "+61 469 800 685",
+      "href": "tel:+61469800685"
+    },
+    {
+      "text": "Facebook",
+      "href": "https://www.facebook.com/profile.php?id=61595519166933"
+    },
+    {
+      "text": "WhatsApp",
+      "href": "https://wa.me/61469800685?text=Hi%20AJ%20Classes%2C%20I'd%20like%20to%20know%20more%20about%20your%20classes."
+    },
+    {
+      "text": "Parent guides",
+      "href": "/resources",
+      "status": 200
+    },
+    {
+      "text": "We're hiring",
+      "href": "/careers",
+      "status": 200
+    },
+    {
+      "text": "Privacy Policy",
+      "href": "/privacy",
+      "status": 200
+    },
+    {
+      "text": "Sign in",
+      "href": "/portal/login",
+      "status": 200
+    }
+  ],
+  "r5": [
+    {
+      "width": 375,
+      "path": "/",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 375,
+      "path": "/programmes/selective-entry",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 375,
+      "path": "/programmes/interviews",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 375,
+      "path": "/programmes/seal-and-scholarships",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 375,
+      "path": "/programmes/naplan",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 375,
+      "path": "/programmes/icas",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 375,
+      "path": "/programmes/maths-science-english",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 375,
+      "path": "/programmes/vce",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 375,
+      "path": "/programmes/vce-subject-selection",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 375,
+      "path": "/programmes/ucat-and-gamsat",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 375,
+      "path": "/resources",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 375,
+      "path": "/resources/victorian-selective-entry-exam",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 375,
+      "path": "/privacy",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 375,
+      "path": "/careers",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 375,
+      "path": "/posts",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/selective-entry",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/interviews",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/seal-and-scholarships",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/naplan",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/icas",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/maths-science-english",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/vce",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/vce-subject-selection",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/ucat-and-gamsat",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/resources",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/resources/victorian-selective-entry-exam",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/privacy",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/careers",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    },
+    {
+      "width": 1280,
+      "path": "/posts",
+      "status": 200,
+      "h1": 1,
+      "robots": 1,
+      "sideways": false,
+      "newErrors": [],
+      "pageErrors": 0
+    }
+  ]
+}
