@@ -94,3 +94,37 @@ an empty string → `400 {"Error":"invalid To address: …"}` each time. `outcom
 - `test-notifications.mjs` changed only in its import lines.
 - `pnpm test:functions`: **green, 232 checks** (49 / 30 / 153, identical to T0.4).
   `grep -rn "notifications/transport" supabase/` finds nothing.
+
+### T3 correction (found in T4): the local edge runtime does not hot-reload
+
+`supabase start` serves functions without watching files, so the T3 run above still exercised the
+**old** code. After T4's first run showed old-format emails, `docker restart
+supabase_edge_runtime_aj_classes` (same mount, T0.3 mount check `1`) loaded the new code. Re-run on
+it: `test-leads` 30 and `test-notifications` 153 checks, both green, and leads and notifications
+are unchanged since T3, so the no-behaviour-change proof holds. **Rule for the rest of this stage
+and for the Tester: after any edit under `supabase/functions/`, `docker restart
+supabase_edge_runtime_aj_classes` before testing.**
+
+## T4. account-admin sends our own invite
+
+- New pure modules: `account-admin/invite-copy.ts`, `invite-email.ts`, `issue-invite.ts`.
+  `handlers/accounts.ts`: `createInvitedAccount` (staff get no `app_metadata`) and
+  `sendAccountInvite`; `sendInvite` and `sendSetupLink` removed. The four handlers per 03 §4.2.
+- `supabase/scripts/test-invite-redeem.mjs` unit section: token, render for tutor, admin, student
+  and parent, `issueInvite` orderings: **59 checks green**.
+- `local-test-helpers.mjs`: `serviceKey`, `adminApi`, `mailpitText`, `mailsTo`, `latestMailTo`,
+  `mailpitTotal` (03 §7 lists four; `mailsTo` and `mailpitTotal` were added for the "exactly one
+  email" and "no email" counts).
+- `test-account-admin.mjs`: **92 checks green** (49 before). Added: the new link pattern and no
+  old link, token row = SHA-256 of the token, unused, `invited_at = sent_at` (staff, student,
+  parent, both re-sends); re-send gives a new token and moves `invited_at` on (AC 12, 24);
+  AC 20 refused callers (signed out, invalid token, tutor, student, parent, admin without
+  two-step, each for invite / resend / cancel) with no token, mail, audit or account change;
+  AC 22 audit once per action; AC 35 one email per send; AC 41 no mail and no token when linking.
+- **Deviation (test only):** locally a call with only the publishable key gets past Kong, so a
+  signed-out invite gets `not_admin` 403, not 401. AC 20 allows either; the check accepts both. An
+  invalid bearer token does get the gateway's 401.
+- **Visible:** invited `dev-t42-…@local.test` from Staff → Invite staff in the browser (5173 from
+  this worktree). Mailpit: subject `You're invited to the AJ Classes portal`, link
+  `http://localhost:5173/portal/invite?token=<43 chars>`, line `This link expires in 14 days and
+  works once. …`.

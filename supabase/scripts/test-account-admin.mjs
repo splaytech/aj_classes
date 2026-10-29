@@ -1,15 +1,20 @@
 // End-to-end test of the account-admin edge function against the LOCAL stack (R2a design §10,
-// R3b design §5).
+// R3b design §5). Invites are our own 14-day links since ADR-0010 (invite delivery 03 §8.3 item 2).
 // Run: pnpm db:start && pnpm test:functions
 // Uses only local seed accounts (helpers: local-test-helpers.mjs).
 
+import { createHash } from 'node:crypto';
+
 import {
-  MAILPIT,
   SITE_ORIGIN,
   adminTwoStepToken,
   api,
   check,
   finish,
+  latestMailTo,
+  mailpitText,
+  mailpitTotal,
+  mailsTo,
   signIn,
   sql,
 } from './local-test-helpers.mjs';
@@ -17,10 +22,39 @@ import {
 const accountAdmin = (token, body, headers) =>
   api('/functions/v1/account-admin', { token, body, headers });
 const rpc = (token, name, body) => api(`/rest/v1/rpc/${name}`, { token, body });
-const latestMail = async () =>
-  (await (await fetch(`${MAILPIT}/api/v1/messages`)).json()).messages[0];
-const mailText = async (summary) =>
-  (await (await fetch(`${MAILPIT}/api/v1/message/${summary.ID}`)).json()).Text;
+const mailText = async (summary) => mailpitText(summary.ID);
+const INVITE_LINK =
+  /http:\/\/localhost:5173\/portal\/invite\?token=([A-Za-z0-9_-]{43})(?![A-Za-z0-9_-])/;
+const sha256 = (text) => createHash('sha256').update(text).digest('hex');
+const tokenRow = (profileId) =>
+  sql(
+    `select token_hash || '|' || (used_at is null) || '|' || (p.invited_at = t.sent_at) from private.invite_tokens t join public.profiles p on p.id = t.profile_id where t.profile_id = '${profileId}'`,
+  );
+const auditCount = (action) =>
+  sql(`select count(*) from public.audit_log where action = '${action}'`);
+
+/** Checks one invite email: our link (not Supabase's), and that only its hash is stored, unused,
+ * with profiles.invited_at equal to the send time (AC 31, 40; ADR-0010). Returns the token. */
+async function checkInviteMail(label, address, profileId) {
+  const mail = await latestMailTo(address);
+  const text = mail ? await mailText(mail) : '';
+  const token = text.match(INVITE_LINK)?.[1] ?? '';
+  check(`${label}: the e-mail links to /portal/invite?token=<43 chars>`, token !== '', text);
+  check(
+    `${label}: the e-mail has no Supabase or old confirm link`,
+    !/supabase|auth\/confirm/.test(text),
+  );
+  const [hash, unused, datesMatch] = tokenRow(profileId).split('|');
+  check(
+    `${label}: a token row holds the token's hash, not the token`,
+    hash === sha256(token) && hash !== token,
+  );
+  check(
+    `${label}: the link is unused, and invited_at = sent_at (AC 40)`,
+    unused === 'true' && datesMatch === 'true',
+  );
+  return token;
+}
 
 // ---------------------------------------------------------------------------------------------
 console.log('account-admin edge function (local)\n');
@@ -30,10 +64,60 @@ const tutor = await signIn('tutor@local.test');
 const tutorId = tutor.user.id;
 const newAdminId = sql("select id from auth.users where email = 'newadmin@local.test'");
 
-// Who may call it
+// Who may call it (AC 20). Every refused call carries a real invite body, and afterwards no token,
+// email or audit entry has appeared.
+const student = await signIn('student@local.test');
+const parent = await signIn('parent@local.test');
+const refusedEmail = `refused-${Date.now()}@local.test`;
+const refusedInvite = { action: 'invite', email: refusedEmail, fullName: 'Refused Person' };
+const before = {
+  tokens: sql('select count(*) from private.invite_tokens'),
+  mail: await mailpitTotal(),
+  audit: sql('select count(*) from public.audit_log'),
+};
 check(
   'No token → refused',
   [401, 403].includes((await accountAdmin(undefined, { action: 'invite' })).status),
+);
+// Locally the publishable key alone gets past Kong, so the function answers not_admin (AC 20
+// allows either).
+const signedOut = await accountAdmin(undefined, refusedInvite);
+check(
+  'Signed out (publishable key only), real invite body → 401 or not_admin 403 (AC 20)',
+  signedOut.status === 401 || (signedOut.status === 403 && signedOut.json?.code === 'not_admin'),
+  signedOut.status,
+);
+check(
+  'An invalid token → 401 from the gateway (AC 20)',
+  (await accountAdmin('not-a-real-token', refusedInvite)).status === 401,
+);
+for (const [who, session] of [
+  ['Tutor', tutor],
+  ['Student', student],
+  ['Parent', parent],
+]) {
+  for (const body of [
+    refusedInvite,
+    { action: 'resend-invite', userId: tutorId },
+    { action: 'cancel-invite', userId: tutorId },
+  ]) {
+    const reply = await accountAdmin(session.access_token, body);
+    check(
+      `${who} ${body.action} → 403 not_admin (AC 20)`,
+      reply.status === 403 && reply.json?.code === 'not_admin',
+    );
+  }
+}
+check(
+  'Admin without two-step, real invite body → 403 not_admin (AC 20)',
+  (await accountAdmin(admin.aal1, refusedInvite)).json?.code === 'not_admin',
+);
+check(
+  'After every refused call: no token, email or audit entry, and no account (AC 20)',
+  sql('select count(*) from private.invite_tokens') === before.tokens &&
+    (await mailpitTotal()) === before.mail &&
+    sql('select count(*) from public.audit_log') === before.audit &&
+    sql(`select count(*) from auth.users where email = '${refusedEmail}'`) === '0',
 );
 check(
   'Tutor → 403 not_admin',
@@ -80,13 +164,25 @@ check(
   sql(`select role || '|' || full_name from public.profiles where id = '${inviteeId}'`) ===
     'tutor|New Tutor',
 );
-const inviteMail = await latestMail();
+const inviteMail = await latestMailTo(email);
 check(
-  'Invite: e-mail went to the invitee',
-  inviteMail.To[0].Address === email,
-  inviteMail.To[0].Address,
+  'Invite: exactly one e-mail went to the invitee (AC 35)',
+  (await mailsTo(email)).length === 1,
+);
+check(
+  'Invite: subject "You\'re invited to the AJ Classes portal", from AJ Classes (AC 28)',
+  inviteMail?.Subject === "You're invited to the AJ Classes portal" &&
+    inviteMail?.From.Address === 'hello@ajclasses.com.au' &&
+    inviteMail?.From.Name === 'AJ Classes',
 );
 check('Invite: worded for staff', (await mailText(inviteMail)).includes('staff portal'));
+const firstStaffToken = await checkInviteMail('Invite', email, inviteeId);
+check(
+  'Invite: audited once as invite_sent (AC 22)',
+  sql(
+    `select count(*) from public.audit_log where action = 'invite_sent' and target_id = '${inviteeId}'`,
+  ) === '1',
+);
 check(
   'Invite: same e-mail again → already_exists',
   (await accountAdmin(admin.aal2, { action: 'invite', email, fullName: 'New Tutor' })).json
@@ -94,10 +190,32 @@ check(
 );
 
 // Resend and cancel
+sql(
+  `update public.profiles set invited_at = invited_at - interval '1 day' where id = '${inviteeId}'`,
+);
+const invitedBefore = sql(`select invited_at from public.profiles where id = '${inviteeId}'`);
 check(
   'Resend invite: ok',
   (await accountAdmin(admin.aal2, { action: 'resend-invite', userId: inviteeId })).json?.ok ===
     true,
+);
+check('Resend invite: a second e-mail went out (AC 35)', (await mailsTo(email)).length === 2);
+const resentToken = await checkInviteMail('Resend invite', email, inviteeId);
+check(
+  'Resend invite: a new token, so the old link is replaced (AC 12)',
+  resentToken !== firstStaffToken,
+);
+check(
+  'Resend invite: invited_at moved on to the re-send (AC 24)',
+  sql(
+    `select (invited_at > '${invitedBefore}'::timestamptz)::text from public.profiles where id = '${inviteeId}'`,
+  ) === 'true',
+);
+check(
+  'Resend invite: audited once as invite_resent (AC 22)',
+  sql(
+    `select count(*) from public.audit_log where action = 'invite_resent' and target_id = '${inviteeId}'`,
+  ) === '1',
 );
 check(
   'Resend invite: joined staff refused',
@@ -115,8 +233,15 @@ check(
     true,
 );
 check(
-  'Cancel invite: account removed',
-  sql(`select count(*) from auth.users where id = '${inviteeId}'`) === '0',
+  'Cancel invite: account removed, and its token row with it (AC 15)',
+  sql(`select count(*) from auth.users where id = '${inviteeId}'`) === '0' &&
+    sql(`select count(*) from private.invite_tokens where profile_id = '${inviteeId}'`) === '0',
+);
+check(
+  'Cancel invite: audited once as invite_cancelled (AC 22)',
+  sql(
+    `select count(*) from public.audit_log where action = 'invite_cancelled' and details ->> 'email' = '${email}'`,
+  ) === '1',
 );
 check(
   'Cancel invite: audit keeps the e-mail',
@@ -218,9 +343,13 @@ check(
     `select p.role || '|' || p.full_name from public.students s join public.profiles p on p.id = s.profile_id where s.id = '${studentId}'`,
   ) === `student|Function Test ${stamp}`,
 );
-const kidMail = await latestMail();
-check('Invite student: e-mail went to the student', kidMail.To[0].Address === kidEmail);
+const kidMail = await latestMailTo(kidEmail);
+check(
+  'Invite student: exactly one e-mail went to the student (AC 35)',
+  (await mailsTo(kidEmail)).length === 1,
+);
 check('Invite student: worded for students', (await mailText(kidMail)).includes('student portal'));
+await checkInviteMail('Invite student', kidEmail, kidId);
 check(
   'Invite student: only once per student',
   (await inviteKid({ email: `other-${stamp}@local.test` })).json?.code === 'already_has_account',
@@ -234,8 +363,9 @@ check(
 check(
   'Resend student invite: keeps the student wording',
   (await accountAdmin(admin.aal2, { action: 'resend-invite', userId: kidId })).json?.ok === true &&
-    (await mailText(await latestMail())).includes('student portal'),
+    (await mailText(await latestMailTo(kidEmail))).includes('student portal'),
 );
+await checkInviteMail('Resend student invite', kidEmail, kidId);
 
 check(
   'Invite parent: new parent needs a name',
@@ -255,16 +385,35 @@ check(
 );
 check(
   'Invite parent: worded for parents',
-  (await mailText(await latestMail())).includes('parent portal'),
+  (await mailText(await latestMailTo(parentEmail))).includes('parent portal'),
+);
+check(
+  'Invite parent: exactly one e-mail went to the parent (AC 35)',
+  (await mailsTo(parentEmail)).length === 1,
+);
+await checkInviteMail('Invite parent', parentEmail, parentId);
+check(
+  'Invite parent: audited once as parent_invited (AC 22)',
+  sql(
+    `select count(*) from public.audit_log where action = 'parent_invited' and target_id = '${parentId}'`,
+  ) === '1',
 );
 check(
   'Invite parent: same parent again → already_linked',
   (await inviteParent({ email: parentEmail })).json?.code === 'already_linked',
 );
+const existingParentId = sql("select id from public.profiles where email = 'parent@local.test'");
+const existingParentMails = (await mailsTo('parent@local.test')).length;
 const existingParent = await inviteParent({ email: 'parent@local.test' });
 check(
   'Invite parent: an existing parent is linked, not re-invited',
   existingParent.json?.ok === true && existingParent.json?.data?.linked === true,
+);
+check(
+  'Invite parent: linking sends no e-mail and makes no invite link (AC 41)',
+  (await mailsTo('parent@local.test')).length === existingParentMails &&
+    sql(`select count(*) from private.invite_tokens where profile_id = '${existingParentId}'`) ===
+      '0',
 );
 check(
   'Invite parent: linking is audited',

@@ -94,11 +94,11 @@ Local stack only, with the service key from `supabase status -o json` kept in a 
 
 ### T4. `account-admin` sends our own invite (03 §4.2)
 
-- [ ] **T4.1** Write the pure modules `invite-copy.ts`, `invite-email.ts` and `issue-invite.ts`. Create `supabase/scripts/test-invite-redeem.mjs` with its **unit** section: token, render for tutor, admin, student and parent, and the `issueInvite` orderings (03 §8.3 item 1, first three bullets).
+- [x] **T4.1** Write the pure modules `invite-copy.ts`, `invite-email.ts` and `issue-invite.ts`. Create `supabase/scripts/test-invite-redeem.mjs` with its **unit** section: token, render for tutor, admin, student and parent, and the `issueInvite` orderings (03 §8.3 item 1, first three bullets).
   - **Verify:** `node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/scripts/test-invite-redeem.mjs` is green.
-- [ ] **T4.2** Edit `handlers/accounts.ts` (`createInvitedAccount`, `sendAccountInvite`; remove `sendInvite` and `sendSetupLink`) and the four handlers, per 03 §4.2 "Per action".
+- [x] **T4.2** Edit `handlers/accounts.ts` (`createInvitedAccount`, `sendAccountInvite`; remove `sendInvite` and `sendSetupLink`) and the four handlers, per 03 §4.2 "Per action".
   - **Visible:** invite a staff member from the portal. Mailpit shows `You're invited to the AJ Classes portal`, a `/portal/invite?token=` link (43 chars), and the 14-day line.
-- [ ] **T4.3** Update `test-account-admin.mjs` (03 §8.3 item 2): the link pattern, token row ≠ token, `invited_at = sent_at`, AC 20 callers with "no change" counts, AC 22 audit counts, AC 41.
+- [x] **T4.3** Update `test-account-admin.mjs` (03 §8.3 item 2): the link pattern, token row ≠ token, `invited_at = sent_at`, AC 20 callers with "no change" counts, AC 22 audit counts, AC 41.
   - **Verify:** `pnpm test:functions` is green.
 
 ### T5. `invite-redeem` (03 §4.3)

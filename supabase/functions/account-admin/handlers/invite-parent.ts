@@ -15,11 +15,11 @@ import {
 
 import {
   audit,
-  createFamilyAccount,
+  createInvitedAccount,
   deleteAccount,
   findAccountByEmail,
   findStudent,
-  sendInvite,
+  sendAccountInvite,
 } from './accounts.ts';
 import type { StudentRecord } from './accounts.ts';
 
@@ -48,7 +48,7 @@ export async function inviteParent(
   const fullName = cleanName(input.fullName);
   if (!isValidName(fullName)) return fail('invalid_name');
 
-  const created = await createFamilyAccount(email, fullName, 'parent');
+  const created = await createInvitedAccount(email, fullName, 'parent');
   if ('code' in created) return fail(created.code);
 
   const code = await link(student.id, created.userId);
@@ -56,7 +56,7 @@ export async function inviteParent(
     await deleteAccount(created.userId);
     return fail(code);
   }
-  if (!(await sendInvite(email))) {
+  if (!(await sendAccountInvite({ id: created.userId, email, role: 'parent' }))) {
     await deleteAccount(created.userId);
     return fail('email_failed');
   }
