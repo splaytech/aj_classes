@@ -133,6 +133,7 @@ Test on staging, then repeat with the prod ref. `db push` does not run `seed.sql
 - **Troubleshooting:**
   - "This invitation link has expired…" covers expired, used, replaced, cancelled, garbled and old-format links, an account that already joined, and the rate limit. They all look the same on purpose. Fix: **Resend invite**.
   - **Closed the tab after Continue:** the link is used up, so re-send.
+  - **Sent from Studio's "Send invitation":** the account shows `Invited` for 14 days, but that Supabase link is refused. Use **Resend invite** in the portal instead.
   - **Hosted Auth logs** show each redeem as `user_recovery_requested` followed by a login for that account. That is the sign-in hop, not the person asking for a password reset.
   - **After a rollback** (or to undo the migration's clean-up of pending invites), restore pending invite dates from Auth's own record:
 
