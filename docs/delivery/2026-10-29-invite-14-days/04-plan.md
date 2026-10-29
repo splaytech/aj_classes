@@ -80,11 +80,11 @@ Local stack only, with the service key from `supabase status -o json` kept in a 
 
 ### T2. Migration and pgTAP (03 §2, §3)
 
-- [ ] **T2.1** Write `supabase/migrations/20261030100000_invite_tokens.sql` exactly as in 03 §2 (comments may be reworded), then run `supabase migration up`.
+- [x] **T2.1** Write `supabase/migrations/20261030100000_invite_tokens.sql` exactly as in 03 §2 (comments may be reworded), then run `supabase migration up`.
   - **Verify:** the T0.3 migration check prints `20261030100000`, and `docker exec supabase_db_aj_classes psql -U postgres -Atc "select count(*) from public.profiles where status = 'invited' and invited_at is not null"` prints `0` (step 6 ran; AC 25).
-- [ ] **T2.2** Write `supabase/tests/database/invite_tokens.test.sql` (03 §3, rows 1–18, and the three traps). Don't wrap it in your own transaction.
+- [x] **T2.2** Write `supabase/tests/database/invite_tokens.test.sql` (03 §3, rows 1–18, and the three traps). Don't wrap it in your own transaction.
   - **Verify:** `pnpm db:test` gives 18 files, PASS.
-- [ ] **T2.3** Run `pnpm db:types`.
+- [x] **T2.3** Run `pnpm db:types`.
   - **Verify:** `grep -c "invite_token_" apps/web/src/services/database.types.ts` is 3 or more, and `pnpm typecheck` is clean.
 
 ### T3. Shared modules, with no behaviour change (03 §4.1)

@@ -67,3 +67,18 @@ that restart.
 `POST /api/v1/send` in `mailpitRequest`'s shape with `To` = `has space@local.test`, `no-at-sign` or
 an empty string → `400 {"Error":"invalid To address: …"}` each time. `outcomeForStatus(400)` is
 `failed rejected`, so the full S4 sequence becomes an automated check in T5.5 (03 §9 S4).
+
+## T2. Migration and pgTAP
+
+- `supabase/migrations/20261030100000_invite_tokens.sql` is 03 §2 byte for byte. The copied
+  `handle_updated_auth_user()` differs from `20261023100000` lines 69–83 only in the guarded
+  `invited_at` line (checked with `diff`).
+- `supabase migration up` applied only `20261030100000`. Newest applied version is now
+  `20261030100000`; `invited` profiles with a non-null `invited_at`: `0` (there were 0 invited
+  profiles locally before, so step 6 had nothing to clear here).
+- `supabase/tests/database/invite_tokens.test.sql`: rows #1–#18 of 03 §3 with the three traps
+  (`proconfig` as `text[]`, one `client_ip_hash` per group, table selects as in
+  `enquiries.test.sql`). Not wrapped in an extra transaction.
+- `pnpm db:test`: **18 files, 834 tests, PASS** (baseline 17 files, 747). The local seed is intact
+  afterwards (6 auth users).
+- `pnpm db:types`: adds the three RPCs (`grep -c invite_token_` = 3); `pnpm typecheck` clean.
