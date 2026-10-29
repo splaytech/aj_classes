@@ -33,3 +33,13 @@ Fixed: the `redeem.ts` delete is gone (a mismatch refuses, releases once, warns 
 3. `invite.tsx:5`: a 168-character comment line; reflow it.
 4. `admin-student.test.tsx:179-181`: make the reload fixture change only the re-sent row (assert 2 → 1 "Invite expired").
 5. `supabase/README.md:392-398`: a redeem in flight during the kill-switch `update` can set one link back to unused; say "run it again after a minute".
+
+## Round 3 (fix batch 2, `2e3c3e1..221f0bc`)
+
+APPROVED
+
+Round 2 #1 is fixed (`invite.tsx:49-65`), checked on the gate build: a same-tab re-open of A, then B, leaves `/portal/invite` each time with history growing by one; going back three times never finds a token; there is no render loop and no double redeem; `?token=` is still ignored and wiped. The new unit test and the reworked e2e (a fresh page per open, plus a same-tab block) are sound; the round-2 expectation that the old e2e failed was wrong, and the Developer's before/after runs hold. The docs (#2) and nits 3–5 are fixed.
+
+### Non-blocking (fixed in this branch)
+
+1. **A late result from the first link can overwrite a re-opened link's screen** (`invite.tsx:57-58`, `:66-74`). Open A and click Continue (hangs); open B in the same tab and click Continue; A answers `invite_invalid`, and the page shows "expired" while valid B is in flight. Not a security issue, but the message is untrue. Fix: remember the token each request started for, drop the result after each `await` if it changed, and add a unit test.
