@@ -48,16 +48,10 @@ function realSteps(request: Request): RedeemSteps {
       // action_link and email_otp are never read: only the hashed token goes back to the browser.
       return {
         userId: data.user.id,
-        userCreatedAt: data.user.created_at,
         verificationType: data.properties.verification_type,
         hashedToken: data.properties.hashed_token,
       };
     },
-    deleteUser: async (userId) => {
-      const { error } = await service.auth.admin.deleteUser(userId);
-      if (error) throw error;
-    },
-    now: Date.now,
   };
 }
 

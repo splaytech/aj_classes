@@ -6,12 +6,8 @@
 
 import { hashInviteToken, isInviteToken } from '../_shared/invite-token.ts';
 
-// GoTrue may create a user only for a non-recovery link; a user it just made is under a minute old.
-const STRAY_USER_MAX_AGE_MS = 60_000;
-
 export type RecoveryLink = {
   userId: string;
-  userCreatedAt: string;
   verificationType: string;
   hashedToken: string;
 };
@@ -21,12 +17,10 @@ export type RedeemSteps = {
   release: (hash: string) => Promise<void>; // invite_token_release
   emailOf: (profileId: string) => Promise<string | null>; // null: no such auth user
   recoveryLink: (email: string) => Promise<RecoveryLink | null>; // null: 404 user_not_found
-  deleteUser: (userId: string) => Promise<void>;
-  now: () => number;
 };
 
 export type RefusalReason =
-  'shape' | 'claim' | 'rate_limited' | 'no_user' | 'not_found' | 'mismatch' | 'stray_user_removed';
+  'shape' | 'claim' | 'rate_limited' | 'no_user' | 'not_found' | 'mismatch';
 
 export type RedeemOutcome =
   { kind: 'ok'; tokenHash: string } | { kind: 'refused'; reason: RefusalReason };
@@ -59,38 +53,13 @@ async function signInHop(profileId: string, steps: RedeemSteps): Promise<RedeemO
   const link = await steps.recoveryLink(email);
   if (link === null) return refused('not_found'); // deleted between the claim and now
 
-  if (link.userId === profileId && link.verificationType === 'recovery') {
-    return { kind: 'ok', tokenHash: link.hashedToken };
-  }
-  return refuseOtherAccount(profileId, link, steps);
+  // A link for any other account, or of any other type, is refused and nothing is deleted: this
+  // signed-out endpoint never removes a user (06-security finding 2). The claim is released.
+  if (link.userId !== profileId || link.verificationType !== 'recovery') return refused('mismatch');
+  return { kind: 'ok', tokenHash: link.hashedToken };
 }
 
-/**
- * The link is for a different account, or isn't a recovery link. A recovery link never creates a
- * user, so a different user there is a real account (for example the admin cancelled and at once
- * re-invited the same e-mail): never delete it. Only a non-recovery link for a different user made
- * in the last minute can be one GoTrue just created, and only that one is removed (review-3).
- */
-async function refuseOtherAccount(
-  profileId: string,
-  link: RecoveryLink,
-  steps: RedeemSteps,
-): Promise<RedeemOutcome> {
-  const isStrayUser =
-    link.userId !== profileId &&
-    link.verificationType !== 'recovery' &&
-    steps.now() - Date.parse(link.userCreatedAt) < STRAY_USER_MAX_AGE_MS;
-  if (!isStrayUser) return refused('mismatch');
-
-  await steps.deleteUser(link.userId);
-  return refused('stray_user_removed');
-}
-
-const WARN_REASONS: ReadonlySet<RefusalReason> = new Set([
-  'rate_limited',
-  'mismatch',
-  'stray_user_removed',
-]);
+const WARN_REASONS: ReadonlySet<RefusalReason> = new Set(['rate_limited', 'mismatch']);
 
 /** Logs the outcome by name only: never the token, a hash, an e-mail or a user id (AC 8). */
 export function logRedeemOutcome(outcome: RedeemOutcome): void {

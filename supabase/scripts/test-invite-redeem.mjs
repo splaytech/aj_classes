@@ -42,7 +42,7 @@ import { logRedeemOutcome, redeemInvite } from '../functions/invite-redeem/redee
 const SITE = 'http://localhost:5173';
 const EXPIRY_LINE =
   'This link expires in 14 days and works once. If it has expired, ask AJ Classes to send you a new one.';
-const LINK_PATTERN = /http:\/\/localhost:5173\/portal\/invite\?token=([A-Za-z0-9_-]{43})/;
+const LINK_PATTERN = /http:\/\/localhost:5173\/portal\/invite#token=([A-Za-z0-9_-]{43})/;
 
 function tokenUnitChecks() {
   console.log('\nUnit: invite token');
@@ -84,7 +84,7 @@ function renderUnitChecks() {
   check(
     'inviteLink trims trailing slashes',
     inviteLink('https://ajclasses.com.au//', 'abc') ===
-      'https://ajclasses.com.au/portal/invite?token=abc',
+      'https://ajclasses.com.au/portal/invite#token=abc',
   );
 
   const link = inviteLink(SITE, newInviteToken());
@@ -191,11 +191,9 @@ async function issueUnitChecks() {
 
 const ACCOUNT = '11111111-1111-1111-1111-111111111111';
 const OTHER = '22222222-2222-2222-2222-222222222222';
-const NOW = Date.parse('2026-10-29T03:00:00Z');
-const JUST_NOW = new Date(NOW - 5_000).toISOString();
-const LONG_AGO = new Date(NOW - 3_600_000).toISOString();
-
-/** Fake redeem I/O. `overrides` replaces any step; every call is recorded. */
+/** Fake redeem I/O. `overrides` replaces any step; every call is recorded. `deleteUser` isn't a
+ * redeem step any more (06-security finding 2): it is passed anyway as a tripwire, so a check can
+ * prove nothing ever tries to remove a user. */
 function fakeRedeem(overrides = {}) {
   const calls = { claim: [], release: [], emailOf: [], recoveryLink: [], deleteUser: [] };
   const record = (name, fn) => async (arg) => {
@@ -211,13 +209,11 @@ function fakeRedeem(overrides = {}) {
       overrides.recoveryLink ??
         (() => ({
           userId: ACCOUNT,
-          userCreatedAt: LONG_AGO,
           verificationType: 'recovery',
           hashedToken: 'hop-hash',
         })),
     ),
-    deleteUser: record('deleteUser', overrides.deleteUser ?? (() => undefined)),
-    now: () => NOW,
+    deleteUser: record('deleteUser', () => undefined),
   };
   return { calls, steps };
 }
@@ -300,6 +296,21 @@ async function redeemUnitChecks() {
     goneOutcome.reason === 'not_found' && gone.calls.release.length === 1,
   );
 
+  const releaseFails = fakeRedeem({
+    recoveryLink: () => null,
+    release: () => Promise.reject(new Error('db down')),
+  });
+  const releaseFailed = await redeemInvite(token, releaseFails.steps).then(
+    () => false,
+    () => true,
+  );
+  check(
+    'Refused not_found but the release fails → redeemInvite rejects (a 500), deletes nothing',
+    releaseFailed &&
+      releaseFails.calls.release.length === 1 &&
+      releaseFails.calls.deleteUser.length === 0,
+  );
+
   const linkThrows = fakeRedeem({ recoveryLink: () => Promise.reject(new Error('auth down')) });
   const linkThrew = await redeemInvite(token, linkThrows.steps).then(
     () => false,
@@ -320,75 +331,32 @@ async function redeemUnitChecks() {
     emailThrew && emailThrows.calls.release.length === 1,
   );
 
-  console.log('\nUnit: identity check (03 §8.2 table)');
+  console.log('\nUnit: identity check (03 §8.2 table, fix batch 1: never deletes)');
   const identityRows = [
-    {
-      name: 'another user, recovery, < 60 s',
-      userId: OTHER,
-      type: 'recovery',
-      created: JUST_NOW,
-      reason: 'mismatch',
-      deletes: false,
-    },
-    {
-      name: 'another user, recovery, older',
-      userId: OTHER,
-      type: 'recovery',
-      created: LONG_AGO,
-      reason: 'mismatch',
-      deletes: false,
-    },
-    {
-      name: 'another user, magiclink, < 60 s',
-      userId: OTHER,
-      type: 'magiclink',
-      created: JUST_NOW,
-      reason: 'stray_user_removed',
-      deletes: true,
-    },
-    {
-      name: 'another user, magiclink, older',
-      userId: OTHER,
-      type: 'magiclink',
-      created: LONG_AGO,
-      reason: 'mismatch',
-      deletes: false,
-    },
-    {
-      name: 'same user, magiclink',
-      userId: ACCOUNT,
-      type: 'magiclink',
-      created: JUST_NOW,
-      reason: 'mismatch',
-      deletes: false,
-    },
+    { name: 'another user, recovery', userId: OTHER, type: 'recovery' },
+    { name: 'another user, magiclink', userId: OTHER, type: 'magiclink' },
+    { name: 'same user, magiclink', userId: ACCOUNT, type: 'magiclink' },
   ];
   for (const row of identityRows) {
     const fake = fakeRedeem({
-      recoveryLink: () => ({
-        userId: row.userId,
-        userCreatedAt: row.created,
-        verificationType: row.type,
-        hashedToken: 'x',
-      }),
+      recoveryLink: () => ({ userId: row.userId, verificationType: row.type, hashedToken: 'x' }),
     });
     let outcome;
     const logs = await captureLogs(async () => {
       outcome = await redeemInvite(token, fake.steps);
       logRedeemOutcome(outcome);
     });
-    const deleted = fake.calls.deleteUser;
     check(
-      `${row.name} → ${row.reason}, ${row.deletes ? 'deleteUser(that id)' : 'deleteUser never called'}, released once`,
-      outcome.reason === row.reason &&
-        (row.deletes ? deleted.length === 1 && deleted[0] === OTHER : deleted.length === 0) &&
-        fake.calls.release.length === 1,
+      `${row.name} → mismatch, released once, no user deleted`,
+      outcome.reason === 'mismatch' &&
+        fake.calls.release.length === 1 &&
+        fake.calls.deleteUser.length === 0,
     );
     check(
-      `${row.name}: logs a warning with the reason only, no id`,
+      `${row.name}: logs "invite-redeem mismatch" at warn, no id`,
       logs.length === 1 &&
         logs[0].level === 'warn' &&
-        logs[0].text === `invite-redeem ${row.reason}` &&
+        logs[0].text === 'invite-redeem mismatch' &&
         !logs[0].text.includes(OTHER) &&
         !logs[0].text.includes(ACCOUNT),
     );
@@ -753,7 +721,7 @@ async function rateLimitChecks() {
   for (let i = 0; i < 11; i += 1)
     replies.push(await redeem({ token: newInviteToken() }, { address }));
   check(
-    '10 redeems from one address are answered',
+    '10 redeems from one address fill the bucket (each refused as an unknown link)',
     replies.slice(0, 10).every((reply) => reply.text === REFUSED),
   );
   check(
