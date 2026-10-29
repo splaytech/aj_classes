@@ -433,3 +433,9 @@ The stack goes back to the Tester at the fix-batch-2 commits, mount checked. Sta
 worktree: mount `1`, newest migration `20261030100000`, final `pnpm db:reset` done (6 auth users,
 0 invite tokens). :5173 and :4173 are free; no `functions serve` or mirror is running.
 `apps/web/build/` holds the local-Supabase gate build (gitignored).
+
+## Fix batch 3 (review-5 round 3 APPROVED, non-blocking #1)
+
+- **Change:** `invite.tsx` keeps the on-screen token in a ref, updated whenever the token changes. `handleContinue` (which Try again also uses) remembers the token it started for. After the redeem, and again after the request finishes, it drops the result if a newer link replaced that token in the same tab. So a late answer for link A never shows a false "expired" message, starts A's sign-in, or leaves a Try again holding A's hop token while B is on screen.
+- **Test:** new `invite.test.tsx` case. Hold A's redeem, re-open with B, click Continue, then answer A with `inviteExpired`: the page keeps "Checking your link…" for B, never shows the refused message, and never starts A's sign-in. It fails on the fix-batch-2 code and passes now.
+- **Gates (stack, ports and e2e not touched; a Reviewer and the Tester hold them):** the full check (`format:check && lint && typecheck && test && VITE_APP_ENV=production build`) is green: web **76 files, 657 tests**, e2e unit 6/6. `pnpm test` was run twice more: 657/657, 0 failed both times. The build step replaced `apps/web/build/` with a normal production build (gitignored), so the local-Supabase build from fix batch 2 is gone.

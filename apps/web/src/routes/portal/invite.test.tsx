@@ -102,6 +102,28 @@ describe('invite page (ADR-0010)', () => {
     expect(redeemInvite).toHaveBeenCalledWith(NEWER_TOKEN);
   });
 
+  it("a late result for the first link never overwrites a re-opened link's screen (review-5 round 3)", async () => {
+    let answerFirst: (result: Awaited<ReturnType<typeof redeemInvite>>) => void = () => {};
+    vi.mocked(redeemInvite)
+      .mockReturnValueOnce(new Promise((resolve) => (answerFirst = resolve)))
+      .mockReturnValueOnce(new Promise(() => {}));
+    const user = setupUser();
+    renderPage(withToken);
+
+    await user.click(continueButton());
+    expect(screen.getByRole('button', { name: AUTH_CONFIRM_PAGE.checking })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'reopen' }));
+    await user.click(continueButton());
+    expect(redeemInvite).toHaveBeenLastCalledWith(NEWER_TOKEN);
+
+    answerFirst({ ok: false, error: 'inviteExpired' });
+
+    // B is still checking; A's refusal is dropped.
+    expect(await screen.findByRole('button', { name: AUTH_CONFIRM_PAGE.checking })).toBeDisabled();
+    await waitFor(() => expect(screen.queryByText(PORTAL_ERRORS.inviteExpired)).toBeNull());
+    expect(signInWithInviteHop).not.toHaveBeenCalled();
+  });
+
   it('ignores a token in the query string: links carry it in the fragment', () => {
     renderPage(`?${PORTAL_FRAGMENT.inviteToken}=${TOKEN}`);
 

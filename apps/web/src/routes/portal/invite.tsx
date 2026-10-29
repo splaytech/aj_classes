@@ -9,7 +9,7 @@
 // (invite-onboarding design). Every refused link reads the same, whatever the reason (AC 11).
 // The ErrorBoundary is portal-root's, as for every portal page.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 
 import { AuthCard, FormAlert } from '@/components/portal';
@@ -31,14 +31,22 @@ export function meta() {
   return buildPortalMeta(PORTAL_SEO.invite);
 }
 
-/** Redeems the link and signs in; with a hop token from a failed sign-in, only signs in again. */
+// A newer link opened in the same tab while this request was in flight: its result is dropped.
+const SUPERSEDED = { kind: 'superseded' } as const;
+
+/**
+ * Redeems the link and signs in; with a hop token from a failed sign-in, only signs in again.
+ * `isCurrent` is checked after the redeem, so a replaced link never goes on to sign in.
+ */
 async function redeemAndSignIn(
   token: string,
   hopToken: string | null,
-): Promise<{ kind: 'signedIn' } | InviteStep> {
+  isCurrent: () => boolean,
+): Promise<{ kind: 'signedIn' } | InviteStep | typeof SUPERSEDED> {
   if (hopToken) return afterHop(await signInWithInviteHop(hopToken), hopToken);
 
   const redeemed = afterRedeem(await redeemInvite(token));
+  if (!isCurrent()) return SUPERSEDED;
   if (redeemed.kind !== 'hop') return redeemed;
   return afterHop(await signInWithInviteHop(redeemed.tokenHash), redeemed.tokenHash);
 }
@@ -50,6 +58,11 @@ export default function InvitePage() {
   // The in-memory copy: the address bar is cleared straight away (below).
   const [token, setToken] = useState(hashToken);
   const [step, setStep] = useState<InviteStep>({ kind: 'ready' });
+  // The token on screen now, for requests to check when they finish (review-5 round 3 #1).
+  const currentToken = useRef(token);
+  useEffect(() => {
+    currentToken.current = token;
+  }, [token]);
 
   // A newer link opened in the same tab replaces the one in memory (set during render, the React
   // pattern for state that follows a changed input).
@@ -69,10 +82,14 @@ export default function InvitePage() {
   }
 
   async function handleContinue() {
+    const startedFor = token;
+    const isCurrent = () => currentToken.current === startedFor;
     const hopToken = step.kind === 'retry' ? step.tokenHash : null;
     setStep({ kind: 'checking' });
 
-    const next = await redeemAndSignIn(token, hopToken);
+    const next = await redeemAndSignIn(startedFor, hopToken, isCurrent);
+    // A newer link replaced this one while it was checking: its screen wins.
+    if (next.kind === 'superseded' || !isCurrent()) return;
     if (next.kind === 'signedIn') {
       navigate(PORTAL_ROUTES.join, { replace: true });
       return;
