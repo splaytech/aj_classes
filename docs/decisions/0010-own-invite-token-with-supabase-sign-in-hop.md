@@ -33,7 +33,7 @@ Saurabh wants invites to stay valid for 14 days. Password-reset and sign-in link
 
    It claims the token while holding a `for share` lock on the profile, then calls `auth.admin.generateLink({ type: 'recovery' })`.
    - `recovery`, not `magiclink`: for an unknown e-mail, `magiclink` silently signs the user up (GoTrue v2.197.0 `mail.go:76-84`), while `recovery` returns 404 (`:85-86`). For an existing user the two behave identically.
-   - The function requires the reply's `user.id` to equal the claimed profile and `verification_type` to be `recovery`. Otherwise it deletes any stray new user, releases the claim and refuses.
+   - The function requires the reply's `user.id` to equal the claimed profile and `verification_type` to be `recovery`. Otherwise it releases the claim and refuses. It deletes a user only when that user differs, the reply isn't `recovery`, and the user was created under 60 s ago (a user GoTrue may have just made). On `recovery` it never deletes, because a mismatched user is then a real account (corrected after review-3).
    - It returns only `hashed_token`. The browser calls `verifyOtp({ token_hash, type: 'recovery' })` straight away (one automatic retry, then `Try again`), and then opens the existing setup form.
    - There is no `type: 'email'` fallback. `account-admin` keeps `verify_jwt = true`.
 5. **`invited_at`.** It is set only by `invite_token_store`. The `auth.users` update trigger copies Auth's `invited_at` only when it changes to a non-null value, so the sign-in hop can't wipe it.
