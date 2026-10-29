@@ -126,15 +126,15 @@ Local stack only, with the service key from `supabase status -o json` kept in a 
 
 Per-file proof: `pnpm --filter web exec vitest run <test file>`. Whole-web proof at the end of T6: `pnpm lint && pnpm typecheck && pnpm test`.
 
-- [ ] **T6.1** Constants: `INVITE_LIMITS`, `PORTAL_ROUTES.invite`, `PORTAL_QUERY.inviteToken`, `PORTAL_SEO.invite`, `INVITE_DIALOG.intro`; remove `AUTH_LINK_ERRORS.invite`. Add `constants/invite-copy.test.ts` (AC 26, 32).
-- [ ] **T6.2** `lib/account-status.ts` uses the 336 h rule; replace the 1-hour cases in `account-status.test.ts` with the AC 23 samples plus null → expired.
-- [ ] **T6.3** Services: `invokeEdgeFunction`, `invites.service.ts`, `confirmRecoveryLink`, `invite_invalid` → `inviteExpired`, and the exports. Add `invites.service.test.ts` (retry once on `network` only).
-- [ ] **T6.4** Add `lib/invite-steps.ts` and `invite-steps.test.ts`, covering every row of the 03 §5.4 table.
-- [ ] **T6.5** Add the `/portal/invite` route, `invite.tsx` and `invite.test.tsx` (five states, no call on render, `replaceState` before `redeemInvite`, both Try-again paths).
+- [x] **T6.1** Constants: `INVITE_LIMITS`, `PORTAL_ROUTES.invite`, `PORTAL_QUERY.inviteToken`, `PORTAL_SEO.invite`, `INVITE_DIALOG.intro`; remove `AUTH_LINK_ERRORS.invite`. Add `constants/invite-copy.test.ts` (AC 26, 32).
+- [x] **T6.2** `lib/account-status.ts` uses the 336 h rule; replace the 1-hour cases in `account-status.test.ts` with the AC 23 samples plus null → expired.
+- [x] **T6.3** Services: `invokeEdgeFunction`, `invites.service.ts`, `confirmRecoveryLink`, `invite_invalid` → `inviteExpired`, and the exports. Add `invites.service.test.ts` (retry once on `network` only).
+- [x] **T6.4** Add `lib/invite-steps.ts` and `invite-steps.test.ts`, covering every row of the 03 §5.4 table.
+- [x] **T6.5** Add the `/portal/invite` route, `invite.tsx` and `invite.test.tsx` (five states, no call on render, `replaceState` before `redeemInvite`, both Try-again paths).
   - **Visible:** Mailpit link → `Continue` → `/portal/join` in the browser (5173 served from this worktree, T0.3). The address bar has no `?token=`.
-- [ ] **T6.6** `auth-confirm.tsx` refuses `type=invite` locally; add `auth-confirm.test.tsx`.
+- [x] **T6.6** `auth-confirm.tsx` refuses `type=invite` locally; add `auth-confirm.test.tsx`.
   - **Visible:** the old-format fixture (03 §8.1 item 4) shows AC 9.
-- [ ] **T6.7** Hide `Invited on` when it's null (`admin-staff-member.tsx`, `admin-student.tsx`).
+- [x] **T6.7** Hide `Invited on` when it's null (`admin-staff-member.tsx`, `admin-student.tsx`).
   - **Visible:** a pending invite from before the migration shows `Invite expired` and no `Invited on` line.
 
 ### T7. Docs (03 §6)

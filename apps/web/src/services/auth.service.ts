@@ -4,7 +4,7 @@
 import { clearStoredSession, getSupabase, isPortalConfigured } from './supabase.client';
 import { attempt, fail, succeed } from './result';
 import { toErrorKey } from './auth-errors';
-import type { AccessState, EmailLinkType, OnboardingInfo, Result } from './types';
+import type { AccessState, OnboardingInfo, Result } from './types';
 
 const SIGNED_OUT: AccessState = {
   signedIn: false,
@@ -69,13 +69,17 @@ export async function requestPasswordReset(email: string, captchaToken: string):
   });
 }
 
-/** Uses the token from an invite or reset email to sign the person in (design §9.1). */
-export async function confirmEmailLink(tokenHash: string, type: EmailLinkType): Promise<Result> {
+/**
+ * Signs the person in with a one-time recovery token: from a reset email (design §9.1), or the
+ * one invite-redeem hands back (ADR-0010). Always type 'recovery', so no code path can verify a
+ * Supabase invite token any more (AC 38).
+ */
+export async function confirmRecoveryLink(tokenHash: string): Promise<Result> {
   if (!isPortalConfigured()) return fail('notConfigured');
 
   return attempt(async () => {
     const supabase = await getSupabase();
-    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' });
     return error ? fail(toErrorKey(error)) : succeed();
   });
 }

@@ -161,3 +161,21 @@ supabase_edge_runtime_aj_classes` before testing.**
 - `package.json` `test:functions` runs four scripts: **green, 416 checks** (`test-account-admin` 92,
   `test-leads` 30, `test-notifications` 153, `test-invite-redeem` 141). The function log holds only
   `invite-redeem <reason>` lines.
+
+## T6. Web
+
+| Task | Change | Proof |
+|---|---|---|
+| T6.1 | `INVITE_LIMITS` (336 h, days derived), `PORTAL_ROUTES.invite`, `PORTAL_QUERY.inviteToken`, `PORTAL_SEO.invite`, `INVITE_DIALOG.intro` (14 days); `AUTH_LINK_ERRORS.invite` removed; `AUTH_LIMITS.linkExpiryHours` comment now says reset links only | `constants/invite-copy.test.ts` (3 tests: AC 26, AC 32) |
+| T6.2 | `lib/account-status.ts` uses `INVITE_LIMITS.linkLifetimeHours`, strict `<` | `account-status.test.ts`: 13 d, 13 d 23 h → invited; 336 h exactly, 14 d 1 min, null → expired |
+| T6.3 | `invokeEdgeFunction` extracted (account-admin and leads unchanged), `services/invites.service.ts`, `confirmRecoveryLink` (always `type: 'recovery'`), `invite_invalid → inviteExpired`, exports | `invites.service.test.ts` (9 tests: mapping, missing `tokenHash` → `unknown`, retry exactly once on `network`, not on `linkExpired`) |
+| T6.4 | `lib/invite-steps.ts` | `invite-steps.test.ts` (11 tests, every §5.4 row) |
+| T6.5 | `/portal/invite` route and `invite.tsx` | `invite.test.tsx` (9 tests: missing, ready with no call on render, garbled shows Continue, `replaceState` before `redeemInvite`, checking, refused (redeem and hop), both Try-again paths). **Browser:** UI invite → Mailpit link opened 3 times → Continue → `/portal/join`, `location.search` = `''`; the same link in a fresh context → AC 9 |
+| T6.6 | `auth-confirm.tsx` refuses `type=invite` with no request; recovery unchanged | `auth-confirm.test.tsx` (4 tests). **Browser (375 px):** old-format fixture → Continue → AC 9 text and sign-in link, 0 `/auth/v1/verify` requests, `last_sign_in_at` still null |
+| T6.7 | `Invited on` hidden when null (`admin-staff-member.tsx`, `admin-student.tsx`) | **Browser:** an invited account with no `invited_at` shows `Invite expired`, `The link has expired. Send a new one.`, and no `Invited on` line |
+
+- **Deviation (mechanical):** `invite.tsx` keeps the token with `useState(() => searchParams.get(…))`
+  captured on first render, instead of a `useRef` set on click. Same effect (Try again never reads
+  the address bar), and it avoids reading a ref during render.
+- **Whole web:** `pnpm lint && pnpm typecheck && pnpm test` green: web **74 files, 645 tests**
+  (baseline 69 / 606), e2e unit 6/6.

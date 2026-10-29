@@ -23,6 +23,7 @@ export const PORTAL_ROUTES = {
   loginVerify: '/portal/login/verify',
   forgotPassword: '/portal/forgot-password',
   authConfirm: '/portal/auth/confirm',
+  invite: '/portal/invite', // invite email link (ADR-0010); must match account-admin/invite-copy.ts INVITE_PATH
   setPassword: '/portal/set-password',
   join: '/portal/join', // setup form after an invite link (invite-onboarding design)
   account: '/portal/account',
@@ -99,7 +100,8 @@ export const LEGAL_LINKS: { privacy: string; terms: string | null } = {
 export const PORTAL_QUERY = {
   next: 'next', // where to go after signing in
   reason: 'reason', // why the person was sent to the sign-in page
-  tokenHash: 'token_hash', // from invite and reset emails (supabase/templates)
+  tokenHash: 'token_hash', // from reset emails (supabase/templates/recovery.html) and old invite links
+  inviteToken: 'token', // invite email link (ADR-0010); must match INVITE_TOKEN_PARAM
   linkType: 'type',
 } as const;
 

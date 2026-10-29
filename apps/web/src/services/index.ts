@@ -11,7 +11,7 @@ export { submitEnquiry } from './enquiry.service';
 export { subscribe } from './subscription.service';
 export {
   changePassword,
-  confirmEmailLink,
+  confirmRecoveryLink,
   forgetDeactivatedSession,
   getAccessState,
   requestPasswordReset,
@@ -22,6 +22,7 @@ export {
   watchForSignOut,
 } from './auth.service';
 export { completeOnboarding } from './onboarding.service';
+export { redeemInvite, signInWithInviteHop } from './invites.service';
 export { getMyConsents, setMyConsents } from './consents.service';
 export {
   getMyNotificationSettings,

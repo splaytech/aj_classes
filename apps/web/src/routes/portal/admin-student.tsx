@@ -252,9 +252,12 @@ function PendingInvite({
   return (
     <>
       <Typography>{texts.email(account.email)}</Typography>
-      <Typography color="textSecondary">
-        {texts.invitedOn(formatDateTime(account.invitedAt))}
-      </Typography>
+      {/* Invites sent before ADR-0010 have no date; they show only as expired (AC 25). */}
+      {account.invitedAt && (
+        <Typography color="textSecondary">
+          {texts.invitedOn(formatDateTime(account.invitedAt))}
+        </Typography>
+      )}
       {expired && <Alert severity="warning">{texts.expired}</Alert>}
       <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap' }}>
         <Button

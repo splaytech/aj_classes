@@ -140,7 +140,12 @@ function InviteSection({ person }: { person: StaffMember }) {
   return (
     <SectionCard title={STAFF_MEMBER_PAGE.invite.heading}>
       <Stack spacing={3}>
-        <Typography>{STAFF_MEMBER_PAGE.invite.sentOn(formatDateTime(person.invitedAt))}</Typography>
+        {/* Invites sent before ADR-0010 have no date; they show only as expired (AC 25). */}
+        {person.invitedAt && (
+          <Typography>
+            {STAFF_MEMBER_PAGE.invite.sentOn(formatDateTime(person.invitedAt))}
+          </Typography>
+        )}
         {expired && <Alert severity="warning">{STAFF_MEMBER_PAGE.invite.expired}</Alert>}
         {action.notice && <Alert severity="success">{action.notice}</Alert>}
         {action.error && <Alert severity="error">{action.error}</Alert>}

@@ -110,6 +110,8 @@ const ERROR_KEYS_BY_OWN_KEY: Record<string, ErrorKey> = {
   invalid_year_level: 'invalidYearLevel',
   // Hold results (item 7)
   hold_needs_questions: 'holdNeedsQuestions',
+  // invite-redeem (ADR-0010): every refused invite link looks the same (AC 11)
+  invite_invalid: 'inviteExpired',
 };
 
 /** The portal error to show for anything a Supabase call returned or threw. */
