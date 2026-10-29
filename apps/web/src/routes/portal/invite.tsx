@@ -1,11 +1,13 @@
-// Where the invite email lands (ADR-0010): `/portal/invite#token=…`. The token is in the fragment,
-// so it never reaches a server log or a Referer header, and it is wiped from the address bar and
-// history as soon as the page loads, keeping only an in-memory copy (06-security finding 1). A
-// reload after that shows "This link is incomplete", which is expected. Nothing is used up until
-// the person clicks Continue, so an email scanner that opens the link can't use it. invite-redeem then uses the link up (single use, 14 days) and hands back a one-time
-// sign-in token, which signs the person in; the setup form follows (invite-onboarding design).
-// Every refused link reads the same, whatever the reason (AC 11). The ErrorBoundary is
-// portal-root's, as for every portal page.
+// Where the invite email lands (ADR-0010): `/portal/invite#token=…`. The token is in the
+// fragment, so it never reaches a server log or a Referer header. Whenever the fragment holds a
+// token (the first load, or the link opened again in the same tab, which only changes the
+// fragment), the page adopts it and wipes it from the address bar, keeping an in-memory copy
+// (06-security finding 1, review-5 round 2). A reload after that shows "This link is incomplete",
+// which is expected. Nothing is used up until the person clicks Continue, so an email scanner
+// that opens the link can't use it. invite-redeem then uses the link up (single use, 14 days)
+// and hands back a one-time sign-in token, which signs the person in; the setup form follows
+// (invite-onboarding design). Every refused link reads the same, whatever the reason (AC 11).
+// The ErrorBoundary is portal-root's, as for every portal page.
 
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
@@ -44,14 +46,23 @@ async function redeemAndSignIn(
 export default function InvitePage() {
   const navigate = useNavigate();
   const location = useLocation();
-  // Kept from the first render: the address bar is cleared straight away (below).
-  const [token] = useState(() => inviteTokenFromHash(location.hash));
+  const hashToken = inviteTokenFromHash(location.hash);
+  // The in-memory copy: the address bar is cleared straight away (below).
+  const [token, setToken] = useState(hashToken);
   const [step, setStep] = useState<InviteStep>({ kind: 'ready' });
 
+  // A newer link opened in the same tab replaces the one in memory (set during render, the React
+  // pattern for state that follows a changed input).
+  if (hashToken && hashToken !== token) {
+    setToken(hashToken);
+    setStep({ kind: 'ready' });
+  }
+
   useEffect(() => {
-    // Never leave the token in the address bar or browser history, from the first load (AC 8).
-    window.history.replaceState(null, '', PORTAL_ROUTES.invite);
-  }, []);
+    // Never leave the token in the address bar or browser history (AC 8). `replace`, so the
+    // entry that held the token is overwritten, and the router knows the address changed.
+    if (location.hash || location.search) navigate(PORTAL_ROUTES.invite, { replace: true });
+  }, [location.hash, location.search, navigate]);
 
   if (!token) {
     return <AuthCard heading={PORTAL_ERRORS.linkExpired} intro={AUTH_CONFIRM_PAGE.invalidLink} />;

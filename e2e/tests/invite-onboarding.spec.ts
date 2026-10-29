@@ -1,3 +1,4 @@
+import type { Page } from '@playwright/test';
 import { test, expect } from '../src/fixtures/test-fixtures.js';
 import { backdateInvite, clearInviteRedeemAttempts } from '../src/db/invites.js';
 import { pollForRow } from '../src/db/poll.js';
@@ -76,17 +77,41 @@ test.describe('Invite onboarding', () => {
     expect(invitedProfile.role).toBe('tutor');
     expect(invitedProfile.status).toBe('invited');
 
-    // The page does nothing until "Continue" is clicked, so an email scanner opening it any number
-    // of times can't use up the single-use link (AC 6). The token is in the fragment and is wiped
-    // from the address bar as soon as the page loads (AC 8, 06-security finding 1). The click
-    // redeems it, signs in and opens /portal/join.
     // A link sent 13 days ago still works (AC 1): links last 14 days from the send.
     await backdateInvite(email, '13 days');
     await clearInviteRedeemAttempts();
-    for (let open = 0; open < 3; open += 1) await inviteePage.goto(inviteLink);
+    const addressOf = (page: Page) => page.evaluate(() => window.location.href);
+
+    // AC 6: opening the link uses nothing up. Each open is a real page load in its own tab, as a
+    // scanner or a second click from the email would be. The token is in the fragment and is
+    // wiped from the address bar as soon as the page loads (AC 8, 06-security finding 1).
+    for (let open = 0; open < 3; open += 1) {
+      const scannerPage = await inviteeContext.newPage();
+      await scannerPage.goto(inviteLink);
+      await expect(scannerPage.getByRole('button', { name: /^continue$/i })).toBeVisible();
+      await expect.poll(() => addressOf(scannerPage)).toMatch(/\/portal\/invite$/);
+      await scannerPage.close();
+    }
+
+    // Same-tab re-open (review-5 round 2): on a page that is already open, the link only changes
+    // the fragment. It must be wiped again. History grows only by the browser's own entry for the
+    // fragment change, which the page overwrites, so going back finds no token either.
+    const reopenPage = await inviteeContext.newPage();
+    await reopenPage.goto(inviteLink);
+    await expect.poll(() => addressOf(reopenPage)).toMatch(/\/portal\/invite$/);
+    const historyBefore = await reopenPage.evaluate(() => window.history.length);
+    await reopenPage.goto(inviteLink);
+    await expect.poll(() => addressOf(reopenPage)).toMatch(/\/portal\/invite$/);
+    expect(await reopenPage.evaluate(() => window.history.length)).toBe(historyBefore + 1);
+    await reopenPage.goBack();
+    expect(await addressOf(reopenPage)).toMatch(/\/portal\/invite$/);
+    await reopenPage.close();
+
+    // The click redeems the link, signs in and opens /portal/join.
+    await inviteePage.goto(inviteLink);
     const continueButton = inviteePage.getByRole('button', { name: /^continue$/i });
     await expect(continueButton).toBeVisible();
-    expect(await inviteePage.evaluate(() => window.location.href)).toMatch(/\/portal\/invite$/);
+    await expect.poll(() => addressOf(inviteePage)).toMatch(/\/portal\/invite$/);
     await continueButton.click();
     await inviteePage.waitForURL(/\/portal\/join/);
     expect(await inviteePage.evaluate(() => window.location.search + window.location.hash)).toBe(

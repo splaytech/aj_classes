@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react';
-import { createRoutesStub } from 'react-router';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { Outlet, createRoutesStub, useLocation, useNavigate } from 'react-router';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   AUTH_CONFIRM_PAGE,
@@ -18,30 +18,49 @@ import InvitePage from './invite';
 vi.mock('@/services', () => ({ redeemInvite: vi.fn(), signInWithInviteHop: vi.fn() }));
 
 const TOKEN = 'a'.repeat(43);
+const NEWER_TOKEN = 'b'.repeat(43);
+const withToken = `#${PORTAL_FRAGMENT.inviteToken}=${TOKEN}`;
+
+/** Shows the router's address, and re-opens a newer link in the same tab (a fragment change). */
+function AddressProbe() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  return (
+    <>
+      <output aria-label="address">{`${location.pathname}${location.search}${location.hash}`}</output>
+      <button
+        onClick={() =>
+          navigate(`${PORTAL_ROUTES.invite}#${PORTAL_FRAGMENT.inviteToken}=${NEWER_TOKEN}`)
+        }
+      >
+        reopen
+      </button>
+      <Outlet />
+    </>
+  );
+}
 
 function renderPage(search: string) {
   const Stub = createRoutesStub([
-    { path: PORTAL_ROUTES.invite, Component: InvitePage },
-    { path: PORTAL_ROUTES.join, Component: () => <h1>{PORTAL_SEO.join}</h1> },
+    {
+      Component: AddressProbe,
+      children: [
+        { path: PORTAL_ROUTES.invite, Component: InvitePage },
+        { path: PORTAL_ROUTES.join, Component: () => <h1>{PORTAL_SEO.join}</h1> },
+      ],
+    },
   ]);
   render(<Stub initialEntries={[`${PORTAL_ROUTES.invite}${search}`]} />);
 }
 
-const withToken = `#${PORTAL_FRAGMENT.inviteToken}=${TOKEN}`;
+const address = () => screen.getByRole('status', { name: 'address' });
 const continueButton = () => screen.getByRole('button', { name: AUTH_CONFIRM_PAGE.continue });
-
-let replaceState: ReturnType<typeof vi.spyOn>;
 
 beforeEach(() => {
   vi.mocked(redeemInvite).mockReset();
   vi.mocked(signInWithInviteHop).mockReset();
   vi.mocked(redeemInvite).mockResolvedValue({ ok: true, data: { tokenHash: 'hop' } });
   vi.mocked(signInWithInviteHop).mockResolvedValue({ ok: true, data: undefined });
-  replaceState = vi.spyOn(window.history, 'replaceState');
-});
-
-afterEach(() => {
-  replaceState.mockRestore();
 });
 
 describe('invite page (ADR-0010)', () => {
@@ -50,14 +69,37 @@ describe('invite page (ADR-0010)', () => {
 
     expect(screen.getByRole('heading', { name: PORTAL_ERRORS.linkExpired })).toBeInTheDocument();
     expect(screen.getByText(AUTH_CONFIRM_PAGE.invalidLink)).toBeInTheDocument();
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: AUTH_CONFIRM_PAGE.continue }),
+    ).not.toBeInTheDocument();
   });
 
-  it('wipes the token from the address bar as soon as the page loads (AC 8)', () => {
+  it('wipes the token from the address bar as soon as the page loads (AC 8)', async () => {
     renderPage(withToken);
 
-    expect(replaceState).toHaveBeenCalledWith(null, '', PORTAL_ROUTES.invite);
+    await waitFor(() =>
+      expect(address()).toHaveTextContent(new RegExp(`^${PORTAL_ROUTES.invite}$`)),
+    );
+    expect(continueButton()).toBeInTheDocument();
     expect(redeemInvite).not.toHaveBeenCalled();
+  });
+
+  it('a newer link opened in the same tab is wiped again, and Continue sends it (review-5 round 2)', async () => {
+    const user = setupUser();
+    renderPage(withToken);
+    await waitFor(() =>
+      expect(address()).toHaveTextContent(new RegExp(`^${PORTAL_ROUTES.invite}$`)),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'reopen' }));
+
+    await waitFor(() =>
+      expect(address()).toHaveTextContent(new RegExp(`^${PORTAL_ROUTES.invite}$`)),
+    );
+    await user.click(continueButton());
+    expect(await screen.findByRole('heading', { name: PORTAL_SEO.join })).toBeInTheDocument();
+    expect(redeemInvite).toHaveBeenCalledTimes(1);
+    expect(redeemInvite).toHaveBeenCalledWith(NEWER_TOKEN);
   });
 
   it('ignores a token in the query string: links carry it in the fragment', () => {
@@ -87,15 +129,14 @@ describe('invite page (ADR-0010)', () => {
   it('signs in and opens the setup form, with the address bar already cleared (AC 1, 8)', async () => {
     const user = setupUser();
     renderPage(withToken);
+    // The address is clean before the token is sent anywhere.
+    await waitFor(() =>
+      expect(address()).toHaveTextContent(new RegExp(`^${PORTAL_ROUTES.invite}$`)),
+    );
 
     await user.click(continueButton());
 
     expect(await screen.findByRole('heading', { name: PORTAL_SEO.join })).toBeInTheDocument();
-    expect(replaceState).toHaveBeenCalledWith(null, '', PORTAL_ROUTES.invite);
-    // The address bar is cleared before the token is sent anywhere.
-    expect(Math.min(...replaceState.mock.invocationCallOrder)).toBeLessThan(
-      Math.min(...vi.mocked(redeemInvite).mock.invocationCallOrder),
-    );
     expect(redeemInvite).toHaveBeenCalledWith(TOKEN);
     expect(signInWithInviteHop).toHaveBeenCalledWith('hop');
   });
@@ -125,7 +166,7 @@ describe('invite page (ADR-0010)', () => {
       'href',
       PORTAL_ROUTES.login,
     );
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /continue|try again/i })).not.toBeInTheDocument();
     expect(screen.queryByText(AUTH_CONFIRM_PAGE.intro.invite)).not.toBeInTheDocument();
     expect(signInWithInviteHop).not.toHaveBeenCalled();
   });
