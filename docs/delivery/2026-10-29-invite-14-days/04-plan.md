@@ -49,14 +49,14 @@ Prettier is clean repo-wide, so `pnpm format` won't touch unrelated files. Still
 
 ### T0. Local stack serves this worktree (03 §8.1 item 1)
 
-- [ ] **T0.1 Announce.** Tell the team lead before the restart, because the restart briefly stops the stack for `aj_classes-hiring` too. The team lead tells whoever works there. Ask them to stop the `main` checkout's dev server on 5173: it isn't the Developer's process, so the Developer doesn't kill it.
-- [ ] **T0.2 Restart from this worktree** (data is kept; **not** `db:reset`). The output prints local keys, so it goes to a scratch file:
+- [x] **T0.1 Announce.** Tell the team lead before the restart, because the restart briefly stops the stack for `aj_classes-hiring` too. The team lead tells whoever works there. Ask them to stop the `main` checkout's dev server on 5173: it isn't the Developer's process, so the Developer doesn't kill it.
+- [x] **T0.2 Restart from this worktree** (data is kept; **not** `db:reset`). The output prints local keys, so it goes to a scratch file:
   `cd /Users/sjain/dev/work/aj_classes-invites && pnpm db:stop && pnpm db:start > <scratchpad>/db-start.txt 2>&1`
-- [ ] **T0.3 Mount and migration checks.** Repeat these after **every** restart in this plan (T5.4, the email-off runs):
+- [x] **T0.3 Mount and migration checks.** Repeat these after **every** restart in this plan (T5.4, the email-off runs):
   - `docker inspect supabase_edge_runtime_aj_classes --format '{{range .Mounts}}{{.Source}}{{"\n"}}{{end}}' | grep -c aj_classes-invites/supabase/functions` prints `1` (it printed `0` at the baseline);
   - `docker exec supabase_db_aj_classes psql -U postgres -Atc "select max(version) from supabase_migrations.schema_migrations"` prints the newest file in `ls supabase/migrations | tail -1`;
   - `lsof -nP -iTCP:5173 -sTCP:LISTEN` shows nothing, or a process whose cwd (`lsof -a -p <pid> -d cwd -Fn`) is anywhere under `/Users/sjain/dev/work/aj_classes-invites/` (the repo root or `apps/web`, depending on how it was started).
-- [ ] **T0.4 Baseline on the untouched branch**, so later failures are clearly ours:
+- [x] **T0.4 Baseline on the untouched branch**, so later failures are clearly ours:
   - `pnpm test:functions` is green;
   - `node e2e/scripts/local-env.mjs > e2e/.env && pnpm --filter aj-classes-e2e test:smoke` gives 9/9.
 
@@ -68,11 +68,11 @@ Prettier is clean repo-wide, so `pnpm format` won't touch unrelated files. Still
 
 Local stack only, with the service key from `supabase status -o json` kept in a scratch file. Clean up every user a spike creates.
 
-- [ ] **T1.1 S1, the recovery hop.** On (a) a never-confirmed `auth.admin.createUser` account and (b) a confirmed but still `invited` one: `generateLink({ type: 'recovery' })`, then `POST /auth/v1/verify { type: 'recovery', token_hash }`, gives a session for that user, and `auth.users.invited_at` is unchanged. `generateLink` for a deleted e-mail gives 404, and the `auth.users` count is unchanged.
+- [x] **T1.1 S1, the recovery hop.** On (a) a never-confirmed `auth.admin.createUser` account and (b) a confirmed but still `invited` one: `generateLink({ type: 'recovery' })`, then `POST /auth/v1/verify { type: 'recovery', token_hash }`, gives a session for that user, and `auth.users.invited_at` is unchanged. `generateLink` for a deleted e-mail gives 404, and the `auth.users` count is unchanged.
   - **Gate:** if (a) fails, create accounts with `email_confirm: true`, record it, and go on. **Any other failure stops the build** and goes back to the Architect.
-- [ ] **T1.2 S2, env override.** Does `supabase functions serve --env-file <scratch>/email-off.env` override `[edge_runtime.secrets]`? Record yes or no. "No" means every email-off run uses the 03 §8.1 item 5 config edit and a restart.
-- [ ] **T1.3 S3, the First-admin path.** The exact Studio (`http://127.0.0.1:55323`) labels for **Add user** and **Send password recovery**. Note whether a password is required. T7 uses them.
-- [ ] **T1.4 S4a, can Mailpit refuse a send?** Before any code, `POST` to Mailpit's send API (as `mailpitRequest` builds it) with a `To` that has a space or no `@`. Record the HTTP status.
+- [x] **T1.2 S2, env override.** Does `supabase functions serve --env-file <scratch>/email-off.env` override `[edge_runtime.secrets]`? Record yes or no. "No" means every email-off run uses the 03 §8.1 item 5 config edit and a restart.
+- [x] **T1.3 S3, the First-admin path.** The exact Studio (`http://127.0.0.1:55323`) labels for **Add user** and **Send password recovery**. Note whether a password is required. T7 uses them.
+- [x] **T1.4 S4a, can Mailpit refuse a send?** Before any code, `POST` to Mailpit's send API (as `mailpitRequest` builds it) with a `To` that has a space or no `@`. Record the HTTP status.
   - **Non-2xx:** the full S4 sequence (03 §9 S4 steps 1–5) becomes an automated check in T5.5, because it needs a new-format link first.
   - **2xx:** use the manual email-off run (T9.3). The Product Owner signs off the AC 37 wording in the TSR, and the Tester records it there.
 
