@@ -341,3 +341,45 @@ this worktree). `git diff develop -- supabase/config.toml` still shows only the 
 - **After any edit under `supabase/functions/`, run `docker restart supabase_edge_runtime_aj_classes`**:
   the local runtime doesn't reload code.
 - Ownership of the stack passes to the Tester with this note.
+
+## Fix batch 1 (review-5 and 06-security, both APPROVED; one round)
+
+The Developer owned the stack and :5173 again for this batch.
+
+| # | Source | Change |
+|---|---|---|
+| 1 | Security finding 1 (Medium) | **Link format is now `${SITE_URL}/portal/invite#token=<43 chars>`** (the fragment, never sent to a server, its logs or a Referer). `inviteLink()` builds `#token=`; the web reads it from `location.hash` (`inviteTokenFromHash`, new `PORTAL_FRAGMENT.inviteToken`; `PORTAL_QUERY.inviteToken` removed). **The token is wiped from the address bar on first load** (`useEffect` → `history.replaceState(null, '', '/portal/invite')`), keeping only the in-memory copy; Continue no longer touches the address bar. A `?token=` query is ignored. Updated: email link, constants, `invite.test.tsx`, `invite-steps.test.ts`, `test-account-admin.mjs` and `test-invite-redeem.mjs` link patterns, the e2e regex (and the e2e now checks the address bar is already `/portal/invite` before Continue, and has no search or hash after it), README, 02, 03, 04 (release step 5) and ADR-0010 decision 2 |
+| 2 | Security finding 2 | `invite-redeem` never deletes a user. Any mismatch, whatever the type, refuses `mismatch`, releases the claim and logs `console.warn('invite-redeem', 'mismatch')`. Removed `deleteUser`, `now`, `userCreatedAt` and `stray_user_removed`. **Deviation from the approved 03 §4.3 (simplification):** the one-line rule is updated in 03 §4.3 step 6, 02 §4 (both places), ADR-0010 decision 4, and the 03 §8.2 identity table (3 rows, none deletes) |
+| 3 | Security finding 4 | README "Kill switches" now has three: the third is `update private.invite_tokens set used_at = now() where used_at is null;` (then re-send), with `supabase functions delete invite-redeem --project-ref …` as the hard stop. The SQL was run once locally (`UPDATE 0`) |
+| 4 | Security finding 5 | `respond()` (`_shared/responses.ts`) sends `Cache-Control: no-store` on every function reply. Seen on a local `invite-redeem` reply |
+| 5 | Review-5 #2 | New `admin-student.test.tsx` (4 tests): a re-send on the student account or on a parent row reloads; a failed one doesn't. `admin-staff-member.test.tsx` now waits for the reload to finish (a race the full run exposed) |
+| 5b | Tester P-1 (flaky `admin-staff-member.test.tsx:81`, 1 in 4 runs on `d35311c`) | The success notice appears before the reload finishes. The test now waits for the reload with `waitFor` before asserting the expired warning is gone and counting loader calls; `admin-student.test.tsx` uses the same pattern. **Full `pnpm test` run 4 times in a row: 76 files / 655 tests, 0 failed each time** |
+| 6 | Review-5 #3 | Unit case: `recoveryLink` null and `release` rejects → `redeemInvite` rejects (a 500), release tried once, nothing deleted |
+| 7 | Review-5 #4 | Renamed to `10 redeems from one address fill the bucket (each refused as an unknown link)` |
+
+### Gates (final code at the fix-batch commits below)
+
+| Gate | Result |
+|---|---|
+| Full check (`format:check && lint && typecheck && test && VITE_APP_ENV=production build`) | Green. Web **76 files, 655 tests** (was 75 / 647), e2e unit 6/6 |
+| `pnpm db:test` | **18 files, 834 tests, PASS** |
+| `pnpm test:functions` | **4 scripts, 413 checks, 0 failed**: account-admin 92, leads 30, notifications 153, invite-redeem **138** (was 141: the identity table went from 5 rows × 2 checks to 3 × 2, and the release-rejects case adds 1) |
+| E2E smoke | **10/10**, against this worktree's stack and a dev server started from it; 0 `e2e-%` rows after |
+| Browser: new link format | **14/14**, on the dev server (:5173) **and on a production build**. That build is a local-Supabase gate build (ADR-0005: `VITE_APP_ENV=production` plus the local URL, publishable key and Turnstile test key), served by `pnpm mirror` on :4173 with the production headers (portal CSP, `Cache-Control: no-store`) and grepped for the hosted ref. Each server: the email link is `/portal/invite#token=<43>`; Continue shows (review-5 #1); the address bar is `/portal/invite` straight after load; a reload shows `This link is incomplete…` with no Continue; the link opened in a new tab + Continue lands on `/portal/join`; the used link is refused in a fresh context. For the :4173 origin, the functions ran under `supabase functions serve --env-file` with `ALLOWED_ORIGINS` adding `http://127.0.0.1:4173` (`config.toml` not edited). Afterwards: serve, mirror and dev server stopped, stack restarted, T0.3 passed |
+
+### Found while checking (for the Tester; not changed)
+
+- After the strip, **opening the link again in the same tab** (pasting it, or a mail client that
+  reuses the tab) is only a fragment change, so the already-loaded page keeps showing `This link is
+  incomplete…`. Opening it in a new tab, or reloading with the link, works. This is the same
+  family as "a reload after the strip shows the incomplete state", which the coordinator said is
+  expected. If it matters, the fix is to adopt a new token on `hashchange`. I left it for a
+  decision rather than add state handling outside the brief.
+
+### Handover (again)
+
+Stack handed back to the Tester at the fix-batch docs commit, mount checked. It was started from
+this worktree: mount check `1`, newest migration `20261030100000`, final `pnpm db:reset` done (6
+auth users, 0 invite tokens). :5173 and :4173 are free; no `functions serve` or mirror is running.
+`apps/web/build/` holds the local-Supabase gate build (gitignored); rebuild before any check that
+needs the hosted-origin build.

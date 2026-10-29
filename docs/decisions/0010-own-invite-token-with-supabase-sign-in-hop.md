@@ -21,7 +21,7 @@ Saurabh wants invites to stay valid for 14 days. Password-reset and sign-in link
    - `invite_token_store`: upserts the token and sets `profiles.invited_at`, only while the account is `invited`;
    - `invite_token_claim`: rate limit, then a single-use claim, only while the account is `invited` and active;
    - `invite_token_release`: undoes a claim when the sign-in hop fails.
-2. **Token.** 32 random bytes as base64url (43 characters, 256 bits). Only the hash is stored. The link is `${SITE_URL}/portal/invite?token=…`. A re-send replaces the row, so only the newest link works.
+2. **Token.** 32 random bytes as base64url (43 characters, 256 bits). Only the hash is stored. The link is `${SITE_URL}/portal/invite#token=…`. A re-send replaces the row, so only the newest link works.
 3. **Send.** `account-admin` sends the invite directly through the Resend/Mailpit transport that `notifications` already uses (moved to `_shared/email/`). It does not go through the outbox, and the 70-a-day cap doesn't apply.
    - The token is stored, and the old one replaced, only **after the transport has accepted the email**.
    - A failed send changes nothing.
@@ -33,7 +33,7 @@ Saurabh wants invites to stay valid for 14 days. Password-reset and sign-in link
 
    It claims the token while holding a `for share` lock on the profile, then calls `auth.admin.generateLink({ type: 'recovery' })`.
    - `recovery`, not `magiclink`: for an unknown e-mail, `magiclink` silently signs the user up (GoTrue v2.197.0 `mail.go:76-84`), while `recovery` returns 404 (`:85-86`). For an existing user the two behave identically.
-   - The function requires the reply's `user.id` to equal the claimed profile and `verification_type` to be `recovery`. Otherwise it releases the claim and refuses. It deletes a user only when that user differs, the reply isn't `recovery`, and the user was created under 60 s ago (a user GoTrue may have just made). On `recovery` it never deletes, because a mismatched user is then a real account (corrected after review-3).
+   - The function requires the reply's `user.id` to equal the claimed profile and `verification_type` to be `recovery`. Otherwise it releases the claim and refuses. Any mismatch, whatever the type, refuses, releases the claim and logs `console.warn('invite-redeem', 'mismatch')`; the function never deletes a user (fix batch 1, 06-security finding 2).
    - It returns only `hashed_token`. The browser calls `verifyOtp({ token_hash, type: 'recovery' })` straight away (one automatic retry, then `Try again`), and then opens the existing setup form.
    - There is no `type: 'email'` fallback. `account-admin` keeps `verify_jwt = true`.
 5. **`invited_at`.** It is set only by `invite_token_store`. The `auth.users` update trigger copies Auth's `invited_at` only when it changes to a non-null value, so the sign-in hop can't wipe it.

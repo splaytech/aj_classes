@@ -123,7 +123,7 @@ Test on staging, then repeat with the prod ref. `db push` does not run `seed.sql
 
 - **Lifetime:** 14 days (336 hours) from each send, and single use. Only the newest link works: a re-send or a cancel switches the old one off, and a failed re-send changes nothing (the previous link keeps working).
 - **Where it lives:** `private.invite_tokens` (one row per account, the SHA-256 of the token only, never the token) and `private.invite_redeem_attempts` (salted address hashes for the rate limit, 10 redeems per 15 minutes). Neither is reachable through the API; only the `invite_token_store` / `_claim` / `_release` functions (secret key) touch them.
-- **Local flow:** invite from the portal (Staff → Invite staff, or a student's page), open Mailpit (http://127.0.0.1:55324), open the link on `http://localhost:5173/portal/invite?token=…`, then **Continue** → `/portal/join`.
+- **Local flow:** invite from the portal (Staff → Invite staff, or a student's page), open Mailpit (http://127.0.0.1:55324), open the link on `http://localhost:5173/portal/invite#token=…`, then **Continue** → `/portal/join`.
 - **Clear the local rate limit** before browser testing: every local request shares one address, so 10 redeems in 15 minutes is easy to hit:
 
   ```bash
@@ -186,10 +186,17 @@ To change the secret later: `select vault.update_secret(id, '<new value>') from 
 
 **Stop the "due tomorrow" reminders only:** `select cron.unschedule('due-tomorrow-reminders');`. Nothing new is queued; reminders already queued still go out (or expire). Turn back on with the `cron.schedule('due-tomorrow-reminders', …)` line in `migrations/20261029100000_more_email_alerts.sql`.
 
-**Kill switches** (two, and they stop different things):
+**Kill switches** (three, and they stop different things):
 
 - `select cron.unschedule('email-worker-kick');` stops **only queued app email**. Rows wait; nothing is lost. Invites don't use the outbox, so they keep sending. Turn back on with the `cron.schedule('email-worker-kick', …)` line in `migrations/20261025110000_work_returned_email.sql`.
 - `supabase secrets unset EMAIL_TRANSPORT --project-ref unzjnxctkyahtmrkinyr` stops **app emails and invites** (an `unset` copies nothing from `config.toml`; only `set` does). From the next kick the worker sends nothing, flags waiting rows, and returns 503 before it even checks the secret, so they show as Waiting / "Set-up error" (after the usual ~2 hours), never "Not attempted". Every invite and re-send fails with "The invite e-mail couldn't be sent", no account is left behind, a re-send changes nothing, and linking an existing parent still works. It **doesn't** stop password-reset or sign-in emails, which go through Auth SMTP. Turn it back on by running `deploy.sh` again.
+- **Stop invite links that were already sent** (06-security finding 4). Unsetting `EMAIL_TRANSPORT` stops new invites, but links already emailed stay valid for 14 days. In the Dashboard SQL editor, mark every unused link as used:
+
+  ```sql
+  update private.invite_tokens set used_at = now() where used_at is null;
+  ```
+
+  Every outstanding link then shows "This invitation link has expired…". Re-send to the people who should still join. Hard stop, which refuses every redeem until `deploy.sh` runs again: `supabase functions delete invite-redeem --project-ref unzjnxctkyahtmrkinyr`.
 
 **Admin Emails page reasons:** "Too late to send" means a "new assignment" or "due tomorrow" email was still waiting at its deadline (usually the daily limit, or an outage), so it was never sent; if these recur, it's 02b Decision 1's Resend upgrade trigger (`docs/budget.md` §5). "Not attempted" after 2 hours means the cron job or the Vault entries are missing (or, for the new kinds only, the `notifications` function hasn't been deployed since the migration); "Set-up error" means `EMAIL_TRANSPORT`, `RESEND_API_KEY` or `SITE_URL` is missing on the function, or the hosted function has local-only values (`EMAIL_TRANSPORT=mailpit`, the local worker secret or a non-https `SITE_URL`: run `deploy.sh` again); "Daily limit" means 70 were sent in the last 24 hours (they go out as earlier ones age out); "Gave up after 3 tries" means Resend kept failing. When Resend is busy (429) or can't be reached, the worker stops the batch and puts the unsent rows back; each of those still uses one of its 3 attempts, so a long outage can end rows as "Gave up after 3 tries" even though Resend never accepted them.
 

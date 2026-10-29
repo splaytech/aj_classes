@@ -87,7 +87,7 @@ Request: `POST { token }`. Like `leads` `submit` (`leads/index.ts:29`), the func
 - The token is 32 bytes from `crypto.getRandomValues`, base64url without padding: 43 characters, 256 bits.
 - The function checks the shape before any database call (`^[A-Za-z0-9_-]{43}$`). A badly shaped token gets the same refusal as any other.
 - SHA-256 needs no salt or pepper at this entropy: the hash can't be reversed, and looking it up by equality on a hash leaks nothing useful through timing.
-- Link: `${SITE_URL}/portal/invite?token=<43 chars>` (AC 31).
+- Link: `${SITE_URL}/portal/invite#token=<43 chars>` (AC 31).
 
 ### 3.3 Rate limiting and brute force
 
@@ -118,7 +118,7 @@ Logs hold the outcome and error name only, never the token, hash, e-mail or user
 *Revised after review-2 finding 1. The hop now uses type `recovery`, not `magiclink`, plus an identity check on the reply.*
 
 ```
-browser /portal/invite?token=T         invite-redeem (service key)             Supabase Auth
+browser /portal/invite#token=T         invite-redeem (service key)             Supabase Auth
   page load: nothing sent (AC 6)
   [Continue] ── history.replaceState(…/portal/invite) ── POST {token:T} ──▶
                                         shape check → claim(sha256(T), ipHash)   (§2: locks the profile)
@@ -152,8 +152,7 @@ browser /portal/invite?token=T         invite-redeem (service key)             S
   - **No `type: 'email'` fallback.** It is dropped. `email` checks both the confirmation and recovery tokens (`verify.go:735-742`), which is wider than needed.
 - **Identity check on the reply (finding 1a, belt and braces).** After `generateLink`, the function requires `data.user.id === profile_id` and `data.properties.verification_type === 'recovery'`.
   - If either fails, it returns `invite_invalid` after `invite_token_release`.
-  - If the reply's user is not the claimed profile **and** `verification_type` isn't `recovery` **and** it was created within the last minute, the function deletes that stray user with `auth.admin.deleteUser`, and logs `redeem stray_user_removed` (no ids). On `recovery` it never deletes: a mismatched user is then always an existing account, such as one the admin re-invited a moment ago. It refuses, releases and logs `mismatch` instead (corrected in stage 3, review-3 blocking 1).
-  - With `recovery` this branch should be unreachable. It exists so that a future GoTrue change can't turn a redeem into an account.
+  - Any mismatch, whatever the type, refuses, releases the claim and logs `console.warn('invite-redeem', 'mismatch')`; the function never deletes a user (fix batch 1, 06-security finding 2). (Earlier rounds deleted a stray non-recovery user under a minute old; that branch was removed, so this signed-out endpoint can't delete a real account.)
 - **Profile lock in the claim (finding 1c).** `invite_token_claim` is plpgsql, in this order:
   1. look up the token row;
   2. `select … from public.profiles where id = row.profile_id and status = 'invited' and is_active for share`;
@@ -348,7 +347,7 @@ This replaces 01's "usual order" (migration, `account-admin`, web) for this rele
    - 10 attempts per 15 minutes per salted IP hash.
    - Every refusal gets the same reply, `invite_invalid`.
 3. **DEC-IN-3 (ADR-0010):** Redeem claims the token, holding a `for share` lock on the profile. It then calls `auth.admin.generateLink({ type: 'recovery' })`, never `magiclink`, which signs up unknown e-mails.
-   - It requires `user.id === profile_id` and `verification_type === 'recovery'`; otherwise it releases the claim and refuses. It deletes a user only if that user differs, the reply isn't `recovery`, and the user was created under 60 s ago. On `recovery` it never deletes.
+   - It requires `user.id === profile_id` and `verification_type === 'recovery'`; otherwise it releases the claim and refuses. Any mismatch, whatever the type, refuses, releases the claim and logs `console.warn('invite-redeem', 'mismatch')`; the function never deletes a user (fix batch 1, 06-security finding 2).
    - It returns only `hashed_token`. The browser calls `verifyOtp({ token_hash, type: 'recovery' })`, retrying once and offering `Try again`, then opens `/portal/join`.
    - There is no `type: 'email'` fallback. Spike S1 and a deleted-user test confirm this locally.
 4. **DEC-IN-4:** `profiles.invited_at` is set by `invite_token_store` after a send has been accepted. The auth update trigger copies Auth's `invited_at` only when it changes to a non-null value. The migration nulls `invited_at` on pending invites (AC 25). Mobile is unchanged (D1).

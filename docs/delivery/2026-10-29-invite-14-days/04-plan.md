@@ -97,7 +97,7 @@ Local stack only, with the service key from `supabase status -o json` kept in a 
 - [x] **T4.1** Write the pure modules `invite-copy.ts`, `invite-email.ts` and `issue-invite.ts`. Create `supabase/scripts/test-invite-redeem.mjs` with its **unit** section: token, render for tutor, admin, student and parent, and the `issueInvite` orderings (03 §8.3 item 1, first three bullets).
   - **Verify:** `node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/scripts/test-invite-redeem.mjs` is green.
 - [x] **T4.2** Edit `handlers/accounts.ts` (`createInvitedAccount`, `sendAccountInvite`; remove `sendInvite` and `sendSetupLink`) and the four handlers, per 03 §4.2 "Per action".
-  - **Visible:** invite a staff member from the portal. Mailpit shows `You're invited to the AJ Classes portal`, a `/portal/invite?token=` link (43 chars), and the 14-day line.
+  - **Visible:** invite a staff member from the portal. Mailpit shows `You're invited to the AJ Classes portal`, a `/portal/invite#token=` link (43 chars), and the 14-day line.
 - [x] **T4.3** Update `test-account-admin.mjs` (03 §8.3 item 2): the link pattern, token row ≠ token, `invited_at = sent_at`, AC 20 callers with "no change" counts, AC 22 audit counts, AC 41.
   - **Verify:** `pnpm test:functions` is green.
 
@@ -293,7 +293,7 @@ Also deferred, from 03 risk 5: mapping supabase-js `FunctionsFetchError` to `net
 3. **`supabase secrets list --project-ref unzjnxctkyahtmrkinyr`**: `EMAIL_TRANSPORT`, `RESEND_API_KEY` and `SITE_URL` are listed, and `MAILPIT_URL` isn't. `deploy.sh` checks `EMAIL_TRANSPORT` and `SITE_URL` itself, but not `RESEND_API_KEY`, so look for that one by eye.
 4. **Resend sender verified.** In the Resend dashboard, Domains: `ajclasses.com.au` is **Verified**, so `hello@ajclasses.com.au` can send through the API. This closes 03's TBC (risk 10). If it isn't verified, don't release: every invite would fail with "The invite e-mail couldn't be sent".
 5. **Re-send pending invites.**
-   1. First, a smoke: invite yourself as staff on an address you own. Open the email, check the link starts `https://ajclasses.com.au/portal/invite?token=`, click `Continue`, and check you land on `/portal/join`. Then cancel that invite.
+   1. First, a smoke: invite yourself as staff on an address you own. Open the email, check the link starts `https://ajclasses.com.au/portal/invite#token=`, click `Continue`, and check you land on `/portal/join`. Then cancel that invite.
    2. Then, on Staff and Students, `Resend invite` every account showing `Invite expired`. The migration cleared their dates, so every pending invite shows this.
    3. Count them first. They share the Free plan's 100 emails a day with app email.
 6. **No invites in the hour before release** (and none between steps 1 and 2). Old-format Auth links last an hour. A quiet hour means no live old-format token exists at release, which closes the accepted "usable directly against Auth for up to 1 h" exposure. It also means no invite you send is refused straight away.

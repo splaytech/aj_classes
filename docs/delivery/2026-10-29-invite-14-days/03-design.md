@@ -489,18 +489,16 @@ looks like every other refused link (AC 10, 11).
 **`redeem.ts`:**
 
 ```ts
-type RecoveryLink = { userId: string; userCreatedAt: string; verificationType: string; hashedToken: string };
+type RecoveryLink = { userId: string; verificationType: string; hashedToken: string };
 type RedeemSteps = {
   claim: (hash: string) => Promise<string | null | 'rate_limited'>; // invite_token_claim
   release: (hash: string) => Promise<void>;                          // invite_token_release
   emailOf: (profileId: string) => Promise<string | null>;            // null: no such auth user
   recoveryLink: (email: string) => Promise<RecoveryLink | null>;     // null: 404 user_not_found
-  deleteUser: (userId: string) => Promise<void>;
-  now: () => number;
 };
 type RedeemOutcome =
   | { kind: 'ok'; tokenHash: string }
-  | { kind: 'refused'; reason: 'shape' | 'claim' | 'rate_limited' | 'no_user' | 'not_found' | 'mismatch' | 'stray_user_removed' };
+  | { kind: 'refused'; reason: 'shape' | 'claim' | 'rate_limited' | 'no_user' | 'not_found' | 'mismatch' };
 redeemInvite(token: unknown, steps: RedeemSteps): Promise<RedeemOutcome>
 ```
 
@@ -513,19 +511,9 @@ redeemInvite(token: unknown, steps: RedeemSteps): Promise<RedeemOutcome>
    steps 4–6, release, then return the refusal or rethrow).
 4. `email = await steps.emailOf(claimed)`. Null → refused `no_user`.
 5. `link = await steps.recoveryLink(email)`. Null → refused `not_found`.
-6. Identity check (02 §4, revised after review-3 blocking 1):
-   - **On `recovery`, never delete.** `recovery` never creates a user, so a reply for a different
-     user is always an existing account. For example, a redeem claims, then the admin cancels and
-     at once re-invites the same e-mail, so `generateLink` returns the admin's fresh, legitimate
-     account. When `link.verificationType === 'recovery'` and `link.userId !== claimed`, refuse with
-     `mismatch`. Release happens as step 3 says, and so does the log.
-   - **Delete only a user GoTrue may have just created.** That is when **all three** hold:
-     `link.userId !== claimed`, `link.verificationType !== 'recovery'`, and
-     `steps.now() - Date.parse(link.userCreatedAt) < 60_000`. Then call `steps.deleteUser(link.userId)`
-     and refuse with `stray_user_removed`. This branch exists only so that a future GoTrue change
-     can't turn a redeem into an account.
-   - Any other `link.verificationType !== 'recovery'` (same user, or an older user) → refuse
-     `mismatch`, no delete.
+6. Identity check (02 §4; simplified in fix batch 1, 06-security finding 2): unless
+   `link.userId === claimed` and `link.verificationType === 'recovery'`, refuse with `mismatch`.
+   Any mismatch, whatever the type, refuses, releases the claim and logs `console.warn('invite-redeem', 'mismatch')`; the function never deletes a user (fix batch 1, 06-security finding 2).
 7. Return `{ kind: 'ok', tokenHash: link.hashedToken }`. The claim stays (single use).
 
 **`index.ts` wiring:**
@@ -535,12 +523,10 @@ redeemInvite(token: unknown, steps: RedeemSteps): Promise<RedeemOutcome>
 | `claim` | `serviceClient().rpc('invite_token_claim', { hash, client_ip_hash: await hashClientAddress(request) })`. `error?.message === 'rate_limited'` → `'rate_limited'`; any other error → throw; else `data` (uuid or null) |
 | `release` | `rpc('invite_token_release', { hash })`; an error throws |
 | `emailOf` | `auth.admin.getUserById(id)`. Error with `status === 404` → null; other error → throw; else `data.user.email ?? null` |
-| `recoveryLink` | `auth.admin.generateLink({ type: 'recovery', email })`. Error with `status === 404` or `code === 'user_not_found'` → null; other error → throw. Else map `data.user.id`, `data.user.created_at`, `data.properties.verification_type`, `data.properties.hashed_token`. `action_link` and `email_otp` are never read or returned |
-| `deleteUser` | `auth.admin.deleteUser(id)` |
-| `now` | `Date.now` |
+| `recoveryLink` | `auth.admin.generateLink({ type: 'recovery', email })`. Error with `status === 404` or `code === 'user_not_found'` → null; other error → throw. Else map `data.user.id`, `data.properties.verification_type`, `data.properties.hashed_token`. `action_link` and `email_otp` are never read or returned |
 
 **Logging** (02 §3.4, AC 8): `console.info('invite-redeem', outcome.kind === 'ok' ? 'ok' : outcome.reason)`.
-`rate_limited`, `mismatch` and `stray_user_removed` use `console.warn` instead, with the reason only
+`rate_limited` and `mismatch` use `console.warn` instead, with the reason only
 and no ids (review-3 finding 7). A throw logs `console.error('invite-redeem failed', error.name)`.
 No token, hash, `tokenHash`, e-mail or user id is ever logged. No audit entry (AC 22).
 
@@ -914,11 +900,11 @@ at a time. The others stay read-only (team-lead rule; item 8 lesson).
 | 7 | Second redeem → `invite_invalid`. e2e: after join, open the same link in a fresh context → AC 9 | Script + e2e |
 | 8 | `replaceState` called before `redeemInvite` (call-order spy); e2e: after Continue, `location.search === ''`; §8.1 item 7 | `invite.test.tsx` + e2e + script/Tester |
 | 9 | Refused state: heading, `inviteExpired` text, `alreadySetUp` link to `/portal/login` | `invite.test.tsx` + browser |
-| 10 | No token → `invalidLink`, no button; `?token=abc` → Continue shown; script: `abc` → `invite_invalid` | `invite.test.tsx` + script |
+| 10 | No token → `invalidLink`, no button; `#token=abc` → Continue shown; script: `abc` → `invite_invalid` | `invite.test.tsx` + script |
 | 11 | Collect replies for expired, used, replaced, cancelled, garbled, unknown, active, inactive, rate-limited: all `200` with identical body text | Script |
 | 12 | For staff, student, parent: resend → old `invite_invalid`, new `ok` | Script |
 | 13 | Two resends → only the third link works | Script |
-| 14 | Redeem + verify (confirms the e-mail), never join, resend → Mailpit subject `You're invited to the AJ Classes portal`, text has `/portal/invite?token=`, new link works | Script + Tester |
+| 14 | Redeem + verify (confirms the e-mail), never join, resend → Mailpit subject `You're invited to the AJ Classes portal`, text has `/portal/invite#token=`, new link works | Script + Tester |
 | 15 | Cancel → link `invite_invalid`; token row gone | Script |
 | 16 | Back-date 10 d, resend, back-date the new link 13 d → `ok` | Script |
 | 17 | §8.1 item 6 → `invite_invalid`, no session, `last_sign_in_at` unchanged. Password sign-in with the account's password works | Script + Tester (sign-in) |
@@ -935,7 +921,7 @@ at a time. The others stay read-only (team-lead rule; item 8 lesson).
 | 28 | Rendered subject, heading, label and body per role, button, ignore line; Mailpit `From` `AJ Classes <hello@ajclasses.com.au>`; `resendRequest` `from`/`reply_to` (existing) | Script unit + `test-account-admin.mjs` + `test-notifications.mjs` |
 | 29 | HTML and text contain the exact AC 29 sentence; neither contains `1 hour` | Script unit |
 | 30 | Text contains the full link | Script unit + e2e (`extractLink` reads `Text`) |
-| 31 | Link starts `http://localhost:5173/portal/invite?token=`; contains neither `supabase` nor `auth/confirm`. Hosted: Saurabh's release check | Script + release check |
+| 31 | Link starts `http://localhost:5173/portal/invite#token=`; contains neither `supabase` nor `auth/confirm`. Hosted: Saurabh's release check | Script + release check |
 | 32 | `FORGOT_PASSWORD_PAGE.sent` ends `It expires in 1 hour.`; `AUTH_LIMITS.linkExpiryHours === 1`; `recovery.html` untouched (`git diff`) | `invite-copy.test.ts` + Reviewer |
 | 33 | `git diff supabase/config.toml` only adds the functions block; `otp_expiry = 3600` | Reviewer |
 | 34 | `staff-login.spec.ts` and the existing auth unit tests pass unchanged | CI-equivalent run |
@@ -954,13 +940,11 @@ redeems from one fresh address, then the 11th gives the identical `invite_invali
 address still works. Deleted-user race (02 §4, finding 1d): unit `redeemInvite` with
 `recoveryLink` → null releases and refuses. Identity cases, revised for review-3 blocking 1:
 
-| `userId` | `verificationType` | Created | Expect |
-|---|---|---|---|
-| another user | `recovery` | < 60 s ago | `mismatch`, release, **no `deleteUser`** (the cancel-and-re-invite case) |
-| another user | `recovery` | older | `mismatch`, release, no delete |
-| another user | `magiclink` | < 60 s ago | `stray_user_removed`, `deleteUser(that id)`, release |
-| another user | `magiclink` | older | `mismatch`, release, no delete |
-| same user | `magiclink` | any | `mismatch`, release, no delete |
+| `userId` | `verificationType` | Expect (fix batch 1: nothing is ever deleted) |
+|---|---|---|
+| another user | `recovery` | `mismatch`, release (the cancel-and-re-invite case) |
+| another user | `magiclink` | `mismatch`, release |
+| same user | `magiclink` | `mismatch`, release |
 
 Each refused case asserts the `console.warn` reason and that no id is logged.
 Integration: `generateLink({ type: 'recovery', email: 'nobody-<stamp>@local.test' })` with the
@@ -1007,7 +991,7 @@ service key returns 404, and `auth.users` count is unchanged.
 6. **e2e:**
    - `e2e/src/db/invites.ts` holds the two helpers.
    - `invite-onboarding.spec.ts`:
-     - `INVITE_LINK_PATTERN = /https?:\/\/[^\s")]+\/portal\/invite\?token=[A-Za-z0-9_-]{43}/`;
+     - `INVITE_LINK_PATTERN = /https?:\/\/[^\s")]+\/portal\/invite#token=[A-Za-z0-9_-]{43}/`;
      - call `clearInviteRedeemAttempts()` before the redeem;
      - open the link 3 times before Continue (AC 6);
      - assert `location.search` is empty after Continue (AC 8);
