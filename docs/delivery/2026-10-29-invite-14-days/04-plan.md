@@ -89,7 +89,7 @@ Local stack only, with the service key from `supabase status -o json` kept in a 
 
 ### T3. Shared modules, with no behaviour change (03 §4.1)
 
-- [ ] **T3.1** Create `_shared/email/{transport,sender,config,html}.ts`, `_shared/sha256.ts`, `_shared/client-address.ts` and `_shared/invite-token.ts`. Delete `notifications/transport.ts`, and repoint `notifications/*`, `leads/rate-limit.ts` and `test-notifications.mjs` at the shared files.
+- [x] **T3.1** Create `_shared/email/{transport,sender,config,html}.ts`, `_shared/sha256.ts`, `_shared/client-address.ts` and `_shared/invite-token.ts`. Delete `notifications/transport.ts`, and repoint `notifications/*`, `leads/rate-limit.ts` and `test-notifications.mjs` at the shared files.
   - **Verify:** `pnpm test:functions` is green with the same check counts as T0.4, and `grep -rn "notifications/transport" supabase/` finds nothing. This is the "no behaviour change" proof; nothing in T4 starts before it.
 
 ### T4. `account-admin` sends our own invite (03 §4.2)

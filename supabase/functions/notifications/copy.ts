@@ -19,17 +19,9 @@ export type WorkReturnedWords = {
 
 export type AssignmentWords = WorkReturnedWords & { dueDate: string }; // '' when there's no due date
 
-// Sender on the verified ajclasses.com.au domain, the same as the sign-in emails (config.toml).
-export const SENDER = {
-  name: 'AJ Classes',
-  email: 'hello@ajclasses.com.au',
-  replyTo: 'hello@ajclasses.com.au',
-} as const;
-
 const dueSentence = (dueDate: string) => (dueDate === '' ? '' : ` It's due ${dueDate}.`);
 
 export const COPY = {
-  from: `${SENDER.name} <${SENDER.email}>`,
   brandLabel: { student: 'Students', parent: 'Parents' },
   greeting: (firstName: string) => (firstName === '' ? 'Hi,' : `Hi ${firstName},`),
   footerReason: "You're getting this because you have an AJ Classes portal account.",

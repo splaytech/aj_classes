@@ -12,15 +12,14 @@ import { secretMatches } from '../functions/notifications/secret.ts';
 import {
   LOCAL_WORKER_SECRET,
   gateRequest,
-  isHostedProject,
   isUsableConfig,
 } from '../functions/notifications/config.ts';
+import { isHostedProject } from '../functions/_shared/email/config.ts';
+import { escapeHtml, oneLine } from '../functions/_shared/email/html.ts';
 import { claimRows } from '../functions/notifications/claim.ts';
 import { EMAIL_KINDS } from '../functions/notifications/copy.ts';
 import {
-  escapeHtml,
   formatDueDate,
-  oneLine,
   renderDueTomorrow,
   renderEmail,
   renderNewAssignment,
@@ -33,7 +32,7 @@ import {
   resendRequest,
   sendEmail,
   shouldStopBatch,
-} from '../functions/notifications/transport.ts';
+} from '../functions/_shared/email/transport.ts';
 
 const SITE = 'https://ajclasses.com.au';
 

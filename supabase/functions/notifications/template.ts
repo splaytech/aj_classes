@@ -3,9 +3,11 @@
 // look of supabase/templates/invite.html (same colours and header block). Pure: no Deno globals,
 // so the Node test script can import it.
 
+import { escapeHtml, oneLine } from '../_shared/email/html.ts';
+import type { EmailMessage } from '../_shared/email/transport.ts';
+
 import { COPY, PATHS } from './copy.ts';
 import type { AssignmentWords, EmailKind, RecipientRole } from './copy.ts';
-import type { EmailMessage } from './transport.ts';
 
 // One row from notify_claim_emails(supported_kinds).
 export type ClaimedRow = {
@@ -33,15 +35,6 @@ type EmailContent = {
   accountUrl: string;
 };
 
-export function escapeHtml(text: string): string {
-  return text
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
-
 function withoutTrailingSlash(siteUrl: string): string {
   return siteUrl.replace(/\/+$/, '');
 }
@@ -56,12 +49,6 @@ export function assignmentUrl(row: ClaimedRow, siteUrl: string): string {
 
 export function notificationsUrl(siteUrl: string): string {
   return `${withoutTrailingSlash(siteUrl)}${PATHS.accountNotifications}`;
-}
-
-// Control characters (CR, LF, tab and the rest of C0/C1) become a space, so a typed title can't
-// break the subject line into extra headers (Security item 3, finding 1).
-export function oneLine(text: string): string {
-  return text.replace(/[\u0000-\u001f\u007f-\u009f]+/g, ' ');
 }
 
 const DUE_DATE_FORMAT = new Intl.DateTimeFormat('en-AU', {

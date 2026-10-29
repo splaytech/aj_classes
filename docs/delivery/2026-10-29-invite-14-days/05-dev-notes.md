@@ -82,3 +82,15 @@ an empty string → `400 {"Error":"invalid To address: …"}` each time. `outcom
 - `pnpm db:test`: **18 files, 834 tests, PASS** (baseline 17 files, 747). The local seed is intact
   afterwards (6 auth users).
 - `pnpm db:types`: adds the three RPCs (`grep -c invite_token_` = 3); `pnpm typecheck` clean.
+
+## T3. Shared modules, no behaviour change
+
+- `notifications/transport.ts` moved (`git mv`) to `_shared/email/transport.ts`: sender from
+  `./sender.ts`, third parameter `idempotencyKey`, warn label `email send refused`, header comment.
+- New: `_shared/email/{sender,config,html}.ts`, `_shared/sha256.ts`, `_shared/client-address.ts`,
+  `_shared/invite-token.ts`. `notifications/config.ts` keeps the worker-secret half;
+  `isUsableConfig` = `isSafeEmailConfig(config) && (!hosted || secret !== local)`, the same truth
+  table. `notifications/copy.ts` lost `SENDER` and `COPY.from`.
+- `test-notifications.mjs` changed only in its import lines.
+- `pnpm test:functions`: **green, 232 checks** (49 / 30 / 153, identical to T0.4).
+  `grep -rn "notifications/transport" supabase/` finds nothing.

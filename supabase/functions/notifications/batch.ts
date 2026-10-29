@@ -6,8 +6,8 @@
 //   * A rate_limited or network reply stops the batch: the rest go back to pending unsent, with the
 //     same reason, for the next kick (review-3 finding 9, review-5 finding 2).
 
-import { shouldStopBatch } from './transport.ts';
-import type { EmailMessage, SendOutcome } from './transport.ts';
+import { shouldStopBatch } from '../_shared/email/transport.ts';
+import type { EmailMessage, SendOutcome } from '../_shared/email/transport.ts';
 import type { ClaimedRow } from './template.ts';
 
 export type BatchCounts = { claimed: number; sent: number; retrying: number; failed: number };
