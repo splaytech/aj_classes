@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { Outlet, createRoutesStub } from 'react-router';
 import type { ClientLoaderFunctionArgs } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -78,7 +78,10 @@ describe('staff member page: re-sending an invite (AC 24)', () => {
     await user.click(screen.getByRole('button', { name: STAFF_MEMBER_PAGE.invite.resend }));
 
     expect(await screen.findByText(STAFF_MEMBER_PAGE.invite.resent)).toBeInTheDocument();
-    expect(screen.queryByText(STAFF_MEMBER_PAGE.invite.expired)).not.toBeInTheDocument();
+    // The reload finishes after the notice appears.
+    await waitFor(() =>
+      expect(screen.queryByText(STAFF_MEMBER_PAGE.invite.expired)).not.toBeInTheDocument(),
+    );
     expect(getStaffMember).toHaveBeenCalledTimes(2);
   });
 
