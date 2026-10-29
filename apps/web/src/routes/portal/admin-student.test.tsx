@@ -40,7 +40,8 @@ function pending(id: string, email: string, daysAgo: number): FamilyAccount {
   };
 }
 
-function family(daysAgo: number): StudentFamily {
+/** A student whose account and one parent are both pending, each sent `…DaysAgo` days ago. */
+function family(accountDaysAgo: number, parentDaysAgo = accountDaysAgo): StudentFamily {
   return {
     id: 's1',
     fullName: 'Aarav Demo',
@@ -48,8 +49,8 @@ function family(daysAgo: number): StudentFamily {
     isActive: true,
     consentRecordedAt: '2026-10-01T00:00:00Z',
     consentSource: null,
-    account: pending('kid', 'kid@example.com', daysAgo),
-    parents: [pending('parent', 'parent@example.com', daysAgo)],
+    account: pending('kid', 'kid@example.com', accountDaysAgo),
+    parents: [pending('parent', 'parent@example.com', parentDaysAgo)],
     classes: [],
   };
 }
@@ -82,12 +83,13 @@ beforeEach(() => {
 
 describe('student page: re-sending an invite (AC 24)', () => {
   it.each([
-    ['the student account', 0, 'kid'],
-    ['a parent row', 1, 'parent'],
-  ])('reloads after a re-send on %s', async (_where, index, id) => {
+    // After the reload, only the row that was re-sent has a fresh date.
+    ['the student account', 0, 'kid', family(0, 15)],
+    ['a parent row', 1, 'parent', family(15, 0)],
+  ])('reloads after a re-send on %s', async (_where, index, id, afterResend) => {
     vi.mocked(getStudentFamily)
       .mockResolvedValueOnce({ ok: true, data: family(15) })
-      .mockResolvedValue({ ok: true, data: family(0) });
+      .mockResolvedValue({ ok: true, data: afterResend });
     const user = setupUser();
     renderPage();
 
@@ -97,7 +99,7 @@ describe('student page: re-sending an invite (AC 24)', () => {
     expect(await screen.findByText(ADMIN_STUDENT_PAGE.account.resent)).toBeInTheDocument();
     expect(resendInvite).toHaveBeenCalledWith(id);
     // The reload finishes after the notice appears.
-    await waitFor(() => expect(screen.queryAllByText('Invite expired')).toHaveLength(0));
+    await waitFor(() => expect(screen.queryAllByText('Invite expired')).toHaveLength(1));
     expect(getStudentFamily).toHaveBeenCalledTimes(2);
   });
 
