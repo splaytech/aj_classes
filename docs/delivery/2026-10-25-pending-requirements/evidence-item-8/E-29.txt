@@ -1,0 +1,10 @@
+200 [{"id":"$PO","status":"published"}]
+UPDATE 1
+
+COMMIT
+obk:
+(end)
+problems=200 []
+UPDATE 1
+UPDATE 1
+DELETE 2

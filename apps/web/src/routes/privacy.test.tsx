@@ -47,12 +47,15 @@ describe('Privacy Policy content', () => {
     expect(section?.text).not.toContain("We don't store it");
   });
 
-  it('says families get a "work returned" email and where to turn it off (ADR-0004)', () => {
+  it('names all three portal emails and where to turn each off (ADR-0004, ADR-0008)', () => {
     const section = PRIVACY.sections.find((item) => item.heading === PORTAL_HEADING);
     expect(section?.text).toContain(
-      "When your child's work is marked and returned, we email you and your child (if they have their own account).",
+      "We email you and your child (if they have their own account) when new work is set, the day before online work is due if it hasn't been handed in yet, and when work is marked and returned.",
     );
-    expect(section?.text).toContain('you can turn them off in Account → Notifications');
+    expect(section?.text).toContain(
+      'These are service emails; you can turn each one off in Account → Notifications.',
+    );
+    expect(section?.text).not.toContain("When your child's work is marked and returned");
   });
 
   it('names Resend as the overseas service that sends portal emails (APP 1.4)', () => {

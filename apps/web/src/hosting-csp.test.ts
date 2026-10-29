@@ -13,8 +13,9 @@ import vercel from '../vercel.json';
 
 const CSP = 'Content-Security-Policy';
 
-// The portal CSP as it was before item 5 (vercel.json at fb738ea). AC-5.5: unchanged.
-const PORTAL_CSP_BEFORE_ITEM_5 = `default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: ${HOSTED_SUPABASE_ORIGIN}; connect-src 'self' ${HOSTED_SUPABASE_ORIGIN}; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'`;
+// The portal CSP: as it was before item 5 (vercel.json at fb738ea, AC-5.5) plus `blob:` in
+// img-src (FU-K1), so the photo editor can preview a chosen photo from URL.createObjectURL.
+const PORTAL_CSP = `default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: ${HOSTED_SUPABASE_ORIGIN}; connect-src 'self' ${HOSTED_SUPABASE_ORIGIN}; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'`;
 
 // The whole public policy, pinned so any change to it is deliberate (ADR-0005 decision 1).
 const PUBLIC_CSP = `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ${HOSTED_SUPABASE_ORIGIN} https://api.web3forms.com https://app.convertkit.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`;
@@ -108,9 +109,14 @@ describe('public CSP (ADR-0005)', () => {
     ]);
   });
 
-  it('leaves the portal CSP as it was, and sends the same one on the fallback (AC-5.5)', () => {
-    expect(portalVercel).toBe(PORTAL_CSP_BEFORE_ITEM_5);
-    expect(fallbackVercel).toBe(PORTAL_CSP_BEFORE_ITEM_5);
+  it('sends the agreed portal CSP, and the same one on the fallback (AC-5.5, FU-K1)', () => {
+    expect(portalVercel).toBe(PORTAL_CSP);
+    expect(fallbackVercel).toBe(PORTAL_CSP);
+  });
+
+  it('allows blob: images on the portal only, for the photo preview (FU-K1)', () => {
+    expect(directives(portalVercel)['img-src']).toContain('blob:');
+    expect(directives(publicVercel)['img-src']).not.toContain('blob:');
   });
 
   it('puts the public CSP before the portal fallback on Railway, so the portal one wins', () => {

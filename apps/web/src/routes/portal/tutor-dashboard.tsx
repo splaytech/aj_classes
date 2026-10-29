@@ -146,7 +146,7 @@ export default function TutorDashboard() {
           link={{ to: PORTAL_ROUTES.timetable, label: TUTOR_DASHBOARD.nextSessions.link }}
         >
           {upcoming.length === 0 ? (
-            <Typography color="text.secondary">{TUTOR_DASHBOARD.nextSessions.empty}</Typography>
+            <Typography color="textSecondary">{TUTOR_DASHBOARD.nextSessions.empty}</Typography>
           ) : (
             <List dense disablePadding>
               {upcoming.map((session) => (
@@ -170,7 +170,7 @@ export default function TutorDashboard() {
           link={{ to: PORTAL_ROUTES.assignments, label: TUTOR_DASHBOARD.assignments.link }}
         >
           {nothingWaiting ? (
-            <Typography color="text.secondary">{TUTOR_DASHBOARD.assignments.allClear}</Typography>
+            <Typography color="textSecondary">{TUTOR_DASHBOARD.assignments.allClear}</Typography>
           ) : (
             <List dense disablePadding>
               {work.toMark > 0 && (
@@ -197,10 +197,10 @@ export default function TutorDashboard() {
           link={{ to: PORTAL_ROUTES.classes, label: TUTOR_DASHBOARD.classes.link }}
         >
           {myClasses.length === 0 ? (
-            <Typography color="text.secondary">{TUTOR_DASHBOARD.classes.empty}</Typography>
+            <Typography color="textSecondary">{TUTOR_DASHBOARD.classes.empty}</Typography>
           ) : (
             <>
-              <Typography color="text.secondary" sx={{ mb: 1 }}>
+              <Typography color="textSecondary" sx={{ mb: 1 }}>
                 {TUTOR_DASHBOARD.classes.count(myClasses.length)}
               </Typography>
               <List dense disablePadding>
@@ -220,7 +220,7 @@ export default function TutorDashboard() {
           title={TUTOR_DASHBOARD.profileCard.title}
           link={{ to: PORTAL_ROUTES.profile, label: TUTOR_DASHBOARD.profileCard.link }}
         >
-          <Typography color="text.secondary">{TUTOR_DASHBOARD.profileCard.text}</Typography>
+          <Typography color="textSecondary">{TUTOR_DASHBOARD.profileCard.text}</Typography>
         </DashboardCard>
       </Box>
     </>

@@ -4,12 +4,12 @@ import { CLASS_VALIDATION } from '@/constants';
 import type { ClassInput } from '@/services';
 
 import { validateClass, validateSessionTimes, validateStudentName } from './class-validation';
-import { classYearLabel, studentYearLabel, subjectLabel } from './labels';
+import { studentYearLabel, subjectLabel } from './labels';
 
 const valid: ClassInput = {
   name: 'Selective Maths',
   subject: 'maths',
-  yearLevel: 8,
+  yearLevels: [8],
   delivery: 'in_person',
   location: 'Room 1',
   tutorId: null,
@@ -39,6 +39,13 @@ describe('validateClass', () => {
     });
   });
 
+  it('keeps the 100-character location rule for hybrid classes', () => {
+    expect(validateClass({ ...valid, delivery: 'hybrid', location: 'x'.repeat(100) })).toEqual({});
+    expect(validateClass({ ...valid, delivery: 'hybrid', location: 'x'.repeat(101) })).toEqual({
+      location: CLASS_VALIDATION.locationLength,
+    });
+  });
+
   it('allows no term dates, or only one', () => {
     expect(validateClass({ ...valid, startsOn: null, endsOn: null })).toEqual({});
     expect(validateClass({ ...valid, startsOn: null })).toEqual({});
@@ -62,7 +69,6 @@ describe('students and labels', () => {
   it('labels years and subjects, keeping unknown keys readable', () => {
     expect(studentYearLabel(8)).toBe('Year 8');
     expect(studentYearLabel(null)).toBe('Other (e.g. UCAT, GAMSAT)');
-    expect(classYearLabel(null)).toBe('Any year');
     expect(subjectLabel('maths')).toBe('Maths');
     expect(subjectLabel('latin')).toBe('latin');
   });

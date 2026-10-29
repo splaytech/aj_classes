@@ -1,0 +1,84 @@
+{
+  "C2d-4": [
+    {
+      "width": 360,
+      "scrolledFrom": 1518,
+      "fixture": {
+        "fieldAtLoad": "",
+        "restored": true,
+        "dbAfter": "unchanged"
+      },
+      "active": {
+        "tag": "input",
+        "id": "profile-phone",
+        "aria": null
+      },
+      "field": {
+        "top": 408,
+        "bottom": 463,
+        "inView": true
+      },
+      "fieldVisible": true,
+      "label": {
+        "top": 315,
+        "bottom": 344,
+        "inView": true
+      },
+      "labelText": "Phone number",
+      "labelVisible": true,
+      "error": {
+        "top": 471,
+        "bottom": 519,
+        "inView": true
+      },
+      "errorText": "Please enter a phone number. You can change it, but you can't remove it.",
+      "errorVisible": true,
+      "centreOffset": 36,
+      "scrollY": 689,
+      "maxScroll": 1574,
+      "errors": [
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ]
+    },
+    {
+      "width": 1280,
+      "scrolledFrom": 963,
+      "fixture": {
+        "fieldAtLoad": "",
+        "restored": true,
+        "dbAfter": "unchanged"
+      },
+      "active": {
+        "tag": "input",
+        "id": "profile-phone",
+        "aria": null
+      },
+      "field": {
+        "top": 409,
+        "bottom": 463,
+        "inView": true
+      },
+      "fieldVisible": true,
+      "label": {
+        "top": 340,
+        "bottom": 369,
+        "inView": true
+      },
+      "labelText": "Phone number",
+      "labelVisible": true,
+      "error": {
+        "top": 471,
+        "bottom": 495,
+        "inView": true
+      },
+      "errorText": "Please enter a phone number. You can change it, but you can't remove it.",
+      "errorVisible": true,
+      "centreOffset": 36,
+      "scrollY": 406,
+      "maxScroll": 995,
+      "errors": [
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ]
+    }
+  ]
+}

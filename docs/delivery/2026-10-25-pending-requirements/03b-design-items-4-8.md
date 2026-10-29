@@ -330,7 +330,7 @@ New text:
 | Key | Text |
 |---|---|
 | `PROFILE_PAGE.labels.phone` | `JOIN_PAGE.labels.phone` (reference, so it stays `'Phone number'`) |
-| `PROFILE_PAGE.hints.phone` | `So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.` |
+| `PROFILE_PAGE.hints.phone` | ~~`So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.`~~ Shortened 2026-10-29 to two lines at 360 px (actionItems 27c, Saurabh approved): `So AJ Classes can reach you. Only admins see it; it's never on the website.` |
 | `PROFILE_VALIDATION.phoneRequired` | `Please enter a phone number. You can change it, but you can't remove it.` |
 | `PORTAL_ERRORS.phoneRequired` | same text as `PROFILE_VALIDATION.phoneRequired` |
 
@@ -1284,7 +1284,7 @@ empty text `STUDENT_HOME.returned.empty` is unchanged (AC-7.12).
 | Key | Text |
 |---|---|
 | `HOLD_RESULTS.label` | `Hold results until I return them` |
-| `HOLD_RESULTS.hint` | `Students see their marks and the correct answers only when you return their work. This matters only when every question is multiple choice: work with a written question is always held until you return it.` |
+| `HOLD_RESULTS.hint` | ~~`Students see their marks and the correct answers only when you return their work. This matters only when every question is multiple choice: work with a written question is always held until you return it.`~~ Shortened 2026-10-29 for phones (actionItems 27c; 2 lines at 360 px, from 5; wording per ADR-0007, any written question holds everything): `Results stay hidden until you return the work. Any written question holds it all.` |
 | `HOLD_RESULTS.lockedNote` | `Locked because the assignment is published. Move it back to draft to change this.` |
 | `PORTAL_ERRORS.holdNeedsQuestions` | `Add at least one question before holding results.` |
 | `FAMILY_TAGS.pastClass` | `Past class` |

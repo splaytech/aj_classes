@@ -1,0 +1,7 @@
+worker=200 {claimed 4, sent 4} (above)
+subj="New work for Aarav: e2e-item8 CR Bcc: x@local.test" bcc=false to=1 esc_b=0 raw_b=0 q=0 ampamp=0
+subj="New work set: e2e-item8 CR Bcc: x@local.test" bcc=false to=1 esc_b=0 raw_b=0 q=0 ampamp=0
+subj="New work for Aarav: e2e-item8 <b>Bold</b> & \"Q\"" bcc=false to=1 esc_b=1 raw_b=0 q=1 ampamp=0
+subj="New work set: e2e-item8 <b>Bold</b> & \"Q\"" bcc=false to=1 esc_b=1 raw_b=0 q=1 ampamp=0
+x=0 total=4
+keys_ok=0

@@ -257,6 +257,8 @@ export const ACCOUNT_PAGE = {
     heading: 'Notifications',
     intro: 'Emails we send about schoolwork.',
     workReturned: 'Email me when work is marked and returned',
+    newAssignment: 'Email me when new work is set',
+    dueTomorrow: 'Email me the day before work is due',
     save: 'Save',
     saving: 'Saving…',
     saved: "Saved. We'll remember this choice.",
@@ -472,8 +474,8 @@ export const PROFILE_PAGE = {
   },
   hints: {
     // The page intro says the profile may appear on the website; the phone never does (AC-4.1).
-    phone:
-      "So AJ Classes can reach you about your classes. Only AJ Classes admins can see it; it's never shown on the website.",
+    // Two lines at 360 px (actionItems 27c).
+    phone: "So AJ Classes can reach you. Only admins see it; it's never on the website.",
     subjects: 'Tick all that apply.',
     bio: 'A few sentences about your teaching. Plain text only.',
     qualifications: 'One per line, for example "B.Ed (Secondary Maths), Monash University".',
@@ -645,17 +647,24 @@ export const ACTIVITY_PAGE = {
   listSeparator: ' · ',
 } as const;
 
-// Admin → Emails (AC-3.8; ADR-0004). Reason keys must match the codes admin_email_problems returns.
+// Admin → Emails (AC-3.8, AC-8.13; ADR-0004, ADR-0008). Reason keys must match the codes
+// admin_email_problems returns, and kind keys the email_outbox.kind values.
 export const EMAILS_PAGE = {
   heading: 'Emails',
   intro:
-    '"Work returned" emails that failed, or haven\'t gone out about 2 hours after the work was returned. Sent emails aren\'t listed.',
+    "Portal emails that failed, or haven't gone out about 2 hours after they were queued. Sent emails aren't listed.",
   columns: {
     when: 'When',
+    type: 'Type',
     recipient: 'Recipient',
     assignment: 'Assignment',
     state: 'State',
     reason: 'Reason',
+  },
+  kinds: {
+    work_returned: 'Work returned',
+    new_assignment: 'New assignment',
+    due_tomorrow: 'Due tomorrow',
   },
   roles: { student: 'Student', parent: 'Parent' },
   states: { failed: 'Failed', waiting: 'Waiting' },
@@ -667,6 +676,7 @@ export const EMAILS_PAGE = {
     no_address: 'Recipient address missing',
     max_attempts: 'Gave up after 3 tries',
     config_missing: 'Set-up error',
+    too_late: 'Too late to send',
     daily_limit: 'Daily limit',
     retrying: 'Retrying',
     not_attempted: 'Not attempted',
@@ -700,12 +710,19 @@ export const YEAR_LEVEL_TEXT = {
   label: (year: number) => `Year ${year}`,
   other: 'Other (e.g. UCAT, GAMSAT)',
   any: 'Any year',
+  several: (years: string) => `Years ${years}`,
+  rangeSeparator: '–', // en dash, AC 13
+  listSeparator: ', ',
 } as const;
+
+/** Delivery options in the order the class form lists them (AC 1). */
+export const DELIVERIES = ['in_person', 'online', 'hybrid'] as const;
 
 export const DELIVERY_LABELS = {
   in_person: 'In person',
   online: 'Online',
-} as const;
+  hybrid: 'Hybrid',
+} as const satisfies Record<(typeof DELIVERIES)[number], string>;
 
 export const DELIVERY_WITH_LOCATION = (delivery: string, location: string) =>
   `${delivery} · ${location}`;
@@ -729,7 +746,6 @@ export const CLASSES_PAGE = {
   archived: 'Archived',
   noSchedule: 'No times yet',
   empty: 'No classes yet.',
-  saved: 'Class saved.',
 } as const;
 
 export const CLASS_DIALOG = {
@@ -746,7 +762,8 @@ export const CLASS_DIALOG = {
     endsOn: 'Term ends',
   },
   hints: {
-    location: 'Room, or the online meeting place (e.g. Zoom).',
+    location: 'Room, the online meeting place (e.g. Zoom), or both for hybrid.',
+    yearLevel: 'Choose one or more, or none for any year.',
     term: 'Optional. Next sessions only appear between these dates.',
   },
   noTutor: 'No tutor yet',

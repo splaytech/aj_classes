@@ -123,7 +123,7 @@ function ConsentSection({ student, onChanged }: SectionProps) {
   return (
     <SectionCard title={texts.heading}>
       <Stack spacing={3}>
-        <Typography color="text.secondary">{texts.intro}</Typography>
+        <Typography color="textSecondary">{texts.intro}</Typography>
         <Typography sx={{ fontWeight: 700 }}>{status}</Typography>
         <ActionAlerts action={action} />
         {!student.consentRecordedAt && (
@@ -170,7 +170,7 @@ function StudentAccountSection({ student, onChanged }: SectionProps) {
       }
     >
       <Stack spacing={3}>
-        <Typography color="text.secondary">{texts.intro}</Typography>
+        <Typography color="textSecondary">{texts.intro}</Typography>
         {!student.account && <StudentInviteForm student={student} {...viewProps} />}
         {student.account && !hasJoined(student.account) && (
           <PendingInvite account={student.account} {...viewProps} />
@@ -252,7 +252,7 @@ function PendingInvite({
   return (
     <>
       <Typography>{texts.email(account.email)}</Typography>
-      <Typography color="text.secondary">
+      <Typography color="textSecondary">
         {texts.invitedOn(formatDateTime(account.invitedAt))}
       </Typography>
       {expired && <Alert severity="warning">{texts.expired}</Alert>}
@@ -303,13 +303,13 @@ function ActiveAccount({
   return (
     <>
       <Typography>{texts.email(account.email)}</Typography>
-      <Typography color="text.secondary">
+      <Typography color="textSecondary">
         {account.lastSignInAt
           ? texts.lastSignIn(formatDateTime(account.lastSignInAt))
           : texts.neverSignedIn}
       </Typography>
       {account.termsAcceptedAt && (
-        <Typography color="text.secondary">
+        <Typography color="textSecondary">
           {texts.termsAccepted(formatDate(account.termsAcceptedAt))}
         </Typography>
       )}
@@ -366,9 +366,9 @@ function ParentsSection({ student, onChanged }: SectionProps) {
       }
     >
       <Stack spacing={3}>
-        <Typography color="text.secondary">{texts.intro}</Typography>
+        <Typography color="textSecondary">{texts.intro}</Typography>
         {student.parents.length > 0 && (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="textSecondary">
             {texts.permissionsHint}
           </Typography>
         )}
@@ -388,11 +388,11 @@ function ParentsSection({ student, onChanged }: SectionProps) {
                   <Typography sx={{ fontWeight: 700 }}>
                     {parent.fullName || parent.email}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="textSecondary">
                     {parent.email}
                   </Typography>
                   {parent.termsAcceptedAt && (
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="textSecondary">
                       {texts.termsAccepted(formatDate(parent.termsAcceptedAt))}
                     </Typography>
                   )}

@@ -1,0 +1,19 @@
+200 [{"id":"$PM","status":"published"}]
+200 [{"due_on":"2026-10-28"}]
+TODAY-1=2026-10-28
+
+new_assignment:parent:skipped:-
+new_assignment:student:skipped:-
+worker=200 {"ok":true,"data":{"claimed":0,"sent":0,"retrying":0,"failed":0}}
+mp=0
+problems=200 []
+send_before unchanged (2026-11-03 13:00:00+00)
+-- leg 2
+200 [{"id":"$PM2","status":"published"}]
+200 [{"due_on":"2026-10-29"}]
+worker=200 {"ok":true,"data":{"claimed":2,"sent":2,"retrying":0,"failed":0}}
+new_assignment:parent:sent:-
+new_assignment:student:sent:-
+expect: It's due Thursday 29 October.
+Your tutor has set "e2e-item8 Moved to today" for Selective Entry Maths & Reasoning. It's due Thursday 29 October.
+keys_ok=0

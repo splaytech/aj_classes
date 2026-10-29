@@ -24,6 +24,16 @@
   letter-spacing: 0.04em;
 }
 
+/* Portal pages: bottom right, clear of the header (actionItems 27a). */
+.labelBottom {
+  top: auto;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  border-top-left-radius: var(--radius-sm);
+  border-bottom-right-radius: 0;
+}
+
 .staging {
   --marker-color: var(--color-env-staging);
   --marker-text: var(--color-on-env-staging);

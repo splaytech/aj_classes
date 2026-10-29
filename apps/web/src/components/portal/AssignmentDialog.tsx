@@ -101,7 +101,7 @@ export function AssignmentDialog({
         slotProps={{ textField: { fullWidth: true } }}
       />
       {isOnline ? (
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="textSecondary">
           {ASSIGNMENT_DIALOG.hints.onlineMarks}
         </Typography>
       ) : (
@@ -122,7 +122,7 @@ export function AssignmentDialog({
         />
       )}
       {!existing && (
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="textSecondary">
           {ASSIGNMENT_DIALOG.newIsDraft}
         </Typography>
       )}

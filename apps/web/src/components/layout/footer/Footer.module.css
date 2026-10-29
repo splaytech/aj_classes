@@ -1,4 +1,6 @@
 .footer {
+  --color-focus: var(--color-focus-inverse); /* the blue ring is too faint on navy */
+
   padding: var(--space-14) 0 var(--space-8);
   background: var(--color-bg-inverse);
   color: var(--color-text-inverse);

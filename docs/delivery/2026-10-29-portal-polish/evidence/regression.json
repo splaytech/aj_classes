@@ -1,0 +1,176 @@
+{
+  "r3": {
+    "boxAfterTick": "Years 7, 9",
+    "afterCreatePath": "/portal/classes/81db3479-8a4e-429b-bc34-845931d69243",
+    "created": "{7,9}|hybrid|Room 9 and Zoom",
+    "id": "81db3479-8a4e-429b-bc34-845931d69243",
+    "boxAfterEdit": "Years 7–9",
+    "edited": "{7,8,9}|hybrid|Room 9 and Zoom",
+    "listRow": "TP Polish Hybrid\n\tMaths\tYears 7–9\t\nNo tutor\n\tNo times yet\t0",
+    "deleted": "1\nDELETE 1",
+    "left": "0",
+    "errors": []
+  },
+  "r4": [
+    {
+      "width": 360,
+      "theme": "light",
+      "sections": [
+        {
+          "heading": "To do",
+          "titles": [
+            "Fractions quick quiz",
+            "Times tables warm-up"
+          ]
+        },
+        {
+          "heading": "Waiting for marking",
+          "titles": [
+            "Word problems set 1"
+          ]
+        },
+        {
+          "heading": "Marked and returned",
+          "titles": [
+            "Number patterns check"
+          ]
+        }
+      ],
+      "opened": {
+        "path": "/portal/student/assignments/2885e68f-67d3-475b-b161-39a59a793233",
+        "h1": [
+          "Fractions practice set 3"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "width": 360,
+      "theme": "dark",
+      "sections": [
+        {
+          "heading": "To do",
+          "titles": [
+            "Fractions quick quiz",
+            "Times tables warm-up"
+          ]
+        },
+        {
+          "heading": "Waiting for marking",
+          "titles": [
+            "Word problems set 1"
+          ]
+        },
+        {
+          "heading": "Marked and returned",
+          "titles": [
+            "Number patterns check"
+          ]
+        }
+      ],
+      "opened": {
+        "path": "/portal/student/assignments/2885e68f-67d3-475b-b161-39a59a793233",
+        "h1": [
+          "Fractions practice set 3"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "sections": [
+        {
+          "heading": "To do",
+          "titles": [
+            "Fractions quick quiz",
+            "Times tables warm-up"
+          ]
+        },
+        {
+          "heading": "Waiting for marking",
+          "titles": [
+            "Word problems set 1"
+          ]
+        },
+        {
+          "heading": "Marked and returned",
+          "titles": [
+            "Number patterns check"
+          ]
+        }
+      ],
+      "opened": {
+        "path": "/portal/student/assignments/2885e68f-67d3-475b-b161-39a59a793233",
+        "h1": [
+          "Fractions practice set 3"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "sections": [
+        {
+          "heading": "To do",
+          "titles": [
+            "Fractions quick quiz",
+            "Times tables warm-up"
+          ]
+        },
+        {
+          "heading": "Waiting for marking",
+          "titles": [
+            "Word problems set 1"
+          ]
+        },
+        {
+          "heading": "Marked and returned",
+          "titles": [
+            "Number patterns check"
+          ]
+        }
+      ],
+      "opened": {
+        "path": "/portal/student/assignments/2885e68f-67d3-475b-b161-39a59a793233",
+        "h1": [
+          "Fractions practice set 3"
+        ]
+      },
+      "errors": []
+    }
+  ],
+  "r6": [
+    {
+      "width": 1280,
+      "theme": "light",
+      "path": "/portal/parent/children/44f56ff2-c1de-49e3-8ef5-cb4a39fa8081",
+      "h1": [
+        "Aarav Demo"
+      ],
+      "work": [
+        "Fractions quick quiz",
+        "Times tables warm-up",
+        "Word problems set 1",
+        "Number patterns check"
+      ],
+      "errors": []
+    },
+    {
+      "width": 360,
+      "theme": "dark",
+      "path": "/portal/parent/children/44f56ff2-c1de-49e3-8ef5-cb4a39fa8081",
+      "h1": [
+        "Aarav Demo"
+      ],
+      "work": [
+        "Fractions quick quiz",
+        "Times tables warm-up",
+        "Word problems set 1",
+        "Number patterns check"
+      ],
+      "errors": []
+    }
+  ]
+}

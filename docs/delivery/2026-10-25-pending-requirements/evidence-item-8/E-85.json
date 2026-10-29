@@ -1,0 +1,154 @@
+[
+  {
+    "leg": "new-work parent light",
+    "overflow": 0,
+    "buttonRight": 236,
+    "buttonWidth": 180,
+    "footerUrl": {
+      "left": 56,
+      "right": 303
+    },
+    "contrast": {
+      "body": 16.27,
+      "footer": 5.17,
+      "button": 5.17
+    },
+    "errors": 0,
+    "foreign": []
+  },
+  {
+    "leg": "new-work parent dark",
+    "overflow": 0,
+    "buttonRight": 236,
+    "buttonWidth": 180,
+    "footerUrl": {
+      "left": 56,
+      "right": 303
+    },
+    "contrast": {
+      "body": 16.27,
+      "footer": 5.17,
+      "button": 5.17
+    },
+    "errors": 0,
+    "foreign": []
+  },
+  {
+    "leg": "new-work student light",
+    "overflow": 0,
+    "buttonRight": 236,
+    "buttonWidth": 180,
+    "footerUrl": {
+      "left": 56,
+      "right": 303
+    },
+    "contrast": {
+      "body": 16.27,
+      "footer": 5.17,
+      "button": 5.17
+    },
+    "errors": 0,
+    "foreign": []
+  },
+  {
+    "leg": "new-work student dark",
+    "overflow": 0,
+    "buttonRight": 236,
+    "buttonWidth": 180,
+    "footerUrl": {
+      "left": 56,
+      "right": 303
+    },
+    "contrast": {
+      "body": 16.27,
+      "footer": 5.17,
+      "button": 5.17
+    },
+    "errors": 0,
+    "foreign": []
+  },
+  {
+    "leg": "due-tomorrow parent light",
+    "overflow": 0,
+    "buttonRight": 236,
+    "buttonWidth": 180,
+    "footerUrl": {
+      "left": 56,
+      "right": 303
+    },
+    "contrast": {
+      "body": 16.27,
+      "footer": 5.17,
+      "button": 5.17
+    },
+    "errors": 0,
+    "foreign": []
+  },
+  {
+    "leg": "due-tomorrow parent dark",
+    "overflow": 0,
+    "buttonRight": 236,
+    "buttonWidth": 180,
+    "footerUrl": {
+      "left": 56,
+      "right": 303
+    },
+    "contrast": {
+      "body": 16.27,
+      "footer": 5.17,
+      "button": 5.17
+    },
+    "errors": 0,
+    "foreign": []
+  },
+  {
+    "leg": "due-tomorrow student light",
+    "overflow": 0,
+    "buttonRight": 236,
+    "buttonWidth": 180,
+    "footerUrl": {
+      "left": 56,
+      "right": 303
+    },
+    "contrast": {
+      "body": 16.27,
+      "footer": 5.17,
+      "button": 5.17
+    },
+    "errors": 0,
+    "foreign": []
+  },
+  {
+    "leg": "due-tomorrow student dark",
+    "overflow": 0,
+    "buttonRight": 236,
+    "buttonWidth": 180,
+    "footerUrl": {
+      "left": 56,
+      "right": 303
+    },
+    "contrast": {
+      "body": 16.27,
+      "footer": 5.17,
+      "button": 5.17
+    },
+    "errors": 0,
+    "foreign": []
+  },
+  {
+    "leg": "mailpit page new-work",
+    "iframeOverflow": 0,
+    "frames": 2,
+    "theme": "auto",
+    "mailpitConsoleErrors": 0,
+    "foreign": []
+  },
+  {
+    "leg": "mailpit page due-tomorrow",
+    "iframeOverflow": 0,
+    "frames": 2,
+    "theme": "auto",
+    "mailpitConsoleErrors": 0,
+    "foreign": []
+  }
+]

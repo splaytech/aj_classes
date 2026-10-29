@@ -105,14 +105,14 @@ export default function AdminEnquiriesPage() {
                     </Typography>
                   )}
                   {enquiry.wantsUpdates && (
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" color="textSecondary">
                       {ENQUIRIES_PAGE.wantsUpdates}
                     </Typography>
                   )}
                 </TableCell>
                 <TableCell sx={{ minWidth: 260, maxWidth: 420, whiteSpace: 'pre-wrap' }}>
                   {enquiry.message ?? (
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="textSecondary">
                       {ENQUIRIES_PAGE.noMessage}
                     </Typography>
                   )}
@@ -123,7 +123,7 @@ export default function AdminEnquiriesPage() {
                     // Zoho's reason can be long and technical: two lines, the rest on hover.
                     <Typography
                       variant="caption"
-                      color="text.secondary"
+                      color="textSecondary"
                       component="p"
                       title={enquiry.crmError}
                       sx={{

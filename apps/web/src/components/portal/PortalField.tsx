@@ -2,7 +2,7 @@
 // and the error / success messages. Inputs are wired to their errors for screen readers.
 
 import { useState } from 'react';
-import type { ChangeEvent, ReactNode } from 'react';
+import type { ChangeEvent, ReactNode, Ref } from 'react';
 
 import { AUTH_LIMITS, PORTAL_COMMON } from '@/constants';
 
@@ -66,6 +66,8 @@ type TextInputProps = {
   error?: string;
   hint?: string;
   maxLength?: number;
+  /** For forms that move focus to this field when it has an error. */
+  ref?: Ref<HTMLInputElement>;
 };
 
 export function TextInput({
@@ -79,10 +81,12 @@ export function TextInput({
   error,
   hint,
   maxLength,
+  ref,
 }: TextInputProps) {
   return (
     <PortalField id={id} label={label} error={error} hint={hint}>
       <input
+        ref={ref}
         id={id}
         type={type}
         inputMode={inputMode}
@@ -108,6 +112,8 @@ type TextAreaInputProps = {
   hint?: string;
   /** Shown under the box, e.g. "120 / 1000 characters". */
   counter?: string;
+  /** For forms that move focus to this field when it has an error. */
+  ref?: Ref<HTMLTextAreaElement>;
 };
 
 export function TextAreaInput({
@@ -120,10 +126,12 @@ export function TextAreaInput({
   error,
   hint,
   counter,
+  ref,
 }: TextAreaInputProps) {
   return (
     <PortalField id={id} label={label} error={error} hint={hint}>
       <textarea
+        ref={ref}
         id={id}
         className={styles.input}
         rows={rows}

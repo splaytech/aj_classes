@@ -1,0 +1,359 @@
+# 05 — Developer notes: item 8 ("new assignment" and "due tomorrow" emails)
+
+> **Stage:** 5 of /deliver (Developer) · **Date:** 26 Oct 2026 · **Branch:** `feature/more-email-alerts`
+> (worktree `aj_classes-items-4-9`, cut from `develop` @ `8e2af88`, whose CI run is green; `develop`
+> @ `82a60ef` merged in on 29 Oct 2026, §11)
+> **Input:** [01b](01b-requirement-items-4-9.md) item 8 (AC-8.1–8.17, assumptions 10–12),
+> [02b](02b-architecture-items-4-8.md) §8, [ADR-0008](../../decisions/0008-scheduled-and-multi-kind-email.md)
+> (extends [ADR-0004](../../decisions/0004-email-outbox-cron-worker.md)), [03b](03b-design-items-4-8.md) §8 and §9,
+> [04b](04b-plan-items-4-8.md) §0 and T8.0–T8.12.
+> **Next:** T8.13 Reviewer (`review-5-item-8.md`), then T8.14 Tester, T8.15 Security and T8.16 `/test-and-ship`.
+> Nothing is pushed or merged.
+
+Everything ran against the **local** stack only (`http://127.0.0.1:55321`). Email went only to the
+local Mailpit (`:55324`). Nothing touched the hosted project: no `link`, `db push` or
+`functions deploy`, no `deploy.sh` run, no real Resend key. I didn't read `supabase/.env.deploy`.
+There's one migration, one function change and no new dependency. 0 browser requests went to
+`supabase.co`.
+
+## 1. Tasks done
+
+| Task | Status | Evidence |
+|---|---|---|
+| T8.0 Stack checks, migration file | Done | Check 1 (edge-runtime mount) printed `1`, the mount being `/Users/sjain/dev/work/aj_classes-items-4-9/supabase/functions`. Check 2 printed `20261027100000` before the file existed. `email_outbox_kind_check`, `email_outbox_reason_check` and `email_outbox_once` present. File: `supabase/migrations/20261028100000_more_email_alerts.sql` |
+| T8.1 Switches, outbox columns, Melbourne helpers | Done | Steps 1–3. DST and schedule row, deadline helper, defaults (`email_alerts.test.sql`) |
+| T8.2 One recipient function | Done | Steps 4 and 7. Switch-per-kind cases. `fair_results.test.sql` AC-7.14 call renamed. Item 3's AC-3.1/3.2 green |
+| T8.3 Queue on publish, hourly reminder job | Done | Steps 5–6. AC-8.1, 8.3, 8.4, 8.5, 8.6, 8.11, 8.12, 8.15 (queue half), cron job row |
+| T8.4 Claim, sweep, admin list, clean-up | Done | Steps 8–11. AC-8.7, 8.13, 8.14, 8.15. Deploy-order proof (§4). `pnpm db:types`: only `database.types.ts` changed |
+| T8.5 Worker renders three kinds | Done | `copy.ts`, `template.ts`, `index.ts`, `test-notifications.mjs`: +58 checks, two Mailpit round trips |
+| T8.6 Three switches | Done | `notifications.service.test.ts` (9). Browser §3 leg 1 |
+| T8.7 Type column | Done | `email-problems.test.ts`. Browser §3 leg 2 |
+| T8.8 Privacy sentence | Done | 03b §8.9 sentence, `privacy.test.tsx`. Approval is B17 / Q7 (docs only, no code comment) |
+| T8.9 Docs | Done | `supabase/README.md` ("Portal emails"), `arch.md`, `budget.md` ("pending Q27"), `release-5/PRP.md`, `release-2/go-live.md` §7d |
+| T8.10 Manual passes | Done, scripted (§3) | Some legs left for the Tester (§7) |
+| T8.11 Full check | Done | §2 |
+| T8.12 Dev notes | Done | This file |
+| T8.13–T8.16 | **Not started** | |
+
+I didn't tick 04b. The Manager owns that file.
+
+## 2. Commits and full check
+
+Commits (oldest first):
+
+1. `4712c7b` feat(email): add alert switches, outbox deadlines and Melbourne-time helpers (T8.0, T8.1)
+2. `d5c3f7b` feat(email): pick email recipients per kind through one function (T8.2)
+3. `d2e23b1` feat(email): queue new-assignment emails on publish and due-tomorrow reminders hourly (T8.3)
+4. `00b26ca` feat(email): claim by supported kind, reminders first, and expire late rows (T8.4)
+5. `3c127b2` chore(types): regenerate database types for the new email kinds (T8.4)
+6. `466a857` feat(email): send new-assignment and due-tomorrow emails from the worker (T8.5)
+7. `f8cfb93` feat(email): three notification switches and a Type column on Admin → Emails (T8.6, T8.7)
+8. `d6c4eb6` feat(privacy): name all three portal emails and their off switches (T8.8)
+9. `5b5a00b` docs(email): document the three portal emails, the reminder job and the deploy order (T8.9)
+10. `5b15ded` fix(email): keep the Type label on one line on Admin → Emails at 360 px (T8.10)
+11. `4871269` docs(email): correct how many emails the seed queues on db reset (six, not four)
+12. This file (docs commit).
+
+The migration grows across commits 1–4, one step group per task. Between commits 3 and 4 the old
+claim (no kind filter) would send new-kind rows with the "work returned" template; that state only
+existed on this branch for a few minutes, locally, into Mailpit.
+
+Full check, from the repo root, on `5b15ded`, after `pnpm db:reset`:
+
+| Step | Result (before item 8, item 7's last run) |
+|---|---|
+| `format:check` | Pass |
+| `lint` | Pass, 0 problems |
+| `typecheck` (web + e2e) | Pass |
+| `test` | Vitest **62 files, 533 tests** (62, 525); e2e unit 6/6 |
+| Local-exports `VITE_APP_ENV=production pnpm build`, Turnstile test key | Pass |
+| `pnpm --filter web check:hosted-ref build/client` | `0 files (of 153 scanned)` |
+| `db:test` | **16 files, 704 tests, PASS** (15, 590). `email_alerts.test.sql` has 114 |
+| `test:functions` | **227 `ok`, 0 failed** (169): account-admin 49, leads 30, notifications **148** (90). "All checks passed." ×3. Run twice: repeatable |
+| `test:smoke` (in-repo, `e2e/.env` from `local-env.mjs`) | **9 passed** (44.3 s) |
+| No-Supabase build (ci-gates.md flags), then `check:hosted-ref` | Pass, `0 files` |
+| `test:csp` | **19 passed** (30.4 s) |
+
+Rule checks: `kinet validate` reports "KINET not initialised" in this worktree, and I didn't run
+`kinet init`. Instead I grepped the added lines of every changed TS/TSX/MJS file for
+`console.log`/`console.debug`, `style={{`, `: any`, `TODO`, `fetch(`, `axios` and DOM queries:
+0 matches. No secret-like strings or hosted project ref in the diff.
+
+**Mutation check** (local database only, each followed by `pnpm db:reset`):
+
+| Mutation | Tests that fail |
+|---|---|
+| Claim ordered by `created_at` only (no reminders first) | 3 (all three AC-8.14 cap cases) |
+| `kick_email_worker` without the too_late sweep | 3 (AC-8.7 sweep, admin list, cap-full sweep) |
+| `is_reminder_hour` on UTC + 10 (no DST) | 4 (the AEDT cases of both DST changes) |
+| Reminder boundary `<= today` instead of `< today` | 1 (published the day before: no reminder) |
+
+After the last reset: 704 tests, PASS.
+
+## 3. Browser pass (T8.10; dev server :5173, Chromium via Playwright, scripted)
+
+Seed data plus local-only rows, removed afterwards. Accounts: `student@local.test` (Aarav Demo),
+`parent@local.test`, `tutor@local.test`, `admin@local.test` (two-step with the local seed key).
+Widths 1280 and 360; light and dark through the portal's Appearance setting.
+
+| Leg | Result |
+|---|---|
+| AC-8.10 / 8.17 Account → Notifications, student and parent, 4 variants each | Three switches in the order work returned, new work, due tomorrow, all on (no row). Labels 1 line, except "Email me when work is marked and returned" at 360 (2 lines, O1). 0 px overflow. Contrast 16.27 light, 15.19 dark. 0 console errors |
+| AC-8.10 each switch is its own | Student turns off "new work" only and saves: "Saved. We'll remember this choice."; DB `true,false,true`; signs out (lands on `/portal/login`) and back in: still `on, off, on`. Parent does the same with "due tomorrow": DB `true,true,false`, kept after sign-in. Both turned back on (DB `true,true,true`) |
+| AC-8.10 staff | Tutor and admin: Account page has no Notifications section and no switch |
+| AC-8.13 / 8.7 Admin → Emails, 4 variants | Headers When, Type, Recipient, Assignment, State, Reason. Hand-made failed rows show "Due tomorrow · Failed · Too late to send", "New assignment · Failed · Too late to send", "Work returned · Failed · Rejected by email service". New intro text. No `@local.test` on the page. At 360 the table scrolls in its box (690 px in 326 px), page overflow 0. After `5b15ded` the Type stays on one line |
+| AC-8.13 empty | "No failed or waiting emails", spanning 6 columns, 0 px overflow at 360 dark |
+| AC-8.1 / 8.2 publish in the UI | Tutor clicks "Publish to class" on the seeded draft "Ratio worksheet" and confirms. "Published. Students can see it now.", no error. DB: `parent:pending,student:pending` `new_assignment` rows |
+| AC-8.2 delivery by the real cron job | Both emails reached Mailpit **117 s** after the publish: "New work set: Ratio worksheet" and "New work for Aarav: Ratio worksheet" |
+| AC-8.2 signed-out link | Each email's **View assignment** link, opened signed out at 360: `/portal/login?next=…`, then sign-in lands on `/portal/student/assignments/<id>` and `/portal/parent/children/<id>/assignments/<id>`, heading "Ratio worksheet". 0 overflow, 0 errors |
+| AC-8.12 edge runtime stopped | `docker stop supabase_edge_runtime_aj_classes`; the tutor creates "Item 8 stop check" (paper) and publishes it in the UI: "Published…", no error alert, 0 console errors; rows `parent:pending,student:pending`. Then `docker start`; the container is running again |
+| AC-8.17 both new emails at 360 | Mailpit's HTML view (`/view/<id>.html`) of the student and parent "new work" and "due tomorrow" emails, light and dark: 0 px overflow, "View assignment" button 180 px wide, body wraps cleanly |
+| Requests to `supabase.co` | 0 |
+
+The screenshots and JSON are in the session scratchpad, not the repo:
+`/private/tmp/claude-501/-Users-sjain-dev-work-aj-classes/f3122f43-e1db-48f8-8b25-a31385abb4a2/scratchpad/item8-run/`
+(`shots/`, `out/`). I looked at the parent switches at 360 dark, Admin → Emails at 360 dark,
+and the "new work" (parent, 360 light) and "due tomorrow" (student, 360 dark) emails.
+
+**Observations (not changed):**
+
+- **O1.** At 360 px item 3's "Email me when work is marked and returned" wraps to 2 lines, so the
+  first switch row is 48 px and the other two 38 px. The wording is item 3's.
+- **O2.** At 360 px on Admin → Emails, the Assignment and Reason cells can wrap to 2 lines. That's
+  item 3's layout; the table scrolls sideways as designed.
+- **O3.** Pre-existing (item 7 O5): at 360 px the "DEV" marker overlaps the signed-in name.
+- **O4.** Locally, every `pnpm db:reset` now queues 6 "new assignment" rows from the seed
+  ("Word problems set 1", "Fractions quick quiz" and "Times tables warm-up", for Aarav and his
+  parent), and the local cron sends them to Mailpit within 5 minutes. After the last reset the
+  real `email-worker-kick` run at 05:00 UTC answered `claimed 8, sent 8` (the 6 plus the seed's 2
+  "work returned"). The README says so.
+
+## 4. Deploy-order proof (T8.4, ADR-0008 decision 6)
+
+With the migration applied (commit 4) and `supabase/functions/notifications` **still item 3's
+code** (no diff against `8e2af88`), `pnpm test:functions` ran against the new database:
+
+- **169 `ok`, 0 failed**, "All checks passed." ×3, the same as item 7's last run.
+- Before: outbox `new_assignment pending 6`, `work_returned pending 2`. After: `work_returned sent 2`,
+  `new_assignment pending 4` (the end-to-end script deletes "Word problems set 1"'s rows). So the old
+  worker, calling `notify_claim_emails` with no argument through PostgREST, claimed only
+  "work returned" and left the new kinds pending.
+- pgTAP pins the same rule: with no argument the claim returns only `work_returned`, and leaves the
+  new kinds `pending`.
+
+The reverse order (new function, old database) wasn't run: by design it gets `PGRST202` and stops
+all email (superseded by §9 D13: it now falls back to "work returned" only). The release steps keep migration first (README "Portal emails", go-live §7d).
+
+## 5. Copied function bodies (for T2.15 and the Reviewer)
+
+Each was checked as the current definition with
+`grep -n "function <schema>.<name>" supabase/migrations/*.sql | tail -1` before copying, copied by
+script from the exact lines below, and `diff` against the source shows only the listed change.
+
+| Function | Source file | Lines | Change |
+|---|---|---|---|
+| `private.queue_work_returned_email()` | `20261025110000_work_returned_email.sql` | 149–165 | `create or replace`; the recipients line calls `private.email_recipients('work_returned', new.assignment_id, new.student_id)` |
+| `public.notify_claim_emails()` → `(supported_kinds text[] default array['work_returned'])` | `20261025110000_work_returned_email.sql` | 189–239 | Dropped and recreated. Output gains `kind` (after `id`) and `due_on` (last). The skip step calls `email_recipients(o.kind, o.assignment_id, o.student_id, private.melbourne_date(o.send_before))`. The claim's inner select adds `x.kind = any (supported_kinds)` and `(x.send_before is null or x.send_before > now())`, ordered `(x.kind = 'due_tomorrow') desc, x.created_at`. The final select returns `c.kind` and `a.due_on`, same order |
+| `private.kick_email_worker()` | `20261025110000_work_returned_email.sql` | 299–336 | `create or replace`; straight after the reclaim update and before the first early return: the claim's relevance skip (added after review-5, §9 D12), then the too_late sweep |
+| `public.admin_email_problems(int)` | `20261025110000_work_returned_email.sql` | 365–399 | Dropped and recreated; `kind text` after `created_at` in `returns table`, and `o.kind` in the select |
+| People set of `private.email_recipients` | `20261027100000_fair_results.sql` (`work_returned_recipients`, item 7's version) | 360–385 | Not copied verbatim: the two branches become a `people` CTE, and the per-branch readable and switch checks move to `email_still_relevant` (`'work_returned'` → `assignment_readable_by`) and one `case` on the kind's switch column. `work_returned_recipients` is then dropped |
+
+Grants: `notify_claim_emails(text[])` and `admin_email_problems(int)` are revoked from `public, anon,
+authenticated`, then granted to `service_role` and `authenticated` respectively, as
+`20261025110000` lines 405–421 did. pgTAP checks both, and that none of the 10 new private helpers
+is executable by `authenticated` or `anon`.
+
+**Where these live now (for T2.15, copy from here, not from `20261025110000`)**, in
+`20261029100000_more_email_alerts.sql` (renamed from `20261028100000`, §11; after the review-5 fix,
+§9, test-plan P3, §10, and the round 3 fix, §11):
+`email_still_relevant` 114–141, `email_recipients` 148–179, `queue_new_assignment_emails` 194–218,
+`queue_due_tomorrow_emails_for` 234–253, `queue_due_tomorrow_emails` 257–270,
+`queue_work_returned_email` 289–305, `notify_claim_emails` 320–373, `kick_email_worker` 382–434,
+`admin_email_problems` 444–478.
+
+After the `develop` merge (§11) every source above is still the latest definition on `develop`:
+`20261028110000_classes_hybrid_multi_year.sql` redefines none of these functions, so no body had to
+be rebuilt.
+
+## 6. Deviations and `[ASSUMPTION]`s
+
+- **D1. Two cited line ranges were off; the copies use the real ones.** 03b §8.2 step 8 cites
+  `notify_claim_emails` as `20261025110000` lines 189–243. The function ends at **239**: 240 is
+  blank and 241–243 are `notify_record_result`'s comment. Step 7 cites `queue_work_returned_email`
+  as 149–163; it ends at **165** (`end;` and `$$;`). 03b §8.2 step 4 cites the people set as
+  `20261025110000` lines 115–138; the current definition is item 7's, `20261027100000` lines
+  360–385 (item 7 D1 had already found the original ends at 140). §5 has the ranges I used.
+- **D2. Revokes sit with their step.** The private helpers are revoked at the end of steps 3, 4 and
+  6, not all in step 11, so each commit's migration was complete. Step 11 keeps the drop of
+  `work_returned_recipients` and the claim and admin grants. The final grants are the design's.
+- **D3. `formatDueDate` joins `formatToParts` by hand**, because ICU versions differ on the
+  separator ("Friday, 30 October"). Node gives "Friday 30 October", and the Deno edge runtime gave
+  "Thursday 5 November" and "Tuesday 27 October" in the Mailpit emails.
+- **D4. "Work returned" is byte-identical.** The template now has one shared shell and three
+  renderers. A snapshot of `renderWorkReturned` (escaped title, CR/LF class name, no first name)
+  before and after the refactor compares equal. `viewFeedbackUrl` is renamed `assignmentUrl`, since
+  no test imported it.
+- **D5. Extra pgTAP cases** beyond 03b §8.10:
+  - editing a published assignment queues nothing more;
+  - a student enrolled after publishing still gets the reminder (only "new assignment" skips later joiners);
+  - the sweep runs when the cap is full;
+  - draft work due tomorrow is never reminded;
+  - exactly one of a day's 24 hourly runs passes the guard;
+  - execute privileges on every new helper, and `work_returned_recipients` is gone;
+  - the cron wrapper's count is tied to `is_reminder_hour(now())`, so the suite passes in any hour (it ran during the 15:00 Melbourne hour).
+- **D6. Test fixture: tutors can't insert an explicit `id`** (column grant), so the "inserted
+  straight as published" case inserts without one and finds the row by title.
+- **D7. README section renamed "Portal emails"** with a line saying it was "Work returned emails".
+  `deploy.sh`'s printed hint and the comment in the applied `20261025110000` migration still use
+  the old name. I didn't edit an applied migration or the release script for a label.
+- **D8. Type cell `nowrap`** (`5b15ded`), matching the When cell, after the 360 px pass showed "Due
+  tomorrow" on two lines.
+- **D9. T8.6 and T8.7 are one commit.** They share `types.ts` and `portal.constants.ts`, so
+  neither typechecks alone.
+- **D10. Files.** 25 changed, plus this file. Against 03b §8.1: all rows except #24
+  `account.module.css` (not needed: the switch rows space themselves) and #23 go-live's ticks (the
+  boxes are added unticked). One extra: `services/index.ts` exports `EmailKind`.
+  The switches are a list (`NOTIFICATION_SWITCHES`, keys are the setting names), not three
+  hand-written rows.
+- **D11. `test-notifications.mjs` pauses both jobs** with one `jobname in (...)` filter, so the
+  recovery command and the Ctrl-C handler cover both. Its round trips use the seeded draft "Ratio
+  worksheet" (published by the tutor through REST) and "Fractions quick quiz" (moved to due tomorrow,
+  published 3 days ago, through SQL). Both are restored, and their test rows deleted, in `finally`,
+  so the runs don't use up the 70-a-day cap.
+- `[ASSUMPTION — Security to confirm]` (01b assumption 11): both new switches default on. Built as
+  designed. For T8.15.
+- The 03b `[ASSUMPTION]`s hold as designed: no catch-up for a missed 15:10 run; moving a published
+  assignment to another class doesn't notify the new class; `email_recipients` has the fourth,
+  defaulted `queued_due_on`.
+- **Privacy (T8.8):** the 03b §8.9 sentence replaces item 3's two. Approval stays with Saurabh,
+  B17 / Q7, tracked in docs only.
+- **budget.md (T8.9):** the upgrade rule is written as 02b Decision 1's proposal, **pending Q27**.
+- **Not built (moved to T2.15, item 2 held):** the file hand-in parts of AC-8.1 and AC-8.5. No item 2
+  code or migration is touched. Once item 2 redefines `is_online_assignment`, reminders cover file
+  hand-in with no item 8 change.
+
+## 7. What I didn't verify (manual legs left for the Tester)
+
+1. **A real 15:10 Melbourne cron run.** The reminder queue was called directly
+   (`queue_due_tomorrow_emails_for`), and the cron entry only through pgTAP's hour-independent
+   check and the `cron.job` row. The job exists and is active; nobody has watched it fire at 15:10.
+2. **Back to draft before the send, in the browser.** Covered by pgTAP (rows end `skipped`, not
+   shown to admins). I didn't click "Back to draft" between a publish and a worker run.
+3. **A parent of two children in one class getting two emails in Mailpit.** pgTAP only. The seed
+   has no such family in one class.
+4. **Cap pressure end to end** (Daily limit and Too late to send from real cron runs). pgTAP only.
+5. **Mailpit's own UI at 360 px.** I rendered the email HTML Mailpit serves (`/view/<id>.html`, what
+   its preview frame shows), not the Mailpit app page.
+6. **Email clients and real devices.** Chromium only, with emulated colour schemes. No Gmail,
+   Outlook, Apple Mail, Safari, Firefox or phone. No keyboard-only or screen-reader pass on the
+   three switches.
+7. **The function under Deno's type checker.** Deno isn't installed. The local edge runtime ran the
+   code (both round trips and the browser pass went through it), but types are only checked by
+   `tsc` for the web app, not `supabase/functions`.
+8. **Hosted:** none, by rule. The migration on hosted, the deploy order on hosted, `deploy.sh` and
+   real Resend are all Saurabh's release steps (go-live §7d).
+
+## 8. Local state left for the Tester
+
+- **Stack:** running, from this worktree, newest migration `20261029100000` (after §11's final
+  `pnpm db:reset`). All three cron jobs
+  active: `daily-history-trim`, `due-tomorrow-reminders`, `email-worker-kick`.
+- **Outbox:** fresh from the last `pnpm db:reset` (after the mutation check): the seed's 2
+  "work returned" and 6 "new assignment" rows, all sent by the real cron job to Mailpit.
+- **Demo work:** "Ratio worksheet" is a draft again; "Fractions quick quiz" is back to its seeded due
+  date; "Word problems set 1" is waiting for marking.
+- **Switches:** `notification_settings` is empty, so everyone is on.
+- **Mailpit:** holds this run's local emails.
+- **Ports 5173 and 4173:** free. Dev server and mirror stopped.
+
+## 9. Review fixes (review-5-item-8 CHANGES_REQUESTED, and Security item 8)
+
+| Finding | Fix |
+|---|---|
+| Review 1 (blocking): the sweep failed rows that should have been skipped | `kick_email_worker` now runs the claim's relevance skip (the same `email_recipients(o.kind, …, melbourne_date(o.send_before))` update as `notify_claim_emails`) straight before the too_late sweep. pgTAP, next to the "cap full" case: with the cap at 0, a reminder whose student has handed in, a "new assignment" row for work moved back to draft and one for a student who left the class all end `skipped` and aren't listed by `admin_email_problems`; the still-relevant reminder (Kid Four) ends `failed` / `too_late` and is listed |
+| Review 2 | One JSDoc on `NotificationsSection` for the three switches; the stale item 3 one is gone |
+| Review 3 | The B17 comment above the Privacy "Portal accounts" text names the portal-emails sentence (ADR-0004, ADR-0008). Approval stays in docs |
+| Review 4 | pgTAP: the 24-run "exactly one reminder hour" count also on 4 Oct 2026 (23-hour Melbourne day) and 4 Apr 2027 (25-hour day) |
+| Security S2 | New `notifications/claim.ts`: `claimRows` calls `notify_claim_emails(supported_kinds)`; on `PGRST202` (this function deployed before the migration) it retries once with no argument, the old claim, and marks those rows `work_returned` with no due date, so "work returned" keeps sending. Any other error, or a failed retry, is thrown as before. `index.ts` logs only "notifications claim: old database, work returned only". Unit checks in `test-notifications.mjs` with a fake claim call (normal path, fallback, the fallback rows render as item 3's email, other errors not retried, failed fallback thrown). Not run end to end: that needs the old database |
+
+- **D12. Deviation from 03b §8.2 step 9.** The design adds only the sweep to the kick. The kick now
+  also skips no-longer-relevant pending rows before it (review-5 finding 1), because the claim, the
+  only other place that skips, doesn't run while the cap is full or the worker answers
+  `config_missing`. It covers every pending row, as the claim's skip does, so an all-irrelevant
+  queue no longer calls the worker. Item 3's kick tests stay green.
+- **D13. Deviation from ADR-0008 decision 6 / 02b §8.5 (Security S2).** The function-first order is
+  no longer a full email stop: "work returned" keeps going through the old claim, and the new
+  kinds simply don't exist yet. The release steps still say migration first.
+- **Incident (local only).** While checking the kick fix before committing, I ran the pgTAP files
+  in one hand-built `psql` transaction. The test-helper hook file has its own `begin;`/`rollback;`,
+  which ended my outer transaction early, so the rest of the files ran in autocommit against the
+  shared **local** database. That wiped the seed data (it left item 7's test fixtures behind).
+  Nothing hosted was involved, and no function or migration change reached the database that way.
+  I fixed it with `pnpm db:reset` once the fix was committed. Anyone reading the local database
+  from about 05:05 UTC (16:05 Melbourne) until the reset saw fixture data, not the seed.
+
+## 10. Test plan fixes (06-test-plan-item-8.md)
+
+| Finding | Fix | Commit |
+|---|---|---|
+| P2 Admin → Emails sent a refused `rpc/admin_email_problems` for a non-admin (the loader runs alongside the admin guard; the E-60 pattern) | `listEmailProblems` uses `getAdminClient()`, so only an admin with two-step sends the read; anyone else gets `notAllowed` with no request. `staff-access.test.ts` adds it to the admin reads (student, parent, tutor, signed out, admin without two-step: no call; access read fails: `network`; admin with two-step: one call). `notifications.service.test.ts` mocks `staff-client` | `72ccd1f` |
+| P3 A pending "new assignment" email for work re-dated into the past still went out, "It's due <past date>" (AC-8.4) | `email_still_relevant('new_assignment', …)` also requires `due_on is null or due_on >= melbourne_date(now())`, so the claim's skip and the kick's pre-sweep skip both mark it `skipped`, not failed. The publish trigger's own deadline check already refused this at queue time, so queueing is unchanged. The `due_tomorrow` arm is untouched. pgTAP: re-dated to yesterday → not claimed, `skipped`; re-dated to today → claimed. Mutation: with the old function, the two new tests fail. **Round 3 found this check too wide** (a dated row that simply ran out also ended `skipped`); narrowed in §11, and the "due-tomorrow unchanged" assertion, which ran after a rollback and proved nothing, is replaced by the natural-expiry case | `edb4f6f`, §11 |
+| P4 `restoreSeededWork` deleted the seed's sent "new assignment" rows for "Word problems set 1" | The restore and the script's outbox lookup for that work touch only `kind = 'work_returned'` rows, the ones the test's return queues (an interrupted run's included, so a re-run still starts clean) | `ef66c48` |
+| P5 03b §8.7 says a failed load shows the defaults (all on) | Not what the build does, as item 3: a failed load shows the `FormAlert` and no switches. The all-on value in `NotificationsSection`'s `useState` is never displayed (the section returns the alert first), but it isn't removable: `useState` must run before that early return and needs a typed initial value. Left as it is and documented here (D14) | this commit |
+
+- **D14. Deviation from 03b §8.7 "Load failed: defaults shown".** The page shows the error alert
+  instead of three switches the person can't trust, as item 3's page already did.
+
+## 11. Round 3 fix and `develop` merge (29 Oct 2026)
+
+**Merge.** `origin/develop` @ `82a60ef` (items 4–7 and hybrid/multi-year classes) merged in with a
+merge commit. No conflicts: `database.types.ts`, `types.ts`, `content.constants.ts`,
+`portal.constants.ts`, `privacy.test.tsx`, `supabase/README.md` and `seed.sql` auto-merged. The only
+new migration, `20261028110000_classes_hybrid_multi_year.sql`, touches `public.classes` and adds
+`private.check_class_year_levels`; it redefines none of item 8's functions, and none of item 8's
+SQL or tests uses the dropped `classes.year_level` (only `students.year_level`).
+
+**Rename (ADR-0007 §4).** `20261028100000_more_email_alerts.sql` → `20261029100000_more_email_alerts.sql`,
+later than everything on `develop`. References updated in `supabase/README.md`, the three
+`notifications` function comments, `email-problems.test.ts` and the executable steps of
+`06-test-plan-item-8.md` (E-02 now expects `20261029100000` and **17** migrations; E-10, E-11 and the
+scope line diff `origin/develop...HEAD`). Review and earlier stage records keep the old name.
+**For Saurabh at deploy:** the file was never applied to hosted from here (no `link` or `db push`);
+confirm with `supabase migration list` that `20261028100000` isn't on hosted before pushing.
+
+**Round 3 Blocking 1 (review-5-item-8).** A dated "new assignment" row that expired naturally ended
+`skipped`, so it never showed as "Too late to send" (AC-8.7). Its `queued_due_on` is
+`melbourne_date(send_before)` = due + 1, so `email_still_relevant('new_assignment', …)` now passes when
+`due_on is null or due_on >= melbourne_date(now()) or due_on + 1 >= queued_due_on`: skipped only
+when the due date moved earlier than queued and is now past. The comment covers the null
+`queued_due_on` while queueing (the trigger already checked the deadline) and the no-due-date-at-queue
+case (`queued_due_on` is the 7th day after publishing, so a due date added later only counts as
+"moved earlier" when it's 2 or more days before that day). `due_tomorrow` is unchanged.
+
+pgTAP (`email_alerts.test.sql`):
+
+- AC-8.7 fixtures are now realistic: new work `e815` due yesterday, `send_before =
+  melbourne_day_start(due + 1)`. The kick fails it `failed / too_late`, admins see it, and the
+  cap-full sweep also ends `too_late`. The "left the class" row uses the same fixture.
+- New kick-path case: re-dated to yesterday after queueing, cap full → `skipped`, not `too_late`.
+- New natural-expiry case (replaces review non-blocking 2): the claim neither returns nor skips it
+  (still `pending`), then the kick fails it `too_late`.
+- Mutation: with the old `email_still_relevant` body these tests fail **5** (AC-8.7 kick, admin
+  list, cap-full sweep, natural-expiry pending, natural-expiry too_late); with the fix, all pass.
+
+**Full check after the merge, rename and fix** (local stack, from this worktree):
+
+| Step | Result |
+|---|---|
+| `format:check` | Pass |
+| `lint` | Pass |
+| `typecheck` (web + e2e) | Pass |
+| `test` | Vitest **66 files, 581 tests**; e2e unit 6/6 |
+| `VITE_APP_ENV=production pnpm build` (CI's build env) | Pass |
+| `db:reset` | Pass; `20261028110000` then `20261029100000` applied |
+| `db:test` | **17 files, 747 tests, PASS** |
+| `test:functions` | **232 `ok`, 0 failed**; "All checks passed." ×3 (edge runtime mounted from this worktree) |
+
+Not run: `kinet validate` (KINET isn't initialised in this worktree), `test:smoke`, `test:csp` and a
+browser pass (no UI change in this round).
+

@@ -1,0 +1,158 @@
+{
+  "tc3_box_while_ticking": [
+    "Year 11",
+    "Years 7, 11",
+    "Years 7, 9, 11"
+  ],
+  "tc9_escape_closed": true,
+  "tc9_focus_after_escape": "Year level",
+  "tc3_after_save_url": "/portal/classes/94f392cd-379e-4336-9a31-23993815d054",
+  "tc3_after_save_alerts": [],
+  "tc3_q1": "{7,9,11}||hybrid|Room 3 and Zoom",
+  "tc3_reopen_delivery": "Hybrid",
+  "tc3_reopen_years": [
+    [
+      "Year 2",
+      "false"
+    ],
+    [
+      "Year 3",
+      "false"
+    ],
+    [
+      "Year 4",
+      "false"
+    ],
+    [
+      "Year 5",
+      "false"
+    ],
+    [
+      "Year 6",
+      "false"
+    ],
+    [
+      "Year 7",
+      "true"
+    ],
+    [
+      "Year 8",
+      "false"
+    ],
+    [
+      "Year 9",
+      "true"
+    ],
+    [
+      "Year 10",
+      "false"
+    ],
+    [
+      "Year 11",
+      "true"
+    ],
+    [
+      "Year 12",
+      "false"
+    ]
+  ],
+  "tc3_s4_box": "In person",
+  "tc3_s4_q": "{7,9,11}||in_person|Room 3 and Zoom",
+  "tc3_s5a_box": "Hybrid",
+  "tc3_s5a_q": "{7,9,11}||hybrid|Room 3 and Zoom",
+  "tc3_s5b_box": "Online",
+  "tc3_s5b_q": "{7,9,11}||online|Room 3 and Zoom",
+  "tc3_s6_q": "{7,9,11}||hybrid|Room 3 and Zoom",
+  "tc5_101": {
+    "dialogOpen": 1,
+    "helper": [
+      "Choose one or more, or none for any year.",
+      "Please keep the location under 100 characters.",
+      "Optional. Next sessions only appear between these dates."
+    ],
+    "q": "Room 3 and Zoom"
+  },
+  "tc5_100_len": "100",
+  "tc5_restored": "Room 3 and Zoom",
+  "tc13a": {
+    "box": "Any year",
+    "q": "{}|",
+    "chip": "Any year",
+    "list": "Any year",
+    "seen": []
+  },
+  "tc13b": {
+    "box": "Year 8",
+    "q": "{8}|8",
+    "chip": "Year 8",
+    "list": "Year 8",
+    "seen": [
+      "Year 8"
+    ]
+  },
+  "tc13c": {
+    "box": "Years 7–9",
+    "q": "{7,8,9}|",
+    "chip": "Years 7–9",
+    "list": "Years 7–9",
+    "seen": [
+      "Year 9",
+      "Years 7, 9",
+      "Years 7–9"
+    ]
+  },
+  "tc13d": {
+    "box": "Years 7, 8",
+    "q": "{7,8}|",
+    "chip": "Years 7, 8",
+    "list": "Years 7, 8",
+    "seen": [
+      "Year 8",
+      "Years 7, 8"
+    ]
+  },
+  "tc13e": {
+    "box": "Years 7, 9, 11",
+    "q": "{7,9,11}|",
+    "chip": "Years 7, 9, 11",
+    "list": "Years 7, 9, 11",
+    "seen": [
+      "Year 11",
+      "Years 9, 11",
+      "Years 7, 9, 11"
+    ]
+  },
+  "tc13f": {
+    "box": "Years 7–9, 11",
+    "q": "{7,8,9,11}|",
+    "chip": "Years 7–9, 11",
+    "list": "Years 7–9, 11",
+    "seen": [
+      "Year 11",
+      "Years 9, 11",
+      "Years 8, 9, 11",
+      "Years 7–9, 11"
+    ]
+  },
+  "tc13g": {
+    "box": "Years 2–12",
+    "q": "{2,3,4,5,6,7,8,9,10,11,12}|",
+    "chip": "Years 2–12",
+    "list": "Years 2–12",
+    "seen": [
+      "Year 2",
+      "Years 2, 3",
+      "Years 2–4",
+      "Years 2–5",
+      "Years 2–6",
+      "Years 2–7",
+      "Years 2–8",
+      "Years 2–9",
+      "Years 2–10",
+      "Years 2–11",
+      "Years 2–12"
+    ]
+  },
+  "cleanup": "DELETE 1",
+  "errors": []
+}

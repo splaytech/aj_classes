@@ -36,7 +36,7 @@ export function SubmissionsTable({ assignment }: { assignment: AssignmentDetail 
   if (assignment.students.length === 0) {
     return (
       <SectionCard title={SUBMISSIONS.heading}>
-        <Typography color="text.secondary">{SUBMISSIONS.noStudents}</Typography>
+        <Typography color="textSecondary">{SUBMISSIONS.noStudents}</Typography>
       </SectionCard>
     );
   }

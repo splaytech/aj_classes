@@ -1,0 +1,118 @@
+{
+  "tc1_default_box": "In person",
+  "tc1_options": [
+    [
+      "In person",
+      "true"
+    ],
+    [
+      "Online",
+      "false"
+    ],
+    [
+      "Hybrid",
+      "false"
+    ]
+  ],
+  "tc6": [
+    "Choose one or more, or none for any year.",
+    "Room, the online meeting place (e.g. Zoom), or both for hybrid.",
+    "Optional. Next sessions only appear between these dates."
+  ],
+  "tc6_helpers": {
+    "Class name *": null,
+    "Subject *": null,
+    "Year level": "Choose one or more, or none for any year.",
+    "Delivery": null,
+    "Location": "Room, the online meeting place (e.g. Zoom), or both for hybrid.",
+    "Tutor": null,
+    "Term starts": "Optional. Next sessions only appear between these dates.",
+    "Term ends": null
+  },
+  "tc9_box_initial": "Any year",
+  "tc9_label_box_overlap": {
+    "labelBottom": 303.734375,
+    "valueTop": 295.484375,
+    "overlap": true
+  },
+  "tc9_multiselectable": "true",
+  "tc9_options": [
+    [
+      "Year 2",
+      "false"
+    ],
+    [
+      "Year 3",
+      "false"
+    ],
+    [
+      "Year 4",
+      "false"
+    ],
+    [
+      "Year 5",
+      "false"
+    ],
+    [
+      "Year 6",
+      "false"
+    ],
+    [
+      "Year 7",
+      "false"
+    ],
+    [
+      "Year 8",
+      "false"
+    ],
+    [
+      "Year 9",
+      "false"
+    ],
+    [
+      "Year 10",
+      "false"
+    ],
+    [
+      "Year 11",
+      "false"
+    ],
+    [
+      "Year 12",
+      "false"
+    ]
+  ],
+  "tc9_checkboxes": 11,
+  "tc9_after_tick5": {
+    "open": 1,
+    "selected": "true",
+    "checked": true,
+    "box": "Year 5"
+  },
+  "tc9_after_untick5": {
+    "open": 1,
+    "selected": "false",
+    "box": "Any year"
+  },
+  "tc9_three": "Years 3, 6, 10",
+  "tc9_two_left": "Years 3, 10",
+  "tc9_closed": false,
+  "tc9_no_class_saved": "3",
+  "tc2_box": "Hybrid",
+  "tc2_options": [
+    [
+      "In person",
+      "false"
+    ],
+    [
+      "Online",
+      "false"
+    ],
+    [
+      "Hybrid",
+      "true"
+    ]
+  ],
+  "tc2_maths_unchanged": true,
+  "errors": []
+}

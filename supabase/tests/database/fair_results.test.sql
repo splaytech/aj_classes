@@ -346,8 +346,8 @@ select isnt(
   null, 'The "View feedback" link''s function still opens the page after removal');
 reset role;
 select results_eq(
-  $$ select profile_id from private.work_returned_recipients('00000000-0000-0000-0000-00000000e008',
-                                                              '00000000-0000-0000-0000-00000000d001')
+  $$ select profile_id from private.email_recipients('work_returned', '00000000-0000-0000-0000-00000000e008',
+                                                      '00000000-0000-0000-0000-00000000d001')
      order by profile_id $$,
   $$ values ('00000000-0000-0000-0000-0000000005a1'::uuid), ('00000000-0000-0000-0000-0000000006a1'::uuid),
             ('00000000-0000-0000-0000-0000000006a2'::uuid) $$,

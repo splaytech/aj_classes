@@ -97,7 +97,7 @@ export function WeekTimetable({
 function DayColumn({ entries, ...options }: SlotOptions & { entries: TimetableEntry[] }) {
   if (entries.length === 0) {
     return (
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" color="textSecondary">
         {TIMETABLE_PAGE.noClasses}
       </Typography>
     );
@@ -125,14 +125,14 @@ function SessionCard({ entry, showTutor, linkToClass }: SlotOptions & { entry: T
       <Typography variant="body2" sx={{ mt: 1 }}>
         {entry.className}
       </Typography>
-      <Typography variant="caption" color="text.secondary" component="p">
+      <Typography variant="caption" color="textSecondary" component="p">
         {subjectLabel(entry.subject)}
       </Typography>
-      <Typography variant="caption" color="text.secondary" component="p">
+      <Typography variant="caption" color="textSecondary" component="p">
         {where}
       </Typography>
       {showTutor && entry.tutorName && (
-        <Typography variant="caption" color="text.secondary" component="p">
+        <Typography variant="caption" color="textSecondary" component="p">
           {entry.tutorName}
         </Typography>
       )}

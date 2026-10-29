@@ -109,7 +109,7 @@ export default function ClassesPage() {
                   </Stack>
                 </TableCell>
                 <TableCell>{subjectLabel(item.subject)}</TableCell>
-                <TableCell>{classYearLabel(item.yearLevel)}</TableCell>
+                <TableCell>{classYearLabel(item.yearLevels)}</TableCell>
                 {isAdmin && (
                   <TableCell>
                     <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>

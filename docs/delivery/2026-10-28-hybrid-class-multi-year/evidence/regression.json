@@ -1,0 +1,408 @@
+{
+  "r2": {
+    "admin /portal/admin": {
+      "url": "/portal/admin",
+      "h1": "Admin",
+      "errors": []
+    },
+    "admin /portal/classes": {
+      "url": "/portal/classes",
+      "h1": "Classes",
+      "errors": []
+    },
+    "admin /portal/classes/3c5798c9-1d4e-44b1-81e9-19db3d498011?tab=schedule": {
+      "url": "/portal/classes/3c5798c9-1d4e-44b1-81e9-19db3d498011?tab=schedule",
+      "h1": "Selective Entry Maths & Reasoning",
+      "errors": []
+    },
+    "admin /portal/classes/3c5798c9-1d4e-44b1-81e9-19db3d498011?tab=students": {
+      "url": "/portal/classes/3c5798c9-1d4e-44b1-81e9-19db3d498011?tab=students",
+      "h1": "Selective Entry Maths & Reasoning",
+      "errors": []
+    },
+    "admin /portal/classes/3c5798c9-1d4e-44b1-81e9-19db3d498011?tab=assignments": {
+      "url": "/portal/classes/3c5798c9-1d4e-44b1-81e9-19db3d498011?tab=assignments",
+      "h1": "Selective Entry Maths & Reasoning",
+      "errors": []
+    },
+    "admin /portal/timetable": {
+      "url": "/portal/timetable",
+      "h1": "Timetable",
+      "errors": []
+    },
+    "admin /portal/timetable (Local Tutor)": {
+      "url": "/portal/timetable",
+      "h1": "Timetable",
+      "errors": [],
+      "bullets": {
+        "hy": 2,
+        "ip": 0,
+        "on": 1
+      }
+    },
+    "admin /portal/assignments": {
+      "url": "/portal/assignments",
+      "h1": "Assignments",
+      "errors": []
+    },
+    "admin /portal/assignments/a5bafb32-6614-4f9a-9a3a-65202d37619d": {
+      "url": "/portal/assignments/a5bafb32-6614-4f9a-9a3a-65202d37619d",
+      "h1": "Reasoning mock test 1",
+      "errors": []
+    },
+    "admin /portal/admin/activity": {
+      "url": "/portal/admin/activity",
+      "h1": "Activity",
+      "errors": []
+    },
+    "tutor /portal/tutor": {
+      "url": "/portal/tutor",
+      "h1": "Welcome, Local",
+      "errors": []
+    },
+    "tutor /portal/classes": {
+      "url": "/portal/classes",
+      "h1": "Classes",
+      "errors": []
+    },
+    "tutor /portal/timetable": {
+      "url": "/portal/timetable",
+      "h1": "Timetable",
+      "errors": []
+    },
+    "tutor /portal/assignments": {
+      "url": "/portal/assignments",
+      "h1": "Assignments",
+      "errors": []
+    },
+    "student /portal/student": {
+      "url": "/portal/student",
+      "h1": "Hi Aarav",
+      "errors": []
+    },
+    "student /portal/student/timetable": {
+      "url": "/portal/student/timetable",
+      "h1": "My timetable",
+      "errors": []
+    },
+    "parent /portal/parent": {
+      "url": "/portal/parent",
+      "h1": "Hi Local",
+      "errors": []
+    },
+    "parent /portal/parent/children/1fa7da4b-0813-4b6c-b46b-19505efcfd62": {
+      "url": "/portal/parent/children/1fa7da4b-0813-4b6c-b46b-19505efcfd62",
+      "h1": "Aarav Demo",
+      "errors": []
+    },
+    "parent /portal/parent/children/c74554e5-60c6-40c4-8022-c9a21b1a44df": {
+      "url": "/portal/parent/children/c74554e5-60c6-40c4-8022-c9a21b1a44df",
+      "h1": "Noah Demo",
+      "errors": []
+    }
+  },
+  "r3": {
+    "admin": {
+      "landing": "/portal/admin",
+      "afterReload": "/portal/admin"
+    },
+    "tutor": {
+      "landing": "/portal/tutor",
+      "afterReload": "/portal/tutor"
+    },
+    "student": {
+      "landing": "/portal/student",
+      "afterReload": "/portal/student"
+    },
+    "parent": {
+      "landing": "/portal/parent",
+      "afterReload": "/portal/parent"
+    },
+    "newadmin": {
+      "landing": "/portal/account/two-step/setup",
+      "h1": "Set up two-step sign-in",
+      "afterReload": "/portal/account/two-step/setup"
+    },
+    "inactive": {
+      "url": "/portal/login",
+      "alerts": [
+        "Email or password is incorrect."
+      ]
+    }
+  },
+  "r4": [
+    {
+      "width": 375,
+      "path": "/",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 375,
+      "path": "/programmes/selective-entry",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 375,
+      "path": "/programmes/interviews",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 375,
+      "path": "/programmes/seal-and-scholarships",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 375,
+      "path": "/programmes/naplan",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 375,
+      "path": "/programmes/icas",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 375,
+      "path": "/programmes/maths-science-english",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 375,
+      "path": "/programmes/vce",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 375,
+      "path": "/programmes/vce-subject-selection",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 375,
+      "path": "/programmes/ucat-and-gamsat",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 375,
+      "path": "/resources",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 375,
+      "path": "/resources/victorian-selective-entry-exam",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 375,
+      "path": "/privacy",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 375,
+      "path": "/careers",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 375,
+      "path": "/posts",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/selective-entry",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/interviews",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/seal-and-scholarships",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/naplan",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/icas",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/maths-science-english",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/vce",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/vce-subject-selection",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/programmes/ucat-and-gamsat",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/resources",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/resources/victorian-selective-entry-exam",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/privacy",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/careers",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    },
+    {
+      "width": 1280,
+      "path": "/posts",
+      "status": 200,
+      "errors": [],
+      "noSideways": true,
+      "h1": 1,
+      "robots": 1
+    }
+  ],
+  "r5": {
+    "rows": []
+  }
+}

@@ -1,0 +1,17 @@
+student {} http://localhost:5173 equal
+student {} http://localhost:5173/ equal
+student {"assignment_title":"<b>x</b> & \"q\" 'a'"} http://localhost:5173 equal
+student {"assignment_title":"<b>x</b> & \"q\" 'a'"} http://localhost:5173/ equal
+student {"class_name":"Maths\r\nBcc: y@local.test"} http://localhost:5173 equal
+student {"class_name":"Maths\r\nBcc: y@local.test"} http://localhost:5173/ equal
+student {"recipient_first_name":"","child_first_name":""} http://localhost:5173 equal
+student {"recipient_first_name":"","child_first_name":""} http://localhost:5173/ equal
+parent {} http://localhost:5173 equal
+parent {} http://localhost:5173/ equal
+parent {"assignment_title":"<b>x</b> & \"q\" 'a'"} http://localhost:5173 equal
+parent {"assignment_title":"<b>x</b> & \"q\" 'a'"} http://localhost:5173/ equal
+parent {"class_name":"Maths\r\nBcc: y@local.test"} http://localhost:5173 equal
+parent {"class_name":"Maths\r\nBcc: y@local.test"} http://localhost:5173/ equal
+parent {"recipient_first_name":"","child_first_name":""} http://localhost:5173 equal
+parent {"recipient_first_name":"","child_first_name":""} http://localhost:5173/ equal
+equal=16 differ=0

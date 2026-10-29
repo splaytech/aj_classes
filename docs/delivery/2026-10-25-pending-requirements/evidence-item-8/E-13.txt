@@ -1,0 +1,64 @@
+due_tomorrow|boolean|NO|true
+new_assignment|boolean|NO|true
+send_before|timestamp with time zone|YES|-
+--
+email_outbox_kind_check: CHECK ((kind = ANY (ARRAY['work_returned'::text, 'new_assignment'::text, 'due_tomorrow'::text])))
+email_outbox_once: UNIQUE (kind, assignment_id, student_id, recipient_id)
+email_outbox_reason_check: CHECK ((reason = ANY (ARRAY['rejected'::text, 'rate_limited'::text, 'server_error'::text, 'network'::text, 'no_address'::text, 'max_attempts'::text, 'config_missing'::text, 'too_late'::text])))
+--
+CREATE INDEX email_outbox_deadline_idx ON public.email_outbox USING btree (send_before) WHERE ((status = 'pending'::text) AND (send_before IS NOT NULL))
+--
+ERROR:  operator is not unique: text || "char"
+LINE 1: select tgname||'|'||tgenabled||'|'||pg_get_triggerdef(oid) f...
+                          ^
+HINT:  Could not choose a best candidate operator. You might need to add explicit type casts.
+--
+admin_email_problems|true|{"search_path=\"\""}
+email_recipients|true|{"search_path=\"\""}
+email_still_relevant|true|{"search_path=\"\""}
+is_reminder_hour|false|{"search_path=\"\""}
+kick_email_worker|true|{"search_path=\"\""}
+melbourne_date|false|{"search_path=\"\""}
+melbourne_day_start|false|{"search_path=\"\""}
+new_assignment_send_before|false|{"search_path=\"\""}
+notify_claim_emails|true|{"search_path=\"\""}
+queue_due_tomorrow_emails_for|true|{"search_path=\"\""}
+queue_due_tomorrow_emails|true|{"search_path=\"\""}
+queue_new_assignment_emails|true|{"search_path=\"\""}
+queue_work_returned_email|true|{"search_path=\"\""}
+reminder_hour|false|{"search_path=\"\""}
+--
+1|supported_kinds text[]
+--
+anon private.email_recipients(text,uuid,uuid,date) false
+anon private.email_still_relevant(text,uuid,uuid,date) false
+anon private.is_reminder_hour(timestamptz) false
+anon private.melbourne_day_start(date) false
+anon private.new_assignment_send_before(date,timestamptz) false
+anon private.queue_due_tomorrow_emails_for(date) false
+anon private.queue_due_tomorrow_emails() false
+anon private.queue_new_assignment_emails() false
+anon public.admin_email_problems(integer) false
+anon public.notify_claim_emails(text[]) false
+authenticated private.email_recipients(text,uuid,uuid,date) false
+authenticated private.email_still_relevant(text,uuid,uuid,date) false
+authenticated private.is_reminder_hour(timestamptz) false
+authenticated private.melbourne_day_start(date) false
+authenticated private.new_assignment_send_before(date,timestamptz) false
+authenticated private.queue_due_tomorrow_emails_for(date) false
+authenticated private.queue_due_tomorrow_emails() false
+authenticated private.queue_new_assignment_emails() false
+authenticated public.admin_email_problems(integer) true
+authenticated public.notify_claim_emails(text[]) false
+service_role private.email_recipients(text,uuid,uuid,date) false
+service_role private.email_still_relevant(text,uuid,uuid,date) false
+service_role private.is_reminder_hour(timestamptz) false
+service_role private.melbourne_day_start(date) false
+service_role private.new_assignment_send_before(date,timestamptz) false
+service_role private.queue_due_tomorrow_emails_for(date) false
+service_role private.queue_due_tomorrow_emails() false
+service_role private.queue_new_assignment_emails() false
+service_role public.admin_email_problems(integer) true
+service_role public.notify_claim_emails(text[]) true
+assignment_results_queue_email|O|CREATE TRIGGER assignment_results_queue_email AFTER INSERT OR UPDATE OF status ON public.assignment_results FOR EACH ROW WHEN (((new.status = 'returned'::text) AND (new.marked_by IS NOT NULL))) EXECUTE FUNCTION private.queue_work_returned_email()
+assignments_queue_new_assignment_email|O|CREATE TRIGGER assignments_queue_new_assignment_email AFTER INSERT OR UPDATE OF status ON public.assignments FOR EACH ROW WHEN ((new.status = 'published'::text)) EXECUTE FUNCTION private.queue_new_assignment_emails()

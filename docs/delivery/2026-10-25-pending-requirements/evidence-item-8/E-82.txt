@@ -1,0 +1,17 @@
+after publish+back:
+new_assignment:parent:pending:-
+new_assignment:student:pending:-
+worker=200 {"ok":true,"data":{"claimed":0,"sent":0,"retrying":0,"failed":0}}
+new_assignment:parent:skipped:-
+new_assignment:student:skipped:-
+mp=0
+problems=200 []
+after republish:
+new_assignment:parent:skipped:-
+new_assignment:student:skipped:-
+worker=200 {"ok":true,"data":{"claimed":0,"sent":0,"retrying":0,"failed":0}}
+mp=0
+restore:
+draft|null
+0
+kick=t
