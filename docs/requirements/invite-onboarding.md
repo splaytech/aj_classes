@@ -1,5 +1,7 @@
 # Invite onboarding
 
+> The invite link itself changed in [ADR-0010](../decisions/0010-own-invite-token-with-supabase-sign-in-hop.md) (14 days, `/portal/invite`); the setup form is unchanged.
+
 Replaces "click the invite link → choose a password → you're in" with a closed setup step.
 Applies to every invited account: tutors, students and parents.
 

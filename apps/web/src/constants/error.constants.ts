@@ -116,7 +116,6 @@ export const PORTAL_VALIDATION = {
 } as const;
 
 export const AUTH_LINK_ERRORS = {
-  invite: 'Please ask AJ Classes to send you a new invite.',
   recovery: 'Request a new link below.',
 } as const;
 

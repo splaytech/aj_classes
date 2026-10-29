@@ -10,11 +10,11 @@ import { cleanEmail, isUuid, isValidEmail } from '../../_shared/validation.ts';
 
 import {
   audit,
-  createFamilyAccount,
+  createInvitedAccount,
   deleteAccount,
   findAccountByEmail,
   findStudent,
-  sendInvite,
+  sendAccountInvite,
 } from './accounts.ts';
 
 export async function inviteStudent(
@@ -31,7 +31,7 @@ export async function inviteStudent(
   if (!student.consent_recorded_at) return fail('consent_needed');
   if (await findAccountByEmail(email)) return fail('already_exists');
 
-  const created = await createFamilyAccount(email, student.full_name, 'student');
+  const created = await createInvitedAccount(email, student.full_name, 'student');
   if ('code' in created) return fail(created.code);
 
   // Only links if nobody else linked an account a moment ago.
@@ -46,7 +46,7 @@ export async function inviteStudent(
     return fail(error ? 'server_error' : 'already_has_account');
   }
 
-  if (!(await sendInvite(email))) {
+  if (!(await sendAccountInvite({ id: created.userId, email, role: 'student' }))) {
     await deleteAccount(created.userId);
     return fail('email_failed');
   }

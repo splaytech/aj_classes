@@ -1,7 +1,8 @@
-// Where invite and reset emails land (design §9.1). Nothing happens until the person clicks
+// Where password-reset emails land (design §9.1). Nothing happens until the person clicks
 // Continue, so an email scanner that opens the link can't use it up. The token is then removed
-// from the address bar. Supabase uses the token up here (single use, 1 hour); an invite then
-// goes on to the setup form, which the account can't skip (invite-onboarding design).
+// from the address bar. Supabase uses the token up here (single use, 1 hour).
+// Invites land on /portal/invite now (ADR-0010). An old-format invite link (`type=invite`) still
+// shows the welcome card, but Continue refuses it here without any request (AC 38).
 
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
@@ -18,8 +19,8 @@ import {
   PORTAL_SEO,
 } from '@/constants';
 import { buildPortalMeta } from '@/lib/seo';
-import { confirmEmailLink } from '@/services';
-import type { EmailLinkType, ErrorKey } from '@/services';
+import { confirmRecoveryLink } from '@/services';
+import type { EmailLinkType } from '@/services';
 
 export function meta() {
   return buildPortalMeta(PORTAL_SEO.authConfirm);
@@ -27,12 +28,6 @@ export function meta() {
 
 function readLinkType(value: string | null): EmailLinkType | null {
   return value === 'invite' || value === 'recovery' ? value : null;
-}
-
-/** Supabase gives the same error for an expired link and a used one, so both read as expired. */
-function linkErrorMessage(type: EmailLinkType, error: ErrorKey): string {
-  if (type === 'invite' && error === 'linkExpired') return PORTAL_ERRORS.inviteExpired;
-  return `${PORTAL_ERRORS[error]} ${AUTH_LINK_ERRORS[type]}`;
 }
 
 export default function AuthConfirmPage() {
@@ -50,21 +45,25 @@ export default function AuthConfirmPage() {
   const type: EmailLinkType = linkType;
 
   async function handleContinue() {
+    if (type === 'invite') {
+      // Never leave the token in the address bar or browser history (R2a review G12).
+      window.history.replaceState(null, '', PORTAL_ROUTES.authConfirm);
+      setError(PORTAL_ERRORS.inviteExpired);
+      return;
+    }
+
     setChecking(true);
     setError('');
-    const result = await confirmEmailLink(tokenHash, type);
-
-    // Never leave the token in the address bar or browser history (R2a review G12).
+    const result = await confirmRecoveryLink(tokenHash);
     window.history.replaceState(null, '', PORTAL_ROUTES.authConfirm);
 
     if (result.ok) {
-      navigate(type === 'invite' ? PORTAL_ROUTES.join : PORTAL_ROUTES.setPassword, {
-        replace: true,
-      });
+      navigate(PORTAL_ROUTES.setPassword, { replace: true });
       return;
     }
     setChecking(false);
-    setError(linkErrorMessage(type, result.error));
+    // Supabase gives the same error for an expired link and a used one.
+    setError(`${PORTAL_ERRORS[result.error]} ${AUTH_LINK_ERRORS.recovery}`);
   }
 
   // Once the link has failed, "Continue to…" no longer applies, so the intro is dropped.

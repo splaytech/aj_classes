@@ -1,7 +1,8 @@
 // An account's status, worked out from its dates (R2a design §5): staff, and since R3b students
-// and parents. Not stored anywhere.
+// and parents. Not stored anywhere. An invite link lasts 14 days from its latest send (ADR-0010);
+// an invite with no send date (sent before ADR-0010) counts as expired.
 
-import { AUTH_LIMITS } from '@/constants';
+import { INVITE_LIMITS } from '@/constants';
 import type { StaffMember } from '@/services';
 
 export type AccountStatus = 'invited' | 'inviteExpired' | 'active' | 'deactivated';
@@ -16,7 +17,7 @@ export function accountStatus(
   if (member.joinedAt) return 'active';
 
   const invitedAt = member.invitedAt ? new Date(member.invitedAt).getTime() : 0;
-  const linkStillValid = now.getTime() - invitedAt < AUTH_LIMITS.linkExpiryHours * HOUR_MS;
+  const linkStillValid = now.getTime() - invitedAt < INVITE_LIMITS.linkLifetimeHours * HOUR_MS;
   return linkStillValid ? 'invited' : 'inviteExpired';
 }
 

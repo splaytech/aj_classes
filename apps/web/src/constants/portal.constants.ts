@@ -2,7 +2,13 @@
 // family.constants.ts, online assignments in online-assignments.constants.ts. Error messages live
 // in error.constants.ts.
 
-import { AUTH_LIMITS, PHOTO_LIMITS, POST_LIMITS, PROFILE_LIMITS } from './app.constants';
+import {
+  AUTH_LIMITS,
+  INVITE_LIMITS,
+  PHOTO_LIMITS,
+  POST_LIMITS,
+  PROFILE_LIMITS,
+} from './app.constants';
 import type { AppRole, ThemeMode } from './app.constants';
 import { BUSINESS } from './business.constants';
 
@@ -12,6 +18,7 @@ export const PORTAL_SEO = {
   loginVerify: 'Enter your code',
   forgotPassword: 'Forgot password',
   authConfirm: 'Continue',
+  invite: 'Accept invite',
   setPassword: 'Set your password',
   join: 'Set up your account',
   account: 'Your account',
@@ -547,7 +554,7 @@ export const STAFF_PAGE = {
 
 export const INVITE_DIALOG = {
   heading: 'Invite staff',
-  intro: `They'll get an e-mail to set their password. The link works for ${AUTH_LIMITS.linkExpiryHours} hour; you can resend it.`,
+  intro: `They'll get an e-mail to set their password. The link works for ${INVITE_LIMITS.linkLifetimeDays} days; you can resend it.`,
   nameLabel: 'Full name',
   emailLabel: 'E-mail',
   emailRequired: 'Please enter their e-mail address.',

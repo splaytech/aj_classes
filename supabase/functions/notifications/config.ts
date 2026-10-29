@@ -3,41 +3,22 @@
 // worker secret that is public in the repo, EMAIL_TRANSPORT=mailpit and a localhost SITE_URL.
 // On hosted, any one of those is a set-up error: the worker claims and sends nothing, returns 503
 // and admins see "Set-up error". Locally, Mailpit, the local secret and http://localhost are fine.
-// Hosted vs local comes from the built-in SUPABASE_URL: hosted is https://<ref>.supabase.co, the
-// local edge runtime gets http://kong:8000.
+// The email half of the rule is shared with invites (_shared/email/config.ts); the worker secret
+// half is the worker's own.
 
+import { isHostedProject, isSafeEmailConfig } from '../_shared/email/config.ts';
+import type { EmailConfig } from '../_shared/email/config.ts';
 import { secretMatches } from './secret.ts';
-import type { Transport } from './transport.ts';
 
 // Must match NOTIFY_WORKER_SECRET in supabase/config.toml [edge_runtime.secrets] (local only).
 export const LOCAL_WORKER_SECRET = 'local-notify-secret';
 
-const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', 'kong']);
-
-export type WorkerConfig = {
-  transport: Transport | null;
-  workerSecret: string | undefined;
-  siteUrl: string;
-  supabaseUrl: string | undefined;
-};
-
-/** True unless SUPABASE_URL is a local address. Anything unreadable counts as hosted (fail safe). */
-export function isHostedProject(supabaseUrl: string | undefined): boolean {
-  try {
-    const url = new URL(supabaseUrl ?? '');
-    return url.protocol === 'https:' || !LOCAL_HOSTS.has(url.hostname);
-  } catch {
-    return true;
-  }
-}
+export type WorkerConfig = EmailConfig & { workerSecret: string | undefined };
 
 export function isUsableConfig(config: WorkerConfig): boolean {
-  if (config.transport === null || config.siteUrl === '') return false;
-  if (!isHostedProject(config.supabaseUrl)) return true;
   return (
-    config.transport.kind !== 'mailpit' &&
-    config.workerSecret !== LOCAL_WORKER_SECRET &&
-    config.siteUrl.startsWith('https://')
+    isSafeEmailConfig(config) &&
+    (!isHostedProject(config.supabaseUrl) || config.workerSecret !== LOCAL_WORKER_SECRET)
   );
 }
 

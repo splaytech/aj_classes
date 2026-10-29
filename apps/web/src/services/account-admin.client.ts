@@ -1,6 +1,6 @@
-// Calls the account-admin edge function (R2a design §10, R3b §5; was staff-admin), and the admin
-// actions of the leads function. The signed-in admin's session token is sent automatically; the
-// function checks they are an active admin with two-step.
+// Calls the account-admin edge function (R2a design §10, R3b §5; was staff-admin), the admin
+// actions of the leads function, and invite-redeem (ADR-0010). The signed-in person's session
+// token is sent automatically; account-admin checks they are an active admin with two-step.
 
 import { toErrorKey } from './auth-errors';
 import { attempt, fail, succeed } from './result';
@@ -18,17 +18,23 @@ export async function callAccountAdmin(
   return callEdgeFunction(ACCOUNT_ADMIN, action, input);
 }
 
-/** Calls one of our edge functions as the signed-in person; they all reply { ok, data | code }. */
+/** Calls one action of one of our edge functions; they all reply { ok, data | code }. */
 export async function callEdgeFunction(
   functionName: string,
   action: string,
   input: Record<string, unknown>,
 ): Promise<Result<Record<string, unknown>>> {
+  return invokeEdgeFunction(functionName, { action, ...input });
+}
+
+/** POSTs a body to one of our edge functions (signed in or not) and reads its { ok } reply. */
+export async function invokeEdgeFunction(
+  functionName: string,
+  body: Record<string, unknown>,
+): Promise<Result<Record<string, unknown>>> {
   return attempt(async () => {
     const supabase = await getSupabase();
-    const { data, error } = await supabase.functions.invoke<FunctionReply>(functionName, {
-      body: { action, ...input },
-    });
+    const { data, error } = await supabase.functions.invoke<FunctionReply>(functionName, { body });
 
     // Non-2xx replies (403, 400…) come back as an error whose response holds our JSON body.
     const reply = data ?? (await replyFromError(error));

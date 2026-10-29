@@ -14,8 +14,8 @@ import { processBatch } from './batch.ts';
 import { claimRows } from './claim.ts';
 import { gateRequest } from './config.ts';
 import { renderEmail } from './template.ts';
-import { pickTransport, sendEmail } from './transport.ts';
-import type { SendOutcome } from './transport.ts';
+import { pickTransport, sendEmail } from '../_shared/email/transport.ts';
+import type { SendOutcome } from '../_shared/email/transport.ts';
 
 const GAP_BETWEEN_SENDS_MS = 600; // Resend's default limit is 2 requests a second
 

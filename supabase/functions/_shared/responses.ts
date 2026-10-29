@@ -17,6 +17,11 @@ export function fail(code: string): ActionResult {
 export function respond(result: ActionResult, origin: string | null, status = 200): Response {
   return new Response(JSON.stringify(result), {
     status,
-    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
+    // no-store: a reply can hold a one-time sign-in token (invite-redeem; 06-security finding 5).
+    headers: {
+      ...corsHeaders(origin),
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store',
+    },
   });
 }

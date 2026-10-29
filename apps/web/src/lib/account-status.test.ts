@@ -18,16 +18,34 @@ describe('accountStatus (R2a design §5)', () => {
     ).toBe('deactivated');
   });
 
-  it('is invited while the link is still valid (1 hour)', () => {
-    expect(
-      accountStatus({ isActive: true, joinedAt: null, invitedAt: '2026-10-08T09:30:00Z' }, NOW),
-    ).toBe('invited');
+  const invitedAgo = (ms: number) => ({
+    isActive: true,
+    joinedAt: null,
+    invitedAt: new Date(NOW.getTime() - ms).toISOString(),
+  });
+  const HOUR = 60 * 60 * 1000;
+  const DAY = 24 * HOUR;
+
+  it('is invited 13 days after the send (AC 23)', () => {
+    expect(accountStatus(invitedAgo(13 * DAY), NOW)).toBe('invited');
   });
 
-  it('shows the invite as expired after an hour', () => {
-    expect(
-      accountStatus({ isActive: true, joinedAt: null, invitedAt: '2026-10-08T08:59:00Z' }, NOW),
-    ).toBe('inviteExpired');
+  it('is still invited 13 days 23 hours after the send', () => {
+    expect(accountStatus(invitedAgo(13 * DAY + 23 * HOUR), NOW)).toBe('invited');
+  });
+
+  it('shows the invite as expired at exactly 336 hours', () => {
+    expect(accountStatus(invitedAgo(336 * HOUR), NOW)).toBe('inviteExpired');
+  });
+
+  it('shows the invite as expired 14 days 1 minute after the send', () => {
+    expect(accountStatus(invitedAgo(14 * DAY + 60 * 1000), NOW)).toBe('inviteExpired');
+  });
+
+  it('shows an invite with no send date as expired (AC 25)', () => {
+    expect(accountStatus({ isActive: true, joinedAt: null, invitedAt: null }, NOW)).toBe(
+      'inviteExpired',
+    );
   });
 });
 
