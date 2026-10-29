@@ -119,8 +119,9 @@ Logs hold the outcome and error name only, never the token, hash, e-mail or user
 
 ```
 browser /portal/invite#token=T         invite-redeem (service key)             Supabase Auth
-  page load: nothing sent (AC 6)
-  [Continue] ── history.replaceState(…/portal/invite) ── POST {token:T} ──▶
+  page load (and any same-tab re-open): token kept in memory, address replaced with
+  /portal/invite; nothing sent (AC 6, AC 8)
+  [Continue] ── POST {token:T} ──▶
                                         shape check → claim(sha256(T), ipHash)   (§2: locks the profile)
                                         null → {ok:false, invite_invalid}
                                         profile_id → getUserById(profile_id) → email
@@ -171,7 +172,7 @@ browser /portal/invite#token=T         invite-redeem (service key)             S
   - The page keeps `tokenHash` in memory. If `verifyOtp` fails with a network error, it retries once automatically. If that fails too, it shows the existing `PORTAL_ERRORS.network` (`error.constants.ts:49`), not AC 9, with a `Try again` button that reuses the same `tokenHash` for up to its 1 h.
   - A 500 from redeem (after release) shows `PORTAL_ERRORS.serverProblem` (`:54`) with the same `Try again` (a new POST), because the link is still valid.
   - **Accepted residual.** If the tab is closed between the redeem reply and a successful `verifyOtp`, the link is used up, and the admin re-sends (one click). This is stated in the README's troubleshooting note.
-- **Token off the page.** `replaceState` runs before the POST, as `auth-confirm.tsx:58` does today (AC 8).
+- **Token off the page.** The token travels in the fragment (`#token=…`), so it never reaches a server log or a Referer. Whenever the fragment holds a token (first load, or the link re-opened in the same tab), the page keeps it in memory and replaces the address with `/portal/invite` before anything is sent (AC 8; fix batches 1 and 2, 06-security finding 1, review-5 round 2).
 - **Defence in depth (AC 17, 18).** The claim needs `status = 'invited' and is_active`, under the profile lock above.
 - **Service boundary.** `services/invites.service.ts` makes both calls (functions invoke, then `verifyOtp`). The page never calls HTTP itself (repo rule).
 - **Spike S1 (Developer, first task, local only).** On the local stack, confirm that `generateLink({ type: 'recovery' })` with `verifyOtp({ token_hash, type: 'recovery' })` signs in two accounts: (a) one created by `createUser` that was never confirmed, and (b) one confirmed but still `invited`. Also confirm that `auth.users.invited_at` is untouched, and that `generateLink({ type: 'recovery' })` for a deleted e-mail returns 404 and creates no user.
@@ -317,7 +318,7 @@ This replaces 01's "usual order" (migration, `account-admin`, web) for this rele
 
 ## 11. Open items for the Solution Designer
 
-1. Exact constant names (`INVITE_LIMITS`, `PORTAL_ROUTES.invite`, `PORTAL_QUERY.inviteToken`) and the page copy, reusing `AUTH_CONFIRM_PAGE.heading.invite` and `intro.invite`.
+1. Exact constant names (`INVITE_LIMITS`, `PORTAL_ROUTES.invite`, `PORTAL_FRAGMENT.inviteToken`) and the page copy, reusing `AUTH_CONFIRM_PAGE.heading.invite` and `intro.invite`.
 2. Hiding the `Invited on` line when `invitedAt` is null (§5.3).
 3. The `_shared/email/` module split, and how the Node test script imports it.
 4. Test list against AC 37, including pgTAP for the grants (§2), the store/claim/release functions, the trigger guard (§5.2) and back-dating `expires_at` (AC 5).

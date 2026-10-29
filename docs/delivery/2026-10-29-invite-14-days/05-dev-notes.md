@@ -367,14 +367,11 @@ The Developer owned the stack and :5173 again for this batch.
 | E2E smoke | **10/10**, against this worktree's stack and a dev server started from it; 0 `e2e-%` rows after |
 | Browser: new link format | **14/14**, on the dev server (:5173) **and on a production build**. That build is a local-Supabase gate build (ADR-0005: `VITE_APP_ENV=production` plus the local URL, publishable key and Turnstile test key), served by `pnpm mirror` on :4173 with the production headers (portal CSP, `Cache-Control: no-store`) and grepped for the hosted ref. Each server: the email link is `/portal/invite#token=<43>`; Continue shows (review-5 #1); the address bar is `/portal/invite` straight after load; a reload shows `This link is incomplete…` with no Continue; the link opened in a new tab + Continue lands on `/portal/join`; the used link is refused in a fresh context. For the :4173 origin, the functions ran under `supabase functions serve --env-file` with `ALLOWED_ORIGINS` adding `http://127.0.0.1:4173` (`config.toml` not edited). Afterwards: serve, mirror and dev server stopped, stack restarted, T0.3 passed |
 
-### Found while checking (for the Tester; not changed)
+### Found while checking (superseded by fix batch 2)
 
-- After the strip, **opening the link again in the same tab** (pasting it, or a mail client that
-  reuses the tab) is only a fragment change, so the already-loaded page keeps showing `This link is
-  incomplete…`. Opening it in a new tab, or reloading with the link, works. This is the same
-  family as "a reload after the strip shows the incomplete state", which the coordinator said is
-  expected. If it matters, the fix is to adopt a new token on `hashchange`. I left it for a
-  decision rather than add state handling outside the brief.
+Fix batch 1 noted that re-opening the link in the same tab kept the page on "incomplete", and
+treated that as acceptable. Review-5 round 2 showed it was worse: the token also stayed in the
+address bar and history. Fix batch 2 fixes both (below).
 
 ### Handover (again)
 
@@ -383,3 +380,56 @@ this worktree: mount check `1`, newest migration `20261030100000`, final `pnpm d
 auth users, 0 invite tokens). :5173 and :4173 are free; no `functions serve` or mirror is running.
 `apps/web/build/` holds the local-Supabase gate build (gitignored); rebuild before any check that
 needs the hosted-origin build.
+
+## Fix batch 2 (review-5 round 2 CHANGES_REQUESTED, plus Tester P-5; one round)
+
+The Developer owned the stack, :5173 and :4173 again; the Tester stayed read-only.
+
+| # | Source | Change |
+|---|---|---|
+| 1 | Review-5 round 2 #1 (blocking) | `invite.tsx`: the token is read from `location.hash` on **every** render. When the fragment holds a token that differs from the one in memory (the link re-opened in the same tab), the page adopts it and goes back to Ready (state set during render). An effect keyed on `location.hash` / `location.search` calls `navigate(PORTAL_ROUTES.invite, { replace: true })` whenever either is set, instead of a bare `replaceState` on first load. So the token is wiped from the address bar and its history entry on every load and every re-open, and the router knows the address changed. This also removes fix batch 1's same-tab "incomplete" behaviour |
+| 1b | Unit test | `invite.test.tsx` uses a router probe (a layout route that shows the router's address and can re-open a newer link) instead of a `replaceState` spy. New test: `#token=A` loads → address `/portal/invite`; re-open `#token=B` → address cleared again; Continue sends B, once. On the old page code this test and the two strip tests fail (3 failed / 12); on the new code 12/12 |
+| 1c | e2e (P-5) | AC 6: the three opens are now each a real page load in `inviteeContext.newPage()`, each showing Continue with the address already `/portal/invite`. A separate **same-tab re-open** regression on an open page checks: the address is wiped again; `history.length` grows by exactly 1 (the browser's own entry for the fragment change, which the page overwrites); `goBack()` finds no token. The main flow then opens the link, checks the address, clicks Continue, and checks `search + hash === ''` on `/portal/join` |
+| 2 | Review-5 round 2 #2 | 02 (`:123` sequence, `:174` "Token off the page", `:320` constant names) and 03 (`:53`, `:368`, `:385` `inviteLink`, `:562` constants row, `:641-653` page bullets and the Missing row, `:788` files table, `:901` AC 8 row, `:997` e2e list) now describe the fragment, `PORTAL_FRAGMENT.inviteToken`, the on-load and on-hash-change wipe, and the e2e `search + hash === ''` check |
+| 3 | Nit 3 | The `invite.tsx` header comment is reflowed (no line over 100 characters) |
+| 4 | Nit 4 | `admin-student.test.tsx`: the reload fixture changes only the re-sent row; the test asserts 2 → 1 "Invite expired" |
+| 5 | Nit 5 | README kill switch: a redeem in flight while the `update` runs can set one link back to unused, so **run it again after a minute** |
+
+### e2e before and after, honestly
+
+- **Before the fix (code at `2e3c3e1`, spec from fix batch 1): the smoke passed 10/10, run fresh.**
+  So the reviewer's expectation that `invite-onboarding.spec.ts:88` fails didn't hold, and fix
+  batch 1's recorded 10/10 did include that assertion.
+  - It passed for the wrong reason. The three `goto`s ran back to back: `goto` 1 resolves on the
+    load event, before React has mounted; `goto`s 2 and 3 are fragment changes that resolve at
+    once, still before the mount. React then mounted, and its single on-mount strip cleared the
+    final address. So the test never re-opened the link on a live page, which is the bug.
+  - A probe that waits for the page between opens reproduced the reviewer's finding on the dev
+    server: after opens 2 and 3 the address kept `#token=…` and `history.length` went 2 → 3 → 4.
+- **The new spec on the old page code: the invite test fails** (`Expected pattern:
+  /\/portal\/invite$/`, `Received: …/portal/invite#token=…`), so the new regression bites.
+- **After the fix: smoke 10/10, run fresh**, against this worktree's stack and a dev server started
+  from it; 0 `e2e-%` rows after.
+
+### Gates
+
+| Gate | Result |
+|---|---|
+| Full check (`format:check && lint && typecheck && test && VITE_APP_ENV=production build`) | Green. Web **76 files, 656 tests** (fix batch 1: 655), e2e unit 6/6 |
+| Full `pnpm test` repeated | 3 runs, 656/656 and 0 failed each time |
+| `pnpm db:test` | **18 files, 834 tests, PASS** |
+| `pnpm test:functions` | **4 scripts, 413 checks, 0 failed** (92 / 30 / 153 / 138; no function code changed in this batch) |
+| E2E smoke | **10/10** (see before and after above) |
+| Browser, dev (:5173) and production build (:4173, the local-Supabase gate build via `pnpm mirror`, functions under `functions serve --env-file` adding the :4173 origin) | **20/20**, 10 checks on each server. The checks: the email link is `#token=`; Continue shows; the address is stripped on load; a reload shows "incomplete"; **a same-tab re-open is wiped again**; history grows only by the browser's own entry; going back finds no token; Continue after the same-tab re-open reaches `/portal/join`; the used link is refused in a fresh context. The reviewer's repro on the production build: after 3 same-tab opens and a `location.hash` change, the address is `/portal/invite` every time, and walking back through history shows `/portal/invite` ×3 then `/` |
+
+**History note for the Tester.** A fragment change always adds one history entry, created by the
+browser before any page code runs. The page can't remove that entry, but it overwrites it with
+`/portal/invite` (`replace`). So "no extra entry" means no entry that keeps the token, and no
+second entry from the page itself. The e2e asserts exactly +1 and a clean `goBack()`.
+
+### Handover (fix batch 2)
+
+The stack goes back to the Tester at the fix-batch-2 commits, mount checked. Started from this
+worktree: mount `1`, newest migration `20261030100000`, final `pnpm db:reset` done (6 auth users,
+0 invite tokens). :5173 and :4173 are free; no `functions serve` or mirror is running.
+`apps/web/build/` holds the local-Supabase gate build (gitignored).

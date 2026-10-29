@@ -50,7 +50,7 @@ latest anywhere is `20261029100000_more_email_alerts.sql`.
 | 7 | `notifications` (edit, imports only) | Uses `_shared/email/`; no behaviour change |
 | 8 | `leads` (edit, imports only) | Uses `_shared/client-address.ts`; no behaviour change |
 | 9 | `supabase/config.toml`, `scripts/deploy.sh` (edit) | `[functions.invite-redeem] verify_jwt = false`; add to `FUNCTIONS` |
-| 10 | Web constants (edit) | `INVITE_LIMITS`, `PORTAL_ROUTES.invite`, `PORTAL_QUERY.inviteToken`, dialog copy, SEO title |
+| 10 | Web constants (edit) | `INVITE_LIMITS`, `PORTAL_ROUTES.invite`, `PORTAL_FRAGMENT.inviteToken`, dialog copy, SEO title |
 | 11 | Web service `services/invites.service.ts` (new) + `account-admin.client.ts` (edit) | Redeem call and the sign-in hop; the only Supabase importer stays `services/` |
 | 12 | Route `/portal/invite` (new) + `lib/invite-steps.ts` (new) | The Continue page and its pure state rules |
 | 13 | `auth-confirm.tsx` (edit) | `type=invite` is recognised only to refuse it, with no network call |
@@ -365,7 +365,7 @@ Two more shared files:
    |---|---|
    | `INVITE_LIFETIME_HOURS` | `336` (comment: must match the migration's `interval '336 hours'` and `INVITE_LIMITS.linkLifetimeHours`) |
    | `INVITE_PATH` | `'/portal/invite'` (must match `PORTAL_ROUTES.invite`) |
-   | `INVITE_TOKEN_PARAM` | `'token'` (must match `PORTAL_QUERY.inviteToken`) |
+   | `INVITE_TOKEN_PARAM` | `'token'` (must match `PORTAL_FRAGMENT.inviteToken`) |
    | `INVITE_COPY.subject` | `You're invited to the AJ Classes portal` |
    | `INVITE_COPY.heading` | `You're invited to AJ Classes` |
    | `INVITE_COPY.brandLabel` | `{ staff: 'Staff', student: 'Students', parent: 'Parents' }` |
@@ -382,7 +382,7 @@ Two more shared files:
 2. `account-admin/invite-email.ts`:
    - `inviteAudience(role: string)`: `'student'` → student, `'parent'` → parent, anything else
      (tutor, admin) → staff. Same rule as the template's `{{ with .Data.account_role }}`.
-   - `inviteLink(siteUrl, token)`: `${siteUrl without trailing slashes}${INVITE_PATH}?${INVITE_TOKEN_PARAM}=${token}`.
+   - `inviteLink(siteUrl, token)`: `${siteUrl without trailing slashes}${INVITE_PATH}#${INVITE_TOKEN_PARAM}=${token}` (the fragment: never sent to a server).
      The token is base64url, so it needs no encoding (AC 31).
    - `renderInviteEmail({ to, role, link }): EmailMessage`, with `subject` from `INVITE_COPY`, and:
      - **HTML:** the markup of `invite.html:5-78` with each `style="…"` collapsed onto one line (as
@@ -559,7 +559,7 @@ verify_jwt = false
 | `constants/portal.constants.ts:153` | **No change**: `FORGOT_PASSWORD_PAGE.sent` keeps `AUTH_LIMITS.linkExpiryHours` (AC 32) |
 | `constants/portal.constants.ts:9-16` | `PORTAL_SEO.invite: 'Accept invite'` |
 | `constants/routes.constants.ts:20-27` | `PORTAL_ROUTES.invite: '/portal/invite', // invite email link (ADR-0010); must match account-admin/invite-copy.ts INVITE_PATH` |
-| `constants/routes.constants.ts:99-104` | `PORTAL_QUERY.inviteToken: 'token', // must match INVITE_TOKEN_PARAM`; the `tokenHash` comment becomes `// from reset emails (supabase/templates/recovery.html) and old invite links` |
+| `constants/routes.constants.ts:99-104` | New `PORTAL_FRAGMENT = { inviteToken: 'token' }` (must match `INVITE_TOKEN_PARAM`; read from the fragment, not the query string); the `tokenHash` comment becomes `// from reset emails (supabase/templates/recovery.html) and old invite links` |
 | `constants/error.constants.ts:118-121` | Remove `AUTH_LINK_ERRORS.invite`, which is dead once §5.5 lands. Keep `recovery` |
 
 Page copy reuses existing keys with no new words. `AUTH_CONFIRM_PAGE.heading.invite`
@@ -639,21 +639,24 @@ afterHop(result: Result, tokenHash: string): { kind: 'signedIn' } | InviteStep
 
 **`routes/portal/invite.tsx` (new):**
 
-- `tokenFromUrl = searchParams.get(PORTAL_QUERY.inviteToken) ?? ''`. A `useRef` keeps the token
-  once Continue is clicked, so Try again never depends on the address bar.
+- The token comes from the fragment: `inviteTokenFromHash(location.hash)` (`lib/invite-steps.ts`,
+  `PORTAL_FRAGMENT.inviteToken`). It is kept in component state, so Try again never depends on the
+  address bar. When the fragment holds a different token (the link re-opened in the same tab,
+  which only changes the fragment), the page adopts it and goes back to Ready.
+- An effect keyed on `location.hash` (and `location.search`) runs
+  `navigate(PORTAL_ROUTES.invite, { replace: true })` whenever either is set, so the token is wiped
+  from the address bar and its history entry on every load and every re-open, before any request
+  (AC 8; fix batches 1 and 2). A reload after that shows Missing, which is expected.
 - `handleContinue`:
-  1. Store the token in the ref.
-  2. `window.history.replaceState(null, '', PORTAL_ROUTES.invite)` **before any request** (AC 8;
-     `auth-confirm.tsx:58` does this after the request, but here the request is ours, so it moves earlier).
-  3. Set the step to `checking`.
-  4. If the current step is `retry` with a `tokenHash`, skip to the hop. Otherwise
+  1. Set the step to `checking`.
+  2. If the current step is `retry` with a `tokenHash`, skip to the hop. Otherwise
      `afterRedeem(await redeemInvite(token))`, and on `hop`, `afterHop(await signInWithInviteHop(tokenHash), tokenHash)`.
-  5. `signedIn` → `navigate(PORTAL_ROUTES.join, { replace: true })`. Otherwise set the step.
+  3. `signedIn` → `navigate(PORTAL_ROUTES.join, { replace: true })`. Otherwise set the step.
 - Nothing runs on page load (AC 6). There is no client-side shape check (H-1).
 
 | State | When | Heading | Intro | Body |
 |---|---|---|---|---|
-| Missing | `!tokenFromUrl && !ref.current` | `PORTAL_ERRORS.linkExpired` | `AUTH_CONFIRM_PAGE.invalidLink` | nothing (no Continue; AC 10) |
+| Missing | no token in the fragment or in memory | `PORTAL_ERRORS.linkExpired` | `AUTH_CONFIRM_PAGE.invalidLink` | nothing (no Continue; AC 10) |
 | Ready | token present | `AUTH_CONFIRM_PAGE.heading.invite` | `AUTH_CONFIRM_PAGE.intro.invite` | Button `AUTH_CONFIRM_PAGE.continue` |
 | Checking | after a click | same | same | Button disabled, label `AUTH_CONFIRM_PAGE.checking` |
 | Refused | `refused` | same | none | `FormAlert` `PORTAL_ERRORS.inviteExpired` + `Link` to `PORTAL_ROUTES.login` labelled `AUTH_CONFIRM_PAGE.alreadySetUp` (AC 9) |
@@ -785,7 +788,7 @@ There are no inline styles and no literals (`jsx-no-literals`).
 | `apps/web/src/services/database.types.ts` | Regenerated | `pnpm db:types` (adds the three RPCs) |
 | `apps/web/src/constants/app.constants.ts` | Edit | `INVITE_LIMITS`; reset comment |
 | `apps/web/src/constants/portal.constants.ts` | Edit | `INVITE_DIALOG.intro`, `PORTAL_SEO.invite` |
-| `apps/web/src/constants/routes.constants.ts` | Edit | `PORTAL_ROUTES.invite`, `PORTAL_QUERY.inviteToken` |
+| `apps/web/src/constants/routes.constants.ts` | Edit | `PORTAL_ROUTES.invite`, `PORTAL_FRAGMENT.inviteToken` |
 | `apps/web/src/constants/error.constants.ts` | Edit | Remove `AUTH_LINK_ERRORS.invite` |
 | `apps/web/src/constants/invite-copy.test.ts` | New | AC 26, 32 constants checks |
 | `apps/web/src/services/account-admin.client.ts` | Edit | Extract `invokeEdgeFunction` |
@@ -898,7 +901,7 @@ at a time. The others stay read-only (team-lead rule; item 8 lesson).
 | 5 | Method §8.1 item 2 recorded in the test plan; local only | Tester |
 | 6 | Render with a token: no service called. e2e: `goto(link)` 3 times, then Continue works | `invite.test.tsx` + e2e |
 | 7 | Second redeem → `invite_invalid`. e2e: after join, open the same link in a fresh context → AC 9 | Script + e2e |
-| 8 | `replaceState` called before `redeemInvite` (call-order spy); e2e: after Continue, `location.search === ''`; §8.1 item 7 | `invite.test.tsx` + e2e + script/Tester |
+| 8 | Router address is `/portal/invite` straight after load and after a same-tab re-open, before `redeemInvite`; e2e: address clean before Continue, after a same-tab re-open (history grows only by the browser's own entry, and going back finds no token), and `search + hash === ''` after Continue; §8.1 item 7 | `invite.test.tsx` + e2e + script/Tester |
 | 9 | Refused state: heading, `inviteExpired` text, `alreadySetUp` link to `/portal/login` | `invite.test.tsx` + browser |
 | 10 | No token → `invalidLink`, no button; `#token=abc` → Continue shown; script: `abc` → `invite_invalid` | `invite.test.tsx` + script |
 | 11 | Collect replies for expired, used, replaced, cancelled, garbled, unknown, active, inactive, rate-limited: all `200` with identical body text | Script |
@@ -993,8 +996,9 @@ service key returns 404, and `auth.users` count is unchanged.
    - `invite-onboarding.spec.ts`:
      - `INVITE_LINK_PATTERN = /https?:\/\/[^\s")]+\/portal\/invite#token=[A-Za-z0-9_-]{43}/`;
      - call `clearInviteRedeemAttempts()` before the redeem;
-     - open the link 3 times before Continue (AC 6);
-     - assert `location.search` is empty after Continue (AC 8);
+     - open the link 3 times before Continue, each in a new page, so each is a real load (AC 6);
+     - re-open it in an already open tab: the address is wiped again (AC 8 regression);
+     - assert `location.search + location.hash` is empty after Continue (AC 8);
      - after `active`, open the link in a new context → AC 9 text (AC 7).
    - A second test in the same file covers AC 25: insert an invited `auth.users` row with no
      `invited_at`, open its staff member page as the admin, expect `Invite expired` and no

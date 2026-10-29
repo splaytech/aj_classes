@@ -197,6 +197,8 @@ To change the secret later: `select vault.update_secret(id, '<new value>') from 
   update private.invite_tokens set used_at = now() where used_at is null;
   ```
 
+  A redeem that was in flight while this ran can set one link back to unused (it releases its claim when the sign-in fails), so **run it again after a minute**.
+
   Every outstanding link then shows "This invitation link has expired…". Re-send to the people who should still join. Hard stop, which refuses every redeem until `deploy.sh` runs again: `supabase functions delete invite-redeem --project-ref unzjnxctkyahtmrkinyr`.
 
 **Admin Emails page reasons:** "Too late to send" means a "new assignment" or "due tomorrow" email was still waiting at its deadline (usually the daily limit, or an outage), so it was never sent; if these recur, it's 02b Decision 1's Resend upgrade trigger (`docs/budget.md` §5). "Not attempted" after 2 hours means the cron job or the Vault entries are missing (or, for the new kinds only, the `notifications` function hasn't been deployed since the migration); "Set-up error" means `EMAIL_TRANSPORT`, `RESEND_API_KEY` or `SITE_URL` is missing on the function, or the hosted function has local-only values (`EMAIL_TRANSPORT=mailpit`, the local worker secret or a non-https `SITE_URL`: run `deploy.sh` again); "Daily limit" means 70 were sent in the last 24 hours (they go out as earlier ones age out); "Gave up after 3 tries" means Resend kept failing. When Resend is busy (429) or can't be reached, the worker stops the batch and puts the unsent rows back; each of those still uses one of its 3 attempts, so a long outage can end rows as "Gave up after 3 tries" even though Resend never accepted them.
