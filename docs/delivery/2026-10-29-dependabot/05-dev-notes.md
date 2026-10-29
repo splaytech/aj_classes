@@ -64,12 +64,13 @@ Notes:
 
 1. `tmp` is pre-1.0, so moving from 0.0/0.1 to 0.2 is technically a breaking change. `@lhci/cli`
    calls it once (`tmp.fileSync({ postfix: '.html' })` in `lhci open`), and that API is the same in
-   0.2. The other user is `inquirer > external-editor`, which only runs for the interactive
-   `lhci wizard`. CI never runs that.
+   0.2. The other user is `inquirer > external-editor`, which calls `tmp.tmpNameSync()` (also
+   unchanged in 0.2) and only runs for the interactive `lhci wizard`. CI never runs that.
 2. All five deferred advisories come only through `@lhci/cli@0.15.1`, which is already the latest
    version. They run only in the CI Lighthouse job, against this repo's own local build. They are
    never in the deployed site or the Railway server.
-   Revisit when `@lhci/cli` (or `lighthouse` / `puppeteer-core`) ships updated dependencies, or
+   Revisit when `@lhci/cli` (or `lighthouse` / `puppeteer-core`) ships updated dependencies; for
+   zod 3, that means `chromium-bidi` moving to zod 4 and `puppeteer-core` picking it up. Or
    dismiss them in Dependabot as "risk is tolerable: dev-only tooling".
 3. An earlier unfinished attempt (an uncommitted patch in an old worktree) made the same `vite` /
    `vitest` bumps and the `compression` / `source-map-js` overrides. Those were checked against the
@@ -78,9 +79,24 @@ Notes:
 
 ## Verification
 
-See the commit message and the hand-off report for gate results. Unit test counts were unchanged:
-web 66 files / 568 tests, e2e unit 6 tests.
 `pnpm audit` went from 29 advisories (12 high) to 5 (4 high, 1 moderate), all deferred above.
 
-Not verified here: the CI-only jobs (database pgTAP, Playwright E2E, Lighthouse and CSP sweep). This
-task was told not to run Supabase or anything on :5173, so they run in CI when a PR is opened.
+Gate run by the team lead on 29 Oct 2026, after merging `develop` (`9059d0a`) into this branch,
+against the local stack only. The steps mirror the CI jobs:
+
+| Step | Result |
+|------|--------|
+| `pnpm install --frozen-lockfile` | Pass |
+| `format:check`, `lint`, `typecheck` | Pass |
+| `pnpm test` | Web 66 files / 581 tests; e2e unit 6 / 6 |
+| `pnpm audit` | 5 advisories (4 high, 1 moderate): the five deferred above, no others |
+| `pnpm db:reset`, `pnpm db:test` | Pass; 17 files / 747 tests |
+| `pnpm test:functions` | 232 ok, 0 not ok |
+| `test:smoke` (Playwright E2E) | 9 passed |
+| CI-style build (empty Supabase config, `VITE_APP_ENV=production`) + `check:hosted-ref` | Pass; 0 of 154 files flagged |
+| Lighthouse (7 URLs, 21 runs, Playwright Chromium) | All assertions met |
+| `lighthouse:report` | 21 runs, 0 supabase.co requests |
+| `test:csp` | 21 passed |
+
+The build step inside `pnpm check` needs `VITE_APP_ENV` set, so the build was run as the CI
+Lighthouse job runs it. A final `pnpm db:reset` left the seed in place.
