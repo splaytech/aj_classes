@@ -208,3 +208,136 @@ supabase_edge_runtime_aj_classes` before testing.**
 - Smoke: **10/10 passed** (1.2 min) against the stack and a 5173 dev server both from this
   worktree. Afterwards: 0 `e2e-%` profiles, auth users and posts; the only listener on 5173 is the
   Developer's dev server (cwd `aj_classes-invites/apps/web`).
+
+## T9. Full check, manual proofs, handover
+
+### T9.1 Gates (from this worktree, final code at `797a25f`)
+
+| Gate | Command | Result |
+|---|---|---|
+| Full check | `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && VITE_APP_ENV=production pnpm build` | green: Prettier clean, lint and typecheck clean, web **75 files, 647 tests** (baseline 69 / 606), e2e unit 6/6, build OK. `VITE_APP_ENV=development pnpm check` also green |
+| pgTAP | `pnpm db:test` | **18 files, 834 tests, PASS** (baseline 17 / 747); again after the final `db:reset` |
+| Functions | `pnpm test:functions` | **4 scripts, 416 checks, 0 failed** (`test-account-admin` 92, `test-leads` 30, `test-notifications` 153, `test-invite-redeem` 141) |
+| E2E smoke | `node e2e/scripts/local-env.mjs > e2e/.env && pnpm --filter aj-classes-e2e test:smoke` | **10/10** (stack and 5173 both from this worktree); 0 `e2e-%` rows after |
+| Rule checks | `kinet validate` | not run: the CLI says "KINET not initialised" in this repo. Instead: no `console.log` outside the Node test scripts, no TODO, no inline styles, no `document.getElementById`/`innerHTML`, no `text.secondary`, no secrets in the diff |
+| Diff hygiene | `git diff develop -- supabase/config.toml`; `git diff develop --stat -- supabase/templates` | only the `[functions.invite-redeem]` block; `otp_expiry = 3600`; templates untouched |
+
+### T9.2 Browser pass (5173 from this worktree; headless Chromium; 84/84 checks)
+
+Fixtures through `account-admin`, dates back-dated in the local database (03 §8.1 item 2), all
+deleted afterwards. Admin views at 1280 light, 1280 dark, 375 light and 375 dark; invitee pages at
+both widths and both schemes; every page measured for sideways scroll (none).
+
+- **Staff list:** fresh and 13-day invites show `Invited`; 14 d 1 min shows `Invite expired` (AC 23).
+- **Staff member:** 13 days shows `Invited on …` and no warning; 14 d 1 min shows `Invite expired`
+  and `The link has expired. Send a new one.` (AC 23). **Resend invite** → chip `Invited`,
+  `Invited on 29 Oct 2026, 2:29 pm` (AC 24).
+- **Students list:** `Invited` and `Invite expired` chips in the Account column (AC 23).
+- **Student page:** expired account shows the warning `The invite link has expired. Send a new
+  one.`; the expired parent row shows `Invite expired`; a fresh one shows neither (AC 23). Resend
+  on the account and on the parent row clears both (AC 24).
+- **Invite staff dialog:** `… The link works for 14 days; you can resend it.` (AC 26).
+- **Invitees:** staff (13 days old, AC 1), staff (fresh), student and parent: Continue →
+  `/portal/join`, `location.search` empty (AC 8). Staff 14 d 1 min (AC 3) and the joined account
+  (AC 17) → AC 9 with `Already set up your account? Sign in`. No token → `This link is
+  incomplete…`, no Continue (AC 10). The joined account then signs in with its password (AC 17).
+- **Old-format link** (T6.6, 375 px): AC 9, no `/verify` request, nobody signed in (AC 38).
+- Screenshots: session scratchpad `browser/shots/t92-*.png` (not in the repo).
+
+**Found and fixed in T9.2 (deviation, small):** none of the three **Resend invite** buttons (staff
+member page, student account, parent row) reloaded the page data. After a re-send the page kept
+the old `Invited on` date and, for an expired invite, `Invite expired` plus the warning right next
+to `A new invite link has been sent.`, which breaks AC 24 and misleads the admin. This was there
+before this branch, but the 14-day rule makes it visible. Fix: after a **successful** re-send the
+page revalidates (`onChanged`), the same pattern as cancel; a failed re-send doesn't. Proof:
+`admin-staff-member.test.tsx` (2 tests) and the browser checks above. Commit `797a25f`.
+
+### T9.3 Email-off run (S2's `functions serve --env-file`, `EMAIL_TRANSPORT=off`; 14/14)
+
+`config.toml` was not edited. Afterwards `functions serve` was stopped, the stack restarted
+(`pnpm db:stop && pnpm db:start`), and T0.3 passed (mount `1`, migration `20261030100000`, 5173 cwd
+this worktree). `git diff develop -- supabase/config.toml` still shows only the T5.3 block.
+
+- **AC 36/21:** staff, student and parent first invites → `email_failed`; no `auth.users` or
+  `profiles` row for any of the three; the roster row is still unlinked; nothing reached Mailpit.
+  The **Invite staff** dialog and the staff member page both show `The invite e-mail couldn't be
+  sent. Please try again.` The function log shows `invite email config missing` (6 times).
+- **AC 39:** re-send → `email_failed`; account, `invited_at` and the stored token row unchanged; no
+  `invite_resent`. After email came back on, the link from before the failed re-send still signed
+  in (redeem `ok` + `/verify` session for that account).
+- **AC 41:** linking `parent@local.test` works with email off: `linked: true`, `parent_linked`
+  written, no token row, no email.
+
+### AC trace
+
+"Redeem script" = `supabase/scripts/test-invite-redeem.mjs`; "admin script" =
+`supabase/scripts/test-account-admin.mjs`; "browser" = T9.2/T9.3 above.
+
+| AC | Evidence |
+|---|---|
+| 1 | Redeem script `AC 1: a link 13 days old works and the hop signs in as that account`; e2e (link back-dated 13 days before Continue); browser (staff 13 days → `/portal/join`) |
+| 2 | Redeem script `AC 2: a link 13 days 23 hours old works…` |
+| 3 | Redeem script `AC 3: a link 14 days 1 minute old is refused`; pgTAP #13 (exactly 336 h refused); browser |
+| 4 | Redeem script `AC 4: a link 15 days old is refused` |
+| 5 | Method 03 §8.1 item 2, used by the redeem script (`backdate`), `e2e/src/db/invites.ts` `backdateInvite` and the browser pass; local only |
+| 6 | `invite.test.tsx` (no call on render); e2e opens the link 3 times, then Continue works |
+| 7 | Redeem script `AC 7: the same link a second time is refused`; e2e (fresh context → AC 9); pgTAP #9 |
+| 8 | `invite.test.tsx` (`replaceState` before `redeemInvite`); e2e `location.search === ''`; redeem script AC 8 leak check (token, hash, `tokenHash` absent from function logs and `audit_log`); audit details are `{ email }` only |
+| 9 | `invite.test.tsx` refused state; `auth-confirm.test.tsx`; browser (heading, message, sign-in link to `/portal/login`) |
+| 10 | `invite.test.tsx` (no token → `invalidLink`, no button; `abc` → Continue); redeem script `"abc" (AC 10) → 200 invite_invalid`; browser |
+| 11 | Redeem script AC 11: 14 refusal kinds (garbled ×5, used, expired ×2, replaced, cancelled, active, inactive, unknown, rate-limited), all `200` and byte-identical |
+| 12 | Redeem script `AC 12/13 … (staff)`, `AC 12 (student)`, `AC 12 (parent)`; admin script `Resend invite: a new token…` |
+| 13 | Redeem script `AC 13: after two re-sends the first link is refused`, `and the second`, `only the newest link works` |
+| 14 | Redeem script AC 14 (first link signs in and confirms the e-mail; re-send is the invite email; its link signs in) |
+| 15 | Redeem script `AC 15` (refused, token row gone); admin script `Cancel invite: account removed, and its token row with it`; pgTAP #16 |
+| 16 | Redeem script `AC 16: re-sent on day 10, the new link still works 13 days after the re-send`, and the day-0 link is refused |
+| 17 | Redeem script AC 17 (refused, `last_sign_in_at` unchanged, password sign-in works); pgTAP #14; browser (refused, then password sign-in) |
+| 18 | Redeem script AC 18 (refused, never signed in); pgTAP #14 |
+| 19 | Admin script existing checks (`already_exists`, `already_joined`, `already_has_account`, parent linked), unchanged and green |
+| 20 | Admin script: signed out → 403 `not_admin` (local Kong lets the publishable key through; AC 20 allows it), invalid token → 401, tutor / student / parent × invite / resend / cancel → 403 `not_admin`, admin without two-step → `not_admin`; then no token, email, audit entry or account changed |
+| 21 | `consent_needed` (admin script, unchanged); `issueInvite` unit (send fails → store not called); email-off run (no account left, roster unlinked, message shown) |
+| 22 | Admin script: `invite_sent`, `student_invited`, `parent_invited`, `invite_resent`, `invite_cancelled`, `parent_linked` each once |
+| 23 | `account-status.test.ts` (13 d, 13 d 23 h, 336 h, 14 d 1 min, null); browser on Staff, staff member, Students, student page (account + parent rows) |
+| 24 | Admin script `Resend invite: invited_at moved on to the re-send`; browser (chip and `Invited on` update after Resend, all three buttons); `admin-staff-member.test.tsx` |
+| 25 | Migration step 6 (`0` invited profiles with a date after `migration up`); e2e AC 25 test; `account-status.test.ts` (null → expired); browser T6.7 |
+| 26 | `invite-copy.test.ts`; browser (dialog text) |
+| 27 | pgTAP #18; the migration drops and renames nothing (Reviewer to confirm) |
+| 28 | Redeem script unit (subject, heading, label, wording per role, button, ignore line); admin script (Mailpit subject and `From: AJ Classes <hello@ajclasses.com.au>`); `test-notifications.mjs` (`resendRequest` `from`/`reply_to`) |
+| 29 | Redeem script unit (exact AC 29 line in HTML and text; no `1 hour`) |
+| 30 | Redeem script unit (`Accept invite: <link>` in text); e2e reads the link from `Text` |
+| 31 | Redeem script unit and admin script (link is `http://localhost:5173/portal/invite?token=…`, no `supabase`, no `auth/confirm`). Hosted: Saurabh's release step 5 |
+| 32 | `invite-copy.test.ts` (`AUTH_LIMITS.linkExpiryHours === 1`, `FORGOT_PASSWORD_PAGE.sent` ends `It expires in 1 hour.`); `supabase/templates/` untouched |
+| 33 | `git diff develop -- supabase/config.toml`: only the functions block; `otp_expiry = 3600` |
+| 34 | `staff-login.spec.ts` in the 10/10 smoke; existing auth unit tests in the 647 |
+| 35 | Admin script `exactly one e-mail` checks for staff, student, parent and re-send; e2e |
+| 36 | `pickTransport` null (test-notifications, unchanged); email-off run |
+| 37 | Re-send cancels the old link (AC 12/13) and used link refused (AC 7): redeem script + e2e. Expired link refused (AC 3): redeem script. Failed re-send keeps the previous link: **automated** S4b in the redeem script, plus `issueInvite` unit and the email-off run. (So the manual-fallback wording sign-off in 04 risk 4 isn't needed; the PO may still confirm) |
+| 38 | `auth-confirm.test.tsx` (no service call); browser with the old-format fixture (no `/verify` request, nobody signed in) |
+| 39 | Redeem script S4b (automated); `issueInvite` unit; email-off run (unchanged state, message, previous link still works) |
+| 40 | Admin script `invited_at = sent_at` after staff, student, parent invites and both re-sends; pgTAP #5, #17 |
+| 41 | Admin script `linking sends no e-mail and makes no invite link`; email-off run |
+
+### Not verified here
+
+1. Hosted anything: production web, `deploy.sh`, Resend API sends, hosted Auth logs, the hosted
+   origin rule (local Kong adds `Access-Control-Allow-Origin: *`). These are Saurabh's release
+   steps in 04 §7.
+2. HTTP case 7 (a real `500 server_error`): needs a failing database or Auth. Covered only by the
+   unit section (a throw releases the claim and propagates).
+3. Mobile (`aj_classes_mobile`) against the new data: D1, unchanged by this branch.
+4. Real mail clients' rendering of the new HTML (only Mailpit's text and HTML were checked).
+
+### Handover
+
+**Stack handed to the Tester at `797a25f` (code; this notes commit sits on top), mount checked.**
+
+- Supabase stack started from `/Users/sjain/dev/work/aj_classes-invites`; edge runtime mount
+  check `1`; newest migration `20261030100000`; final `pnpm db:reset` done, so the database holds
+  the plain seed (6 auth users, 0 invite tokens, 0 redeem attempts).
+- Port 5173 is **free**: the Developer's dev server is stopped. Start one from this worktree
+  (`pnpm --filter web dev`); `apps/web/.env.local` and `.env.development.local` were copied from
+  the `main` checkout (gitignored, local values).
+- `e2e/.env` was regenerated by `local-env.mjs` (gitignored).
+- **After any edit under `supabase/functions/`, run `docker restart supabase_edge_runtime_aj_classes`**:
+  the local runtime doesn't reload code.
+- Ownership of the stack passes to the Tester with this note.

@@ -153,13 +153,13 @@ ADR-0010 → Accepted, DEC-IN-1…8 into `_knowledge/decisions.md`, and the Test
 
 ### T9. Full check, manual proofs, handover
 
-- [ ] **T9.1 Full check** (definition of done, §5).
-- [ ] **T9.2 Browser pass** at 5173 from this worktree: as the admin, plus an invitee for each of staff, student and parent; light and dark; 375 px and 1280 px.
+- [x] **T9.1 Full check** (definition of done, §5).
+- [x] **T9.2 Browser pass** at 5173 from this worktree: as the admin, plus an invitee for each of staff, student and parent; light and dark; 375 px and 1280 px.
   - Cover AC 1 and AC 3 (back-dated per 03 §8.1 item 2), AC 17 sign-in (03 §8.1 item 6), and AC 23 on Staff, the staff member page, Students and the student page.
-- [ ] **T9.3 Email-off run** (03 §8.1 item 5, or S2's env file): AC 21, 36, 39, 41.
+- [x] **T9.3 Email-off run** (03 §8.1 item 5, or S2's env file): AC 21, 36, 39, 41.
   - Revert `supabase/config.toml` afterwards, restart, and rerun T0.3.
   - **Verify:** `git diff supabase/config.toml` again shows only the T5.3 block.
-- [ ] **T9.4** Fill `05-dev-notes.md`:
+- [x] **T9.4** Fill `05-dev-notes.md`:
   - the spike answers and any deviations from 03;
   - the AC trace (§6) with the evidence for each AC;
   - "stack handed to the Tester at `<commit>`, mount checked".
