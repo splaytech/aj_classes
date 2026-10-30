@@ -52,7 +52,7 @@ This is the site we need to beat for **usability and readability**. Reviewed 24 
 |---|---|---|
 | **Look** | Dark navy with a serif display font and orange CTAs. Polished, premium feel | Match the polish, but use our **own** brand (no copying of palette or layout). A clean, light, high-contrast design reads better for long sections |
 | **Page length** | Homepage is ~14,000px tall with 13 sections. It feels endless | **About 8 sections, ~5–6 screen heights.** Each section answers one question. Details go on later pages, not the homepage |
-| **Navigation** | ~147 links on the homepage, a mega-menu with 30+ items, plus an announcement bar, a campus bar and two nav rows | **At most 6 nav items + 1 CTA**. One header row. No mega-menu in R1 |
+| **Navigation** | ~147 links on the homepage, a mega-menu with 30+ items, plus an announcement bar, a campus bar and two nav rows | **At most 6 nav items + 1 CTA**. One header row. No mega-menu in R1 (superseded by DEC-HL-5, 2026-10-30-header-hiring-link) |
 | **Social proof** | Big honour board (~150 student names), **shown twice** on the homepage | Show proof **once**, in a compact form (e.g. 3 headline stats). Testimonials come in R2 |
 | **Calls to action** | "Expression of Interest" appears many times, with "Enrol", "Register interest" and "Check an essay" competing | **One primary CTA label everywhere** (e.g. "Register Interest"), plus one secondary ("Ask a Question") |
 | **Readability** | ~18px body, but long unbroken paragraphs | 18px body, max ~70 characters per line, short paragraphs (≤ 3 sentences), scannable cards and bullet points |

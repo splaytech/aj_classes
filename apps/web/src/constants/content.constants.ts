@@ -4,6 +4,7 @@
 
 import { BUSINESS } from './business.constants';
 import type { SocialPlatform } from './business.constants';
+import { CAREERS } from './careers.constants';
 import { PROGRAMMES, PROGRAMME_SLUGS } from './programmes.constants';
 import { ROUTES, SECTION_IDS, programmePath } from './routes.constants';
 
@@ -47,9 +48,12 @@ export const NAV = {
     { label: 'FAQ', sectionId: SECTION_IDS.faq },
     { label: 'Contact', sectionId: SECTION_IDS.contact },
   ],
-  // A page, not a home-page section, so it sits outside `links`. Shown last, and only once at
-  // least one post exists (ADR-0001). Becomes "What's On" when Events ship (B11).
+  // A page, not a home-page section, so it sits outside `links`. Shown after the section links,
+  // before "We're hiring", and only once at least one post exists (ADR-0001). Becomes
+  // "What's On" when Events ship (B11).
   newsLink: { label: 'News', href: ROUTES.posts },
+  // A page, so outside `links` too. Always shown, after News (DEC-HL-2, DEC-HL-5).
+  careersLink: { label: CAREERS.linkLabel, href: ROUTES.careers },
   cta: 'Register Interest',
   // One link for everyone: the portal sends each person to their own home by role.
   signIn: 'Sign in',

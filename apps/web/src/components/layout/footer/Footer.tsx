@@ -6,9 +6,9 @@ import {
   A11Y,
   APP_CONFIG,
   BUSINESS,
-  CAREERS,
   FOOTER,
   FOOTER_PORTAL,
+  NAV,
   PORTAL_ROUTES,
   RESOURCES,
   ROUTES,
@@ -78,7 +78,7 @@ export function Footer() {
           <span className={styles.legal}>
             {hasNews && <a href={ROUTES.posts}>{FOOTER.newsLink}</a>}
             <a href={ROUTES.resources}>{RESOURCES.footerLink}</a>
-            <a href={ROUTES.careers}>{CAREERS.footerLink}</a>
+            <a href={NAV.careersLink.href}>{NAV.careersLink.label}</a>
             <a href={ROUTES.privacy}>{FOOTER.privacyLink}</a>
             {APP_CONFIG.features.portal && <a href={PORTAL_ROUTES.login}>{FOOTER_PORTAL.signIn}</a>}
           </span>

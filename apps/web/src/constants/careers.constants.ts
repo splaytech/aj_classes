@@ -9,7 +9,8 @@ import { BUSINESS } from './business.constants';
 const APPLY_SUBJECT = 'Tutor application';
 
 export const CAREERS = {
-  footerLink: "We're hiring",
+  // Shown in the header and the footer through NAV.careersLink (DEC-HL-1).
+  linkLabel: "We're hiring",
   heading: "We're hiring",
   intro: `AJ Classes is growing, and we're looking for tutors to join our small team. We teach small groups in person in ${BUSINESS.suburbsText}, and online across Australia.`,
   rolesHeading: 'Roles',

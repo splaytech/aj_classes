@@ -1,6 +1,6 @@
-// Sticky site header: logo, section links, News (only when posts exist) and the "Register
-// Interest" button.
-// On small screens the links fold into a menu button (PRP F2 section 1).
+// Sticky site header: logo, section links, News (only when posts exist), "We're hiring", Sign in
+// (portal flag) and the "Register Interest" button. On small screens the links and actions fold
+// into a menu button (PRP F2 section 1).
 
 import { ChevronRight, LogIn } from 'lucide-react';
 import { useState } from 'react';
@@ -120,6 +120,15 @@ export function Header() {
                   </a>
                 </li>
               )}
+              <li key={NAV.careersLink.href}>
+                <a
+                  href={NAV.careersLink.href}
+                  onClick={closeMenu}
+                  aria-current={isCurrentPage(pathname, NAV.careersLink.href) ? 'page' : undefined}
+                >
+                  {NAV.careersLink.label}
+                </a>
+              </li>
             </ul>
             <div className={styles.actions}>
               {APP_CONFIG.features.portal && (
