@@ -115,8 +115,14 @@ export function buildHomeJsonLd(): MetaDescriptor {
     ],
     knowsAbout: STRUCTURED_DATA.knowsAbout,
     hasMap: BUSINESS.googleMapsUrl,
-    // The Maps profile too, so Google treats the site and the Business Profile as one business.
-    sameAs: [...getVisibleSocialLinks().map((link) => link.url), BUSINESS.googleMapsUrl],
+    // Profiles of the business, plus the Maps profile so Google treats the site and the Business
+    // Profile as one business. The WhatsApp chat link is a contact method, not a profile.
+    sameAs: [
+      ...getVisibleSocialLinks()
+        .filter((link) => link.platform !== 'whatsapp')
+        .map((link) => link.url),
+      BUSINESS.googleMapsUrl,
+    ],
   };
 
   const website = {

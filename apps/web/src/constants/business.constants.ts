@@ -31,6 +31,9 @@ export const BUSINESS = {
   countryName: 'Australia',
 } as const;
 
+// One line, as shown on the page and in the Business Profile.
+export const BUSINESS_ADDRESS = `${BUSINESS.streetAddress}, ${BUSINESS.locality} ${BUSINESS.state} ${BUSINESS.postcode}`;
+
 // Typed into the chat for the parent, so they only need to press send.
 export const WHATSAPP_GREETING = "Hi AJ Classes, I'd like to know more about your classes.";
 

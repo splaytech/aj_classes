@@ -491,7 +491,7 @@ One `<script type="application/ld+json">` with an `@graph` in the home page `<he
 | ID | Requirement |
 |---|---|
 | F6.4.1 | JSON-LD is generated from `business.constants.ts`, `seo.constants.ts` and the FAQ in `content.constants.ts`, so the NAP, FAQ and social links have a single source and always match the visible page. |
-| F6.4.2 | **Structured data may only contain information that is visible on the page and true.** Leave out the street address or phone number if the business doesn't want them public, and drop that property rather than inventing one. |
+| F6.4.2 | **Structured data may only contain information that is visible on the page and true.** Leave out the street address or phone number if the business doesn't want them public, and drop that property rather than inventing one. _(30 Oct 2026: the street address is now public and shown in the footer and contact card, so the markup carries it.)_ |
 | F6.4.3 | No `Review` or `AggregateRating` markup in R1: there are no testimonials yet, and self-serving review markup isn't eligible for rich results anyway. |
 | F6.4.4 | `sameAs` lists **only profiles that exist**. Add entries as profiles are created (F6.7). |
 | F6.4.5 | Passes the [Rich Results Test](https://search.google.com/test/rich-results) and the [Schema Markup Validator](https://validator.schema.org/) with no errors. |
@@ -666,7 +666,7 @@ These have more influence on branded ranking than any tag. Most are **owner acti
 | Q4 | Show a phone number or social links publicly? | **Phone: yes, number TBC.** Hidden (and left out of JSON-LD) until provided. Social links: see A.8 |
 | Q5 | Canonical host: apex or `www`? | **Decided: apex** (`https://ajclasses.com.au`); `www` 301-redirects to it |
 | Q6 | Can we get a `.com.au` domain (ABN available)? | **Open:** confirm an ABN (or ACN) exists for the registrant. It is required before buying `ajclasses.com.au` |
-| Q7 | Service area: Melbourne only, all of Victoria, or online Australia-wide? Is there a physical location? | **Answered:** both modes. In-person classes are **home-based in Truganina (VIC 3029)**; online classes are Australia-wide. Street address **not** published (home-based); show suburb only. Google Business Profile set up as a *service-area business* with the address hidden |
+| Q7 | Service area: Melbourne only, all of Victoria, or online Australia-wide? Is there a physical location? | **Answered:** both modes. In-person classes are **home-based in Truganina (VIC 3029)**; online classes are Australia-wide. Street address **not** published (home-based); show suburb only. Google Business Profile set up as a *service-area business* with the address hidden _(30 Oct 2026: the owner made the street address public; it is shown on the site and in its structured data.)_ |
 | Q8 | Exact brand spelling to standardise on ("AJ Classes")? | **Decided: "AJ Classes"**, defined once as `BUSINESS_NAME` in `business.constants.ts` |
 
 ---
@@ -686,7 +686,7 @@ These have more influence on branded ranking than any tag. Most are **owner acti
 | Domain | **`ajclasses.com.au`** (finalised, available; purchase pending) |
 | Enquiry email (public) | **`hello@ajclasses.com.au`** |
 | Phone (public? Y/N) | **Yes, number TBC.** Not shown until provided |
-| Service area / suburb(s) | **Truganina, VIC 3029** (in person) + online Australia-wide. Street address not shown |
+| Service area / suburb(s) | **Truganina, VIC 3029** (in person) + online Australia-wide. Street address not shown _(30 Oct 2026: the owner made the street address public; it is shown on the site and in its structured data.)_ |
 | Delivery mode (in person / online / both) | **Both**: home-based in-person classes in Truganina + online classes |
 | Year levels taught | **Year 2 – Year 10** (NAPLAN preparation starts in Year 2, ahead of the first NAPLAN in Year 3; which other programmes cover Years 2–4 is TBC, T3). Updated 30 Sep 2026 from Ajay |
 | Programmes / exams | **Selective Entry High Schools (main focus): exam preparation *and* interview preparation**; **NAPLAN**; **ICAS** ; **VCE subject-selection counselling** (sessions with the student and parents, complete guidance; added 30 Sep 2026 from Ajay) |

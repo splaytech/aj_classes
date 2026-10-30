@@ -56,6 +56,7 @@ export function Footer() {
                 <a href={`tel:${BUSINESS.phoneDial}`}>{BUSINESS.phone}</a>
               </p>
             )}
+            <p className={styles.text}>{FOOTER.address}</p>
             <p className={styles.text}>{FOOTER.location}</p>
 
             {socialLinks.length > 0 && (

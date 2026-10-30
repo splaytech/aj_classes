@@ -1,14 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { BUSINESS, CONTACT_DETAILS } from '@/constants';
+import { BUSINESS, BUSINESS_ADDRESS, CONTACT_DETAILS } from '@/constants';
 
 import { ContactDetails } from './ContactDetails';
 
 describe('ContactDetails', () => {
-  it('shows the email, location and response time', () => {
+  it('shows the email, address, location and response time', () => {
     render(<ContactDetails />);
     expect(screen.getByRole('link', { name: BUSINESS.email })).toBeInTheDocument();
+    expect(screen.getByText(BUSINESS_ADDRESS)).toBeInTheDocument();
     expect(screen.getByText(CONTACT_DETAILS.location)).toBeInTheDocument();
     expect(screen.getByText(CONTACT_DETAILS.response)).toBeInTheDocument();
   });

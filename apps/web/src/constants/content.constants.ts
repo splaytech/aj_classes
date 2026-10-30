@@ -2,7 +2,7 @@
 // To change any wording, edit it here. Components never contain text of their own.
 // A section with empty content is hidden automatically.
 
-import { BUSINESS } from './business.constants';
+import { BUSINESS, BUSINESS_ADDRESS } from './business.constants';
 import type { SocialPlatform } from './business.constants';
 import { CAREERS } from './careers.constants';
 import { PROGRAMMES, PROGRAMME_SLUGS } from './programmes.constants';
@@ -305,7 +305,10 @@ export const CONTACT_DETAILS = {
   heading: 'Contact details',
   emailLabel: 'Email',
   phoneLabel: 'Phone',
-  locationLabel: 'Location',
+  addressLabel: 'Address',
+  // Shown because the structured data carries it, and Google only trusts markup it can see.
+  address: BUSINESS_ADDRESS,
+  locationLabel: 'Classes',
   location: LOCATION,
   hoursLabel: 'Class hours',
   responseLabel: 'Response time',
@@ -363,6 +366,7 @@ export const WHATSAPP_BUTTON = {
 export const FOOTER = {
   followHeading: 'Follow AJ Classes',
   contactHeading: 'Contact',
+  address: BUSINESS_ADDRESS,
   location: LOCATION,
   privacyLink: 'Privacy Policy',
   newsLink: 'News', // first in the legal row, only once at least one post exists (ADR-0001)

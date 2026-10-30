@@ -146,6 +146,19 @@ describe('checkPage: invalid states (AC-6.10)', () => {
     ]);
   });
 
+  it('a hasMap link that is not absolute https', () => {
+    const html = fixture('home-valid.html').replace(
+      /"hasMap":"[^"]*"/,
+      '"hasMap":"http://maps.example.com/place"',
+    );
+    expect(checkPage('index.html', html)).toEqual([
+      {
+        file: 'index.html',
+        message: '"hasMap" is "http://maps.example.com/place", not an absolute https:// URL',
+      },
+    ]);
+  });
+
   it('a sameAs link that is not absolute https', () => {
     const html = fixture('home-valid.html').replace(
       '"sameAs":[',

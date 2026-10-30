@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { BUSINESS, PROGRAMMES, ROUTES, SEO, programmePath } from '@/constants';
+import { BUSINESS, PROGRAMMES, ROUTES, SEO, SOCIAL_LINKS, programmePath } from '@/constants';
 import { meta as notFoundMeta } from '@/routes/not-found';
 import { meta as subscribedMeta } from '@/routes/subscribed';
 
@@ -45,15 +45,13 @@ describe('home page business data (Google Business Profile match)', () => {
     });
   });
 
-  it('links the Maps profile and every live social account', () => {
-    expect(business.hasMap).toBe(BUSINESS.googleMapsUrl);
-    expect(business.sameAs).toEqual(
-      expect.arrayContaining([
-        BUSINESS.googleMapsUrl,
-        'https://www.instagram.com/aj_classes_au/',
-        'https://www.youtube.com/@ajclassesau',
-      ]),
+  it('links the Maps profile and every live social profile, but not the WhatsApp chat', () => {
+    const profiles = SOCIAL_LINKS.filter((link) => link.url && link.platform !== 'whatsapp').map(
+      (link) => link.url,
     );
+    expect(business.hasMap).toBe(BUSINESS.googleMapsUrl);
+    expect(business.sameAs).toEqual([...profiles, BUSINESS.googleMapsUrl]);
+    expect(profiles.length).toBeGreaterThanOrEqual(3); // Facebook, Instagram, YouTube
   });
 });
 
