@@ -1,6 +1,6 @@
 // Sticky site header: logo, section links, "We're hiring", Sign in (portal flag) and the
-// "Register Interest" button. FAQ and News are in the footer. On small screens the links and actions fold
-// into a menu button (PRP F2 section 1).
+// "Register Interest" button. FAQ and News are in the footer. On small screens the links and
+// actions fold into a menu button (PRP F2 section 1).
 
 import { ChevronRight, LogIn } from 'lucide-react';
 import { useState } from 'react';
