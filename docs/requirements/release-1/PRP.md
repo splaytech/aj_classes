@@ -215,7 +215,7 @@ Each section answers one parent question. Copy for every section is in **[Append
 
 | # | Section | Parent's question | Content |
 |---|---|---|---|
-| 1 | **Header** | Where do I go? | Logo; links **Approach · About · FAQ · Contact**; primary button **"Register Interest"**; social icons (small, desktop only). Sticky, one row. Hamburger menu on mobile |
+| 1 | **Header** | Where do I go? | Logo; links **Approach · About · FAQ · Contact** _(30 Oct 2026: FAQ moved to the footer)_; primary button **"Register Interest"**; social icons (small, desktop only). Sticky, one row. Hamburger menu on mobile |
 | 2 | **Hero** | What is this? | **Announcement pill** above the headline (F2.11), then headline, one supporting sentence, primary CTA **"Register Interest"**, secondary CTA **"Ask a Question"**, hero image. A strip of 3 short proof points below it (e.g. "Selective-entry specialists · Qualified tutors · Small groups") |
 | 3 | **Why AJ Classes** | Why you, not someone else? | Value cards: 4–6 word title, 1–2 sentence description. **6 cards in a 3 × 2 grid** since 6 Oct 2026, adding "Aligned to the Victorian Curriculum" and "A plan for every student" (A.12) |
 | 3a | **Our 2026 results** *(added 30 Sep 2026)* | Do you get results? | 3 stat cards: 10 selective high school offers (Year 9; updated Oct 2026 from 7: Melbourne High 4, Suzanne Cory 4), 5 John Monash Science School offers, 3 private school scholarships, plus a one-line note on NAPLAN/ICAS. Aggregate numbers only, **no student names** |

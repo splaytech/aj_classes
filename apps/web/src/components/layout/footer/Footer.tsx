@@ -1,5 +1,5 @@
-// Navy site footer: subscribe form, social links, contact details and legal links (News only
-// when posts exist).
+// Navy site footer: subscribe form, social links, contact details and legal links (FAQ, and
+// News only when posts exist).
 
 import { Container, Logo } from '@/components/ui';
 import {
@@ -12,9 +12,11 @@ import {
   PORTAL_ROUTES,
   RESOURCES,
   ROUTES,
+  SECTION_IDS,
   SOCIAL_LABELS,
   SUBSCRIBE,
   TAGLINE,
+  sectionLink,
 } from '@/constants';
 import { getVisibleSocialLinks } from '@/lib/social';
 import { useHasNews } from '@/lib/use-has-news';
@@ -77,6 +79,7 @@ export function Footer() {
           <span>{FOOTER.copyright(currentYear)}</span>
           <span className={styles.legal}>
             {hasNews && <a href={ROUTES.posts}>{FOOTER.newsLink}</a>}
+            <a href={sectionLink(SECTION_IDS.faq)}>{FOOTER.faqLink}</a>
             <a href={ROUTES.resources}>{RESOURCES.footerLink}</a>
             <a href={NAV.careersLink.href}>{NAV.careersLink.label}</a>
             <a href={ROUTES.privacy}>{FOOTER.privacyLink}</a>

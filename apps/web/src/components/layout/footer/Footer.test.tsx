@@ -1,7 +1,16 @@
 import { screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { APP_CONFIG, FOOTER, FOOTER_PORTAL, NAV, RESOURCES, ROUTES } from '@/constants';
+import {
+  APP_CONFIG,
+  FOOTER,
+  FOOTER_PORTAL,
+  NAV,
+  RESOURCES,
+  ROUTES,
+  SECTION_IDS,
+  sectionLink,
+} from '@/constants';
 import { useHasNews } from '@/lib/use-has-news';
 import { renderAt } from '@/test/render';
 
@@ -30,6 +39,16 @@ describe('footer News link (ADR-0001)', () => {
   });
 });
 
+describe('footer FAQ link (2026-10-30 tidy)', () => {
+  it('links to the home page FAQ section', () => {
+    renderAt(<Footer />);
+    expect(screen.getByRole('link', { name: FOOTER.faqLink })).toHaveAttribute(
+      'href',
+      sectionLink(SECTION_IDS.faq),
+    );
+  });
+});
+
 describe('footer legal row (we-are-hiring)', () => {
   // The Resources link always shows, so its parent is the legal row whatever the flags are.
   function legalRowLinkTexts(): string[] {
@@ -43,6 +62,7 @@ describe('footer legal row (we-are-hiring)', () => {
   function expectedOrder(hasNews: boolean): string[] {
     return [
       ...(hasNews ? [FOOTER.newsLink] : []),
+      FOOTER.faqLink,
       RESOURCES.footerLink,
       NAV.careersLink.label,
       FOOTER.privacyLink,

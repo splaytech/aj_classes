@@ -35,6 +35,8 @@ Top comment (lines 1-3) becomes: "Sticky site header: logo, section links, News 
 
 ## 3. CSS (DEC-HL-3), `Header.module.css`
 
+_Superseded 30 Oct 2026 (header tidy, `feature/header-tidy`): FAQ and News left the header, so the bar has five links. The 1024–1279px tight-gap band was removed and wider gaps added from 1280px; the 15px text stays._
+
 1. **Inside the existing `@media (min-width: 1024px)` block** (line 174), after the `.links { flex-direction: row; ... }` rule (line 205-208), add:
 
    ```css

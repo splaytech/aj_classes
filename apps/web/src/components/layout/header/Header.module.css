@@ -207,7 +207,8 @@
     gap: var(--space-4);
   }
 
-  /* Seven links plus Sign in only fit the bar at 15px (DEC-HL-3). Sub-links keep their size. */
+  /* Top-level links and Sign in at 15px keep the bar on one row with room to spare (DEC-HL-3).
+     Sub-links keep their size. */
   .links > li > a,
   .signIn {
     font-size: var(--font-size-sm);
@@ -255,21 +256,16 @@
   }
 }
 
-/* Seven links (with News and "We're hiring") plus Sign in. Between 1024px and 1279px the normal
-   gaps push them against the logo, so tighten the gaps there only: links 8px, nav and actions
-   12px. With the 15px text this leaves about 14px at 1024 (02 DEC-HL-3, measured in the dev
-   notes). Breakpoint unchanged; re-measure before adding or lengthening a link. */
-@media (min-width: 1024px) and (max-width: 1279px) {
+/* Five links plus Sign in. From 1280px there is room to space the links out evenly, so the bar
+   reads as one tidy group. Below that the normal gaps leave about 50px at 1024 (measured
+   30 Oct 2026); re-measure before adding or lengthening a link. */
+@media (min-width: 1280px) {
   .nav,
   .navOpen {
-    gap: var(--space-3);
+    gap: var(--space-8);
   }
 
   .links {
-    gap: var(--space-2);
-  }
-
-  .actions {
-    gap: var(--space-3);
+    gap: var(--space-6);
   }
 }

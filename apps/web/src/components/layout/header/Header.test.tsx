@@ -7,23 +7,21 @@ import {
   APP_CONFIG,
   CAREERS,
   CTA_LOCATIONS,
+  FOOTER,
   NAV,
   PORTAL_ROUTES,
   ROUTES,
 } from '@/constants';
 import { trackEvent } from '@/lib/analytics';
 import { homeForRole } from '@/lib/portal-access';
-import { useHasNews } from '@/lib/use-has-news';
 import { renderAt } from '@/test/render';
 import { setupUser } from '@/test/user';
 
 import { Header } from './Header';
 
-vi.mock('@/lib/use-has-news', () => ({ useHasNews: vi.fn(() => false) }));
 vi.mock('@/lib/analytics', () => ({ trackEvent: vi.fn() }));
 
 beforeEach(() => {
-  vi.mocked(useHasNews).mockReturnValue(false);
   vi.mocked(trackEvent).mockClear();
 });
 
@@ -56,37 +54,14 @@ describe('header sign-in link', () => {
   });
 });
 
-describe('header News link (ADR-0001)', () => {
-  it('is not shown when there is no news, or the check failed (AC-1.6, AC-1.7)', () => {
+describe('header FAQ and News (2026-10-30 tidy)', () => {
+  it('shows neither, so the bar holds the five links only', () => {
     renderAt(<Header />);
-    expect(screen.queryByRole('link', { name: NAV.newsLink.label })).not.toBeInTheDocument();
-    // + 1: "We're hiring" always shows, news or not (DEC-HL-5).
+    const nav = screen.getByRole('navigation', { name: A11Y.mainNavigation });
+    expect(within(nav).queryByRole('link', { name: FOOTER.faqLink })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole('link', { name: FOOTER.newsLink })).not.toBeInTheDocument();
+    // + 1: "We're hiring" always shows (DEC-HL-5).
     expect(topLevelNavItems()).toHaveLength(NAV.links.length + 1);
-  });
-
-  it('is second to last of 7 nav items, linking to /posts, when there is news (AC-1.8, DEC-HL-5)', () => {
-    vi.mocked(useHasNews).mockReturnValue(true);
-    renderAt(<Header />);
-    const items = topLevelNavItems();
-    expect(items).toHaveLength(7); // 7 nav items (DEC-HL-5); Sign in and Register Interest are actions
-    const link = within(items[items.length - 2] as HTMLElement).getByRole('link');
-    expect(link).toHaveTextContent(NAV.newsLink.label);
-    expect(link).toHaveAttribute('href', ROUTES.posts);
-  });
-
-  it('is marked as the current page only on /posts (AC-1.8)', () => {
-    vi.mocked(useHasNews).mockReturnValue(true);
-    const { unmount } = renderAt(<Header />, ROUTES.posts);
-    expect(screen.getByRole('link', { name: NAV.newsLink.label })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
-    unmount();
-
-    renderAt(<Header />, ROUTES.privacy);
-    expect(screen.getByRole('link', { name: NAV.newsLink.label })).not.toHaveAttribute(
-      'aria-current',
-    );
   });
 });
 
@@ -100,20 +75,12 @@ describe("header We're hiring link (2026-10-30-header-hiring-link)", () => {
     link.addEventListener('click', (event) => event.preventDefault());
   }
 
-  it.each([false, true])('is always the last nav item (news %s) (AC-1, AC-3, AC-4)', (hasNews) => {
-    vi.mocked(useHasNews).mockReturnValue(hasNews);
+  it('is always the last nav item (AC-1, AC-3, AC-4)', () => {
     renderAt(<Header />);
     const items = topLevelNavItems();
-    expect(items).toHaveLength(NAV.links.length + (hasNews ? 1 : 0) + 1);
-
     const last = within(items[items.length - 1] as HTMLElement).getByRole('link');
     expect(last).toHaveTextContent(NAV.careersLink.label);
     expect(last).toHaveAttribute('href', ROUTES.careers);
-
-    if (hasNews) {
-      const beforeLast = within(items[items.length - 2] as HTMLElement).getByRole('link');
-      expect(beforeLast).toHaveTextContent(NAV.newsLink.label);
-    }
   });
 
   it('uses the shared careers label and path (AC-1, AC-2)', () => {
@@ -136,7 +103,6 @@ describe("header We're hiring link (2026-10-30-header-hiring-link)", () => {
   });
 
   it('is marked as the current page only on /careers (AC-9)', () => {
-    vi.mocked(useHasNews).mockReturnValue(true);
     for (const path of [ROUTES.careers, `${ROUTES.careers}/`]) {
       const { unmount } = renderAt(<Header />, path);
       expect(careersLink()).toHaveAttribute('aria-current', 'page');

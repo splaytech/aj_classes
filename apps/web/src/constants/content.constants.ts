@@ -45,14 +45,10 @@ export const NAV = {
     },
     { label: 'Our Approach', sectionId: SECTION_IDS.approach },
     { label: 'About', sectionId: SECTION_IDS.about },
-    { label: 'FAQ', sectionId: SECTION_IDS.faq },
     { label: 'Contact', sectionId: SECTION_IDS.contact },
   ],
-  // A page, not a home-page section, so it sits outside `links`. Shown after the section links,
-  // before "We're hiring", and only once at least one post exists (ADR-0001). Becomes
-  // "What's On" when Events ship (B11).
-  newsLink: { label: 'News', href: ROUTES.posts },
-  // A page, so outside `links` too. Always shown, after News (DEC-HL-2, DEC-HL-5).
+  // FAQ and News live in the footer, not here: the bar stays at five links (2026-10-30 tidy).
+  // A page, not a home-page section, so it sits outside `links`. Always shown, last (DEC-HL-2).
   careersLink: { label: CAREERS.linkLabel, href: ROUTES.careers },
   cta: 'Register Interest',
   // One link for everyone: the portal sends each person to their own home by role.
@@ -370,6 +366,7 @@ export const FOOTER = {
   location: LOCATION,
   privacyLink: 'Privacy Policy',
   newsLink: 'News', // first in the legal row, only once at least one post exists (ADR-0001)
+  faqLink: 'FAQ', // the home page FAQ section, moved here from the header (2026-10-30 tidy)
   copyright: (year: number) => `© ${year} AJ Classes. All rights reserved.`,
   // Short form of the "Accuracy of information" section in PRIVACY.
   disclaimer:
