@@ -18,7 +18,7 @@
 | **Tagline** | **"Every student can rise."** (full stop included) |
 | **Mission** | **"Everyone can learn."** Families facing financial hardship can study for free. Fees are never shown publicly ("get in touch" / "Ask us about fee support"). |
 | **What we do** | Small-group tutoring and exam coaching for Years 2–12. Main focus: **selective entry high school exams and interviews** (Victoria). |
-| **Where** | In person in **Williams Landing, Truganina and Craigieburn** (Melbourne, VIC), and **online anywhere in Australia**. Street addresses are not shown. |
+| **Where** | In person in **Williams Landing, Truganina and Craigieburn** (Melbourne, VIC), and **online anywhere in Australia**. Street addresses are not shown. _(30 Oct 2026: the owner made the street address public; it is shown on the site and in its structured data.)_ |
 | **Format** | Small groups (up to 10 in person), **two 1-hour classes a week**. Same format online. |
 | **Teachers** | Qualified teachers, **20+ years of combined teaching experience**, each with a **Working With Children Check (WWCC)**. |
 | **Audience** | **Parents** (the decision-makers) of primary and secondary students in Melbourne's west and north, plus students researching tutoring. |

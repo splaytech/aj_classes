@@ -178,7 +178,7 @@ WhatsApp: +61 469 800 685
 | Primary category | Tutor |
 | Phone | `0469 800 685` |
 | Website | `https://ajclasses.com.au` |
-| Address on the profile | A street address in Truganina VIC 3029, entered by the owner. **Check before the profile goes public: if it is a home address, switch to service-area only and hide it.** |
+| Address on the profile | A street address in Truganina VIC 3029, entered by the owner. **Check before the profile goes public: if it is a home address, switch to service-area only and hide it.** _Closed 30 Oct 2026: the address stays public (owner's decision)._ |
 | Logo | `google-logo-720.png` |
 | Cover | `google-cover-1080x608.png` (status: pending Google review) |
 

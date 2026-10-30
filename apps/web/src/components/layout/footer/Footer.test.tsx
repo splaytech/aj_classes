@@ -2,7 +2,9 @@ import { screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  A11Y,
   APP_CONFIG,
+  BUSINESS_ADDRESS,
   FOOTER,
   FOOTER_PORTAL,
   NAV,
@@ -11,6 +13,7 @@ import {
   SECTION_IDS,
   sectionLink,
 } from '@/constants';
+import { getVisibleSocialLinks } from '@/lib/social';
 import { useHasNews } from '@/lib/use-has-news';
 import { renderAt } from '@/test/render';
 
@@ -36,6 +39,25 @@ describe('footer News link (ADR-0001)', () => {
     renderAt(<Footer />);
     expect(screen.queryByRole('link', { name: FOOTER.newsLink })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: FOOTER.privacyLink })).toBeInTheDocument();
+  });
+});
+
+describe('footer contact and follow links (Google Business Profile match)', () => {
+  it('shows the same street address as the structured data', () => {
+    renderAt(<Footer />);
+    expect(screen.getByText(BUSINESS_ADDRESS)).toBeInTheDocument();
+  });
+
+  it('links every live social account in a new tab', () => {
+    renderAt(<Footer />);
+    const list = screen.getByRole('list', { name: A11Y.socialLinks });
+    const hrefs = within(list)
+      .getAllByRole('link')
+      .map((link) => link.getAttribute('href'));
+    expect(hrefs).toEqual(getVisibleSocialLinks().map((link) => link.url));
+    for (const link of within(list).getAllByRole('link')) {
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    }
   });
 });
 

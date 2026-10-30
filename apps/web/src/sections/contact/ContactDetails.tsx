@@ -1,4 +1,5 @@
-// The card beside the contact form: email, phone, location, class hours and response time.
+// The card beside the contact form: email, phone, address, where classes run, class hours and
+// response time.
 // A row with no value yet (phone or class hours still TBC) is not shown.
 
 import { BUSINESS, CONTACT_DETAILS, ELEMENT_IDS } from '@/constants';
@@ -26,6 +27,11 @@ export function ContactDetails() {
             </dd>
           </div>
         )}
+
+        <div>
+          <dt>{CONTACT_DETAILS.addressLabel}</dt>
+          <dd>{CONTACT_DETAILS.address}</dd>
+        </div>
 
         <div>
           <dt>{CONTACT_DETAILS.locationLabel}</dt>
