@@ -207,6 +207,13 @@
     gap: var(--space-4);
   }
 
+  /* Top-level links and Sign in at 15px keep the bar on one row with room to spare (DEC-HL-3).
+     Sub-links keep their size. */
+  .links > li > a,
+  .signIn {
+    font-size: var(--font-size-sm);
+  }
+
   /* A small dropdown under the parent link, shown on hover or keyboard focus. */
   .hasSubLinks {
     position: relative;
@@ -249,17 +256,16 @@
   }
 }
 
-/* With the News link there are six links. Between 1024px and 1279px the normal gaps push them
-   against the logo and squeeze the Sign in icon, so tighten all three gaps there only (02 item 1,
-   risk 1; measured in 05-dev-notes-item-1.md). Breakpoint unchanged. */
-@media (min-width: 1024px) and (max-width: 1279px) {
+/* Five links plus Sign in. From 1280px there is room to space the links out evenly, so the bar
+   reads as one tidy group. Below that the normal gaps leave about 50px at 1024 (measured
+   30 Oct 2026); re-measure before adding or lengthening a link. */
+@media (min-width: 1280px) {
   .nav,
   .navOpen {
-    gap: var(--space-4);
+    gap: var(--space-8);
   }
 
-  .links,
-  .actions {
-    gap: var(--space-3);
+  .links {
+    gap: var(--space-6);
   }
 }

@@ -836,6 +836,9 @@ export type Database = {
         };
         Returns: undefined;
       };
+      invite_token_claim: { Args: { client_ip_hash: string; hash: string }; Returns: string };
+      invite_token_release: { Args: { hash: string }; Returns: undefined };
+      invite_token_store: { Args: { hash: string; target: string }; Returns: string };
       move_question: { Args: { step: number; target: string }; Returns: undefined };
       my_onboarding: {
         Args: Record<PropertyKey, never>;

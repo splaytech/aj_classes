@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { PROGRAMMES, ROUTES, SEO, programmePath } from '@/constants';
+import { BUSINESS, PROGRAMMES, ROUTES, SEO, SOCIAL_LINKS, programmePath } from '@/constants';
 import { meta as notFoundMeta } from '@/routes/not-found';
 import { meta as subscribedMeta } from '@/routes/subscribed';
 
-import { buildPageMeta, buildProgrammeJsonLd } from './seo';
+import { buildHomeJsonLd, buildPageMeta, buildProgrammeJsonLd } from './seo';
 
 type Graph = { '@graph': Record<string, unknown>[] };
 
@@ -29,6 +29,29 @@ describe('programme structured data', () => {
     expect(items.map((item) => item.position)).toEqual([1, 2, 3]);
     expect(items[0]?.item).toBe('https://ajclasses.com.au/');
     expect(items[2]?.name).toBe(naplan?.title);
+  });
+});
+
+describe('home page business data (Google Business Profile match)', () => {
+  const data = buildHomeJsonLd() as { 'script:ld+json': Graph };
+  const [business = {}] = data['script:ld+json']['@graph'];
+
+  it('gives the same street address as the Business Profile', () => {
+    expect(business.address).toMatchObject({
+      streetAddress: BUSINESS.streetAddress,
+      addressLocality: BUSINESS.locality,
+      postalCode: BUSINESS.postcode,
+      addressRegion: BUSINESS.state,
+    });
+  });
+
+  it('links the Maps profile and every live social profile, but not the WhatsApp chat', () => {
+    const profiles = SOCIAL_LINKS.filter((link) => link.url && link.platform !== 'whatsapp').map(
+      (link) => link.url,
+    );
+    expect(business.hasMap).toBe(BUSINESS.googleMapsUrl);
+    expect(business.sameAs).toEqual([...profiles, BUSINESS.googleMapsUrl]);
+    expect(profiles.length).toBeGreaterThanOrEqual(3); // Facebook, Instagram, YouTube
   });
 });
 

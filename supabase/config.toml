@@ -467,6 +467,11 @@ verify_jwt = false
 [functions.notifications]
 verify_jwt = false
 
+# invite-redeem (ADR-0010): the person redeeming an invite is signed out, so the gateway doesn't
+# check a token; the function allows only the site's origins and rate-limits by address.
+[functions.invite-redeem]
+verify_jwt = false
+
 # ---------------------------------------------------------------------------
 # Hosted project. Staging and prod share one project (owner decision, 22 Oct 2026).
 # `supabase config push` (run by scripts/deploy.sh) applies the settings above with these

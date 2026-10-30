@@ -65,13 +65,14 @@ hosted one.
 One hosted Supabase project (`unzjnxctkyahtmrkinyr`, Sydney region) serves both staging and
 production — there is one database, not two. The web app talks to it via `@supabase/supabase-js`:
 * **Auth (GoTrue):** invite-only sign-up, two-step (TOTP) for admins, Resend as the SMTP provider
-  for auth emails (password reset, invites).
+  for auth emails (password reset, sign-in codes). Invites are our own 14-day, single-use token,
+  not an Auth invite (ADR-0010).
 * **Postgres + RLS:** all portal data (classes, students, assignments, enquiries, etc.) is
   enforced by row-level security — e.g. a student can only read the `assignments` rows for
   classes they're enrolled in; admins and tutors have broader access.
 * **Storage:** the `avatars` bucket.
-* **Edge Functions:** `leads` (public `submit`, admin `resync` — see below), `account-admin`, and
-  `notifications` (sends the "work returned", "new assignment" and "due tomorrow" emails; called
+* **Edge Functions:** `leads` (public `submit`, admin `resync` — see below), `account-admin`,
+  `invite-redeem` (signed-out redeem of an invite link, ADR-0010), and `notifications` (sends the "work returned", "new assignment" and "due tomorrow" emails; called
   only by `pg_cron`, see §7).
 * **Scheduled jobs:** `pg_cron` runs `email-worker-kick` every 5 minutes (fails emails past their
   deadline as "too late", then calls `notifications` through `pg_net` when emails are waiting),
@@ -97,8 +98,10 @@ Payments are PayID / bank transfer today — no Stripe integration exists yet.
 
 **7. Transactional email (Resend)**
 
-All auth-related email (invites, password resets, confirmations) is sent via **Resend**, configured
-against the `ajclasses.com.au` domain.
+All auth-related email (password resets, confirmations, emailed codes) is sent via **Resend** SMTP,
+configured against the `ajclasses.com.au` domain. Invites are sent by `account-admin` itself
+through the Resend HTTP API (Mailpit locally), not Auth SMTP, at the moment the admin clicks; they
+don't go through the outbox and don't count towards its 70 cap (ADR-0010).
 
 App email (ADR-0004, extended by ADR-0008): three emails to students and parents, all through one
 `email_outbox`:

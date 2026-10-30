@@ -1,6 +1,6 @@
-// Sticky site header: logo, section links, News (only when posts exist) and the "Register
-// Interest" button.
-// On small screens the links fold into a menu button (PRP F2 section 1).
+// Sticky site header: logo, section links, "We're hiring", Sign in (portal flag) and the
+// "Register Interest" button. FAQ and News are in the footer. On small screens the links and
+// actions fold into a menu button (PRP F2 section 1).
 
 import { ChevronRight, LogIn } from 'lucide-react';
 import { useState } from 'react';
@@ -22,7 +22,6 @@ import {
   sectionLink,
 } from '@/constants';
 import { trackEvent } from '@/lib/analytics';
-import { useHasNews } from '@/lib/use-has-news';
 
 import styles from './Header.module.css';
 
@@ -34,7 +33,6 @@ function isCurrentPage(pathname: string, href: string): boolean {
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { pathname } = useLocation();
-  const hasNews = useHasNews();
 
   function closeMenu() {
     setIsMenuOpen(false);
@@ -109,17 +107,15 @@ export function Header() {
                   )}
                 </li>
               ))}
-              {hasNews && (
-                <li key={NAV.newsLink.href}>
-                  <a
-                    href={NAV.newsLink.href}
-                    onClick={closeMenu}
-                    aria-current={isCurrentPage(pathname, NAV.newsLink.href) ? 'page' : undefined}
-                  >
-                    {NAV.newsLink.label}
-                  </a>
-                </li>
-              )}
+              <li key={NAV.careersLink.href}>
+                <a
+                  href={NAV.careersLink.href}
+                  onClick={closeMenu}
+                  aria-current={isCurrentPage(pathname, NAV.careersLink.href) ? 'page' : undefined}
+                >
+                  {NAV.careersLink.label}
+                </a>
+              </li>
             </ul>
             <div className={styles.actions}>
               {APP_CONFIG.features.portal && (

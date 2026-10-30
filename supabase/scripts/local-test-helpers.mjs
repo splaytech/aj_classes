@@ -11,9 +11,10 @@ const LOCAL_PASSWORD = 'local-password-123'; // supabase/seed.sql, local only
 const LOCAL_ADMIN_KEY = 'LOCALDEVADMINKEYLOCALDEVADMINKEY'; // supabase/seed.sql, local only
 const CAPTCHA = { captcha_token: 'XXXX.DUMMY.TOKEN.XXXX' }; // Turnstile always-pass test secret
 
-const publishableKey = JSON.parse(
-  execSync('supabase status -o json', { encoding: 'utf8' }),
-).PUBLISHABLE_KEY;
+const stackStatus = JSON.parse(execSync('supabase status -o json', { encoding: 'utf8' }));
+const publishableKey = stackStatus.PUBLISHABLE_KEY;
+// The LOCAL stack's secret key, read at run time and never printed or written down.
+export const serviceKey = stackStatus.SERVICE_ROLE_KEY;
 
 let failures = 0;
 export function check(description, condition, detail = '') {
@@ -83,3 +84,39 @@ export const sql = (query) =>
   execSync(`docker exec supabase_db_aj_classes psql -U postgres -qtAc "${query}"`, {
     encoding: 'utf8',
   }).trim();
+
+/** Auth's admin API with the local secret key, e.g. adminApi('/auth/v1/admin/generate_link', …). */
+export async function adminApi(path, { method = 'POST', body } = {}) {
+  const response = await fetch(`${API}${path}`, {
+    method,
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const text = await response.text();
+  return { status: response.status, json: text ? JSON.parse(text) : null };
+}
+
+/** The plain-text body of one Mailpit message. */
+export async function mailpitText(id) {
+  return (await (await fetch(`${MAILPIT}/api/v1/message/${id}`)).json()).Text;
+}
+
+/** Every Mailpit message to this address, newest first (summaries only). */
+export async function mailsTo(email) {
+  const query = encodeURIComponent(`to:"${email}"`);
+  return (await (await fetch(`${MAILPIT}/api/v1/search?query=${query}`)).json()).messages;
+}
+
+/** The newest Mailpit message to this address, or undefined. */
+export async function latestMailTo(email) {
+  return (await mailsTo(email))[0];
+}
+
+/** How many messages Mailpit holds in total. */
+export async function mailpitTotal() {
+  return (await (await fetch(`${MAILPIT}/api/v1/messages?limit=1`)).json()).total;
+}

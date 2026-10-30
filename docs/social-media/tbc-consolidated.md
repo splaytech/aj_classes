@@ -12,7 +12,7 @@ Paste this list directly into a message to Ajay, or use it as the question set f
 Street address (or cross-streets) for Williams Landing, Truganina and Craigieburn. For each, confirm it's a staffed teaching venue (not a home address) and that it's OK to publish it on Facebook, Google Business Profile and in auto-replies — or whether it should stay hidden (service-area listing instead).
 *Blocks: launch-kit §1 (Facebook location), §2 (Instagram location), §3 (Google Business Profile address decision, Q&A Q1), §7 (shared quick reply `/locations`); setup-runbook §4.2 (Facebook address left blank), §6.2/6.4 (Google address flagged "check if home address"), §9 (`/locations` reply).
 
-**2. Is the Truganina address used on the Google Business Profile a home address?**
+**2. Is the Truganina address used on the Google Business Profile a home address?** _Answered 30 Oct 2026: it stays public on the profile and the site (owner's decision)._
 If yes, the profile needs to switch to service-area-only and the address hidden before verification completes.
 *Blocks: launch-kit §3 ("Important decision first"); setup-runbook §6.2, §6.4, §11.*
 

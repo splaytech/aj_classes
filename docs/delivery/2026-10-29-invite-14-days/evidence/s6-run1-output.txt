@@ -1,0 +1,11 @@
+5173 exit=1
+DELETE 2
+smoke exit=0
+  10 passed (1.3m)
+csp exit=1
+  20 failed
+  1 passed (10.2m)
+0
+node 13442 [::1]:5173
+
+[exited with code 0]

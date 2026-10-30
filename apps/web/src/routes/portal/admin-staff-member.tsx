@@ -117,7 +117,7 @@ export default function AdminStaffMemberPage() {
             <TwoStepSection person={person} isYou={isYou} onChanged={refresh} />
           </>
         ) : (
-          <InviteSection person={person} />
+          <InviteSection person={person} onChanged={refresh} />
         )}
         {profile.ok && <ProfileSection profile={profile.data} onChanged={refresh} />}
       </Stack>
@@ -125,7 +125,7 @@ export default function AdminStaffMemberPage() {
   );
 }
 
-function InviteSection({ person }: { person: StaffMember }) {
+function InviteSection({ person, onChanged }: { person: StaffMember; onChanged: () => void }) {
   const navigate = useNavigate();
   const action = usePortalAction();
   const [confirming, setConfirming] = useState(false);
@@ -140,7 +140,12 @@ function InviteSection({ person }: { person: StaffMember }) {
   return (
     <SectionCard title={STAFF_MEMBER_PAGE.invite.heading}>
       <Stack spacing={3}>
-        <Typography>{STAFF_MEMBER_PAGE.invite.sentOn(formatDateTime(person.invitedAt))}</Typography>
+        {/* Invites sent before ADR-0010 have no date; they show only as expired (AC 25). */}
+        {person.invitedAt && (
+          <Typography>
+            {STAFF_MEMBER_PAGE.invite.sentOn(formatDateTime(person.invitedAt))}
+          </Typography>
+        )}
         {expired && <Alert severity="warning">{STAFF_MEMBER_PAGE.invite.expired}</Alert>}
         {action.notice && <Alert severity="success">{action.notice}</Alert>}
         {action.error && <Alert severity="error">{action.error}</Alert>}
@@ -148,9 +153,11 @@ function InviteSection({ person }: { person: StaffMember }) {
           <Button
             variant="contained"
             disabled={action.busy}
-            onClick={() =>
-              action.run(() => resendInvite(person.id), STAFF_MEMBER_PAGE.invite.resent)
-            }
+            onClick={async () => {
+              // Reload, so the status and "Invited on" show the new send (AC 24).
+              if (await action.run(() => resendInvite(person.id), STAFF_MEMBER_PAGE.invite.resent))
+                onChanged();
+            }}
           >
             {action.busy ? STAFF_MEMBER_PAGE.invite.resending : STAFF_MEMBER_PAGE.invite.resend}
           </Button>

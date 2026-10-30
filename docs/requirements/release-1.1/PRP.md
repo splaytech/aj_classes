@@ -20,7 +20,7 @@ Keep the site feeling **active and current** (a key strength of melbournetutoria
 | F1 | **Calendar (Term Dates)** | Homepage section (compact 4-term grid) + `/term-dates` page |
 | F2 | **Events** | Homepage section (next 1–3 upcoming events) + `/events` page |
 | F3 | **News & Updates** | Homepage section (latest 3 items) + `/news` list + `/news/<slug>` pages |
-| F4 | Header nav update | Add **"What's On"** (or "News & Events"), keeping to at most 6 nav items + 1 CTA |
+| F4 | Header nav update | Add **"What's On"** (or "News & Events"), keeping to at most 6 nav items + 1 CTA (superseded by DEC-HL-5, 2026-10-30-header-hiring-link) |
 
 **Out of scope:** online event registration/RSVP (use the Register Interest form or an external link), comments, an RSS/email digest (R2 with the subscriber list), and Admin UI editing (R2).
 

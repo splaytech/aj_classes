@@ -88,9 +88,19 @@ export const APP_CONFIG = {
 export const AUTH_LIMITS = {
   passwordMin: 12,
   codeLength: 6, // authenticator and emailed codes
-  linkExpiryHours: 1, // invite and password-reset links
+  linkExpiryHours: 1, // password-reset links (Supabase otp_expiry); invites use INVITE_LIMITS
   maxAuthenticators: 2, // per admin: phone app + one backup
   authenticatorNameMax: 30,
+} as const;
+
+// Must match interval '336 hours' in migration 20261030100000_invite_tokens.sql and
+// INVITE_LIFETIME_HOURS in supabase/functions/account-admin/invite-copy.ts (ADR-0010).
+const INVITE_LINK_LIFETIME_HOURS = 336;
+
+// Invite links (ADR-0010): our own single-use token, valid 14 days from each send.
+export const INVITE_LIMITS = {
+  linkLifetimeHours: INVITE_LINK_LIFETIME_HOURS,
+  linkLifetimeDays: INVITE_LINK_LIFETIME_HOURS / 24,
 } as const;
 
 // Staff profile rules (R2a design §5). Must match the checks in the staff_accounts migration.
@@ -156,6 +166,7 @@ export const POST_LIMITS = {
 export const ASSETS = {
   logo: '/logo.svg',
   favicon: '/favicon.svg',
+  faviconPng: '/favicon-192.png', // Google Search shows a globe instead of an SVG-only icon; it wants a multiple of 48px
   appleTouchIcon: '/apple-touch-icon.png', // icon when a parent adds the site to their phone's home screen
 } as const;
 

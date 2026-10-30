@@ -6,14 +6,14 @@ Backend for staff sign-in from Release 2 onwards. Design: [R2a design](../docs/r
 
 Needs Docker Desktop running and the Supabase CLI (`brew install supabase/tap/supabase`).
 
-| Command (from the repo root) | What it does                                                                                                |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `pnpm db:start`              | Starts the local stack, applies migrations and `seed.sql`                                                   |
-| `pnpm db:stop`               | Stops it                                                                                                    |
-| `pnpm db:reset`              | Rebuilds the database from migrations + seed (wipes local data)                                             |
-| `pnpm db:test`               | Runs the pgTAP tests in `tests/database/`                                                                   |
-| `pnpm db:status`             | Shows local URLs and the publishable key for `apps/web/.env.local`                                          |
-| `pnpm test:functions`        | End-to-end tests of the `account-admin`, `leads` and `notifications` edge functions (stack must be running) |
+| Command (from the repo root) | What it does                                                                                                                 |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm db:start`              | Starts the local stack, applies migrations and `seed.sql`                                                                    |
+| `pnpm db:stop`               | Stops it                                                                                                                     |
+| `pnpm db:reset`              | Rebuilds the database from migrations + seed (wipes local data)                                                              |
+| `pnpm db:test`               | Runs the pgTAP tests in `tests/database/`                                                                                    |
+| `pnpm db:status`             | Shows local URLs and the publishable key for `apps/web/.env.local`                                                           |
+| `pnpm test:functions`        | End-to-end tests of the `account-admin`, `invite-redeem`, `leads` and `notifications` edge functions (stack must be running) |
 
 Local addresses use the **553xx** ports, so this project can run next to other local Supabase projects:
 
@@ -30,7 +30,7 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 
 **Staff portal locally:** with the stack running, `pnpm dev` and open http://localhost:5173/portal/login. `apps/web/.env.local` needs `VITE_SUPABASE_URL=http://127.0.0.1:55321`, the publishable key from `pnpm db:status`, and `VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA` (see `apps/web/.env.example`). Use `pnpm dev`, not a production build: the production security policy only allows `*.supabase.co`, so a local build can't reach the local stack.
 
-**Edge functions** (`supabase/functions/`) are served by the local stack at http://127.0.0.1:55321/functions/v1/. `account-admin` (was `staff-admin` before R3b) handles staff, student and parent invites, deactivation and two-step resets; its allowed browser origins are set in `config.toml` (`[edge_runtime.secrets]`). Hosted: run `supabase/scripts/deploy.sh`. **Hosted function secrets change only through `deploy.sh`**: never run `supabase secrets set` by hand, because it also copies the local values in `[edge_runtime.secrets]` (the Mailpit transport, `localhost` site URL and the public local worker secret) to the hosted project.
+**Edge functions** (`supabase/functions/`) are served by the local stack at http://127.0.0.1:55321/functions/v1/. `account-admin` (was `staff-admin` before R3b) handles staff, student and parent invites, deactivation and two-step resets, and emails invites itself through `EMAIL_TRANSPORT` (Mailpit locally; ADR-0010). `invite-redeem` is the signed-out redeem of an invite link (`verify_jwt = false`). Allowed browser origins are set in `config.toml` (`[edge_runtime.secrets]`). The local stack serves functions from the folder it was **started in**, so start it from the worktree you are testing, and check with `docker inspect supabase_edge_runtime_aj_classes --format '{{range .Mounts}}{{.Source}}{{"\n"}}{{end}}'`. It also doesn't reload edited function code: after changing anything under `supabase/functions/`, run `docker restart supabase_edge_runtime_aj_classes` before testing. Hosted: run `supabase/scripts/deploy.sh`. **Hosted function secrets change only through `deploy.sh`**: never run `supabase secrets set` by hand, because it also copies the local values in `[edge_runtime.secrets]` (the Mailpit transport, `localhost` site URL and the public local worker secret) to the hosted project.
 
 **Portal emails locally** (ADR-0004, ADR-0008): when a tutor returns work or publishes new work, the database queues one email per active student and parent (`email_outbox`); at 15:10 Melbourne time the `due-tomorrow-reminders` job queues a reminder for online work due the next day that isn't handed in. Every 5 minutes `pg_cron` calls the local `notifications` function, which sends them to **Mailpit** (http://127.0.0.1:55324), never out. The seed's returned and published work queues eight on every `pnpm db:reset` (two "work returned", six "new assignment"). The function's local settings are in `config.toml` (`[edge_runtime.secrets]`: `EMAIL_TRANSPORT=mailpit`, the local-only `NOTIFY_WORKER_SECRET`); its address and secret for the cron job are in local Vault (`seed.sql`). To send without waiting: `curl -X POST http://127.0.0.1:55321/functions/v1/notifications -H 'x-notify-secret: local-notify-secret'`. After changing `config.toml`, restart the stack (`pnpm db:stop && pnpm db:start`) so the function sees it.
 
@@ -49,8 +49,9 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 
 ### First admin on a new environment
 
-1. Supabase dashboard → Authentication → **Invite user** (their email).
-2. After they accept and set a password, in the SQL editor:
+1. Supabase dashboard → Authentication → Users → **Add user** → **Create new user**: their **Email address**, and any long random **User Password** (it is required; they choose their own on the setup form, so don't keep it). Leave **Auto confirm user?** ticked, then **Create user**.
+   Then click their row → **Reset password** → **Send password recovery**. The 1-hour link opens `/portal/auth/confirm?…&type=recovery`, then the set-password page, and the portal sends an invited account on to the setup form (`/portal/join`). Don't use **Send invitation**: Supabase invite links are refused since ADR-0010.
+2. After they finish the setup form, in the SQL editor:
    ```sql
    update public.profiles set role = 'admin' where email = 'their@email';
    ```
@@ -118,6 +119,28 @@ supabase db push
 
 Test on staging, then repeat with the prod ref. `db push` does not run `seed.sql`.
 
+### Invites (ADR-0010)
+
+- **Lifetime:** 14 days (336 hours) from each send, and single use. Only the newest link works: a re-send or a cancel switches the old one off, and a failed re-send changes nothing (the previous link keeps working).
+- **Where it lives:** `private.invite_tokens` (one row per account, the SHA-256 of the token only, never the token) and `private.invite_redeem_attempts` (salted address hashes for the rate limit, 10 redeems per 15 minutes). Neither is reachable through the API; only the `invite_token_store` / `_claim` / `_release` functions (secret key) touch them.
+- **Local flow:** invite from the portal (Staff → Invite staff, or a student's page), open Mailpit (http://127.0.0.1:55324), open the link on `http://localhost:5173/portal/invite#token=…`, then **Continue** → `/portal/join`.
+- **Clear the local rate limit** before browser testing: every local request shares one address, so 10 redeems in 15 minutes is easy to hit:
+
+  ```bash
+  docker exec supabase_db_aj_classes psql -U postgres -c "delete from private.invite_redeem_attempts;"
+  ```
+
+- **Troubleshooting:**
+  - "This invitation link has expired…" covers expired, used, replaced, cancelled, garbled and old-format links, an account that already joined, and the rate limit. They all look the same on purpose. Fix: **Resend invite**.
+  - **Closed the tab after Continue:** the link is used up, so re-send.
+  - **Sent from Studio's "Send invitation":** the account shows `Invited` for 14 days, but that Supabase link is refused. Use **Resend invite** in the portal instead.
+  - **Hosted Auth logs** show each redeem as `user_recovery_requested` followed by a login for that account. That is the sign-in hop, not the person asking for a password reset.
+  - **After a rollback** (or to undo the migration's clean-up of pending invites), restore pending invite dates from Auth's own record:
+
+    ```sql
+    update public.profiles p set invited_at = u.invited_at from auth.users u where u.id = p.id and p.status = 'invited' and p.invited_at is null;
+    ```
+
 ### Portal emails (ADR-0004, ADR-0008)
 
 (Called "Work returned emails" before item 8; `deploy.sh` and the item 3 migration still point here by that name.)
@@ -164,7 +187,19 @@ To change the secret later: `select vault.update_secret(id, '<new value>') from 
 
 **Stop the "due tomorrow" reminders only:** `select cron.unschedule('due-tomorrow-reminders');`. Nothing new is queued; reminders already queued still go out (or expire). Turn back on with the `cron.schedule('due-tomorrow-reminders', …)` line in `migrations/20261029100000_more_email_alerts.sql`.
 
-**Stop all sends at once (kill switch):** `select cron.unschedule('email-worker-kick');`. Rows wait; nothing is lost. Turn back on with the `cron.schedule('email-worker-kick', …)` line in `migrations/20261025110000_work_returned_email.sql`. Or `supabase secrets unset EMAIL_TRANSPORT --project-ref unzjnxctkyahtmrkinyr` (an `unset` copies nothing from `config.toml`; only `set` does): from the next kick the worker sends nothing, flags waiting rows, and returns 503 before it even checks the secret, so they show as Waiting / "Set-up error" (after the usual ~2 hours), never "Not attempted". Turn it back on by running `deploy.sh` again.
+**Kill switches** (three, and they stop different things):
+
+- `select cron.unschedule('email-worker-kick');` stops **only queued app email**. Rows wait; nothing is lost. Invites don't use the outbox, so they keep sending. Turn back on with the `cron.schedule('email-worker-kick', …)` line in `migrations/20261025110000_work_returned_email.sql`.
+- `supabase secrets unset EMAIL_TRANSPORT --project-ref unzjnxctkyahtmrkinyr` stops **app emails and invites** (an `unset` copies nothing from `config.toml`; only `set` does). From the next kick the worker sends nothing, flags waiting rows, and returns 503 before it even checks the secret, so they show as Waiting / "Set-up error" (after the usual ~2 hours), never "Not attempted". Every invite and re-send fails with "The invite e-mail couldn't be sent", no account is left behind, a re-send changes nothing, and linking an existing parent still works. It **doesn't** stop password-reset or sign-in emails, which go through Auth SMTP. Turn it back on by running `deploy.sh` again.
+- **Stop invite links that were already sent** (06-security finding 4). Unsetting `EMAIL_TRANSPORT` stops new invites, but links already emailed stay valid for 14 days. In the Dashboard SQL editor, mark every unused link as used:
+
+  ```sql
+  update private.invite_tokens set used_at = now() where used_at is null;
+  ```
+
+  A redeem that was in flight while this ran can set one link back to unused (it releases its claim when the sign-in fails), so **run it again after a minute**.
+
+  Every outstanding link then shows "This invitation link has expired…". Re-send to the people who should still join. Hard stop, which refuses every redeem until `deploy.sh` runs again: `supabase functions delete invite-redeem --project-ref unzjnxctkyahtmrkinyr`.
 
 **Admin Emails page reasons:** "Too late to send" means a "new assignment" or "due tomorrow" email was still waiting at its deadline (usually the daily limit, or an outage), so it was never sent; if these recur, it's 02b Decision 1's Resend upgrade trigger (`docs/budget.md` §5). "Not attempted" after 2 hours means the cron job or the Vault entries are missing (or, for the new kinds only, the `notifications` function hasn't been deployed since the migration); "Set-up error" means `EMAIL_TRANSPORT`, `RESEND_API_KEY` or `SITE_URL` is missing on the function, or the hosted function has local-only values (`EMAIL_TRANSPORT=mailpit`, the local worker secret or a non-https `SITE_URL`: run `deploy.sh` again); "Daily limit" means 70 were sent in the last 24 hours (they go out as earlier ones age out); "Gave up after 3 tries" means Resend kept failing. When Resend is busy (429) or can't be reached, the worker stops the batch and puts the unsent rows back; each of those still uses one of its 3 attempts, so a long outage can end rows as "Gave up after 3 tries" even though Resend never accepted them.
 

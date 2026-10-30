@@ -20,7 +20,7 @@ must show a News link only when posts exist, without loading `supabase-js` or MU
    publishable key as `apikey`. This is the same pattern as `leads.client.ts`. `supabase-js`
    stays portal-only.
 4. The News link is added after a memoised `hasPublishedPosts()` check. It's appended last in the
-   header links (estimated CLS ≈ 0.003) and in the footer legal row. Fallback if it measures
+   header links (estimated CLS ≈ 0.003) and in the footer legal row. _(30 Oct 2026: News moved to the footer only, to keep the header to five links.)_ Fallback if it measures
    worse: first position in the right-aligned row (zero shift).
 
 ## Consequences

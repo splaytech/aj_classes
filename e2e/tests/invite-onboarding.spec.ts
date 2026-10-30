@@ -1,4 +1,6 @@
+import type { Page } from '@playwright/test';
 import { test, expect } from '../src/fixtures/test-fixtures.js';
+import { backdateInvite, clearInviteRedeemAttempts } from '../src/db/invites.js';
 import { pollForRow } from '../src/db/poll.js';
 import { extractLink } from '../src/mail/mailpit.js';
 
@@ -9,10 +11,11 @@ interface ProfileRow {
   status: string;
 }
 
-// The invite email links to the app's own /portal/auth/confirm page (not Supabase Auth's verify
-// endpoint directly) — nothing is consumed until the person clicks "Continue" there.
-const INVITE_LINK_PATTERN =
-  /https?:\/\/[^\s")]+\/portal\/auth\/confirm\?token_hash=[^&"\s]+&type=invite/;
+// The invite email links to the app's own /portal/invite page with our 14-day token (ADR-0010):
+// nothing is used up until the person clicks "Continue" there.
+const INVITE_LINK_PATTERN = /https?:\/\/[^\s")]+\/portal\/invite#token=[A-Za-z0-9_-]{43}/;
+const REFUSED_TEXT =
+  'This invitation link has expired. Please contact your AJ Classes administrator to request a new invite.';
 
 test.describe('Invite onboarding', () => {
   test('admin invites a staff member; they complete onboarding into an active tutor account', async ({
@@ -74,11 +77,46 @@ test.describe('Invite onboarding', () => {
     expect(invitedProfile.role).toBe('tutor');
     expect(invitedProfile.status).toBe('invited');
 
-    // The confirm page does nothing until "Continue" is clicked (so an email scanner can't burn
-    // the single-use token); that click verifies the token_hash and navigates to /portal/join.
+    // A link sent 13 days ago still works (AC 1): links last 14 days from the send.
+    await backdateInvite(email, '13 days');
+    await clearInviteRedeemAttempts();
+    const addressOf = (page: Page) => page.evaluate(() => window.location.href);
+
+    // AC 6: opening the link uses nothing up. Each open is a real page load in its own tab, as a
+    // scanner or a second click from the email would be. The token is in the fragment and is
+    // wiped from the address bar as soon as the page loads (AC 8, 06-security finding 1).
+    for (let open = 0; open < 3; open += 1) {
+      const scannerPage = await inviteeContext.newPage();
+      await scannerPage.goto(inviteLink);
+      await expect(scannerPage.getByRole('button', { name: /^continue$/i })).toBeVisible();
+      await expect.poll(() => addressOf(scannerPage)).toMatch(/\/portal\/invite$/);
+      await scannerPage.close();
+    }
+
+    // Same-tab re-open (review-5 round 2): on a page that is already open, the link only changes
+    // the fragment. It must be wiped again. History grows only by the browser's own entry for the
+    // fragment change, which the page overwrites, so going back finds no token either.
+    const reopenPage = await inviteeContext.newPage();
+    await reopenPage.goto(inviteLink);
+    await expect.poll(() => addressOf(reopenPage)).toMatch(/\/portal\/invite$/);
+    const historyBefore = await reopenPage.evaluate(() => window.history.length);
+    await reopenPage.goto(inviteLink);
+    await expect.poll(() => addressOf(reopenPage)).toMatch(/\/portal\/invite$/);
+    expect(await reopenPage.evaluate(() => window.history.length)).toBe(historyBefore + 1);
+    await reopenPage.goBack();
+    expect(await addressOf(reopenPage)).toMatch(/\/portal\/invite$/);
+    await reopenPage.close();
+
+    // The click redeems the link, signs in and opens /portal/join.
     await inviteePage.goto(inviteLink);
-    await inviteePage.getByRole('button', { name: /^continue$/i }).click();
+    const continueButton = inviteePage.getByRole('button', { name: /^continue$/i });
+    await expect(continueButton).toBeVisible();
+    await expect.poll(() => addressOf(inviteePage)).toMatch(/\/portal\/invite$/);
+    await continueButton.click();
     await inviteePage.waitForURL(/\/portal\/join/);
+    expect(await inviteePage.evaluate(() => window.location.search + window.location.hash)).toBe(
+      '',
+    );
     await inviteePage.locator('#join-full-name').fill(fullName);
     await inviteePage.locator('#join-phone').fill('0412345678');
     await inviteePage.locator('#join-password').fill('e2e-onboarding-password-123');
@@ -105,6 +143,40 @@ test.describe('Invite onboarding', () => {
     expect(activeProfile.role).toBe('tutor');
     expect(activeProfile.status).toBe('active');
 
+    // The used link, opened in a fresh browser, is refused (AC 7).
+    const reuseContext = await browser.newContext();
+    cleanup.register(() => reuseContext.close());
+    const reusePage = await reuseContext.newPage();
+    await reusePage.goto(inviteLink);
+    await reusePage.getByRole('button', { name: /^continue$/i }).click();
+    await expect(reusePage.getByText(REFUSED_TEXT)).toBeVisible();
+
     await mail.deleteMessage(message.ID);
+  });
+
+  test('an invite sent before 14-day links shows as expired, with no "Invited on" (AC 25)', async ({
+    authedAdminPage,
+    db,
+    marker,
+    cleanup,
+  }) => {
+    const nameMarker = marker('old-invite');
+    const email = `${nameMarker.value}@example.test`;
+    // An Auth user with no invited_at, as the migration leaves every pending invite (ADR-0010).
+    const [user] = await db.query<{ id: string }>(
+      `INSERT INTO auth.users (id, aud, role, email, raw_user_meta_data)
+       VALUES (gen_random_uuid(), 'authenticated', 'authenticated', $1, $2)
+       RETURNING id`,
+      [email, JSON.stringify({ full_name: `E2E Old Invite ${nameMarker.value}` })],
+    );
+    cleanup.register(async () => {
+      await db.query('DELETE FROM auth.users WHERE id = $1', [user.id]);
+    });
+
+    await authedAdminPage.goto(`/portal/admin/staff/${user.id}`);
+
+    await expect(authedAdminPage.getByText('Invite expired').first()).toBeVisible();
+    await expect(authedAdminPage.getByText('The link has expired. Send a new one.')).toBeVisible();
+    await expect(authedAdminPage.getByText(/Invited on/)).toHaveCount(0);
   });
 });

@@ -1,7 +1,19 @@
 import { screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { APP_CONFIG, CAREERS, FOOTER, FOOTER_PORTAL, RESOURCES, ROUTES } from '@/constants';
+import {
+  A11Y,
+  APP_CONFIG,
+  BUSINESS_ADDRESS,
+  FOOTER,
+  FOOTER_PORTAL,
+  NAV,
+  RESOURCES,
+  ROUTES,
+  SECTION_IDS,
+  sectionLink,
+} from '@/constants';
+import { getVisibleSocialLinks } from '@/lib/social';
 import { useHasNews } from '@/lib/use-has-news';
 import { renderAt } from '@/test/render';
 
@@ -30,6 +42,35 @@ describe('footer News link (ADR-0001)', () => {
   });
 });
 
+describe('footer contact and follow links (Google Business Profile match)', () => {
+  it('shows the same street address as the structured data', () => {
+    renderAt(<Footer />);
+    expect(screen.getByText(BUSINESS_ADDRESS)).toBeInTheDocument();
+  });
+
+  it('links every live social account in a new tab', () => {
+    renderAt(<Footer />);
+    const list = screen.getByRole('list', { name: A11Y.socialLinks });
+    const hrefs = within(list)
+      .getAllByRole('link')
+      .map((link) => link.getAttribute('href'));
+    expect(hrefs).toEqual(getVisibleSocialLinks().map((link) => link.url));
+    for (const link of within(list).getAllByRole('link')) {
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    }
+  });
+});
+
+describe('footer FAQ link (2026-10-30 tidy)', () => {
+  it('links to the home page FAQ section', () => {
+    renderAt(<Footer />);
+    expect(screen.getByRole('link', { name: FOOTER.faqLink })).toHaveAttribute(
+      'href',
+      sectionLink(SECTION_IDS.faq),
+    );
+  });
+});
+
 describe('footer legal row (we-are-hiring)', () => {
   // The Resources link always shows, so its parent is the legal row whatever the flags are.
   function legalRowLinkTexts(): string[] {
@@ -43,8 +84,9 @@ describe('footer legal row (we-are-hiring)', () => {
   function expectedOrder(hasNews: boolean): string[] {
     return [
       ...(hasNews ? [FOOTER.newsLink] : []),
+      FOOTER.faqLink,
       RESOURCES.footerLink,
-      CAREERS.footerLink,
+      NAV.careersLink.label,
       FOOTER.privacyLink,
       ...(APP_CONFIG.features.portal ? [FOOTER_PORTAL.signIn] : []),
     ];
@@ -52,8 +94,9 @@ describe('footer legal row (we-are-hiring)', () => {
 
   it('links to /careers in the same tab (AC-1, AC-2)', () => {
     renderAt(<Footer />);
-    const link = screen.getByRole('link', { name: CAREERS.footerLink });
+    const link = screen.getByRole('link', { name: NAV.careersLink.label });
     expect(link).toHaveAttribute('href', ROUTES.careers);
+    expect(NAV.careersLink.href).toBe(ROUTES.careers);
     expect(link).not.toHaveAttribute('target');
   });
 

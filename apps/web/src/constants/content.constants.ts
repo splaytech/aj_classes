@@ -2,8 +2,9 @@
 // To change any wording, edit it here. Components never contain text of their own.
 // A section with empty content is hidden automatically.
 
-import { BUSINESS } from './business.constants';
+import { BUSINESS, BUSINESS_ADDRESS } from './business.constants';
 import type { SocialPlatform } from './business.constants';
+import { CAREERS } from './careers.constants';
 import { PROGRAMMES, PROGRAMME_SLUGS } from './programmes.constants';
 import { ROUTES, SECTION_IDS, programmePath } from './routes.constants';
 
@@ -44,12 +45,11 @@ export const NAV = {
     },
     { label: 'Our Approach', sectionId: SECTION_IDS.approach },
     { label: 'About', sectionId: SECTION_IDS.about },
-    { label: 'FAQ', sectionId: SECTION_IDS.faq },
     { label: 'Contact', sectionId: SECTION_IDS.contact },
   ],
-  // A page, not a home-page section, so it sits outside `links`. Shown last, and only once at
-  // least one post exists (ADR-0001). Becomes "What's On" when Events ship (B11).
-  newsLink: { label: 'News', href: ROUTES.posts },
+  // FAQ and News live in the footer, not here: the bar stays at five links (2026-10-30 tidy).
+  // A page, not a home-page section, so it sits outside `links`. Always shown, last (DEC-HL-2).
+  careersLink: { label: CAREERS.linkLabel, href: ROUTES.careers },
   cta: 'Register Interest',
   // One link for everyone: the portal sends each person to their own home by role.
   signIn: 'Sign in',
@@ -305,7 +305,10 @@ export const CONTACT_DETAILS = {
   heading: 'Contact details',
   emailLabel: 'Email',
   phoneLabel: 'Phone',
-  locationLabel: 'Location',
+  addressLabel: 'Address',
+  // Shown because the structured data carries it, and Google only trusts markup it can see.
+  address: BUSINESS_ADDRESS,
+  locationLabel: 'Classes',
   location: LOCATION,
   hoursLabel: 'Class hours',
   responseLabel: 'Response time',
@@ -363,9 +366,11 @@ export const WHATSAPP_BUTTON = {
 export const FOOTER = {
   followHeading: 'Follow AJ Classes',
   contactHeading: 'Contact',
+  address: BUSINESS_ADDRESS,
   location: LOCATION,
   privacyLink: 'Privacy Policy',
   newsLink: 'News', // first in the legal row, only once at least one post exists (ADR-0001)
+  faqLink: 'FAQ', // the home page FAQ section, moved here from the header (2026-10-30 tidy)
   copyright: (year: number) => `© ${year} AJ Classes. All rights reserved.`,
   // Short form of the "Accuracy of information" section in PRIVACY.
   disclaimer:

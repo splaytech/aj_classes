@@ -1,0 +1,168 @@
+{
+ "10a-none": {
+  "before": {
+   "href": "http://localhost:5173/portal/invite",
+   "h1": [
+    "This link has expired or has already been used."
+   ],
+   "text": "AJ Classes\nThis link has expired or has already been used.\n\nThis link is incomplete. Please use the button in the email.",
+   "alert": null,
+   "links": [
+    [
+     "AJ Classes",
+     "/"
+    ]
+   ],
+   "buttons": []
+  },
+  "posts": 0
+ },
+ "10a-empty": {
+  "before": {
+   "href": "http://localhost:5173/portal/invite",
+   "h1": [
+    "This link has expired or has already been used."
+   ],
+   "text": "AJ Classes\nThis link has expired or has already been used.\n\nThis link is incomplete. Please use the button in the email.",
+   "alert": null,
+   "links": [
+    [
+     "AJ Classes",
+     "/"
+    ]
+   ],
+   "buttons": []
+  },
+  "posts": 0
+ },
+ "10a-query-real": {
+  "before": {
+   "href": "http://localhost:5173/portal/invite",
+   "h1": [
+    "This link has expired or has already been used."
+   ],
+   "text": "AJ Classes\nThis link has expired or has already been used.\n\nThis link is incomplete. Please use the button in the email.",
+   "alert": null,
+   "links": [
+    [
+     "AJ Classes",
+     "/"
+    ]
+   ],
+   "buttons": []
+  },
+  "posts": 0
+ },
+ "10c-confirm": {
+  "before": {
+   "href": "http://localhost:5173/portal/auth/confirm",
+   "h1": [
+    "This link has expired or has already been used."
+   ],
+   "text": "AJ Classes\nThis link has expired or has already been used.\n\nThis link is incomplete. Please use the button in the email.",
+   "alert": null,
+   "links": [
+    [
+     "AJ Classes",
+     "/"
+    ]
+   ],
+   "buttons": []
+  },
+  "posts": 0
+ },
+ "10b-abc": {
+  "before": {
+   "h1": [
+    "Welcome to AJ Classes"
+   ],
+   "buttons": [
+    "Continue"
+   ],
+   "href": "http://localhost:5173/portal/invite"
+  },
+  "after": {
+   "href": "http://localhost:5173/portal/invite",
+   "h1": [
+    "Welcome to AJ Classes"
+   ],
+   "text": "AJ Classes\nWelcome to AJ Classes\n\nThis invitation link has expired. Please contact your AJ Classes administrator to request a new invite.\n\nAlready set up your account? Sign in",
+   "alert": "This invitation link has expired. Please contact your AJ Classes administrator to request a new invite.",
+   "links": [
+    [
+     "AJ Classes",
+     "/"
+    ],
+    [
+     "Already set up your account? Sign in",
+     "/portal/login"
+    ]
+   ],
+   "buttons": []
+  },
+  "posts": 1
+ },
+ "10b-cut42": {
+  "before": {
+   "h1": [
+    "Welcome to AJ Classes"
+   ],
+   "buttons": [
+    "Continue"
+   ],
+   "href": "http://localhost:5173/portal/invite"
+  },
+  "after": {
+   "href": "http://localhost:5173/portal/invite",
+   "h1": [
+    "Welcome to AJ Classes"
+   ],
+   "text": "AJ Classes\nWelcome to AJ Classes\n\nThis invitation link has expired. Please contact your AJ Classes administrator to request a new invite.\n\nAlready set up your account? Sign in",
+   "alert": "This invitation link has expired. Please contact your AJ Classes administrator to request a new invite.",
+   "links": [
+    [
+     "AJ Classes",
+     "/"
+    ],
+    [
+     "Already set up your account? Sign in",
+     "/portal/login"
+    ]
+   ],
+   "buttons": []
+  },
+  "posts": 1
+ },
+ "10b-changed": {
+  "before": {
+   "h1": [
+    "Welcome to AJ Classes"
+   ],
+   "buttons": [
+    "Continue"
+   ],
+   "href": "http://localhost:5173/portal/invite"
+  },
+  "after": {
+   "href": "http://localhost:5173/portal/invite",
+   "h1": [
+    "Welcome to AJ Classes"
+   ],
+   "text": "AJ Classes\nWelcome to AJ Classes\n\nThis invitation link has expired. Please contact your AJ Classes administrator to request a new invite.\n\nAlready set up your account? Sign in",
+   "alert": "This invitation link has expired. Please contact your AJ Classes administrator to request a new invite.",
+   "links": [
+    [
+     "AJ Classes",
+     "/"
+    ],
+    [
+     "Already set up your account? Sign in",
+     "/portal/login"
+    ]
+   ],
+   "buttons": []
+  },
+  "posts": 1
+ },
+ "TC-9 sign-in link": "/portal/login"
+}

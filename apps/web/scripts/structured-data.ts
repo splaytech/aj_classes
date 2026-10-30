@@ -107,9 +107,9 @@ function genericProblems(value: unknown, messages: string[]): void {
         messages.push(`"${key}" is "${url}", not an absolute ${SITE_ORIGIN} URL`);
       }
     }
-    if (key === 'sameAs') {
+    if (key === 'sameAs' || key === 'hasMap') {
       for (const url of stringsIn(child).filter((item) => !isAbsoluteHttps(item))) {
-        messages.push(`"sameAs" is "${url}", not an absolute https:// URL`);
+        messages.push(`"${key}" is "${url}", not an absolute https:// URL`);
       }
     }
     genericProblems(child, messages);

@@ -1,7 +1,8 @@
 // "We're hiring" page (/careers, we-are-hiring 01). People apply by emailing the public inbox
 // with a prefilled subject; the site stores nothing about applicants (DEC-WH-1).
 // All wording is draft for the owner to confirm (01 Q1-Q6). Only business facts already in
-// business.constants.ts are used: never a person's name, a street address or the ABN.
+// business.constants.ts are used: never a person's name or the ABN, and this page needs no
+// street address.
 
 import { BUSINESS } from './business.constants';
 
@@ -9,7 +10,8 @@ import { BUSINESS } from './business.constants';
 const APPLY_SUBJECT = 'Tutor application';
 
 export const CAREERS = {
-  footerLink: "We're hiring",
+  // Shown in the header and the footer through NAV.careersLink (DEC-HL-1).
+  linkLabel: "We're hiring",
   heading: "We're hiring",
   intro: `AJ Classes is growing, and we're looking for tutors to join our small team. We teach small groups in person in ${BUSINESS.suburbsText}, and online across Australia.`,
   rolesHeading: 'Roles',
