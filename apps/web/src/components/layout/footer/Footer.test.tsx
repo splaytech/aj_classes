@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { APP_CONFIG, CAREERS, FOOTER, FOOTER_PORTAL, RESOURCES, ROUTES } from '@/constants';
+import { APP_CONFIG, FOOTER, FOOTER_PORTAL, NAV, RESOURCES, ROUTES } from '@/constants';
 import { useHasNews } from '@/lib/use-has-news';
 import { renderAt } from '@/test/render';
 
@@ -44,7 +44,7 @@ describe('footer legal row (we-are-hiring)', () => {
     return [
       ...(hasNews ? [FOOTER.newsLink] : []),
       RESOURCES.footerLink,
-      CAREERS.footerLink,
+      NAV.careersLink.label,
       FOOTER.privacyLink,
       ...(APP_CONFIG.features.portal ? [FOOTER_PORTAL.signIn] : []),
     ];
@@ -52,8 +52,9 @@ describe('footer legal row (we-are-hiring)', () => {
 
   it('links to /careers in the same tab (AC-1, AC-2)', () => {
     renderAt(<Footer />);
-    const link = screen.getByRole('link', { name: CAREERS.footerLink });
+    const link = screen.getByRole('link', { name: NAV.careersLink.label });
     expect(link).toHaveAttribute('href', ROUTES.careers);
+    expect(NAV.careersLink.href).toBe(ROUTES.careers);
     expect(link).not.toHaveAttribute('target');
   });
 
