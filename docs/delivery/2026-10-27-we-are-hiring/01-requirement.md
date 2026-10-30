@@ -10,7 +10,7 @@ Add one new public page, **`/careers`**, that says AJ Classes is looking for tut
 
 ## Decisions (and why)
 
-1. **A page plus a footer link. No header item in v1.** The header already holds up to 6 nav items when News shows (`Header.test.tsx`: "≤ 6 nav items"). A seventh would crowd the desktop bar and the phone menu, and the main audience for the header is parents. The footer shows on every public page, on desktop and mobile. A header or home-page mention is deferred (D1).
+1. **A page plus a footer link. No header item in v1.** The header already holds up to 6 nav items when News shows (`Header.test.tsx`: "≤ 6 nav items"). A seventh would crowd the desktop bar and the phone menu, and the main audience for the header is parents. The footer shows on every public page, on desktop and mobile. A header or home-page mention is deferred (D1). Superseded by 2026-10-30-header-hiring-link.
 2. **Path `/careers`, link label "We're hiring".** The path stays the same when no role is open. Only the label and copy would change.
 3. **Apply by email (mailto), not the enquiry form.** The "Register your interest" form sends to Web3Forms and, when lead capture is on, to Supabase and Zoho CRM as a **lead** (`services/enquiry.service.ts`). Using it would store applicants' personal data in our database and add job seekers to the parent sales pipeline. A mailto link uses the existing public inbox and stores nothing on the site.
 4. **No CV upload, no application form, no JobPosting structured data in v1.** Google's JobPosting markup expects things like a posting date, a closing date, an employment type and a street address or region, plus pay is recommended. We don't have those confirmed, and the street address must never be public. Deferred (D3).
@@ -115,7 +115,7 @@ Note on WWCC: in Victoria, a WWCC is required for paid child-related work such a
 
 ## Deferred (Later bucket)
 
-1. **D1. Header or home-page mention** (for example under About, or in the phone menu). Needs a nav-cap decision. Later release.
+1. **D1. Header or home-page mention** (for example under About, or in the phone menu). Needs a nav-cap decision. Later release. Superseded by 2026-10-30-header-hiring-link.
 2. **D2. An on/off switch** (a `null`-hides-it constant, like other TBC business facts) so the link and page disappear when not hiring. Later, or sooner if Q2 says so.
 3. **D3. JobPosting structured data**, more than one role, and per-role pages. Later, once role details are confirmed.
 4. **D4. An application form, CV upload or applicant tracking.** Needs a new data store or vendor and a privacy policy update. **This is a pause for Saurabh.** Not planned.
