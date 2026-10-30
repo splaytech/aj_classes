@@ -18,6 +18,13 @@ export const BUSINESS = {
   // Where in-person classes run (updated Oct 2026; was Truganina only).
   suburbs: ['Williams Landing', 'Truganina', 'Craigieburn'],
   suburbsText: 'Williams Landing, Truganina and Craigieburn',
+  // The Google Business Profile address. Public since 30 Oct 2026 (Saurabh), so the site's
+  // structured data can match the profile exactly and Google ties the two together.
+  streetAddress: '4 Patchouli St',
+  locality: 'Truganina',
+  postcode: '3029',
+  // The Business Profile on Google Maps, by its place id (CID).
+  googleMapsUrl: 'https://maps.google.com/?cid=4403928284462268400',
   state: 'VIC',
   country: 'AU',
   city: 'Melbourne',
@@ -40,11 +47,10 @@ export type SocialLink = {
   url: string | null;
 };
 
-// Links are TBC (PRP Appendix B, O4). A platform with no URL is not shown.
-// Facebook added 22 Oct 2026.
+// A platform with no URL is not shown. Facebook added 22 Oct 2026; Instagram and YouTube 30 Oct.
 export const SOCIAL_LINKS: SocialLink[] = [
-  { platform: 'instagram', url: null },
+  { platform: 'instagram', url: 'https://www.instagram.com/aj_classes_au/' },
   { platform: 'facebook', url: 'https://www.facebook.com/profile.php?id=61595519166933' },
-  { platform: 'youtube', url: null },
+  { platform: 'youtube', url: 'https://www.youtube.com/@ajclassesau' },
   { platform: 'whatsapp', url: whatsappChatUrl() },
 ];

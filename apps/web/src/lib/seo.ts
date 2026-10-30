@@ -99,6 +99,9 @@ export function buildHomeJsonLd(): MetaDescriptor {
     ...(BUSINESS.phone ? { telephone: BUSINESS.phone } : {}),
     address: {
       '@type': 'PostalAddress',
+      streetAddress: BUSINESS.streetAddress,
+      addressLocality: BUSINESS.locality,
+      postalCode: BUSINESS.postcode,
       addressRegion: BUSINESS.state,
       addressCountry: BUSINESS.country,
     },
@@ -111,7 +114,9 @@ export function buildHomeJsonLd(): MetaDescriptor {
       { '@type': 'Country', name: BUSINESS.countryName },
     ],
     knowsAbout: STRUCTURED_DATA.knowsAbout,
-    sameAs: getVisibleSocialLinks().map((link) => link.url),
+    hasMap: BUSINESS.googleMapsUrl,
+    // The Maps profile too, so Google treats the site and the Business Profile as one business.
+    sameAs: [...getVisibleSocialLinks().map((link) => link.url), BUSINESS.googleMapsUrl],
   };
 
   const website = {
