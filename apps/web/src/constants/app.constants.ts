@@ -166,6 +166,7 @@ export const POST_LIMITS = {
 export const ASSETS = {
   logo: '/logo.svg',
   favicon: '/favicon.svg',
+  faviconPng: '/favicon-192.png', // Google Search shows a globe instead of an SVG-only icon; it wants a multiple of 48px
   appleTouchIcon: '/apple-touch-icon.png', // icon when a parent adds the site to their phone's home screen
 } as const;
 
