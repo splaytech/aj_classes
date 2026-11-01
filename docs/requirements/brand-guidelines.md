@@ -24,7 +24,7 @@
 | **Audience** | **Parents** (the decision-makers) of primary and secondary students in Melbourne's west and north, plus students researching tutoring. |
 | **Website** | `https://ajclasses.com.au` · enquiries: `https://ajclasses.com.au/#contact` |
 | **Email** | `hello@ajclasses.com.au` |
-| **Phone / WhatsApp** | `+61 469 800 685` (shown as `0469 800 685` locally) · `https://wa.me/61469800685` |
+| **Phone / WhatsApp** | `+61 450 853 131` (shown as `0450 853 131` locally) · `https://wa.me/61450853131` |
 
 ### Programmes (official names, use as written)
 
@@ -277,7 +277,7 @@ The public website is light-only. Only the logged-in portal (and an app) offers 
 | Facebook | Page "AJ Classes": `facebook.com/profile.php?id=61595519166933` |
 | Instagram | `@aj_classes_au` |
 | YouTube | `@ajclassesau` |
-| WhatsApp | `wa.me/61469800685` |
+| WhatsApp | `wa.me/61450853131` |
 | Google Business Profile | "AJ Classes" (verification pending) |
 
 Use a QR code to `https://ajclasses.com.au/#contact` on print material. In a QR code, use navy on white, never gold.

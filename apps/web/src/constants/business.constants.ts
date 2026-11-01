@@ -5,11 +5,12 @@
 export const BUSINESS = {
   name: 'AJ Classes',
   email: 'hello@ajclasses.com.au',
-  phone: '+61 469 800 685' as string | null, // shown on the site (PRP Appendix B, O3)
-  phoneDial: '+61469800685', // the same number for tel: links
+  // Calls and WhatsApp share one number.
+  phone: '+61 450 853 131' as string | null, // shown on the site (PRP Appendix B, O3)
+  phoneDial: '+61450853131', // the same number for tel: links
   // WhatsApp Business chat (Release 2, whatsapp-button.md): digits only, international format.
-  // Owner to confirm this is the WhatsApp Business number. null hides the button.
-  whatsappNumber: '61469800685' as string | null,
+  // null hides the button.
+  whatsappNumber: '61450853131' as string | null,
   // Zoho Invoice customer portal, where parents see and pay invoices (leads-and-crm.md §4.5).
   // Zoho Invoice → Settings → Customer Portal → the portal URL. null hides the parent's card.
   invoicePortalUrl: 'https://invoice.zohosecure.com.au/portal/ajclasses' as string | null,
