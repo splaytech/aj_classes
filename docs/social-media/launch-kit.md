@@ -12,7 +12,7 @@ Australian English throughout. Every `[TBC: …]` is a fact that was not in the 
 
 ### Facebook Page: done
 - Page **AJ Classes** created (category Tutor/Teacher, bio = Intro from section 1). Page URL: `https://www.facebook.com/profile.php?id=61595519166933`
-- Contact info saved: website `https://ajclasses.com.au/#contact`, phone +61 469 800 685 (update to +61 450 853 131, 1 Nov 2026), email `hello@ajclasses.com.au`. Address blank and hours "No hours available" (both [TBC]).
+- Contact info saved: website `https://ajclasses.com.au/#contact`, phone +61 469 800 685 (owner to update to +61 450 853 131, 1 Nov 2026), email `hello@ajclasses.com.au`. Address blank and hours "No hours available" (both [TBC]).
 - Profile picture (logo on navy) and cover (logo, tagline, 2026 results tag with 10 / 5 / 3 counts) uploaded. Source files: `brand/social/facebook-profile-800.*` and `brand/social/facebook-cover-1640x624.*` (SVG source plus PNG).
 - Action button: **Sign up** → `https://ajclasses.com.au/#contact` (confirmed saved in the Action button settings).
 - Setup steps finished: WhatsApp connection skipped, friend invites skipped, marketing emails from Meta turned off, Page notifications left on.
@@ -45,7 +45,7 @@ Australian English throughout. Every `[TBC: …]` is a fact that was not in the 
 - Publish in order 9 → 1 (section 9.1), with captions and hashtags from section 9. Reels (posts 1 and 7) still need the video itself.
 
 ### Google Business Profile: set up, not yet verified
-- Created by the owner (name AJ Classes, category "Tutor", address entered by the owner). Phone 0469 800 685 (update to 0450 853 131, 1 Nov 2026) and website `https://ajclasses.com.au` added, and notifications on.
+- Created by the owner (name AJ Classes, category "Tutor", address entered by the owner). Phone 0469 800 685 (owner to update to 0450 853 131, 1 Nov 2026) and website `https://ajclasses.com.au` added, and notifications on.
 - Logo (720 × 720) and cover (1080 × 608, 2026 results) uploaded; the cover shows "pending" while Google reviews it. Files: `brand/social/google-logo-720.*` and `brand/social/google-cover-1080x608.*`.
 - Description from section 3 saved (692/750). All nine services from section 3.1 added by name.
 - **Verification video submitted by the owner (22 Oct 2026); waiting for Google's review (can take a few days).**

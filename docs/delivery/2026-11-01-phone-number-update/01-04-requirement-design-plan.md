@@ -24,7 +24,8 @@ personal number but he needs to update to this." A constants-only change, so sta
   privacy wording changes are needed because the privacy page doesn't list the number.
 
 **Deferred / out of scope (Saurabh or owner to do)**
-- Google Business Profile, Facebook, Instagram and WhatsApp Business app numbers: account settings, not code.
+- Google Business Profile, Facebook, Instagram and WhatsApp Business app numbers, and the YouTube channel
+  description (ends `WhatsApp: +61 469 800 685`): account settings, not code.
 - Dated delivery evidence and test reports keep the old number; they record what was true then.
 
 ## 2. Architecture (Architect)
@@ -47,9 +48,9 @@ production build by grepping the built HTML (Tester).
 ## 4. Plan (Manager)
 
 - [x] Branch `feature/phone-number-update` from `develop` 62f8ba3.
-- [ ] Update the three constants and the comment.
-- [ ] Update living docs with a dated note.
-- [ ] Production build; refresh the structured-data fixture; full check.
+- [x] Update the three constants and the comment.
+- [x] Update living docs with a dated note.
+- [x] Production build; refresh the structured-data fixture; full check.
 - [ ] Reviewer pass on the diff; Tester greps the build for AC 1–5.
 - [ ] Merge to `develop` and push.
 

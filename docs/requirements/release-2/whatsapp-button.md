@@ -8,8 +8,8 @@
 | Part | What |
 |---|---|
 | Button | A round floating button (56px) at the lower right of every **public** page, WhatsApp green with the white WhatsApp logo. On desktop hover/focus it shows a "Chat on WhatsApp" label beside it. Not shown on `/portal` pages. |
-| Link | `https://wa.me/61469800685?text=…` opens WhatsApp (app on phones, WhatsApp Web on desktop) with a short greeting already typed: "Hi AJ Classes, I'd like to know more about your classes." New tab. |
-| Number | `BUSINESS.whatsappNumber` (international format, digits only). Set to the business phone, **owner to confirm it's the WhatsApp Business number**. If set to `null`, the button and footer link disappear. |
+| Link | `https://wa.me/61450853131?text=…` opens WhatsApp (app on phones, WhatsApp Web on desktop) with a short greeting already typed: "Hi AJ Classes, I'd like to know more about your classes." New tab. |
+| Number | `BUSINESS.whatsappNumber` (international format, digits only). Set to the business phone (+61 450 853 131 from 1 Nov 2026). If set to `null`, the button and footer link disappear. |
 | Phones | Sits above the sticky "Register Interest" bar and clear of the iPhone home bar. |
 | Footer | The same link appears under "Follow AJ Classes" (the existing WhatsApp slot). |
 | Analytics | `whatsapp_click`, with no personal details. |

@@ -5,7 +5,7 @@
 export const BUSINESS = {
   name: 'AJ Classes',
   email: 'hello@ajclasses.com.au',
-  // Owner's number since 1 Nov 2026 (was +61 469 800 685). Calls and WhatsApp share it.
+  // Calls and WhatsApp share one number.
   phone: '+61 450 853 131' as string | null, // shown on the site (PRP Appendix B, O3)
   phoneDial: '+61450853131', // the same number for tel: links
   // WhatsApp Business chat (Release 2, whatsapp-button.md): digits only, international format.
