@@ -82,7 +82,7 @@ add the second admin with a normal invite (`supabase/README.md` → "First admin
 | # | Item |
 |---|---|
 | O1 | Read the Privacy Policy's portal and enquiry wording before inviting families. |
-| O2 | Move WhatsApp Business to `+61 450 853 131`, the number the site's WhatsApp button uses from 1 Nov 2026 (was `+61 469 800 685`) ([whatsapp-button.md](whatsapp-button.md)). |
+| O2 | Confirm `+61 469 800 685` is the WhatsApp Business number ([whatsapp-button.md](whatsapp-button.md)). |
 | O3 | Move the Supabase project to **Pro** before real family data (no pausing, daily backups). |
 | O4 | Staging and prod share one database: test with clearly fake names, and delete test accounts and enquiries afterwards. |
 | O5 | Send the developer the Zoho Invoice customer-portal address; parents then see "Fees and invoices". |

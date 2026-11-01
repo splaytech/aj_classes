@@ -5,7 +5,7 @@ These are your own decisions (go-live.md §6), not Ajay's — nothing here needs
 1. Read the Privacy Policy's portal and enquiry wording before inviting any families.
    Good practice — do this before sending the first family invite.
 
-2. Move WhatsApp Business to `+61 450 853 131`: the site's WhatsApp button uses it from 1 Nov 2026 (was `+61 469 800 685`; see whatsapp-button.md).
+2. Confirm `+61 469 800 685` is the right WhatsApp Business number (see whatsapp-button.md).
    Good practice — quick sanity check before go-live.
 
 3. Move the Supabase project to the Pro plan before real family data goes in (no pausing,
