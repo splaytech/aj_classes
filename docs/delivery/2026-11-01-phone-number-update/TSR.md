@@ -5,10 +5,10 @@
 ## Round 1
 | ID | Area | Case | Expected | Actual | Result |
 |----|------|------|----------|--------|--------|
-| T-1 | AC 1 | Number shown on pages | `+61 450 853 131` on every page | on 0 of 19 pages (contact card, footer) | PASS |
-| T-2 | AC 2 | Call links | all `tel:+61450853131` | 0 links, no other tel: number | PASS |
-| T-3 | AC 3 | WhatsApp button | `wa.me/61450853131?text=Hi AJ Classes…` | 0 links, same greeting | PASS |
-| T-4 | AC 4 | JSON-LD telephone | `+61 450 853 131`; validator clean | ; 19 pages, 0 problems | PASS |
+| T-1 | AC 1 | Number shown on pages | `+61 450 853 131` on every page | on 18 of 19 pages (contact card, footer); the 19th is `__spa-fallback.html`, the empty app shell | PASS |
+| T-2 | AC 2 | Call links | all `tel:+61450853131` | 19 links, 0 to any other number | PASS |
+| T-3 | AC 3 | WhatsApp button | `wa.me/61450853131?text=Hi AJ Classes…` | 36 links, same greeting | PASS |
+| T-4 | AC 4 | JSON-LD telephone | `+61 450 853 131`; validator clean | 1 telephone, `+61 450 853 131`; 19 pages, 0 problems | PASS |
 | T-5 | AC 5 | Old number gone | 0 files in build, `apps/web/src`, `supabase` | 0 files | PASS |
 | T-6 | AC 6 | Full check | green | green, 668/668 | PASS |
 | T-7 | Regression | Structured data fixture | matches built home page JSON-LD | matches (reviewer verified) | PASS |
