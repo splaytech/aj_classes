@@ -12,7 +12,7 @@ Australian English throughout. Every `[TBC: …]` is a fact that was not in the 
 
 ### Facebook Page: done
 - Page **AJ Classes** created (category Tutor/Teacher, bio = Intro from section 1). Page URL: `https://www.facebook.com/profile.php?id=61595519166933`
-- Contact info saved: website `https://ajclasses.com.au/#contact`, phone +61 469 800 685 (owner to update to +61 450 853 131, 1 Nov 2026), email `hello@ajclasses.com.au`. Address blank and hours "No hours available" (both [TBC]).
+- Contact info saved: website `https://ajclasses.com.au/#contact`, phone +61 469 800 685, email `hello@ajclasses.com.au`. Address blank and hours "No hours available" (both [TBC]).
 - Profile picture (logo on navy) and cover (logo, tagline, 2026 results tag with 10 / 5 / 3 counts) uploaded. Source files: `brand/social/facebook-profile-800.*` and `brand/social/facebook-cover-1640x624.*` (SVG source plus PNG).
 - Action button: **Sign up** → `https://ajclasses.com.au/#contact` (confirmed saved in the Action button settings).
 - Setup steps finished: WhatsApp connection skipped, friend invites skipped, marketing emails from Meta turned off, Page notifications left on.
@@ -21,7 +21,7 @@ Australian English throughout. Every `[TBC: …]` is a fact that was not in the 
 - [ ] **Username `@ajclasses`** (fallback `@ajclasses.au`): no username option is offered yet for this new Page, and it isn't in Settings. Check again in a few days (Facebook sometimes unlocks it after the Page has some followers) under the Page's About/Edit info.
 - [ ] **Messenger greeting, away message and 5 saved replies** (section 7): Meta Business Suite shows "content isn't available" for this Page from the automated browser. Open `business.facebook.com/latest/inbox/settings` yourself while signed in, or set them in Page settings, then paste from section 7.
 - [ ] **Extra About text:** only the short bio is set. Paste the 255-character About and the long version (section 1) if the About page offers the fields.
-- [ ] **WhatsApp link:** connect after the WhatsApp Business app is set up on +61 450 853 131.
+- [ ] **WhatsApp link:** connect after the WhatsApp Business app is set up on +61 469 800 685.
 - [ ] **Address/service area and opening hours** ([TBC] items).
 - [ ] **Two-factor authentication and a second Page admin** (security settings, owner to do).
 - [ ] **Services list** (section 3.1 text can be reused), **pin an "Enrolling now for 2027" post**, and publish the grid posts (section 9) once the [TBC] details are filled in.
@@ -45,7 +45,7 @@ Australian English throughout. Every `[TBC: …]` is a fact that was not in the 
 - Publish in order 9 → 1 (section 9.1), with captions and hashtags from section 9. Reels (posts 1 and 7) still need the video itself.
 
 ### Google Business Profile: set up, not yet verified
-- Created by the owner (name AJ Classes, category "Tutor", address entered by the owner). Phone 0469 800 685 (owner to update to 0450 853 131, 1 Nov 2026) and website `https://ajclasses.com.au` added, and notifications on.
+- Created by the owner (name AJ Classes, category "Tutor", address entered by the owner). Phone 0469 800 685 and website `https://ajclasses.com.au` added, and notifications on.
 - Logo (720 × 720) and cover (1080 × 608, 2026 results) uploaded; the cover shows "pending" while Google reviews it. Files: `brand/social/google-logo-720.*` and `brand/social/google-cover-1080x608.*`.
 - Description from section 3 saved (692/750). All nine services from section 3.1 added by name.
 - **Verification video submitted by the owner (22 Oct 2026); waiting for Google's review (can take a few days).**
@@ -72,7 +72,7 @@ Google Business Profile must use the real-world name only: `AJ Classes`. Adding 
 1. Search each handle on Instagram, Facebook, YouTube, TikTok and LinkedIn. Reserve all of them in one sitting so you end up with an identical set.
 2. Facebook usernames need 5 or more characters and **ignore full stops**, so `ajclasses.au` and `ajclassesau` are the same username.
 3. Instagram and TikTok allow full stops and underscores. TikTok handles can't end in a full stop. YouTube handles are 3–30 characters.
-4. WhatsApp has no public handle. It uses the business name plus the phone number, and the link is `https://wa.me/61450853131`.
+4. WhatsApp has no public handle. It uses the business name plus the phone number, and the link is `https://wa.me/61469800685`.
 5. Search IP Australia's trade mark database and ASIC's business names register for "AJ Classes". This is a sanity check, not legal advice.
 6. Create every account with `hello@ajclasses.com.au`, turn on two-factor authentication, and add a second admin so the business isn't locked out.
 
@@ -129,7 +129,7 @@ Enrolling now for 2027. Register interest at https://ajclasses.com.au/#contact
 | Profile picture | **320 × 320 px** minimum (displays at 170 px on desktop, circle crop). Export at 800 × 800 px. | Shared brief in 0.2. |
 | Cover photo | **1640 × 624 px** (2× the 820 × 312 desktop display). Mobile shows about 640 × 360, so the **centre ~1100 px must hold all text and the logo**. | Brief in 0.2. Put the tagline in the centre and keep the gold pencil shapes at the right edge only as decoration. |
 
-**Action button:** **Sign up**, pointing to `https://ajclasses.com.au/#contact`. Switch the button to **Send WhatsApp message** (`https://wa.me/61450853131`) if most enquiries arrive that way. Tracking version: `https://ajclasses.com.au/#contact` with `?utm_source=facebook&utm_medium=social&utm_campaign=enrol_2027` added before the `#`.
+**Action button:** **Sign up**, pointing to `https://ajclasses.com.au/#contact`. Switch the button to **Send WhatsApp message** (`https://wa.me/61469800685`) if most enquiries arrive that way. Tracking version: `https://ajclasses.com.au/#contact` with `?utm_source=facebook&utm_medium=social&utm_campaign=enrol_2027` added before the `#`.
 
 **Setup checklist**
 - [ ] Create the Page and manage it in Meta Business Suite. Add a second admin and turn on two-factor authentication.
@@ -183,8 +183,8 @@ Instagram has no separate long bio. Use the "Contact" options, Highlights and pi
 **Cover / banner:** Instagram has none. The first 9 grid posts (section 9) are the banner.
 
 **Action buttons and link**
-- **Link in bio:** `https://ajclasses.com.au/#contact`. Add a second link if allowed: `https://wa.me/61450853131`.
-- **Contact buttons:** Email (`hello@ajclasses.com.au`), Call (+61 450 853 131), Message. Add a **Book**/**Register** action button only if offered. Otherwise the link covers it.
+- **Link in bio:** `https://ajclasses.com.au/#contact`. Add a second link if allowed: `https://wa.me/61469800685`.
+- **Contact buttons:** Email (`hello@ajclasses.com.au`), Call (+61 469 800 685), Message. Add a **Book**/**Register** action button only if offered. Otherwise the link covers it.
 
 **Setup checklist**
 - [ ] Switch to a Professional account → Business. Select the category above and display it.
@@ -222,7 +222,7 @@ AJ Classes is a small-group tutoring business with in-person classes in Williams
 | Cover photo | **1080 × 608 px (16:9)** (minimum 480 × 270 px) | Google may choose a different photo, and it favours real photos. Brief: use a real photo of an empty, tidy teaching space or the building exterior, with no students or other people identifiable. If no photo is available, use the branded banner in 0.2. |
 | Other photos | **720 × 540 px (4:3)**, JPG/PNG | Teaching spaces, signage, teacher headshots (with consent). No students. |
 
-**Action button:** Website → `https://ajclasses.com.au/#contact`. Also fill in: phone (+61 450 853 131), website, and the **appointment link** if available. Enable messaging only if you can answer within 24 hours, and use the greeting in section 7.
+**Action button:** Website → `https://ajclasses.com.au/#contact`. Also fill in: phone (+61 469 800 685), website, and the **appointment link** if available. Enable messaging only if you can answer within 24 hours, and use the greeting in section 7.
 
 **Setup checklist**
 - [ ] Verify the profile (video or postcard).
@@ -421,7 +421,7 @@ Programmes: selective entry exam preparation (Years 6–10), selective school an
 
 Enrolling now for 2027: https://ajclasses.com.au/#contact
 Email: hello@ajclasses.com.au
-WhatsApp: +61 450 853 131
+WhatsApp: +61 469 800 685
 ```
 
 **Images**
@@ -468,10 +468,10 @@ Small-group tutoring in Williams Landing, Truganina and Craigieburn, and online 
 | Profile picture | **640 × 640 px** (minimum 192 × 192 px, circle crop) | Brief in 0.2. |
 | Cover photo | Newer versions of the app show a cover photo: use the Facebook cover cropped to **1920 × 1080 px**, centre-weighted [verify in the app; skip if the option isn't there] | Brief in 0.2. |
 
-**Action button and link:** WhatsApp has no button, so the link is the call to action. Use `https://wa.me/61450853131` (add `?text=Hi%20AJ%20Classes%2C%20I'd%20like%20to%20register%20interest%20for%202027` for a pre-filled message). Add the website `https://ajclasses.com.au` and `hello@ajclasses.com.au` to the profile. Create a QR code from the `wa.me` link for printed material.
+**Action button and link:** WhatsApp has no button, so the link is the call to action. Use `https://wa.me/61469800685` (add `?text=Hi%20AJ%20Classes%2C%20I'd%20like%20to%20register%20interest%20for%202027` for a pre-filled message). Add the website `https://ajclasses.com.au` and `hello@ajclasses.com.au` to the profile. Create a QR code from the `wa.me` link for printed material.
 
 **Setup checklist**
-- [ ] Use the **WhatsApp Business app** on +61 450 853 131. If the number is already on personal WhatsApp, migrate it to Business first.
+- [ ] Use the **WhatsApp Business app** on +61 469 800 685. If the number is already on personal WhatsApp, migrate it to Business first.
 - [ ] Complete the profile: name, category, description, address [TBC], hours [TBC], email, website.
 - [ ] Business hours: [TBC: opening hours]. The away message sends outside them.
 - [ ] Greeting message, away message and the 5 quick replies from section 7. Type `/` in a chat to use them.
@@ -841,7 +841,7 @@ If you're planning ahead, we'd love to hear from you. Register interest and tell
 
 • Link in bio: ajclasses.com.au
 • Email: hello@ajclasses.com.au
-• Phone or WhatsApp: +61 450 853 131
+• Phone or WhatsApp: +61 469 800 685
 
 Small groups. Qualified teachers. In Williams Landing, Truganina and Craigieburn, and online anywhere in Australia.
 

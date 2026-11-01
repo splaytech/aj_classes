@@ -14,7 +14,7 @@ What was set up, in what order, with the exact values used, so any step can be r
 | YouTube | AJ Classes, `@ajclassesau`, `youtube.com/@ajclassesau` | Live. Phone verification done by owner. Trailer, playlists and watermark pending. |
 | Google Business Profile | AJ Classes, Truganina VIC | Set up. **Verification video submitted 22 Oct 2026, awaiting Google.** Not publicly visible until approved. |
 | Instagram | `@aj_classes_au` | Active after appeal. Profile picture and bio set. Business-account switch, link and posts pending. |
-| WhatsApp Business | +61 469 800 685 | Set up by owner on the phone. Catalogue deliberately skipped. **Move to +61 450 853 131** (the website's WhatsApp button uses it from 1 Nov 2026). |
+| WhatsApp Business | +61 469 800 685 | Set up by owner on the phone. Catalogue deliberately skipped. |
 | LinkedIn, TikTok | Not created | Optional. Skip for now (see launch-kit section 6). |
 
 ---
@@ -28,8 +28,8 @@ What was set up, in what order, with the exact values used, so any step can be r
 | Website | https://ajclasses.com.au |
 | Contact form link (used on every "Register interest" button) | https://ajclasses.com.au/#contact |
 | Email | hello@ajclasses.com.au |
-| Phone / WhatsApp | +61 450 853 131 (enter as `0450 853 131` on Google, `450853131` with +61 on Facebook). _1 Nov 2026: changed from +61 469 800 685 on the website; each platform below still shows the old number until the owner updates it._ |
-| WhatsApp link | https://wa.me/61450853131 |
+| Phone / WhatsApp | +61 469 800 685 (entered as `0469 800 685` on Google, `469800685` with +61 on Facebook) |
+| WhatsApp link | https://wa.me/61469800685 |
 | Locations | In person: Williams Landing, Truganina, Craigieburn (VIC). Online: anywhere in Australia. |
 | Format | Small groups, twice a week. Qualified teachers, 20+ years of combined teaching experience, each with a Working With Children Check. |
 | Brand colours | Blue `#2563eb`, navy `#172554`, gold `#f9c62b` |
