@@ -11,3 +11,7 @@
 7. Nit: PRP O3 dated change note. Fixed.
 
 Verified in round 1: digits correct in all three forms; 19 built pages, none with the old number; 19 `tel:+61450853131`; 36 `wa.me/61450853131` with the same greeting; one JSON-LD telephone `+61 450 853 131`; fixture matches the build; nothing in `supabase/`, privacy page, portal or tests holds either number.
+
+## Round 2 (506008f): APPROVED
+
+Reviewer: all 7 round-1 findings fixed, no new issues. A repo-wide grep finds no `469 800 685` or `469800685` in `apps/` or `supabase/`. In living docs the old number appears only in dated "was" notes and in records of what was entered on Facebook, YouTube and Google earlier. Rebuilt build: no old number; 19 `tel:+61450853131`; 36 `wa.me/61450853131`; one JSON-LD telephone `+61 450 853 131`.
