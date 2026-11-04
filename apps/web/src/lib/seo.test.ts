@@ -1,6 +1,17 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
-import { BUSINESS, PROGRAMMES, ROUTES, SEO, SOCIAL_LINKS, programmePath } from '@/constants';
+import {
+  BUSINESS,
+  PROGRAMMES,
+  ROUTES,
+  SEO,
+  SOCIAL_LINKS,
+  SOCIAL_PREVIEW,
+  programmePath,
+} from '@/constants';
 import { meta as notFoundMeta } from '@/routes/not-found';
 import { meta as subscribedMeta } from '@/routes/subscribed';
 
@@ -81,5 +92,18 @@ describe('search engine exclusion', () => {
     expect(robotsTags(buildPageMeta(SEO.privacy, ROUTES.privacy, { noIndex: true }))).toEqual([
       { name: 'robots', content: 'noindex' },
     ]);
+  });
+});
+
+describe('social preview image', () => {
+  // Every page's og:image points here; it was missing from the live site for weeks (404).
+  // join, not new URL(): Vite rewrites `new URL(…, import.meta.url)` as an asset reference.
+  const imageFile = join(import.meta.dirname, '../../public', SOCIAL_PREVIEW.imagePath);
+
+  it('exists in public/ at the size the og:image tags promise', () => {
+    const png = readFileSync(imageFile);
+    expect(png.subarray(1, 4).toString()).toBe('PNG');
+    expect(png.readUInt32BE(16)).toBe(Number(SOCIAL_PREVIEW.imageWidth));
+    expect(png.readUInt32BE(20)).toBe(Number(SOCIAL_PREVIEW.imageHeight));
   });
 });
