@@ -5,7 +5,7 @@ import { BUSINESS } from './business.constants';
 export const SEO = {
   home: {
     title: 'AJ Classes | Selective Entry Exam Tutoring in Melbourne',
-    description: `AJ Classes offers expert coaching for the Victorian selective entry exam and interview, plus NAPLAN, ICAS, scholarship, UCAT and GAMSAT preparation. Small groups in ${BUSINESS.suburbsText}, or online.`,
+    description: `Selective entry exam and interview coaching, NAPLAN, ICAS and VCE tutoring in ${BUSINESS.suburbsText}, or online across Australia.`,
   },
   privacy: {
     title: 'Privacy Policy | AJ Classes',

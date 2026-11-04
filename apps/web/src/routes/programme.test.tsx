@@ -8,6 +8,7 @@ import {
   PROGRAMMES,
   PROGRAMME_PAGE,
   PROGRAMME_PATHS,
+  RESOURCES,
   TEMPLATE_PROGRAMMES,
   findProgramme,
   programmePath,
@@ -46,6 +47,36 @@ describe('programme pages', () => {
       expect(list).toHaveLength(PROGRAMMES.items.length - 1);
     },
   );
+});
+
+describe('parent guide links', () => {
+  it('shows the selective entry guide on the selective, interview and SEAL pages', () => {
+    for (const slug of ['selective-entry', 'interviews', 'seal-and-scholarships']) {
+      const programme = findProgramme(slug);
+      if (!programme) throw new Error(`no programme ${slug}`);
+      const { unmount } = renderAt(<ProgrammePage programme={programme} />, programmePath(slug));
+      expect(screen.getByRole('link', { name: RESOURCES.programmeLink })).toHaveAttribute(
+        'href',
+        '/resources/victorian-selective-entry-exam',
+      );
+      unmount();
+    }
+  });
+
+  it('shows no guide link where there is no guide (NAPLAN)', () => {
+    const programme = findProgramme('naplan');
+    if (!programme) throw new Error('no naplan');
+    renderAt(<ProgrammePage programme={programme} />, programmePath('naplan'));
+    expect(screen.queryByRole('link', { name: RESOURCES.programmeLink })).not.toBeInTheDocument();
+  });
+
+  it('is linked from the home page Programmes section', () => {
+    renderAt(<Programmes />);
+    expect(screen.getByRole('link', { name: RESOURCES.programmeLink })).toHaveAttribute(
+      'href',
+      '/resources/victorian-selective-entry-exam',
+    );
+  });
 });
 
 describe('home page cards', () => {

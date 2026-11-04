@@ -99,3 +99,8 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
 }
+
+.guide {
+  margin-top: var(--space-8);
+  font-weight: var(--font-weight-medium);
+}
