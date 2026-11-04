@@ -19,11 +19,16 @@ export type Guide = {
   title: string;
   summary: string;
   checkedOn: string; // when the facts were last checked against the sources
+  /** ISO dates for the Article structured data. Update `modified` whenever the facts are re-checked. */
+  published: string;
+  modified: string;
   seo: { title: string; description: string };
   sections: readonly GuideSection[];
   sources: readonly { label: string; url: string }[];
   /** The programme that prepares for this, linked at the end of the guide. */
   programme: ProgrammeSlug;
+  /** Other programme pages that link to this guide too (more ways in for readers and crawlers). */
+  relatedProgrammes?: readonly ProgrammeSlug[];
 };
 
 export const RESOURCES = {
@@ -57,6 +62,8 @@ export const GUIDES: readonly Guide[] = [
     summary:
       'Which schools take part, who can apply, how places are offered, what the exam looks like, the yearly timeline and cost, and how to prepare sensibly.',
     checkedOn: '22 October 2026',
+    published: '2026-10-22',
+    modified: '2026-10-22',
     seo: {
       title: 'Victorian Selective Entry Exam: A Parent Guide | AJ Classes',
       description:
@@ -167,6 +174,7 @@ export const GUIDES: readonly Guide[] = [
       },
     ],
     programme: PROGRAMME_SLUGS.selectiveEntry,
+    relatedProgrammes: [PROGRAMME_SLUGS.interviews, PROGRAMME_SLUGS.sealAndScholarships],
   },
 ];
 

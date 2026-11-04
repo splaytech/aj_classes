@@ -69,3 +69,17 @@
   font-size: var(--font-size-sm);
   opacity: 0.85;
 }
+
+.areas {
+  margin-top: var(--space-12);
+}
+
+.areaLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--font-size-sm);
+}

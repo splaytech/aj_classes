@@ -41,7 +41,9 @@ export default function ProgrammeRoute() {
 }
 
 export function ProgrammePage({ programme }: { programme: Programme }) {
-  const guide = GUIDES.find((item) => item.programme === programme.slug);
+  const guide = GUIDES.find(
+    (item) => item.programme === programme.slug || item.relatedProgrammes?.includes(programme.slug),
+  );
   const others = PROGRAMMES.items.filter((other) => other.slug !== programme.slug);
 
   return (

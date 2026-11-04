@@ -2,12 +2,20 @@
 // the programme's own page (programme-pages.md).
 
 import { Section } from '@/components/ui';
-import { PROGRAMMES, SECTION_IDS, programmePath } from '@/constants';
+import {
+  GUIDES,
+  PROGRAMMES,
+  RESOURCES,
+  SECTION_IDS,
+  programmePath,
+  resourcePath,
+} from '@/constants';
 
 import styles from './Programmes.module.css';
 
 export function Programmes() {
   if (PROGRAMMES.items.length === 0) return null;
+  const guide = GUIDES[0];
 
   return (
     <Section id={SECTION_IDS.programmes} heading={PROGRAMMES.heading} tone="subtle">
@@ -36,6 +44,12 @@ export function Programmes() {
           </li>
         ))}
       </ul>
+
+      {guide && (
+        <p className={styles.guide}>
+          <a href={resourcePath(guide.slug)}>{RESOURCES.programmeLink}</a>
+        </p>
+      )}
     </Section>
   );
 }

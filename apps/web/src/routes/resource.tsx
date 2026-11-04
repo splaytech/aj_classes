@@ -28,7 +28,13 @@ export function meta({ params }: Route.MetaArgs) {
   const path = resourcePath(guide.slug);
   return [
     ...buildPageMeta(guide.seo, path),
-    buildGuideJsonLd({ title: guide.title, description: guide.seo.description, path }),
+    buildGuideJsonLd({
+      title: guide.title,
+      description: guide.seo.description,
+      path,
+      published: guide.published,
+      modified: guide.modified,
+    }),
   ];
 }
 

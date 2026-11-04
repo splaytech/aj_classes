@@ -12,6 +12,8 @@ import {
   SECTION_IDS,
   SOCIAL_PREVIEW,
   STRUCTURED_DATA,
+  NEARBY_SUBURB_NAMES,
+  SUBURB_PAGE,
 } from '@/constants';
 import type { EnvironmentMarker } from '@/constants';
 import { getVisibleSocialLinks } from './social';
@@ -106,7 +108,8 @@ export function buildHomeJsonLd(): MetaDescriptor {
       addressCountry: BUSINESS.country,
     },
     areaServed: [
-      ...BUSINESS.suburbs.map((suburb) => ({
+      // Where we teach in person, then the nearby suburbs whose families join us (suburbs.constants.ts).
+      ...[...BUSINESS.suburbs, ...NEARBY_SUBURB_NAMES].map((suburb) => ({
         '@type': 'Place',
         name: `${suburb} ${BUSINESS.state}`,
       })),
@@ -200,6 +203,8 @@ export function buildGuideJsonLd(guide: {
   title: string;
   description: string;
   path: string;
+  published: string;
+  modified: string;
 }): MetaDescriptor {
   const organization = { '@id': absoluteUrl('/#organization'), name: BUSINESS.name };
   const article = {
@@ -207,6 +212,9 @@ export function buildGuideJsonLd(guide: {
     headline: guide.title,
     description: guide.description,
     url: absoluteUrl(guide.path),
+    image: absoluteUrl(SOCIAL_PREVIEW.imagePath),
+    datePublished: guide.published,
+    dateModified: guide.modified,
     inLanguage: APP_CONFIG.language,
     author: { '@type': 'EducationalOrganization', ...organization },
     publisher: { '@type': 'EducationalOrganization', ...organization },
@@ -218,4 +226,27 @@ export function buildGuideJsonLd(guide: {
   ]);
 
   return { 'script:ld+json': { '@context': 'https://schema.org', '@graph': [article, trail] } };
+}
+
+/** Structured data for a suburb page: the tutoring service for that area and its breadcrumb trail. */
+export function buildSuburbJsonLd(suburb: { name: string; path: string }): MetaDescriptor {
+  const service = {
+    '@type': 'Service',
+    serviceType: 'Tutoring',
+    name: SUBURB_PAGE.title(suburb.name),
+    url: absoluteUrl(suburb.path),
+    areaServed: { '@type': 'Place', name: `${suburb.name} ${BUSINESS.state}` },
+    provider: {
+      '@type': 'EducationalOrganization',
+      '@id': absoluteUrl('/#organization'),
+      name: BUSINESS.name,
+      url: absoluteUrl(ROUTES.home),
+    },
+  };
+  const trail = breadcrumbList([
+    { name: STRUCTURED_DATA.breadcrumbs.home, path: ROUTES.home },
+    { name: SUBURB_PAGE.title(suburb.name), path: suburb.path },
+  ]);
+
+  return { 'script:ld+json': { '@context': 'https://schema.org', '@graph': [service, trail] } };
 }
