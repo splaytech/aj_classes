@@ -11,10 +11,10 @@ import {
   RESOURCES,
   ROUTES,
   SECTION_IDS,
-  SUBURBS,
-  SUBURB_PAGE,
+  AREAS,
+  AREA_PAGE,
   sectionLink,
-  suburbPath,
+  areaPath,
 } from '@/constants';
 import { getVisibleSocialLinks } from '@/lib/social';
 import { useHasNews } from '@/lib/use-has-news';
@@ -65,13 +65,13 @@ describe('footer contact and follow links (Google Business Profile match)', () =
 });
 
 describe('footer tutoring areas (local-seo.md)', () => {
-  it('links to every suburb page, so each is one click from any page', () => {
+  it('links to the west and north area pages, one click from any page', () => {
     renderAt(<Footer />);
-    const nav = screen.getByRole('navigation', { name: SUBURB_PAGE.footerLabel });
+    const nav = screen.getByRole('navigation', { name: AREA_PAGE.footerLabel });
     const hrefs = within(nav)
       .getAllByRole('link')
       .map((link) => link.getAttribute('href'));
-    expect(hrefs).toEqual(SUBURBS.map((suburb) => suburbPath(suburb.slug)));
+    expect(hrefs).toEqual(AREAS.map((area) => areaPath(area.slug)));
   });
 });
 

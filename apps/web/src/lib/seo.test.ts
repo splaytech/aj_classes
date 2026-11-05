@@ -22,7 +22,7 @@ import {
   buildHomeJsonLd,
   buildPageMeta,
   buildProgrammeJsonLd,
-  buildSuburbJsonLd,
+  buildAreaJsonLd,
 } from './seo';
 
 type Graph = { '@graph': Record<string, unknown>[] };
@@ -91,15 +91,20 @@ describe('home page search result', () => {
   });
 });
 
-describe('suburb structured data', () => {
-  const data = buildSuburbJsonLd({ name: 'Tarneit', path: '/tutoring/tarneit' }) as {
-    'script:ld+json': Graph;
-  };
+describe('area structured data', () => {
+  const suburbs = ['Truganina', 'Tarneit', 'Werribee'];
+  const data = buildAreaJsonLd({
+    name: "Melbourne's West",
+    path: '/tutoring/melbourne-west',
+    suburbs,
+  }) as { 'script:ld+json': Graph };
   const [service = {}, trail = {}] = data['script:ld+json']['@graph'];
 
-  it('describes tutoring for that area, provided by the AJ Classes business', () => {
+  it('describes tutoring for every suburb in the area, provided by the AJ Classes business', () => {
     expect(service['@type']).toBe('Service');
-    expect(service.areaServed).toMatchObject({ name: 'Tarneit VIC' });
+    expect((service.areaServed as { name: string }[]).map((place) => place.name)).toEqual(
+      suburbs.map((suburb) => `${suburb} VIC`),
+    );
     expect(service.provider).toMatchObject({ '@id': 'https://ajclasses.com.au/#organization' });
     expect(trail['@type']).toBe('BreadcrumbList');
   });

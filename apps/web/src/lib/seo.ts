@@ -12,8 +12,8 @@ import {
   SECTION_IDS,
   SOCIAL_PREVIEW,
   STRUCTURED_DATA,
+  AREA_PAGE,
   NEARBY_SUBURB_NAMES,
-  SUBURB_PAGE,
 } from '@/constants';
 import type { EnvironmentMarker } from '@/constants';
 import { getVisibleSocialLinks } from './social';
@@ -228,14 +228,21 @@ export function buildGuideJsonLd(guide: {
   return { 'script:ld+json': { '@context': 'https://schema.org', '@graph': [article, trail] } };
 }
 
-/** Structured data for a suburb page: the tutoring service for that area and its breadcrumb trail. */
-export function buildSuburbJsonLd(suburb: { name: string; path: string }): MetaDescriptor {
+/** Structured data for an area page: the tutoring service for the suburbs it covers, and its breadcrumb. */
+export function buildAreaJsonLd(area: {
+  name: string;
+  path: string;
+  suburbs: readonly string[];
+}): MetaDescriptor {
   const service = {
     '@type': 'Service',
     serviceType: 'Tutoring',
-    name: SUBURB_PAGE.title(suburb.name),
-    url: absoluteUrl(suburb.path),
-    areaServed: { '@type': 'Place', name: `${suburb.name} ${BUSINESS.state}` },
+    name: AREA_PAGE.title(area.name),
+    url: absoluteUrl(area.path),
+    areaServed: area.suburbs.map((suburb) => ({
+      '@type': 'Place',
+      name: `${suburb} ${BUSINESS.state}`,
+    })),
     provider: {
       '@type': 'EducationalOrganization',
       '@id': absoluteUrl('/#organization'),
@@ -245,7 +252,7 @@ export function buildSuburbJsonLd(suburb: { name: string; path: string }): MetaD
   };
   const trail = breadcrumbList([
     { name: STRUCTURED_DATA.breadcrumbs.home, path: ROUTES.home },
-    { name: SUBURB_PAGE.title(suburb.name), path: suburb.path },
+    { name: AREA_PAGE.title(area.name), path: area.path },
   ]);
 
   return { 'script:ld+json': { '@context': 'https://schema.org', '@graph': [service, trail] } };

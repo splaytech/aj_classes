@@ -15,11 +15,11 @@ import {
   SECTION_IDS,
   SOCIAL_LABELS,
   SUBSCRIBE,
-  SUBURBS,
-  SUBURB_PAGE,
+  AREAS,
+  AREA_PAGE,
   TAGLINE,
   sectionLink,
-  suburbPath,
+  areaPath,
 } from '@/constants';
 import { getVisibleSocialLinks } from '@/lib/social';
 import { useHasNews } from '@/lib/use-has-news';
@@ -79,12 +79,12 @@ export function Footer() {
           </div>
         </div>
 
-        <nav className={styles.areas} aria-label={SUBURB_PAGE.footerLabel}>
-          <h2 className={styles.heading}>{SUBURB_PAGE.footerHeading}</h2>
+        <nav className={styles.areas} aria-label={AREA_PAGE.footerLabel}>
+          <h2 className={styles.heading}>{AREA_PAGE.footerHeading}</h2>
           <ul className={styles.areaLinks}>
-            {SUBURBS.map((suburb) => (
-              <li key={suburb.slug}>
-                <a href={suburbPath(suburb.slug)}>{SUBURB_PAGE.linkLabel(suburb.name)}</a>
+            {AREAS.map((area) => (
+              <li key={area.slug}>
+                <a href={areaPath(area.slug)}>{AREA_PAGE.linkLabel(area.name)}</a>
               </li>
             ))}
           </ul>
