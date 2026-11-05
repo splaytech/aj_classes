@@ -42,16 +42,6 @@ describe('area data', () => {
     },
   );
 
-  it('names every suburb in the page text, which visitors can see', () => {
-    for (const area of AREAS) {
-      for (const suburb of area.suburbs) {
-        expect(area.seo.description + area.intro + suburb.note + suburb.name).toContain(
-          suburb.name,
-        );
-      }
-    }
-  });
-
   it('lists each suburb once across the site', () => {
     const names = AREAS.flatMap((area) => area.suburbs.map((suburb) => suburb.name));
     expect(new Set(names).size).toBe(names.length);
@@ -64,26 +54,19 @@ describe('area data', () => {
     expect([...inPerson].sort()).toEqual([...BUSINESS.suburbs].sort());
   });
 
-  it('never says "we teach in person" about a suburb we do not teach in', () => {
-    for (const area of AREAS) {
-      for (const suburb of area.suburbs.filter((item) => !item.teachesHere)) {
-        expect(suburb.note).not.toMatch(/in-person|in person/i);
-        expect(suburb.note).not.toMatch(new RegExp(`classes (run |are )?in ${suburb.name}`, 'i'));
-      }
-    }
+  it('turns a suburb into a one-word hashtag', () => {
+    expect(AREA_PAGE.hashtag('Truganina')).toBe('#Truganina');
+    expect(AREA_PAGE.hashtag('Williams Landing')).toBe('#WilliamsLanding');
+    expect(AREA_PAGE.hashtag('Hoppers Crossing')).toBe('#HoppersCrossing');
   });
 
-  it('uses different wording on every page and in every suburb note', () => {
-    const notes = AREAS.flatMap((area) =>
-      area.suburbs.filter((s) => !s.teachesHere).map((s) => s.note),
-    );
-    expect(new Set(notes).size).toBe(notes.length);
-    const paragraphs = AREAS.flatMap((area) => area.localParagraphs);
-    expect(new Set(paragraphs).size).toBe(paragraphs.length);
+  it('uses different wording in each area intro', () => {
+    const intros = AREAS.map((area) => area.intro);
+    expect(new Set(intros).size).toBe(intros.length);
   });
 
   it('never promises results (consumer law)', () => {
-    const text = AREAS.map((area) => [area.intro, ...area.localParagraphs].join(' ')).join(' ');
+    const text = AREAS.map((area) => area.intro).join(' ');
     expect(text).not.toMatch(/guarantee|100%|get your child in|top results/i);
   });
 });
@@ -118,7 +101,7 @@ describe('old suburb addresses', () => {
 
 describe('area pages', () => {
   it.each(AREAS.map((area) => [area.name, area] as const))(
-    '%s: one heading, every suburb, every programme, the guide and the enquiry link',
+    '%s: one heading, every suburb as a hashtag, every programme, the guide and the enquiry link',
     (_name, area) => {
       renderAt(<AreaPage area={area} />, areaPath(area.slug));
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
@@ -128,10 +111,13 @@ describe('area pages', () => {
 
       const suburbsHeading = screen.getByRole('heading', { name: AREA_PAGE.suburbsHeading });
       const list = within(suburbsHeading.parentElement as HTMLElement).getByRole('list');
-      expect(within(list).getAllByRole('listitem')).toHaveLength(area.suburbs.length);
+      expect(
+        within(list)
+          .getAllByRole('listitem')
+          .map((item) => item.textContent),
+      ).toEqual(area.suburbs.map((suburb) => AREA_PAGE.hashtag(suburb.name)));
       for (const suburb of area.suburbs) {
-        expect(within(list).getByText(suburb.name)).toBeVisible();
-        expect(within(list).getAllByText(suburb.note)[0]).toBeVisible();
+        expect(within(list).getByText(AREA_PAGE.hashtag(suburb.name))).toBeVisible();
       }
 
       for (const programme of PROGRAMMES.items) {

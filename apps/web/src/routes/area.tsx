@@ -52,25 +52,15 @@ export function AreaPage({ area }: { area: Area }) {
         <ButtonLink href={sectionLink(SECTION_IDS.contact)}>{AREA_PAGE.cta}</ButtonLink>
       </Section>
 
-      <Section heading={area.localHeading} tone="subtle">
-        {area.localParagraphs.map((paragraph) => (
-          <p key={paragraph}>{paragraph}</p>
-        ))}
-      </Section>
-
-      <Section heading={AREA_PAGE.suburbsHeading}>
-        <p>{AREA_PAGE.suburbsIntro}</p>
-        <ul className={styles.suburbs}>
+      <Section heading={AREA_PAGE.suburbsHeading} tone="subtle">
+        <ul className={styles.tags}>
           {area.suburbs.map((suburb) => (
-            <li key={suburb.name}>
-              <strong>{suburb.name}</strong>
-              <span>{suburb.note}</span>
-            </li>
+            <li key={suburb.name}>{AREA_PAGE.hashtag(suburb.name)}</li>
           ))}
         </ul>
       </Section>
 
-      <Section heading={AREA_PAGE.programmesHeading} tone="subtle">
+      <Section heading={AREA_PAGE.programmesHeading}>
         <ul className={styles.links}>
           {PROGRAMMES.items.map((programme) => (
             <li key={programme.slug}>
@@ -82,7 +72,7 @@ export function AreaPage({ area }: { area: Area }) {
         </ul>
       </Section>
 
-      <Section heading={AREA_PAGE.howHeading}>
+      <Section heading={AREA_PAGE.howHeading} tone="subtle">
         <ul className={styles.points}>
           {AREA_PAGE.howPoints.map((point) => (
             <li key={point}>{point}</li>
@@ -92,7 +82,7 @@ export function AreaPage({ area }: { area: Area }) {
       </Section>
 
       {AREA_PAGE.guidePath && (
-        <Section heading={AREA_PAGE.guideHeading} tone="subtle">
+        <Section heading={AREA_PAGE.guideHeading}>
           <p>{AREA_PAGE.guideText}</p>
           <p>
             <a href={AREA_PAGE.guidePath}>{AREA_PAGE.guideLinkLabel}</a>
@@ -100,7 +90,7 @@ export function AreaPage({ area }: { area: Area }) {
         </Section>
       )}
 
-      <Section heading={AREA_PAGE.otherHeading}>
+      <Section heading={AREA_PAGE.otherHeading} tone="subtle">
         <ul className={styles.links}>
           {others.map((other) => (
             <li key={other.slug}>

@@ -1,10 +1,9 @@
 // Area pages at /tutoring/:slug (docs/requirements/local-seo.md): one for Melbourne's west and one
 // for the north, each listing the suburbs around our classes, so a search such as "tutoring Tarneit"
-// finds the suburb's name on a real page. Postcodes and neighbours come from Australia Post and
-// Wikipedia (5 Nov 2026). A suburb is described as "in-person classes" only when BUSINESS.suburbs
-// lists it; "families here already learn with us" is the owner's statement (Melton, Aintree).
-// Everything on these pages is visible to visitors: hidden text for search engines breaks Google's
-// spam rules.
+// finds the suburb's name on a real page. The suburbs are listed as plain hashtags, with no
+// descriptions (owner's choice, 5 Nov 2026); `teachesHere` marks the three where classes run
+// (BUSINESS.suburbs). Everything on these pages is visible to visitors: hidden text for search
+// engines breaks Google's spam rules.
 
 import { BUSINESS } from './business.constants';
 import { PROGRAMME_SLUGS } from './programmes.constants';
@@ -15,21 +14,15 @@ export type AreaSuburb = {
   name: string;
   /** True only where in-person classes run (they are listed in BUSINESS.suburbs). */
   teachesHere: boolean;
-  /** One short, true line about this suburb. */
-  note: string;
 };
 
 export type Area = {
   slug: string;
   name: string;
   intro: string;
-  localHeading: string;
-  localParagraphs: readonly string[];
   suburbs: readonly AreaSuburb[];
   seo: { title: string; description: string };
 };
-
-const TEACHES = 'In-person classes';
 
 export const AREAS: readonly Area[] = [
   {
@@ -37,33 +30,16 @@ export const AREAS: readonly Area[] = [
     name: "Melbourne's West",
     intro:
       "Small-group tutoring in Melbourne's west for students in Years 2 to 12: selective entry exam and interview coaching, NAPLAN, ICAS, Maths, Science and English, and VCE. In person in Truganina and Williams Landing, or online from home.",
-    localHeading: 'Where we teach in the west',
-    localParagraphs: [
-      'We teach in person in Truganina and Williams Landing, in small groups of up to 10 students, with two one-hour classes a week. Every class is led by a qualified teacher who holds a Working With Children Check.',
-      "Students from across Melbourne's west can join, in person or online from home. Tell us your child's year level and we'll suggest the right small group.",
-    ],
     suburbs: [
-      { name: 'Truganina', teachesHere: true, note: TEACHES },
-      { name: 'Williams Landing', teachesHere: true, note: TEACHES },
-      { name: 'Tarneit', teachesHere: false, note: 'Borders Truganina, same postcode (3029)' },
-      { name: 'Hoppers Crossing', teachesHere: false, note: 'Same postcode as Truganina (3029)' },
-      {
-        name: 'Point Cook',
-        teachesHere: false,
-        note: 'Classes in Williams Landing and Truganina, or online',
-      },
-      {
-        name: 'Werribee',
-        teachesHere: false,
-        note: 'Home of Suzanne Cory High School, a selective entry school',
-      },
-      { name: 'Wyndham Vale', teachesHere: false, note: 'In the City of Wyndham, in the west' },
-      { name: 'Melton', teachesHere: false, note: 'Families here already learn with us' },
-      {
-        name: 'Aintree',
-        teachesHere: false,
-        note: 'In the City of Melton; families here already learn with us',
-      },
+      { name: 'Truganina', teachesHere: true },
+      { name: 'Williams Landing', teachesHere: true },
+      { name: 'Tarneit', teachesHere: false },
+      { name: 'Hoppers Crossing', teachesHere: false },
+      { name: 'Point Cook', teachesHere: false },
+      { name: 'Werribee', teachesHere: false },
+      { name: 'Wyndham Vale', teachesHere: false },
+      { name: 'Melton', teachesHere: false },
+      { name: 'Aintree', teachesHere: false },
     ],
     seo: {
       title: "Tutoring in Truganina & Melbourne's West | AJ Classes",
@@ -76,29 +52,12 @@ export const AREAS: readonly Area[] = [
     name: "Melbourne's North",
     intro:
       "Small-group tutoring in Melbourne's north for students in Years 2 to 12: selective entry exam and interview coaching, NAPLAN, ICAS, Maths, Science and English, and VCE. In person in Craigieburn, or online from home.",
-    localHeading: 'Where we teach in the north',
-    localParagraphs: [
-      'We teach in person in Craigieburn, in small groups of up to 10 students, with two one-hour classes a week, led by qualified teachers who each hold a Working With Children Check.',
-      "Students from across Melbourne's north can join, in Craigieburn or online from home. Tell us your child's year level, and whether they are preparing for the selective entry exam, NAPLAN, ICAS or VCE, and we'll suggest the right group.",
-    ],
     suburbs: [
-      { name: 'Craigieburn', teachesHere: true, note: TEACHES },
-      {
-        name: 'Roxburgh Park',
-        teachesHere: false,
-        note: 'Borders Craigieburn; both are in the City of Hume',
-      },
-      { name: 'Greenvale', teachesHere: false, note: 'Borders Craigieburn' },
-      {
-        name: 'Wollert',
-        teachesHere: false,
-        note: 'Borders Craigieburn; in the City of Whittlesea',
-      },
-      {
-        name: 'Epping',
-        teachesHere: false,
-        note: 'In the City of Whittlesea; our northern classes are in Craigieburn',
-      },
+      { name: 'Craigieburn', teachesHere: true },
+      { name: 'Roxburgh Park', teachesHere: false },
+      { name: 'Greenvale', teachesHere: false },
+      { name: 'Wollert', teachesHere: false },
+      { name: 'Epping', teachesHere: false },
     ],
     seo: {
       title: "Tutoring in Craigieburn & Melbourne's North | AJ Classes",
@@ -153,7 +112,8 @@ export const AREA_PAGE = {
   deliveryText: `Small groups, in person in ${BUSINESS.suburbsText}, or online anywhere in Australia.`,
   cta: 'Register interest',
   suburbsHeading: 'Suburbs we serve',
-  suburbsIntro: 'Families in these suburbs can join our classes:',
+  /** "Williams Landing" -> "#WilliamsLanding". Visible text, like a social post. */
+  hashtag: (name: string) => `#${name.replace(/\s+/g, '')}`,
   programmesHeading: 'What we teach',
   programmeLine: (title: string, years: string) => `${title} (${years})`,
   howHeading: 'How our classes work',
