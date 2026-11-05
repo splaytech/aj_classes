@@ -7,11 +7,12 @@ import { Header } from '@/components/layout/header/Header';
 import {
   PROGRAMMES,
   PROGRAMME_PAGE,
+  GUIDES,
   PROGRAMME_PATHS,
-  RESOURCES,
   TEMPLATE_PROGRAMMES,
   findProgramme,
   programmePath,
+  resourcePath,
 } from '@/constants';
 import { Programmes } from '@/sections';
 
@@ -50,32 +51,44 @@ describe('programme pages', () => {
 });
 
 describe('parent guide links', () => {
+  function guideLinkHrefs(slug: string): string[] {
+    const programme = findProgramme(slug);
+    if (!programme) throw new Error(`no programme ${slug}`);
+    const { unmount } = renderAt(<ProgrammePage programme={programme} />, programmePath(slug));
+    const hrefs = GUIDES.filter((guide) =>
+      screen.queryByRole('link', { name: guide.linkLabel }),
+    ).map(
+      (guide) => screen.getByRole('link', { name: guide.linkLabel }).getAttribute('href') ?? '',
+    );
+    unmount();
+    return hrefs;
+  }
+
   it('shows the selective entry guide on the selective, interview and SEAL pages', () => {
     for (const slug of ['selective-entry', 'interviews', 'seal-and-scholarships']) {
-      const programme = findProgramme(slug);
-      if (!programme) throw new Error(`no programme ${slug}`);
-      const { unmount } = renderAt(<ProgrammePage programme={programme} />, programmePath(slug));
-      expect(screen.getByRole('link', { name: RESOURCES.programmeLink })).toHaveAttribute(
-        'href',
-        '/resources/victorian-selective-entry-exam',
-      );
-      unmount();
+      expect(guideLinkHrefs(slug)).toContain(resourcePath('victorian-selective-entry-exam'));
     }
   });
 
-  it('shows no guide link where there is no guide (NAPLAN)', () => {
-    const programme = findProgramme('naplan');
-    if (!programme) throw new Error('no naplan');
-    renderAt(<ProgrammePage programme={programme} />, programmePath('naplan'));
-    expect(screen.queryByRole('link', { name: RESOURCES.programmeLink })).not.toBeInTheDocument();
+  it('shows each programme its own guide: NAPLAN and scholarships', () => {
+    expect(guideLinkHrefs('naplan')).toEqual([resourcePath('naplan-for-parents')]);
+    expect(guideLinkHrefs('seal-and-scholarships')).toContain(
+      resourcePath('victorian-school-scholarships'),
+    );
   });
 
-  it('is linked from the home page Programmes section', () => {
+  it('shows no guide link where there is no guide (ICAS)', () => {
+    expect(guideLinkHrefs('icas')).toEqual([]);
+  });
+
+  it('lists every guide on the home page Programmes section', () => {
     renderAt(<Programmes />);
-    expect(screen.getByRole('link', { name: RESOURCES.programmeLink })).toHaveAttribute(
-      'href',
-      '/resources/victorian-selective-entry-exam',
-    );
+    for (const guide of GUIDES) {
+      expect(screen.getByRole('link', { name: guide.linkLabel })).toHaveAttribute(
+        'href',
+        resourcePath(guide.slug),
+      );
+    }
   });
 });
 

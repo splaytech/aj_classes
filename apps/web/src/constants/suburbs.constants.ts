@@ -1,6 +1,7 @@
 // Suburb pages at /tutoring/:slug (docs/requirements/local-seo.md). Each page answers one local
 // search such as "tutoring Tarneit". Every suburb has its own wording; only facts we have checked
-// go in (postcodes and neighbours from Australia Post and Wikipedia, 5 Nov 2026). A page never says
+// go in (postcodes and neighbours from Australia Post and Wikipedia, 5 Nov 2026). "Families from X
+// already learn with us" is the owner's statement (melton, aintree). A page never says
 // we teach in person in a suburb unless BUSINESS.suburbs lists it.
 
 import { BUSINESS } from './business.constants';
@@ -122,6 +123,142 @@ export const SUBURBS: readonly Suburb[] = [
       title: seoTitle('Werribee'),
       description:
         'Tutoring for Werribee students: selective entry exam and interview coaching in small groups in Williams Landing and Truganina, or online from home.',
+    },
+  },
+  {
+    slug: 'hoppers-crossing',
+    name: 'Hoppers Crossing',
+    teachesHere: false,
+    intro:
+      'Looking for tutoring in Hoppers Crossing? Our small-group classes run in Truganina and Williams Landing, and online from home, for students in Years 2 to 12.',
+    localHeading: 'Tutoring for Hoppers Crossing families',
+    localParagraphs: [
+      'Hoppers Crossing shares postcode 3029 with Truganina, where we teach in person in small groups of up to 10 students. We also teach in Williams Landing, and our classes run online for families who prefer to learn from home.',
+      "We help students from NAPLAN and ICAS through the selective entry exam and interviews to VCE. Tell us your child's year level and we'll suggest the right small group.",
+    ],
+    seo: {
+      title: seoTitle('Hoppers Crossing'),
+      description:
+        'Tutoring for Hoppers Crossing students: small-group selective entry exam, NAPLAN, ICAS and VCE classes in Truganina and Williams Landing, or online.',
+    },
+  },
+  {
+    slug: 'wyndham-vale',
+    name: 'Wyndham Vale',
+    teachesHere: false,
+    intro:
+      'Looking for tutoring in Wyndham Vale? Our small-group classes run in Williams Landing and Truganina, and online from home, for students in Years 2 to 12.',
+    localHeading: 'Tutoring for Wyndham Vale families',
+    localParagraphs: [
+      "Wyndham Vale is in the City of Wyndham, in Melbourne's west. Our in-person classes are in Williams Landing and Truganina, in small groups of up to 10 students, and the same small-group classes run online.",
+      "Students from Years 2 to 12 can join, from NAPLAN and ICAS to the selective entry exam, interview coaching and VCE. Tell us the year level and we'll suggest a group.",
+    ],
+    seo: {
+      title: seoTitle('Wyndham Vale'),
+      description:
+        'Tutoring for Wyndham Vale students: small-group selective entry exam, NAPLAN, ICAS and VCE classes in Williams Landing and Truganina, or online.',
+    },
+  },
+  {
+    slug: 'roxburgh-park',
+    name: 'Roxburgh Park',
+    teachesHere: false,
+    intro:
+      'Looking for tutoring in Roxburgh Park? Our small-group classes run in neighbouring Craigieburn, and online anywhere in Australia, for students in Years 2 to 12.',
+    localHeading: 'Tutoring close to Roxburgh Park',
+    localParagraphs: [
+      'Roxburgh Park borders Craigieburn, where we teach in person in small groups of up to 10 students, with two one-hour classes a week. Our classes also run online for families who would rather learn from home.',
+      "Roxburgh Park and Craigieburn are both in the City of Hume. Tell us your child's year level, and whether they are preparing for the selective entry exam, NAPLAN, ICAS or VCE, and we'll suggest the right group.",
+    ],
+    seo: {
+      title: seoTitle('Roxburgh Park'),
+      description:
+        'Tutoring for Roxburgh Park students: small-group selective entry exam, NAPLAN, ICAS and VCE classes in neighbouring Craigieburn, or online.',
+    },
+  },
+  {
+    slug: 'greenvale',
+    name: 'Greenvale',
+    teachesHere: false,
+    intro:
+      'Looking for tutoring in Greenvale? Our small-group classes run in neighbouring Craigieburn, and online anywhere in Australia, for students in Years 2 to 12.',
+    localHeading: 'Tutoring close to Greenvale',
+    localParagraphs: [
+      'Greenvale borders Craigieburn, where we teach in person in small groups of up to 10 students, with two one-hour classes a week, led by qualified teachers who each hold a Working With Children Check.',
+      'Prefer to learn from home? The same small-group classes run online. We help Greenvale students from NAPLAN and ICAS through the selective entry exam and interviews to VCE.',
+    ],
+    seo: {
+      title: seoTitle('Greenvale'),
+      description:
+        'Tutoring for Greenvale students: small-group selective entry exam, NAPLAN, ICAS and VCE classes in neighbouring Craigieburn, or online.',
+    },
+  },
+  {
+    slug: 'wollert',
+    name: 'Wollert',
+    teachesHere: false,
+    intro:
+      'Looking for tutoring in Wollert? Our small-group classes run in neighbouring Craigieburn, and online anywhere in Australia, for students in Years 2 to 12.',
+    localHeading: 'Tutoring close to Wollert',
+    localParagraphs: [
+      'Wollert borders Craigieburn, where we teach in person in small groups of up to 10 students, with two one-hour classes a week.',
+      "Wollert is in the City of Whittlesea. Whether your child is preparing for the selective entry exam, NAPLAN, ICAS or VCE, tell us their year level and we'll suggest a group, in Craigieburn or online.",
+    ],
+    seo: {
+      title: seoTitle('Wollert'),
+      description:
+        'Tutoring for Wollert students: small-group selective entry exam, NAPLAN, ICAS and VCE classes in neighbouring Craigieburn, or online.',
+    },
+  },
+  {
+    slug: 'epping',
+    name: 'Epping',
+    teachesHere: false,
+    intro:
+      'Looking for tutoring in Epping? Our small-group classes run in Craigieburn, and online anywhere in Australia, for students in Years 2 to 12.',
+    localHeading: 'Tutoring for Epping families',
+    localParagraphs: [
+      "Epping is in the City of Whittlesea, in Melbourne's north. Our in-person classes in the north are in Craigieburn, in small groups of up to 10 students, and the same classes run online for families who prefer to learn from home.",
+      'We help Epping students from Year 2 to Year 12: NAPLAN, ICAS, the selective entry exam and interviews, and VCE. Tell us the year level and we will suggest a group.',
+    ],
+    seo: {
+      title: seoTitle('Epping'),
+      description:
+        'Tutoring for Epping students: small-group selective entry exam, NAPLAN, ICAS and VCE classes in Craigieburn, or online from home.',
+    },
+  },
+  {
+    slug: 'melton',
+    name: 'Melton',
+    teachesHere: false,
+    intro:
+      'Looking for tutoring in Melton? Families from Melton already learn with AJ Classes, in small groups in Truganina and Williams Landing or online, for students in Years 2 to 12.',
+    localHeading: 'Tutoring for Melton families',
+    localParagraphs: [
+      "Melton is in Melbourne's west, and families from Melton already join our small-group classes. Our in-person classes are in Truganina and Williams Landing, in groups of up to 10 students, and the same classes run online.",
+      "We help students from NAPLAN and ICAS to the selective entry exam, interview coaching and VCE. Tell us your child's year level and we'll find the right small group.",
+    ],
+    seo: {
+      title: seoTitle('Melton'),
+      description:
+        'Tutoring for Melton students: small-group selective entry exam, NAPLAN, ICAS and VCE classes in Truganina and Williams Landing, or online.',
+    },
+  },
+  {
+    slug: 'aintree',
+    name: 'Aintree',
+    teachesHere: false,
+    intro:
+      'Looking for tutoring in Aintree? Families from Aintree already learn with AJ Classes, in small groups in Truganina and Williams Landing or online, for students in Years 2 to 12.',
+    localHeading: 'Tutoring for Aintree families',
+    localParagraphs: [
+      'Aintree is in the City of Melton, and families from Aintree already join our classes. We teach in person in Truganina and Williams Landing in small groups of up to 10 students, and our classes also run online.',
+      "Whether your child is preparing for the selective entry exam, NAPLAN, ICAS or VCE, tell us their year level and we'll suggest the right small group.",
+    ],
+    seo: {
+      title: seoTitle('Aintree'),
+      description:
+        'Tutoring for Aintree students: small-group selective entry exam, NAPLAN, ICAS and VCE classes in Truganina and Williams Landing, or online.',
     },
   },
 ];
