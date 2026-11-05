@@ -7,7 +7,7 @@ import { PORTAL_ROUTE_PATTERNS, PORTAL_ROUTES, ROUTES } from './constants/routes
 
 const PROGRAMME_PAGE = `${ROUTES.programmes}/:slug`;
 const GUIDE_PAGE = `${ROUTES.resources}/:slug`;
-const SUBURB_ROUTE = `${ROUTES.suburbs}/:slug`;
+const AREA_ROUTE = `${ROUTES.areas}/:slug`;
 
 export default [
   index('routes/home.tsx'),
@@ -16,7 +16,7 @@ export default [
   route(PROGRAMME_PAGE, 'routes/programme.tsx'),
   route(ROUTES.resources, 'routes/resources.tsx'),
   route(GUIDE_PAGE, 'routes/resource.tsx'),
-  route(SUBURB_ROUTE, 'routes/suburb.tsx'),
+  route(AREA_ROUTE, 'routes/area.tsx'),
   route(ROUTES.subscribed, 'routes/subscribed.tsx'),
   route(ROUTES.posts, 'routes/posts.tsx'), // pre-rendered shell; posts load live in the browser (ADR-0001)
   route(ROUTES.careers, 'routes/careers.tsx'),
