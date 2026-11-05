@@ -1,11 +1,10 @@
 // Area pages at /tutoring/:slug (docs/requirements/local-seo.md): one for Melbourne's west and one
 // for the north, each listing the suburbs around our classes, so a search such as "tutoring Tarneit"
-// finds the suburb's name on a real page. The suburbs are listed as plain hashtags, with no
-// descriptions (owner's choice, 5 Nov 2026); `teachesHere` marks the three where classes run
+// finds the suburb's name on a real page. The suburbs are listed as hashtags linking to Google Maps,
+// with no descriptions (owner's choice, 5 Nov 2026); `teachesHere` marks the three where classes run
 // (BUSINESS.suburbs). Everything on these pages is visible to visitors: hidden text for search
 // engines breaks Google's spam rules.
 
-import { BUSINESS } from './business.constants';
 import { PROGRAMME_SLUGS } from './programmes.constants';
 import { GUIDES } from './resources.constants';
 import { areaPath, resourcePath } from './routes.constants';
@@ -105,15 +104,15 @@ const SELECTIVE_GUIDE = GUIDES.find((guide) => guide.programme === PROGRAMME_SLU
 // Labels shared by every area page.
 export const AREA_PAGE = {
   title: (name: string) => `Tutoring in ${name}`,
-  /** Link text in the footer and in the list of other areas. */
-  linkLabel: (name: string) => `Tutoring in ${name}`,
   footerHeading: 'Tutoring near you',
   footerLabel: 'Tutoring areas',
-  deliveryText: `Small groups, in person in ${BUSINESS.suburbsText}, or online anywhere in Australia.`,
   cta: 'Register interest',
   suburbsHeading: 'Suburbs we serve',
   /** "Williams Landing" -> "#WilliamsLanding". Visible text, like a social post. */
   hashtag: (name: string) => `#${name.replace(/\s+/g, '')}`,
+  /** The state and country pick the right place: there is also an Epping in Sydney. */
+  mapsUrl: (name: string) =>
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name} VIC Australia`)}`,
   programmesHeading: 'What we teach',
   programmeLine: (title: string, years: string) => `${title} (${years})`,
   howHeading: 'How our classes work',

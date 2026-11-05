@@ -73,6 +73,15 @@ describe('footer tutoring areas (local-seo.md)', () => {
       .map((link) => link.getAttribute('href'));
     expect(hrefs).toEqual(AREAS.map((area) => areaPath(area.slug)));
   });
+
+  it('labels the links with the direction alone, under the heading', () => {
+    renderAt(<Footer />);
+    const nav = screen.getByRole('navigation', { name: AREA_PAGE.footerLabel });
+    const labels = within(nav)
+      .getAllByRole('link')
+      .map((link) => link.textContent);
+    expect(labels).toEqual(["Melbourne's West", "Melbourne's North"]);
+  });
 });
 
 describe('footer FAQ link (2026-10-30 tidy)', () => {

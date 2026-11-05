@@ -84,7 +84,7 @@ export function Footer() {
           <ul className={styles.areaLinks}>
             {AREAS.map((area) => (
               <li key={area.slug}>
-                <a href={areaPath(area.slug)}>{AREA_PAGE.linkLabel(area.name)}</a>
+                <a href={areaPath(area.slug)}>{area.name}</a>
               </li>
             ))}
           </ul>

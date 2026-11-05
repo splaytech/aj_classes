@@ -47,7 +47,7 @@
   margin-top: var(--space-8);
 }
 
-/* The suburbs as plain, visible hashtags that wrap along the line. */
+/* The suburbs as small, visible hashtags that wrap along the line, each linking to Google Maps. */
 .tags {
   display: flex;
   flex-wrap: wrap;
@@ -55,7 +55,6 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  color: var(--color-primary);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
 }

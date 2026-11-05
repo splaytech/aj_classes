@@ -68,4 +68,5 @@ The owner found 14 suburb pages too much for the site (the footer listed all of 
 - **Trade-off:** one page per suburb ranks better for that suburb's own name than a list on a regional page. We accepted a weaker position for the small suburbs in return for a tidier site. If a suburb matters a lot, give it its own page again.
 - **Declined: crawler-only hidden text** (suburbs in text visitors can't see). It breaks Google's spam rules. The visible list on each area page does the same job.
 - **After going live:** re-submit `sitemap.xml` (19 pages, was 31) in Search Console and request indexing for the two area pages.
+- **Owner's review, same day:** the footer links now say just "Melbourne's West" and "Melbourne's North" under "Tutoring near you" (the page's own heading keeps "Tutoring in"). The line naming all three centres came off the area pages, because Craigieburn on the west page confused the two areas; the intro already says where each area's classes run. The suburbs moved to second from the bottom, in smaller text, and each hashtag now opens that suburb in Google Maps.
 

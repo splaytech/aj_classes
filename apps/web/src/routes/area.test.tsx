@@ -60,6 +60,12 @@ describe('area data', () => {
     expect(AREA_PAGE.hashtag('Hoppers Crossing')).toBe('#HoppersCrossing');
   });
 
+  it('sends a suburb to Google Maps, in Victoria', () => {
+    expect(AREA_PAGE.mapsUrl('Williams Landing')).toBe(
+      'https://www.google.com/maps/search/?api=1&query=Williams%20Landing%20VIC%20Australia',
+    );
+  });
+
   it('uses different wording in each area intro', () => {
     const intros = AREAS.map((area) => area.intro);
     expect(new Set(intros).size).toBe(intros.length);
@@ -101,7 +107,7 @@ describe('old suburb addresses', () => {
 
 describe('area pages', () => {
   it.each(AREAS.map((area) => [area.name, area] as const))(
-    '%s: one heading, every suburb as a hashtag, every programme, the guide and the enquiry link',
+    '%s: one heading, every suburb as a map link, every programme, the guide and the enquiry link',
     (_name, area) => {
       renderAt(<AreaPage area={area} />, areaPath(area.slug));
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
@@ -117,7 +123,11 @@ describe('area pages', () => {
           .map((item) => item.textContent),
       ).toEqual(area.suburbs.map((suburb) => AREA_PAGE.hashtag(suburb.name)));
       for (const suburb of area.suburbs) {
-        expect(within(list).getByText(AREA_PAGE.hashtag(suburb.name))).toBeVisible();
+        const link = within(list).getByRole('link', { name: AREA_PAGE.hashtag(suburb.name) });
+        expect(link).toBeVisible();
+        expect(link).toHaveAttribute('href', AREA_PAGE.mapsUrl(suburb.name));
+        expect(link).toHaveAttribute('target', '_blank');
+        expect(link).toHaveAttribute('rel', 'noopener noreferrer');
       }
 
       for (const programme of PROGRAMMES.items) {
@@ -137,6 +147,27 @@ describe('area pages', () => {
     },
   );
 
+  it('keeps the top of the west page clear of the northern centre', () => {
+    const west = AREAS[0];
+    if (!west) throw new Error('areas missing');
+    renderAt(<AreaPage area={west} />, areaPath(west.slug));
+    const top = screen.getByRole('heading', { level: 1 }).parentElement as HTMLElement;
+    expect(top).not.toHaveTextContent('Craigieburn');
+  });
+
+  it('puts the suburbs second from the bottom, just above the other area', () => {
+    const [west] = AREAS;
+    if (!west) throw new Error('areas missing');
+    renderAt(<AreaPage area={west} />, areaPath(west.slug));
+    const headings = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+    expect(headings.indexOf(AREA_PAGE.otherHeading)).toBe(
+      headings.indexOf(AREA_PAGE.suburbsHeading) + 1,
+    );
+    expect(headings.indexOf(AREA_PAGE.suburbsHeading)).toBeGreaterThan(
+      headings.indexOf(AREA_PAGE.guideHeading),
+    );
+  });
+
   it('links each area to the other one', () => {
     const [west, north] = AREAS;
     if (!west || !north) throw new Error('areas missing');
@@ -144,7 +175,7 @@ describe('area pages', () => {
     const heading = screen.getByRole('heading', { name: AREA_PAGE.otherHeading });
     expect(
       within(heading.parentElement as HTMLElement).getByRole('link', {
-        name: AREA_PAGE.linkLabel(north.name),
+        name: north.name,
       }),
     ).toHaveAttribute('href', areaPath(north.slug));
   });
