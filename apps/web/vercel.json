@@ -76,5 +76,77 @@
       "source": "/portal/:path*",
       "destination": "/__spa-fallback"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/tutoring/truganina",
+      "destination": "/tutoring/melbourne-west",
+      "permanent": true
+    },
+    {
+      "source": "/tutoring/tarneit",
+      "destination": "/tutoring/melbourne-west",
+      "permanent": true
+    },
+    {
+      "source": "/tutoring/williams-landing",
+      "destination": "/tutoring/melbourne-west",
+      "permanent": true
+    },
+    {
+      "source": "/tutoring/point-cook",
+      "destination": "/tutoring/melbourne-west",
+      "permanent": true
+    },
+    {
+      "source": "/tutoring/werribee",
+      "destination": "/tutoring/melbourne-west",
+      "permanent": true
+    },
+    {
+      "source": "/tutoring/hoppers-crossing",
+      "destination": "/tutoring/melbourne-west",
+      "permanent": true
+    },
+    {
+      "source": "/tutoring/wyndham-vale",
+      "destination": "/tutoring/melbourne-west",
+      "permanent": true
+    },
+    {
+      "source": "/tutoring/melton",
+      "destination": "/tutoring/melbourne-west",
+      "permanent": true
+    },
+    {
+      "source": "/tutoring/aintree",
+      "destination": "/tutoring/melbourne-west",
+      "permanent": true
+    },
+    {
+      "source": "/tutoring/craigieburn",
+      "destination": "/tutoring/melbourne-north",
+      "permanent": true
+    },
+    {
+      "source": "/tutoring/roxburgh-park",
+      "destination": "/tutoring/melbourne-north",
+      "permanent": true
+    },
+    {
+      "source": "/tutoring/greenvale",
+      "destination": "/tutoring/melbourne-north",
+      "permanent": true
+    },
+    {
+      "source": "/tutoring/wollert",
+      "destination": "/tutoring/melbourne-north",
+      "permanent": true
+    },
+    {
+      "source": "/tutoring/epping",
+      "destination": "/tutoring/melbourne-north",
+      "permanent": true
+    }
   ]
 }

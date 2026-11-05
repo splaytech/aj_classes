@@ -6,7 +6,7 @@ export const ROUTES = {
   privacy: '/privacy',
   programmes: '/programmes', // one page per programme under here (programme-pages.md)
   resources: '/resources', // parent guides (completion-todo §5.3)
-  suburbs: '/tutoring', // one page per suburb we teach in or near (local-seo.md)
+  areas: '/tutoring', // one page for Melbourne's west and one for the north (local-seo.md)
   vce: '/programmes/vce', // VCE tutoring has its own page layout (vce-page.md)
   notFound: '/404',
   sitemap: '/sitemap.xml',
@@ -139,9 +139,9 @@ export function programmePath(slug: string): string {
   return `${ROUTES.programmes}/${slug}`;
 }
 
-/** Path of a suburb page, such as "/tutoring/tarneit". */
-export function suburbPath(slug: string): string {
-  return `${ROUTES.suburbs}/${slug}`;
+/** Path of an area page, such as "/tutoring/melbourne-west". */
+export function areaPath(slug: string): string {
+  return `${ROUTES.areas}/${slug}`;
 }
 
 /** Builds an in-page link such as "/#contact". */

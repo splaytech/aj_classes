@@ -8,17 +8,18 @@
 
 | Item | Detail |
 |---|---|
-| Suburb pages | `/tutoring/:slug` for 14 suburbs. Where we teach in person: Truganina, Williams Landing, Craigieburn. Nearby: Tarneit, Point Cook, Werribee, Hoppers Crossing, Wyndham Vale, Roxburgh Park, Greenvale, Wollert, Epping, Melton, Aintree. Wording, SEO text and rules live in `constants/suburbs.constants.ts`. |
-| Links to them | Footer "Tutoring near you" (every page), "Other areas" on each suburb page, and the sitemap. |
+| Area pages | `/tutoring/melbourne-west` and `/tutoring/melbourne-north`, each with a visible list of the suburbs it covers. Wording and rules live in `constants/areas.constants.ts`. (First built as 14 separate suburb pages; see "Change of plan".) |
+| Links to them | Footer "Tutoring near you" (two links, every page), "Our other area" on each page, and the sitemap. |
 | Home description | Cut from 220 to 150 characters (Google shows about 160). Names the three suburbs. |
-| Structured data | `Service` + breadcrumb on each suburb page. The home page's service area now also lists the nearby suburbs. The guide's `Article` now has `datePublished`, `dateModified` and an image. |
-| Guide links | The selective entry guide (Google had crawled but not indexed it) is now linked from the home page Programmes section, and from the Interviews and SEAL pages as well as Selective Entry, and from every suburb page. |
+| Structured data | `Service` + breadcrumb on each area page, listing every suburb it covers. The home page's service area now also lists the nearby suburbs. The guide's `Article` now has `datePublished`, `dateModified` and an image. |
+| Guide links | The selective entry guide (Google had crawled but not indexed it) is now linked from the home page Programmes section, and from the Interviews and SEAL pages as well as Selective Entry, and from both area pages. |
 
 ## Honesty rules (the page may not say more than we can back up)
 
 1. **In-person claims only for suburbs in `BUSINESS.suburbs`** (Williams Landing, Truganina, Craigieburn). Nearby suburbs say "close to", "neighbouring" or "online", never "we teach in Tarneit". A test enforces it.
-2. **Every page has its own wording.** Name-swapped pages are "doorway pages" and Google ranks them down. A test checks that no two pages share a paragraph.
-3. No result promises, and no unverified claims (distances, travel times, school catchments).
+2. **Every note and paragraph is different.** Name-swapped copy is a "doorway" pattern Google ranks down. A test checks that no two suburb notes or paragraphs match.
+3. **Everything is visible to visitors.** No hidden text, no text hidden with CSS, no crawler-only content: Google's spam policy treats that as a violation and can demote the whole site, including the #1 spot for "AJ Classes". The legitimate place for "extra for search engines" is structured data (`areaServed`), which lists every suburb.
+4. No result promises, and no unverified claims (distances, travel times, school catchments).
 
 ## Facts used, and where they come from (checked 5 Nov 2026)
 
@@ -56,3 +57,16 @@
 2. Search Console: request indexing for the new pages (and the guide).
 3. Google Business Profile: add the nearby suburbs as service areas, and check categories and the description.
 4. Reviews: ask families for Google reviews (the review link is still a [TBC] in `docs/social-media/tbc-consolidated.md`).
+
+## Change of plan (5 Nov 2026, later): 14 suburb pages became 2 area pages
+
+The owner found 14 suburb pages too much for the site (the footer listed all of them) and asked for one page for Melbourne's west and one for the north, with the surrounding suburbs listed on them.
+
+- **Now:** `/tutoring/melbourne-west` (Truganina, Williams Landing, Tarneit, Hoppers Crossing, Point Cook, Werribee, Wyndham Vale, Melton, Aintree) and `/tutoring/melbourne-north` (Craigieburn, Roxburgh Park, Greenvale, Wollert, Epping). The suburbs show as one line of plain hashtags (`#Truganina #WilliamsLanding`), with no descriptions and no separate "where we teach" section (owner's choice: the intro already says where classes run). `teachesHere` still marks the three centre suburbs, and a test keeps it equal to `BUSINESS.suburbs`.
+- **Hashtag trade-off:** a multi-word suburb written as one word (`#WilliamsLanding`) matches a search for "Williams Landing" less well than the spaced name. The structured data (`areaServed`) keeps the proper spaced names, and the intro names Truganina and Williams Landing in words.
+- **Old addresses redirect for good** (`/tutoring/truganina`, `/tutoring/tarneit` and the other 12) to the right area, in `vercel.json` and `serve.railway.json`. Truganina and Tarneit had already been submitted to Google, so the redirects pass that on. A test checks all 14.
+- **Trade-off:** one page per suburb ranks better for that suburb's own name than a list on a regional page. We accepted a weaker position for the small suburbs in return for a tidier site. If a suburb matters a lot, give it its own page again.
+- **Declined: crawler-only hidden text** (suburbs in text visitors can't see). It breaks Google's spam rules. The visible list on each area page does the same job.
+- **After going live:** re-submit `sitemap.xml` (19 pages, was 31) in Search Console and request indexing for the two area pages.
+- **Owner's review, same day:** the footer links now say just "Melbourne's West" and "Melbourne's North" under "Tutoring near you" (the page's own heading keeps "Tutoring in"). The line naming all three centres came off the area pages, because Craigieburn on the west page confused the two areas; the intro already says where each area's classes run. The suburbs moved to second from the bottom, in smaller text, and each hashtag now opens that suburb in Google Maps.
+

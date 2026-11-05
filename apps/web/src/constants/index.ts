@@ -17,4 +17,4 @@ export * from './resources.constants';
 export * from './routes.constants';
 export * from './seo.constants';
 export * from './subjects.constants';
-export * from './suburbs.constants';
+export * from './areas.constants';
