@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ROUTES } from '@/constants';
+import { GUIDE_PATHS, ROUTES, SUBURB_PATHS } from '@/constants';
 
 import { publicSitemapPaths } from './sitemap';
 
@@ -20,6 +20,13 @@ describe('sitemap pages', () => {
   it('lists /careers with and without Supabase (AC-20)', () => {
     expect(publicSitemapPaths(true)).toContain(ROUTES.careers);
     expect(publicSitemapPaths(false)).toContain(ROUTES.careers);
+  });
+
+  it('lists every suburb page and parent guide, with and without Supabase', () => {
+    for (const supabaseConfigured of [true, false]) {
+      const paths = publicSitemapPaths(supabaseConfigured);
+      for (const path of [...SUBURB_PATHS, ...GUIDE_PATHS]) expect(paths).toContain(path);
+    }
   });
 
   it('never lists the 404 page or the portal', () => {

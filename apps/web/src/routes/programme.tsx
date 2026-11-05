@@ -8,7 +8,6 @@ import { ButtonLink, Section } from '@/components/ui';
 import {
   GUIDES,
   PROGRAMMES,
-  RESOURCES,
   PROGRAMME_PAGE,
   ROUTES,
   SECTION_IDS,
@@ -41,7 +40,9 @@ export default function ProgrammeRoute() {
 }
 
 export function ProgrammePage({ programme }: { programme: Programme }) {
-  const guide = GUIDES.find((item) => item.programme === programme.slug);
+  const guides = GUIDES.filter(
+    (item) => item.programme === programme.slug || item.relatedProgrammes?.includes(programme.slug),
+  );
   const others = PROGRAMMES.items.filter((other) => other.slug !== programme.slug);
 
   return (
@@ -62,11 +63,11 @@ export function ProgrammePage({ programme }: { programme: Programme }) {
           {programme.about.paragraphs.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
-          {guide && (
-            <p>
-              <a href={resourcePath(guide.slug)}>{RESOURCES.programmeLink}</a>
+          {guides.map((guide) => (
+            <p key={guide.slug}>
+              <a href={resourcePath(guide.slug)}>{guide.linkLabel}</a>
             </p>
-          )}
+          ))}
         </Section>
       )}
 

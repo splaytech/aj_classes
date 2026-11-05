@@ -2,7 +2,7 @@
 // the programme's own page (programme-pages.md).
 
 import { Section } from '@/components/ui';
-import { PROGRAMMES, SECTION_IDS, programmePath } from '@/constants';
+import { GUIDES, PROGRAMMES, SECTION_IDS, programmePath, resourcePath } from '@/constants';
 
 import styles from './Programmes.module.css';
 
@@ -33,6 +33,14 @@ export function Programmes() {
             >
               {PROGRAMMES.moreLink}
             </a>
+          </li>
+        ))}
+      </ul>
+
+      <ul className={styles.guides}>
+        {GUIDES.map((guide) => (
+          <li key={guide.slug}>
+            <a href={resourcePath(guide.slug)}>{guide.linkLabel}</a>
           </li>
         ))}
       </ul>

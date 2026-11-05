@@ -1,0 +1,48 @@
+.intro {
+  font-size: var(--font-size-lg);
+}
+
+/* Short ticked points, like the programme pages. */
+.points {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-8);
+  padding: 0;
+  list-style: none;
+}
+
+.points li {
+  position: relative;
+  padding-left: var(--space-6);
+}
+
+.points li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.links {
+  display: grid;
+  gap: var(--space-2) var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 768px) {
+  .links {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.links a {
+  font-weight: var(--font-weight-medium);
+}
+
+.back {
+  margin-top: var(--space-8);
+}

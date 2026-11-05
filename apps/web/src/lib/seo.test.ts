@@ -1,10 +1,29 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
-import { BUSINESS, PROGRAMMES, ROUTES, SEO, SOCIAL_LINKS, programmePath } from '@/constants';
+import {
+  BUSINESS,
+  GUIDES,
+  NEARBY_SUBURB_NAMES,
+  PROGRAMMES,
+  ROUTES,
+  SEO,
+  SOCIAL_LINKS,
+  SOCIAL_PREVIEW,
+  programmePath,
+} from '@/constants';
 import { meta as notFoundMeta } from '@/routes/not-found';
 import { meta as subscribedMeta } from '@/routes/subscribed';
 
-import { buildHomeJsonLd, buildPageMeta, buildProgrammeJsonLd } from './seo';
+import {
+  buildGuideJsonLd,
+  buildHomeJsonLd,
+  buildPageMeta,
+  buildProgrammeJsonLd,
+  buildSuburbJsonLd,
+} from './seo';
 
 type Graph = { '@graph': Record<string, unknown>[] };
 
@@ -55,6 +74,56 @@ describe('home page business data (Google Business Profile match)', () => {
   });
 });
 
+describe('home page search result', () => {
+  it('has a description Google will not cut off, naming where classes run', () => {
+    expect(SEO.home.description.length).toBeLessThanOrEqual(160);
+    expect(SEO.home.description).toContain(BUSINESS.suburbsText);
+    expect(SEO.home.title.length).toBeLessThanOrEqual(60);
+  });
+
+  it('lists the suburbs we teach in and the nearby ones as the service area', () => {
+    const home = buildHomeJsonLd() as { 'script:ld+json': Graph };
+    const [business = {}] = home['script:ld+json']['@graph'];
+    const names = ((business.areaServed as { name: string }[]) ?? []).map((place) => place.name);
+    for (const suburb of [...BUSINESS.suburbs, ...NEARBY_SUBURB_NAMES]) {
+      expect(names).toContain(`${suburb} ${BUSINESS.state}`);
+    }
+  });
+});
+
+describe('suburb structured data', () => {
+  const data = buildSuburbJsonLd({ name: 'Tarneit', path: '/tutoring/tarneit' }) as {
+    'script:ld+json': Graph;
+  };
+  const [service = {}, trail = {}] = data['script:ld+json']['@graph'];
+
+  it('describes tutoring for that area, provided by the AJ Classes business', () => {
+    expect(service['@type']).toBe('Service');
+    expect(service.areaServed).toMatchObject({ name: 'Tarneit VIC' });
+    expect(service.provider).toMatchObject({ '@id': 'https://ajclasses.com.au/#organization' });
+    expect(trail['@type']).toBe('BreadcrumbList');
+  });
+});
+
+describe('guide structured data', () => {
+  it('carries the dates and image Google uses to judge an article', () => {
+    const [guide] = GUIDES;
+    if (!guide) throw new Error('no guide');
+    const data = buildGuideJsonLd({
+      title: guide.title,
+      description: guide.seo.description,
+      path: '/resources/x',
+      published: guide.published,
+      modified: guide.modified,
+    }) as { 'script:ld+json': Graph };
+    const [article = {}] = data['script:ld+json']['@graph'];
+    expect(article.datePublished).toBe(guide.published);
+    expect(article.dateModified).toBe(guide.modified);
+    expect(article.image).toBe('https://ajclasses.com.au/og-image.png');
+    expect(guide.modified >= guide.published).toBe(true);
+  });
+});
+
 describe('programme descriptions', () => {
   it('stay near the length Google shows and name where classes run', () => {
     for (const programme of PROGRAMMES.items) {
@@ -81,5 +150,18 @@ describe('search engine exclusion', () => {
     expect(robotsTags(buildPageMeta(SEO.privacy, ROUTES.privacy, { noIndex: true }))).toEqual([
       { name: 'robots', content: 'noindex' },
     ]);
+  });
+});
+
+describe('social preview image', () => {
+  // Every page's og:image points here; it was missing from the live site for weeks (404).
+  // join, not new URL(): Vite rewrites `new URL(…, import.meta.url)` as an asset reference.
+  const imageFile = join(import.meta.dirname, '../../public', SOCIAL_PREVIEW.imagePath);
+
+  it('exists in public/ at the size the og:image tags promise', () => {
+    const png = readFileSync(imageFile);
+    expect(png.subarray(1, 4).toString()).toBe('PNG');
+    expect(png.readUInt32BE(16)).toBe(Number(SOCIAL_PREVIEW.imageWidth));
+    expect(png.readUInt32BE(20)).toBe(Number(SOCIAL_PREVIEW.imageHeight));
   });
 });

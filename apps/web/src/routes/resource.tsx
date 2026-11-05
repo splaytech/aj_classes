@@ -10,6 +10,7 @@ import {
   RESOURCES,
   ROUTES,
   SECTION_IDS,
+  GUIDES,
   findGuide,
   programmePath,
   resourcePath,
@@ -28,7 +29,13 @@ export function meta({ params }: Route.MetaArgs) {
   const path = resourcePath(guide.slug);
   return [
     ...buildPageMeta(guide.seo, path),
-    buildGuideJsonLd({ title: guide.title, description: guide.seo.description, path }),
+    buildGuideJsonLd({
+      title: guide.title,
+      description: guide.seo.description,
+      path,
+      published: guide.published,
+      modified: guide.modified,
+    }),
   ];
 }
 
@@ -40,6 +47,7 @@ export default function ResourceRoute() {
 
 export function GuidePage({ guide }: { guide: Guide }) {
   const programme = PROGRAMMES.items.find((item) => item.slug === guide.programme);
+  const related = GUIDES.filter((item) => guide.relatedGuides?.includes(item.slug));
 
   return (
     <SiteLayout>
@@ -67,6 +75,19 @@ export function GuidePage({ guide }: { guide: Guide }) {
               )}
             </section>
           ))}
+
+          {related.length > 0 && (
+            <section>
+              <h2>{RESOURCES.relatedHeading}</h2>
+              <ul>
+                {related.map((item) => (
+                  <li key={item.slug}>
+                    <a href={resourcePath(item.slug)}>{item.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <section>
             <h2>{RESOURCES.sourcesHeading}</h2>
