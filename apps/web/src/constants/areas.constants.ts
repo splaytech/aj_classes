@@ -42,10 +42,11 @@ export const AREAS: readonly Area[] = [
       { name: 'Aintree', teachesHere: false },
     ],
     seo: {
-      // Leads with a nearby suburb, not a centre: "Truganina" here competed with its own page.
-      title: "Tutoring in Melbourne's West & Tarneit | AJ Classes",
+      // No centre suburb first ("Truganina" here competed with its own page), and "near": we
+      // don't teach in Tarneit (honesty rule 1).
+      title: "Tutoring in Melbourne's West, near Tarneit | AJ Classes",
       description:
-        'Small-group tutoring for Truganina, Williams Landing, Tarneit, Point Cook, Werribee, Melton and more: selective entry, NAPLAN, ICAS and VCE. Online too.',
+        'Small-group tutoring near Tarneit, Point Cook, Werribee, Hoppers Crossing and Melton, with classes in Truganina and Williams Landing. Online too.',
     },
   },
   {
@@ -61,7 +62,7 @@ export const AREAS: readonly Area[] = [
       { name: 'Epping', teachesHere: false },
     ],
     seo: {
-      title: "Tutoring in Melbourne's North & Roxburgh Park | AJ Classes",
+      title: "Tutoring in Melbourne's North | AJ Classes",
       description:
         'Small-group tutoring for Craigieburn, Roxburgh Park, Greenvale, Wollert and Epping: selective entry, NAPLAN, ICAS and VCE. In person or online.',
     },
@@ -166,7 +167,7 @@ export const CENTRES: readonly Centre[] = [
     name: 'Truganina',
     areaSlug: 'melbourne-west',
     intro:
-      'Small-group tutoring in Truganina for students in Years 2 to 12: selective entry exam and interview coaching, NAPLAN, ICAS, Maths, Science and English, and VCE. Taught in person in Truganina by qualified teachers, or live online.',
+      'Looking for tutoring in Truganina? We teach small groups of students from Year 2 to Year 12 here: selective entry exam and interview coaching, NAPLAN, ICAS, Maths, Science, English and VCE, with live online classes as well.',
     localHeading: 'Classes in Truganina',
     localParagraphs: [
       'Our Truganina classes are small groups of up to 10 students, with two one-hour classes a week. Every class is live and led by a qualified teacher who holds a Working With Children Check.',
@@ -192,7 +193,7 @@ export const CENTRES: readonly Centre[] = [
       {
         question: 'Do you teach in person in Truganina?',
         answer:
-          'Yes. Truganina is one of our three in-person centres, with Williams Landing and Craigieburn. We run live online classes too.',
+          'Yes. Truganina is one of the three suburbs where we teach in person, with Williams Landing and Craigieburn. We run live online classes too.',
       },
       {
         question: 'Can students from Tarneit or Hoppers Crossing join the Truganina classes?',
@@ -213,7 +214,7 @@ export const CENTRES: readonly Centre[] = [
     seo: {
       title: 'Tutoring in Truganina: Selective Entry & VCE | AJ Classes',
       description:
-        'Small-group tutoring in Truganina, Years 2–12: selective entry exam and interviews, NAPLAN, ICAS, Maths, Science, English and VCE. Online too.',
+        'Tutoring in Truganina for Years 2–12 in small groups: selective entry exam preparation, scholarships, NAPLAN, ICAS, Maths, Science, English and VCE.',
     },
   },
   {
@@ -221,7 +222,7 @@ export const CENTRES: readonly Centre[] = [
     name: 'Williams Landing',
     areaSlug: 'melbourne-west',
     intro:
-      'Small-group tutoring in Williams Landing for students in Years 2 to 12: selective entry exam and interview coaching, NAPLAN, ICAS, Maths, Science and English, and VCE. In person in Williams Landing, or live online from home.',
+      'AJ Classes teaches small groups in Williams Landing, taking students from NAPLAN in Year 2 through the selective entry exam and its interviews to VCE. Join a class in person, or learn live online from home.',
     localHeading: 'Classes in Williams Landing',
     localParagraphs: [
       'In Williams Landing we teach small groups of up to 10 students, twice a week for an hour. Our teachers are qualified, and each holds a current Working With Children Check.',
@@ -254,7 +255,7 @@ export const CENTRES: readonly Centre[] = [
       {
         question: 'Where are your classes near Williams Landing?',
         answer:
-          'We teach in person in Williams Landing itself and in Truganina, next door. Our third centre is in Craigieburn, in Melbourne’s north, and our classes also run online.',
+          'We teach in person in Williams Landing itself and in Truganina, next door. We also teach in Craigieburn, in Melbourne’s north, and our classes run online too.',
       },
       {
         question: 'Can Point Cook students join the Williams Landing classes?',
@@ -275,7 +276,7 @@ export const CENTRES: readonly Centre[] = [
     seo: {
       title: 'Tutoring in Williams Landing: Selective & VCE | AJ Classes',
       description:
-        'Small-group tutoring in Williams Landing, Years 2–12: selective entry and interviews, NAPLAN, ICAS, Maths, Science, English and VCE. In person or online.',
+        'Small-group classes in Williams Landing: selective entry exam and interview coaching, NAPLAN, ICAS and VCE, plus Maths, Science and English. Online too.',
     },
   },
   {
@@ -283,10 +284,10 @@ export const CENTRES: readonly Centre[] = [
     name: 'Craigieburn',
     areaSlug: 'melbourne-north',
     intro:
-      'Small-group tutoring in Craigieburn for students in Years 2 to 12: selective entry exam and interview coaching, NAPLAN, ICAS, Maths, Science and English, and VCE. Our in-person centre in Melbourne’s north, with live online classes too.',
+      'In Craigieburn, our small groups prepare students for NAPLAN, ICAS, the selective entry exam and its interviews, and VCE, with Maths, Science and English tutoring from Year 5. Classes are in person in Craigieburn or live online.',
     localHeading: 'Classes in Craigieburn',
     localParagraphs: [
-      'Craigieburn is our centre in Melbourne’s north. Classes are small groups of up to 10 students, two one-hour classes a week, each led by a qualified teacher with a Working With Children Check.',
+      'Craigieburn is where we teach in Melbourne’s north. Classes are small groups of up to 10 students, two one-hour classes a week, each led by a qualified teacher with a Working With Children Check.',
       'Craigieburn (postcode 3064, City of Hume) is surrounded by Roxburgh Park, Greenvale, Mickleham, Wollert and Donnybrook. Students from those suburbs can join our Craigieburn classes, or learn online in the same small-group format.',
       'Getting ready for NAPLAN? Our plain-English guide for parents explains what the tests cover and how to prepare without stress, and our NAPLAN classes start in Year 2.',
     ],
@@ -303,7 +304,7 @@ export const CENTRES: readonly Centre[] = [
       {
         question: 'Do you have classes in Craigieburn?',
         answer:
-          'Yes. Craigieburn is our in-person centre in Melbourne’s north. Our other centres are in Truganina and Williams Landing, in the west, and we teach live online as well.',
+          'Yes. Craigieburn is where we teach in person in Melbourne’s north. In the west we teach in Truganina and Williams Landing, and we teach live online as well.',
       },
       {
         question: 'Can students from Roxburgh Park, Greenvale or Mickleham join?',
@@ -324,7 +325,7 @@ export const CENTRES: readonly Centre[] = [
     seo: {
       title: 'Tutoring in Craigieburn: Selective Entry & VCE | AJ Classes',
       description:
-        'Small-group tutoring in Craigieburn, Years 2–12: NAPLAN, selective entry and interviews, ICAS, Maths, Science, English and VCE. In person or online.',
+        'Craigieburn tutoring in small groups: NAPLAN from Year 2, Maths, Science and English, selective entry and interviews, ICAS and VCE. In person or online.',
     },
   },
 ];
@@ -347,6 +348,6 @@ export const CENTRE_PAGE = {
   helpfulHeading: (name: string) => `Helpful for ${name} families`,
   questionsHeading: 'Common questions',
   reviewsLabel: 'Read our reviews on Google',
-  otherHeading: 'Our other centres',
+  otherHeading: 'Other suburbs where we teach',
   areaLinkLabel: (areaName: string) => `Suburbs we serve in ${areaName}`,
 } as const;

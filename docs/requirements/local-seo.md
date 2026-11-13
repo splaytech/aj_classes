@@ -69,7 +69,7 @@ not in the top 30 for "tutoring in truganina", nor on page 1 for "tutoring in wi
 address in that suburb and many reviews (Aspire Academics 119, Right Steps 69, Hunar 108); a page
 built for exactly "Tutoring in <Suburb>" (title, heading and address); or a directory (Yellow Pages,
 HighSchoolTutors, Superprof). Google still listed our old `/tutoring/truganina` page by name, even
-though it now redirected: the suburb page was already working.
+though it now redirected: the suburb page was already working. In Google Maps itself (not the Search map pack) AJ Classes was 3rd for "tutoring truganina", shown as "Tutoring service" with 5.0 from 14 reviews; the Search pack shows only 3, so the profile is close (signed-in result, so treat as indicative).
 
 **Built (`feature/seo-centre-pages`):**
 
@@ -78,7 +78,8 @@ though it now redirected: the suburb page was already working.
 | Centre pages | `/tutoring/truganina`, `/tutoring/williams-landing`, `/tutoring/craigieburn`: one per suburb in `BUSINESS.suburbs`, about 560 words each. Title and heading lead with "Tutoring in <Suburb>". Own paragraphs, neighbouring suburbs, three helpful links, four questions, a Google reviews link, the programmes, and links to the other centres and the area page. `CENTRES` in `areas.constants.ts`. |
 | Redirects | The three addresses no longer redirect (`vercel.json`, `serve.railway.json`); the other 11 still do. |
 | Links to them | Each programme page's "Small groups, in person in …" line now links the three names (`CentreLinks`), and the area pages' centre hashtags open the centre page instead of Google Maps. The footer keeps its two area links (owner's tidy-footer choice stands). |
-| Area titles | No longer lead with a centre suburb, so they don't compete with the centre pages: "Tutoring in Melbourne's West & Tarneit", "Tutoring in Melbourne's North & Roxburgh Park". |
+| Area titles | No longer lead with a centre suburb, so they don't compete with the centre pages, and say "near" for a suburb we don't teach in: "Tutoring in Melbourne's West, near Tarneit", "Tutoring in Melbourne's North". The west description now leads with the nearby suburbs. |
+| Wording rules | The site never says "centre" to visitors (it would imply a venue): "the suburbs where we teach". Each centre page's opening, description, paragraphs and answers are its own: a test compares every pair across pages by 4-word runs (must share under half), and another bans in-person claims for every neighbouring suburb plus distance, travel-time and results words. Both were checked by breaking the copy on purpose. |
 | Structured data | Each centre page: `Service` with the centre and its neighbours as `areaServed`, breadcrumb Home › area › centre. Sitemap 19 → 22 pages. |
 
 **Why this goes against the 5 Nov fold, and why only three:** the fold note said "if a suburb matters a

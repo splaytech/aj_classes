@@ -76,23 +76,53 @@ describe('centre data', () => {
     },
   );
 
-  it('gives every centre its own wording, even with the suburb names taken out', () => {
-    // Name-swapped copy is a doorway pattern Google ranks down (local-seo.md, honesty rule 2).
-    const names = AREAS.flatMap((area) => area.suburbs.map((suburb) => suburb.name));
-    const neutral = (text: string) =>
-      names.reduce((result, name) => result.replaceAll(name, 'X'), text);
-    const texts = CENTRES.flatMap((centre) => centreTexts(centre).map(neutral));
-    expect(new Set(texts).size).toBe(texts.length);
+  it('gives every centre its own wording, not a near copy with the suburb names swapped', () => {
+    // Name-swapped copy is a doorway pattern Google ranks down (local-seo.md, honesty rule 2), and
+    // changing one word would beat an exact-match check, so compare 4-word runs (Jaccard < 0.5).
+    const names = [
+      ...AREAS.flatMap((area) => area.suburbs.map((suburb) => suburb.name)),
+      ...CENTRES.flatMap((centre) => centre.nearby),
+    ];
+    const shingles = (text: string) => {
+      const neutral = names.reduce((result, name) => result.replaceAll(name, 'X'), text);
+      const words = neutral.toLowerCase().match(/[a-z0-9’']+/g) ?? [];
+      return new Set(words.slice(0, -3).map((_, i) => words.slice(i, i + 4).join(' ')));
+    };
+    const similarity = (a: Set<string>, b: Set<string>) => {
+      const shared = [...a].filter((run) => b.has(run)).length;
+      return shared / (a.size + b.size - shared || 1);
+    };
+    const fields = (centre: (typeof CENTRES)[number]) => [
+      centre.intro,
+      centre.seo.description,
+      ...centre.localParagraphs,
+      ...centre.questions.map((item) => item.answer),
+    ];
+    for (const [i, first] of CENTRES.entries()) {
+      for (const second of CENTRES.slice(i + 1)) {
+        for (const a of fields(first)) {
+          for (const b of fields(second)) {
+            expect(similarity(shingles(a), shingles(b)), `${a}\n${b}`).toBeLessThan(0.5);
+          }
+        }
+      }
+    }
   });
 
-  it('only claims in-person classes in the three centre suburbs', () => {
-    const others = AREAS.flatMap((area) => area.suburbs)
-      .filter((suburb) => !suburb.teachesHere)
-      .map((suburb) => suburb.name);
+  it('only claims in-person classes in the three centre suburbs, and no distances or results', () => {
+    const others = [
+      ...AREAS.flatMap((area) => area.suburbs)
+        .filter((suburb) => !suburb.teachesHere)
+        .map((suburb) => suburb.name),
+      ...CENTRES.flatMap((centre) => centre.nearby).filter(
+        (name) => !(BUSINESS.suburbs as readonly string[]).includes(name),
+      ),
+    ];
+    const claim = (name: string) =>
+      new RegExp(`(teach\\w*|taught|class\\w*|lessons?|centre|in person) (\\w+ )?in ${name}`, 'i');
     for (const text of CENTRES.flatMap(centreTexts)) {
-      for (const name of others) {
-        expect(text).not.toMatch(new RegExp(`(teach|classes|in person) in ${name}`, 'i'));
-      }
+      for (const name of others) expect(text).not.toMatch(claim(name));
+      expect(text).not.toMatch(/\bkm\b|minutes?|drive|walk|guarantee|results?|ATAR|scores?/i);
     }
   });
 
