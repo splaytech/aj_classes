@@ -58,3 +58,13 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
 }
+
+/* Centre pages: each common question is a small heading with its answer under it. */
+.question + .question {
+  margin-top: var(--space-6);
+}
+
+.question h3 {
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-lg);
+}

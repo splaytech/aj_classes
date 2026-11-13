@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { GUIDE_PATHS, ROUTES, AREA_PATHS } from '@/constants';
+import { GUIDE_PATHS, ROUTES, AREA_PATHS, CENTRE_PATHS } from '@/constants';
 
 import { publicSitemapPaths } from './sitemap';
 
@@ -22,10 +22,12 @@ describe('sitemap pages', () => {
     expect(publicSitemapPaths(false)).toContain(ROUTES.careers);
   });
 
-  it('lists every area page and parent guide, with and without Supabase', () => {
+  it('lists every area page, centre page and parent guide, with and without Supabase', () => {
     for (const supabaseConfigured of [true, false]) {
       const paths = publicSitemapPaths(supabaseConfigured);
-      for (const path of [...AREA_PATHS, ...GUIDE_PATHS]) expect(paths).toContain(path);
+      for (const path of [...AREA_PATHS, ...CENTRE_PATHS, ...GUIDE_PATHS]) {
+        expect(paths).toContain(path);
+      }
     }
   });
 

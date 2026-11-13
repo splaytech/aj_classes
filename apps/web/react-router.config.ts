@@ -3,7 +3,7 @@ import type { Config } from '@react-router/dev/config';
 import { PROGRAMME_PATHS } from './src/constants/programmes.constants';
 import { GUIDE_PATHS } from './src/constants/resources.constants';
 import { ROUTES } from './src/constants/routes.constants';
-import { AREA_PATHS } from './src/constants/areas.constants';
+import { AREA_PATHS, CENTRE_PATHS } from './src/constants/areas.constants';
 
 // Static site: no server runtime. Every public page is pre-rendered to HTML at build time
 // so crawlers and link previews get real content (PRP F6.1).
@@ -19,6 +19,7 @@ export default {
     ROUTES.posts, // shell only; posts load live in the browser (ADR-0001)
     ...GUIDE_PATHS,
     ...AREA_PATHS,
+    ...CENTRE_PATHS,
     ROUTES.subscribed,
     ROUTES.notFound,
     ROUTES.sitemap,

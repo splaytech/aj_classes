@@ -58,6 +58,48 @@
 3. Google Business Profile: add the nearby suburbs as service areas, and check categories and the description.
 4. Reviews: ask families for Google reviews (the review link is still a [TBC] in `docs/social-media/tbc-consolidated.md`).
 
+## Round 3 (13 Nov 2026): centre pages for "tutoring in {suburb}"
+
+Owner's goal: appear at the top when someone searches "tutoring in {suburb}". He asked the team to
+decide and not ask, except for logins.
+
+**Audit (Google, 13 Nov 2026, `pws=0`, signed in as the AJ Classes Tech account):** AJ Classes was
+not in the top 30 for "tutoring in truganina", nor on page 1 for "tutoring in williams landing" or
+"tutoring in craigieburn". Every page-1 result was one of three things: a map-pack listing with an
+address in that suburb and many reviews (Aspire Academics 119, Right Steps 69, Hunar 108); a page
+built for exactly "Tutoring in <Suburb>" (title, heading and address); or a directory (Yellow Pages,
+HighSchoolTutors, Superprof). Google still listed our old `/tutoring/truganina` page by name, even
+though it now redirected: the suburb page was already working. In Google Maps itself (not the Search map pack) AJ Classes was 3rd for "tutoring truganina", shown as "Tutoring service" with 5.0 from 14 reviews; the Search pack shows only 3, so the profile is close (signed-in result, so treat as indicative).
+
+**Built (`feature/seo-centre-pages`):**
+
+| Item | Detail |
+|---|---|
+| Centre pages | `/tutoring/truganina`, `/tutoring/williams-landing`, `/tutoring/craigieburn`: one per suburb in `BUSINESS.suburbs`, about 560 words each. Title and heading lead with "Tutoring in <Suburb>". Own paragraphs, neighbouring suburbs, three helpful links, four questions, a Google reviews link, the programmes, and links to the other centres and the area page. `CENTRES` in `areas.constants.ts`. |
+| Redirects | The three addresses no longer redirect (`vercel.json`, `serve.railway.json`); the other 11 still do. |
+| Links to them | Each programme page's "Small groups, in person in …" line now links the three names (`CentreLinks`), and the area pages' centre hashtags open the centre page instead of Google Maps. The footer keeps its two area links (owner's tidy-footer choice stands). |
+| Area titles | No longer lead with a centre suburb, so they don't compete with the centre pages, and say "near" for a suburb we don't teach in: "Tutoring in Melbourne's West, near Tarneit", "Tutoring in Melbourne's North". The west description now leads with the nearby suburbs. |
+| Wording rules | The site never says "centre" to visitors (it would imply a venue): "the suburbs where we teach". Each centre page's opening, description, paragraphs and answers are its own: a test compares every pair across pages by 4-word runs (must share under half), and another bans in-person claims for every neighbouring suburb plus distance, travel-time and results words. Both were checked by breaking the copy on purpose. |
+| Structured data | Each centre page: `Service` with the centre and its neighbours as `areaServed`, breadcrumb Home › area › centre. Sitemap 19 → 22 pages. |
+
+**Why this goes against the 5 Nov fold, and why only three:** the fold note said "if a suburb matters a
+lot, give it its own page again". The three centre suburbs are where we teach, so their pages can say
+true, specific things; pages for suburbs we don't teach in would be thin and are what the fold removed.
+
+**Facts used (checked 13 Nov 2026):** Wikipedia infoboxes: Truganina borders Tarneit, Hoppers Crossing,
+Williams Landing, Derrimut, Laverton North, postcode 3029; Williams Landing 3027, City of Wyndham,
+borders Truganina (north), Point Cook (south), Hoppers Crossing, Laverton, Seabrook, has a railway
+station; Craigieburn 3064, City of Hume, neighbours Roxburgh Park, Greenvale, Mickleham, Wollert,
+Donnybrook, Kalkallo. Epping is still not described as a neighbour (sources disagree, see above).
+Westbourne's Truganina campus and Suzanne Cory High School come from our own checked guides. Class
+facts (up to 10, twice a week, WWCC, reply within 3 business days) come from the site FAQ.
+
+**Not done by the website (needs the owner, see the session summary):** Search Console access (neither
+signed-in Google account can see the property on 13 Nov), Google Business Profile work (reviews,
+replies, photos, posts, services), and directory listings (Yellow Pages, True Local, Hotfrog, Bing
+Places). For "tutoring in {suburb}" the map pack sits above every web result, and it ranks on the
+Business Profile, mainly reviews and distance to the searcher, so that work matters as much as the pages.
+
 ## Change of plan (5 Nov 2026, later): 14 suburb pages became 2 area pages
 
 The owner found 14 suburb pages too much for the site (the footer listed all of them) and asked for one page for Melbourne's west and one for the north, with the surrounding suburbs listed on them.
