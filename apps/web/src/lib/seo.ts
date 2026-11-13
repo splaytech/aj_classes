@@ -228,11 +228,15 @@ export function buildGuideJsonLd(guide: {
   return { 'script:ld+json': { '@context': 'https://schema.org', '@graph': [article, trail] } };
 }
 
-/** Structured data for an area page: the tutoring service for the suburbs it covers, and its breadcrumb. */
+/**
+ * Structured data for an area or centre page: the tutoring service for the suburbs it covers, and
+ * its breadcrumb. A centre page passes its area as `parent` (Home › Melbourne's West › Truganina).
+ */
 export function buildAreaJsonLd(area: {
   name: string;
   path: string;
   suburbs: readonly string[];
+  parent?: Crumb;
 }): MetaDescriptor {
   const service = {
     '@type': 'Service',
@@ -252,6 +256,7 @@ export function buildAreaJsonLd(area: {
   };
   const trail = breadcrumbList([
     { name: STRUCTURED_DATA.breadcrumbs.home, path: ROUTES.home },
+    ...(area.parent ? [area.parent] : []),
     { name: AREA_PAGE.title(area.name), path: area.path },
   ]);
 

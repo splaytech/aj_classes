@@ -3,6 +3,7 @@
 
 import { useParams } from 'react-router';
 
+import { CentreLinks } from '@/components/layout/CentreLinks';
 import { SiteLayout } from '@/components/layout/SiteLayout';
 import { ButtonLink, Section } from '@/components/ui';
 import {
@@ -54,7 +55,11 @@ export function ProgrammePage({ programme }: { programme: Programme }) {
         </div>
         <h1>{programme.title}</h1>
         <p className={styles.intro}>{programme.intro}</p>
-        <p>{PROGRAMME_PAGE.deliveryText}</p>
+        <p>
+          {PROGRAMME_PAGE.deliveryBefore}
+          <CentreLinks />
+          {PROGRAMME_PAGE.deliveryAfter}
+        </p>
         <ButtonLink href={sectionLink(SECTION_IDS.contact)}>{PROGRAMME_PAGE.cta}</ButtonLink>
       </Section>
 
