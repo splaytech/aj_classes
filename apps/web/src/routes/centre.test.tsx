@@ -29,6 +29,8 @@ const DESCRIPTION_MAX = 160;
 const DESCRIPTION_MIN = 70;
 
 const centreTexts = (centre: (typeof CENTRES)[number]) => [
+  centre.seo.title,
+  centre.seo.description,
   centre.intro,
   ...centre.localParagraphs,
   ...centre.questions.flatMap((item) => [item.question, item.answer]),
