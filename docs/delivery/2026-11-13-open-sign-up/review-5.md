@@ -89,3 +89,28 @@
 ## Lead note
 
 All seven findings go back to the Developer in one fix round before stage 6. Items 4 and 5 are taken too: each would leave a broken or weaker release that only shows on the hosted project.
+
+## Round 2
+
+**Verdict: APPROVED.** All seven round 1 findings are fixed at `8a33156`, each has a test, and nothing new needs fixing before merge.
+
+**Checks run at `8a33156`:** lint and typecheck green; `pnpm test` 832 web tests in 92 files (up from 827); 39 `test-deploy-order.mjs` checks `ok` (up from 35). `db:test`, `test:functions` and e2e were not run (the Tester and Security were using the stack); the new pgTAP cases were read, not run.
+
+**Finding by finding:**
+1. Docs: fixed (03 §3.6, §3.7, §5, §7.9, §8.1, §10 row 12; `release-notes.md` DEC-OS-3, DEC-OS-5, "What wasn't verified"; ADR-0011). One leftover phrase; see new finding 1.
+2. Page race: fixed. The page re-reads `getSignUpOptions()` just before sending (`apps/web/src/routes/portal/sign-up.tsx:105`); four unit tests (open at load, busy or closed at submit, new and existing e-mail). The remaining sub-second gap is covered by R1 (`00-decisions.md:17`): once sent, GoTrue answers a confirmed e-mail with 422 before the hook runs, and anyone exploiting that window could call the raw API anyway.
+3. Name length: fixed (`apps/web/src/lib/sign-up-validation.ts` counts code points; tests for 1, 2, 100, 101 emoji).
+4. Guard rights: fixed. `private.can_write_auth_tables` (`20261114100100_open_sign_up.sql:740-751`) checks DELETE on `auth.mfa_factors`, DELETE on `auth.sessions`, UPDATE on `auth.users`; `sign_up_guard_ready()` requires it (`:776`); pgTAP (`open_sign_up.test.sql:612-619`) swaps in a false helper inside a savepoint and sees the guard turn false.
+5. `deploy.sh`: fixed. A failed `config push` closes sign-up and fails loudly (`deploy.sh:274`); the post-check needs `mailer_autoconfirm == false and disable_signup == false` (`:163`); fake-curl tests cover a failed push and autoconfirm on.
+6. Stray comments: fixed (`accounts.ts:204`, `families.service.ts:114`).
+7. `service_role`: revoked (`:166`), with a pgTAP check and the 03 §3.10 table updated.
+
+### Findings
+
+1. **Non-blocking (nit): "the fake reply" is still in the docs** at `03-design.md:36`, `:381`, `:729` (§10 row 10), `02-architecture.md:87`, `04-plan.md:464`. **Fix:** reword to match §8.1 (422 `user_already_exists`, same card).
+2. **Non-blocking (nit): the `disable_signup == false` half of the post-check has no test** (`test-deploy-order.mjs:57` always returns `false`). **Fix:** add a `FAKE_DISABLE_SIGNUP` case like `FAKE_AUTOCONFIRM`.
+3. **Non-blocking (note, no change): a failed re-read shows the closed card** (`sign-up.tsx:105`) and the typed values are lost. Fails closed and is the same for every e-mail, so acceptable.
+
+## Lead note (round 2)
+
+Stage 5 gate passed. Nits 1 and 2 go to the Developer in the same batch as any 6b Security findings.
