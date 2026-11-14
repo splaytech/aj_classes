@@ -498,5 +498,86 @@ select has_column('public', 'profiles', 'full_name', 'profiles.full_name is stil
 select has_column('public', 'profiles', 'is_active', 'profiles.is_active is still there');
 select has_column('public', 'profiles', 'invited_at', 'profiles.invited_at is still there');
 
+-- #9 Admin → Users: list and promote (§3.7; AC-31, AC-35)
+select tests.create_staff('00000000-0000-0000-0000-0000000aa001', 'list-admin@test.local', 'admin');
+select tests.create_staff('00000000-0000-0000-0000-0000000aa002', 'list-tutor@test.local');
+select tests.create_sign_up('00000000-0000-0000-0000-0000000aa011', 'list-older@test.local');
+update public.profiles set created_at = now() - interval '2 days' where id = '00000000-0000-0000-0000-0000000aa011';
+select tests.create_sign_up('00000000-0000-0000-0000-0000000aa012', 'list-unfinished@test.local', p_finished => false);
+update public.profiles set created_at = now() - interval '1 day' where id = '00000000-0000-0000-0000-0000000aa012';
+insert into auth.users (id, aud, role, email, raw_app_meta_data, raw_user_meta_data)
+values ('00000000-0000-0000-0000-0000000aa013', 'authenticated', 'authenticated', 'list-google@test.local',
+        '{"provider":"google","providers":["google"]}', '{"full_name":"List Google"}');
+select lives_ok(tests.google_identity_sql('00000000-0000-0000-0000-0000000aa013'), 'A Google sign-up to list');
+
+select tests.authenticate_as('00000000-0000-0000-0000-0000000aa002', 'aal2');
+select throws_ok($$ select * from public.admin_list_users() $$, '42501', 'not_admin', 'A tutor can''t list users');
+reset role;
+select tests.authenticate_as('00000000-0000-0000-0000-0000000aa001', 'aal1');
+select throws_ok($$ select * from public.admin_list_users() $$, '42501', 'not_admin', 'An aal1 admin can''t list users');
+reset role;
+select tests.authenticate_as('00000000-0000-0000-0000-0000000aa001', 'aal2');
+select results_eq(
+  $$ select email, signed_up_with, finished, is_active from public.admin_list_users()
+     where email like 'list-%' $$,
+  $$ values ('list-google@test.local', 'google', false, true),
+            ('list-unfinished@test.local', 'email', false, true),
+            ('list-older@test.local', 'email', true, true) $$,
+  'admin_list_users: users only, newest first, with how they signed up and whether they finished');
+select is_empty($$ select 1 from public.admin_list_users() where email in ('list-admin@test.local', 'list-tutor@test.local') $$,
+  'Staff are not in the users list');
+reset role;
+
+-- Promote a finished e-mail user.
+insert into public.students (id, full_name, year_level) values
+  ('00000000-0000-0000-0000-0000000aa021', 'Promo Child', 6),
+  ('00000000-0000-0000-0000-0000000aa022', 'Gone Child', 6);
+update public.students set is_active = false where id = '00000000-0000-0000-0000-0000000aa022';
+insert into auth.sessions (id, user_id, created_at, updated_at, aal)
+values ('00000000-0000-0000-0000-0000000aa0f1', '00000000-0000-0000-0000-0000000aa011', now(), now(), 'aal1');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000aa002', 'aal2');
+select throws_ok($$ select public.admin_promote_user('00000000-0000-0000-0000-0000000aa011', '00000000-0000-0000-0000-0000000aa021') $$,
+  '42501', 'not_admin', 'A tutor can''t promote');
+reset role;
+select tests.authenticate_as('00000000-0000-0000-0000-0000000aa001', 'aal2');
+select throws_ok($$ select public.admin_promote_user('00000000-0000-0000-0000-0000000aa012', '00000000-0000-0000-0000-0000000aa021') $$,
+  'P0001', 'not_a_signed_up_user', 'An unfinished user can''t be promoted');
+select throws_ok($$ select public.admin_promote_user('00000000-0000-0000-0000-0000000aa002', '00000000-0000-0000-0000-0000000aa021') $$,
+  'P0001', 'not_a_signed_up_user', 'A tutor can''t be "promoted" this way');
+select throws_ok($$ select public.admin_promote_user('00000000-0000-0000-0000-0000000aa011', '00000000-0000-0000-0000-0000000aa022') $$,
+  'P0002', 'not_found', 'An inactive student: not_found');
+select lives_ok($$ select public.admin_promote_user('00000000-0000-0000-0000-0000000aa011', '00000000-0000-0000-0000-0000000aa021') $$,
+  'An admin promotes a finished user to parent of a student');
+select is_empty($$ select 1 from public.admin_list_users() where id = '00000000-0000-0000-0000-0000000aa011' $$,
+  'and they are no longer in the users list');
+reset role;
+select is((select role::text from public.profiles where id = '00000000-0000-0000-0000-0000000aa011'), 'parent',
+  'The role is now parent');
+select isnt_empty($$ select 1 from public.student_guardians
+                    where parent_id = '00000000-0000-0000-0000-0000000aa011'
+                      and student_id = '00000000-0000-0000-0000-0000000aa021' $$, 'The link exists');
+select is((select encrypted_password from auth.users where id = '00000000-0000-0000-0000-0000000aa011'), 'chosen-hash',
+  'The password is kept');
+select isnt_empty($$ select 1 from auth.sessions where id = '00000000-0000-0000-0000-0000000aa0f1' $$,
+  'Their sessions are kept');
+select results_eq(
+  $$ select details from public.audit_log where action = 'parent_linked' and target_id = '00000000-0000-0000-0000-0000000aa011' $$,
+  $$ values (jsonb_build_object('student_id', '00000000-0000-0000-0000-0000000aa021', 'student_name', 'Promo Child',
+                                'promoted_from', 'user', 'signed_up_with', 'email')) $$,
+  'Audited as parent_linked {promoted_from: user, signed_up_with}');
+
+-- A promoted Google user, signed in with Google (oauth amr), reads their child (AC-35).
+update public.profiles set status = 'active', joined_at = now(), terms_accepted_at = now()
+where id = '00000000-0000-0000-0000-0000000aa013';
+select tests.authenticate_as('00000000-0000-0000-0000-0000000aa001', 'aal2');
+select lives_ok($$ select public.admin_promote_user('00000000-0000-0000-0000-0000000aa013', '00000000-0000-0000-0000-0000000aa021') $$,
+  'A finished Google user can be promoted');
+reset role;
+select tests.authenticate_with_session('00000000-0000-0000-0000-0000000aa013', array['oauth']);
+select results_eq($$ select student_id, full_name from public.parent_children() $$,
+  $$ values ('00000000-0000-0000-0000-0000000aa021'::uuid, 'Promo Child') $$,
+  'The promoted Google parent reads their child through parent_children()');
+reset role;
+
 select * from finish();
 rollback;

@@ -645,3 +645,86 @@ begin
   values ((select auth.uid()), case when active then 'reactivated' else 'deactivated' end, target);
 end;
 $$;
+
+-- ---------------------------------------------------------------------------
+-- §3.7 Admin → Users: list signed-up users, and promote one to parent
+-- ---------------------------------------------------------------------------
+
+-- Everyone who signed up on the website, newest first, with how they signed up (one call, no N+1).
+create function public.admin_list_users()
+returns table (
+  id uuid,
+  email text,
+  full_name text,
+  signed_up_at timestamptz,
+  signed_up_with text,
+  finished boolean,
+  is_active boolean
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not private.is_admin() then
+    raise exception 'not_admin' using errcode = '42501';
+  end if;
+  return query
+    select p.id, p.email, p.full_name, p.created_at, private.signed_up_with(p.id),
+           p.status = 'active', p.is_active
+    from public.profiles p
+    where p.role = 'user'
+    order by p.created_at desc, p.id;
+end;
+$$;
+
+-- Links a finished, active signed-up user to a student as their parent (AC-33, AC-35), after the
+-- admin confirmed it in "Invite or link a parent". Keeps their password, sessions and
+-- authenticators (02 Q8, R3). account-admin then sets app_metadata.account_role = 'parent'.
+create function public.admin_promote_user(target uuid, target_student uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  student_name text;
+begin
+  if not private.is_admin() then
+    raise exception 'not_admin' using errcode = '42501';
+  end if;
+
+  perform 1
+  from public.profiles p
+  where p.id = target and p.role = 'user' and p.status = 'active' and p.is_active
+  for update;
+  if not found then
+    raise exception 'not_a_signed_up_user';
+  end if;
+
+  select s.full_name into student_name
+  from public.students s
+  where s.id = target_student and s.is_active;
+  if not found then
+    raise exception 'not_found' using errcode = 'P0002';
+  end if;
+
+  -- The role first: the student_guardians trigger only accepts parent accounts.
+  update public.profiles set role = 'parent' where id = target;
+  insert into public.student_guardians (student_id, parent_id) values (target_student, target);
+
+  insert into public.audit_log (actor_id, action, target_id, details)
+  values ((select auth.uid()), 'parent_linked', target, jsonb_build_object(
+    'student_id', target_student,
+    'student_name', student_name,
+    'promoted_from', 'user',
+    'signed_up_with', private.signed_up_with(target)
+  ));
+end;
+$$;
+
+revoke execute on function public.admin_list_users() from public, anon, authenticated;
+revoke execute on function public.admin_promote_user(uuid, uuid) from public, anon, authenticated;
+grant execute on function public.admin_list_users() to authenticated;
+grant execute on function public.admin_promote_user(uuid, uuid) to authenticated;

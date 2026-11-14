@@ -349,7 +349,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Check:** RESET, DB, FULL.
   - **Commit:** `fix(db): invite onboarding refuses signed-up users; users can be deactivated before finishing`
 
-- [ ] **14. List users and promote one** (03 §3.7 `admin_list_users` and `admin_promote_user`).
+- [x] **14. List users and promote one** (03 §3.7 `admin_list_users` and `admin_promote_user`).
   - **ACs:** AC-31 (DB), AC-35 (DB).
   - **pgTAP-OS:**
     - `admin_list_users` works only for an admin at aal2, lists newest first, and has the right `signed_up_with` and `finished`;
