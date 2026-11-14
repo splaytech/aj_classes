@@ -386,7 +386,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
 
 ### Phase D: the `account-admin` edge function (restart the edge runtime after every edit)
 
-- [ ] **17. Invites replace an unfinished sign-up and refuse a finished one** (03 §6.1 `replaceUnfinishedSignUp`, §6.2).
+- [x] **17. Invites replace an unfinished sign-up and refuse a finished one** (03 §6.1 `replaceUnfinishedSignUp`, §6.2).
   - **ACs:** AC-13, AC-34 (server), AC-36, AC-37.
   - **Files:** `handlers/accounts.ts`, `invite.ts` (switched to `findAccountByEmail`), `invite-student.ts` (`already_exists_user`), `invite-parent.ts` (the unfinished case), `resend-invite.ts`, `cancel-invite.ts` (`not_allowed`).
   - **INT:**

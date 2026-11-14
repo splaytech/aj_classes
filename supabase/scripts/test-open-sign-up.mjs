@@ -46,6 +46,7 @@ const browserClient = () =>
   createClient(API, PUBLISHABLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 
 let admin;
+let redeemCount = 0;
 const accountAdmin = (body) => api('/functions/v1/account-admin', { token: admin.aal2, body });
 const address = (label) => `${PREFIX}-${label}@local.test`;
 
@@ -55,7 +56,13 @@ async function invitedSignsIn(email, userId) {
   const token = (await mailpitText(mail.ID)).match(INVITE_LINK)?.[1] ?? '';
   const redeem = await fetch(`${API}/functions/v1/invite-redeem`, {
     method: 'POST',
-    headers: { Origin: SITE_ORIGIN, 'Content-Type': 'application/json' },
+    // A fresh caller address per redeem keeps this run out of invite-redeem's per-address limit
+    // (local Kong keeps the leftmost x-forwarded-for, as test-invite-redeem.mjs relies on).
+    headers: {
+      Origin: SITE_ORIGIN,
+      'Content-Type': 'application/json',
+      'x-forwarded-for': `10.${RUN % 250}.${Math.floor(redeemCount / 250) % 250}.${redeemCount++ % 250}`,
+    },
     body: JSON.stringify({ token }),
   });
   const reply = await redeem.json();
@@ -924,6 +931,161 @@ async function switchChecks() {
   check('and sign-up works again', after.status === 200, after.status);
 }
 
+/** A website sign-up that confirmed and finished /portal/join. */
+async function finishedUser(label) {
+  const email = address(label);
+  const password = `${PREFIX}-${label}-Pw1!`;
+  const reply = await rawSignUp(email, `Finished ${label}`);
+  const link = await openConfirmationLink(email);
+  await setPassword(link.token, password);
+  await finishSignUp(link.token, `Finished ${label}`);
+  return { email, password, id: reply.json?.id, token: link.token };
+}
+
+/** A website sign-up that hasn't confirmed yet (its confirmation link is in Mailpit). */
+async function unfinishedUser(label) {
+  const email = address(label);
+  const reply = await rawSignUp(email, `Unfinished ${label}`);
+  return { email, id: reply.json?.id, hash: await confirmationHash(email) };
+}
+
+/** A roster student with consent and no account, ready for a student invite. */
+const consentedStudent = () =>
+  sql(
+    `insert into public.students (full_name, year_level, consent_recorded_at, consent_source) values ('Open Sign-up ${RUN}', 7, now(), 'admin') returning id`,
+  ).split('\n')[0];
+
+async function inviteReplaceChecks() {
+  console.log('\nInvites and sign-ups (AC-13, AC-34, AC-36, AC-37)');
+  plantCapRows(0);
+  const studentForParent = consentedStudent();
+
+  for (const [kind, invite] of [
+    ['staff', (email) => accountAdmin({ action: 'invite', email, fullName: 'Invited Staff' })],
+    [
+      'student',
+      (email) => accountAdmin({ action: 'invite-student', studentId: consentedStudent(), email }),
+    ],
+    [
+      'parent',
+      (email) =>
+        accountAdmin({
+          action: 'invite-parent',
+          studentId: studentForParent,
+          email,
+          fullName: 'Invited Parent',
+        }),
+    ],
+  ]) {
+    const signUp = await unfinishedUser(`replace-${kind}`);
+    const reply = await invite(signUp.email);
+    const newId = reply.json?.data?.userId;
+    check(
+      `AC-36: a ${kind} invite replaces an unfinished sign-up`,
+      reply.json?.ok === true && newId && newId !== signUp.id && userCount(signUp.email) === '1',
+      JSON.stringify(reply.json),
+    );
+    check(
+      `AC-36: the ${kind} invitee has the invite's role, not user`,
+      sql(`select role from public.profiles where id = '${newId}'`) ===
+        (kind === 'staff' ? 'tutor' : kind),
+    );
+    check(
+      `AC-36: the sign-up's old confirmation link fails afterwards (${kind})`,
+      (await openConfirmationLink(signUp.email, signUp.hash)).status !== 200,
+    );
+    check(`AC-36: the ${kind} invite link redeems`, await invitedSignsIn(signUp.email, newId));
+  }
+  check(
+    'The staff invite that replaced a sign-up is audited with replaced_sign_up',
+    sql(
+      `select count(*) from public.audit_log where action = 'invite_sent' and details ->> 'email' = '${address('replace-staff')}' and details -> 'replaced_sign_up' = 'true'`,
+    ) === '1',
+  );
+
+  const finished = await finishedUser('invite-finished');
+  const staffRefused = await accountAdmin({
+    action: 'invite',
+    email: finished.email,
+    fullName: 'Someone',
+  });
+  check(
+    'AC-37: a staff invite to a finished user gets already_exists',
+    staffRefused.json?.code === 'already_exists',
+    JSON.stringify(staffRefused.json),
+  );
+  const studentRefused = await accountAdmin({
+    action: 'invite-student',
+    studentId: consentedStudent(),
+    email: finished.email,
+  });
+  check(
+    'AC-34: a student invite to a finished user gets already_exists_user',
+    studentRefused.json?.code === 'already_exists_user',
+    JSON.stringify(studentRefused.json),
+  );
+  check('and the finished user is untouched', profileState(finished.email) === 'user/active');
+
+  const deactivated = await unfinishedUser('invite-deactivated');
+  sql(`update public.profiles set is_active = false where id = '${deactivated.id}'`);
+  for (const [kind, body] of [
+    ['staff', { action: 'invite', email: deactivated.email, fullName: 'Someone' }],
+    [
+      'student',
+      { action: 'invite-student', studentId: consentedStudent(), email: deactivated.email },
+    ],
+    [
+      'parent',
+      {
+        action: 'invite-parent',
+        studentId: studentForParent,
+        email: deactivated.email,
+        fullName: 'Someone',
+      },
+    ],
+  ]) {
+    const reply = await accountAdmin(body);
+    check(
+      `AC-36: a ${kind} invite to a deactivated sign-up gets already_exists`,
+      reply.json?.code === 'already_exists',
+      JSON.stringify(reply.json),
+    );
+  }
+
+  const notAllowedResend = await accountAdmin({ action: 'resend-invite', userId: finished.id });
+  const notAllowedCancel = await accountAdmin({ action: 'cancel-invite', userId: deactivated.id });
+  check(
+    'resend-invite and cancel-invite refuse users with not_allowed',
+    notAllowedResend.json?.code === 'not_allowed' && notAllowedCancel.json?.code === 'not_allowed',
+    JSON.stringify([notAllowedResend.json, notAllowedCancel.json]),
+  );
+
+  // AC-13: a parent invite first, then someone signs up with that e-mail.
+  const invitedFirst = address('ac13');
+  const invited = await accountAdmin({
+    action: 'invite-parent',
+    studentId: studentForParent,
+    email: invitedFirst,
+    fullName: 'Invited First',
+  });
+  const mailsBefore = await mailCount(invitedFirst);
+  const lateSignUp = await rawSignUp(invitedFirst, 'Late Sign Up');
+  await settle();
+  check(
+    'AC-13: a sign-up with an invited e-mail changes nothing and sends nothing',
+    // GoTrue answers a confirmed address with 422 user_already_exists (signup.go:293, because
+    // SMS confirmations are off); the page shows the same "sent" card for both (R1, 05-dev-notes).
+    (lateSignUp.status === 200 || lateSignUp.json?.error_code === 'user_already_exists') &&
+      profileState(invitedFirst) === 'parent/invited' &&
+      (await mailCount(invitedFirst)) === mailsBefore,
+    JSON.stringify({ status: lateSignUp.status }),
+  );
+  check(
+    'AC-13: and the invite link still redeems',
+    await invitedSignsIn(invitedFirst, invited.json?.data?.userId),
+  );
+}
+
 const pkceSeen = {};
 const amrSeen = {};
 let captchaShape = null;
@@ -950,6 +1112,7 @@ async function main() {
     await finishChecks();
     await pkceChecks();
     await switchChecks();
+    await inviteReplaceChecks();
   } finally {
     cleanUp();
   }

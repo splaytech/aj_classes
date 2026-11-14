@@ -15,6 +15,7 @@ import {
 
 import {
   audit,
+  clearForInvite,
   createInvitedAccount,
   deleteAccount,
   findAccountByEmail,
@@ -37,7 +38,7 @@ export async function inviteParent(
   if (!student || !student.is_active) return fail('not_found');
 
   const existing = await findAccountByEmail(email);
-  if (existing) {
+  if (existing && existing.role !== 'user') {
     if (existing.role !== 'parent') return fail('already_exists');
     const code = await link(student.id, existing.id);
     if (code) return fail(code);
@@ -47,6 +48,10 @@ export async function inviteParent(
 
   const fullName = cleanName(input.fullName);
   if (!isValidName(fullName)) return fail('invalid_name');
+
+  // An unfinished website sign-up with this e-mail is replaced by the invite (03 §6.2).
+  const cleared = await clearForInvite(existing, 'already_exists');
+  if ('code' in cleared) return fail(cleared.code);
 
   const created = await createInvitedAccount(email, fullName, 'parent');
   if ('code' in created) return fail(created.code);

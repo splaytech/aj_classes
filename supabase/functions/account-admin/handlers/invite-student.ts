@@ -1,4 +1,6 @@
 // Invite a student to their own account (R3b story FA3). Consent must be recorded first (F4).
+// An unfinished website sign-up with that e-mail is replaced; a finished one belongs to a parent
+// or guardian, so it is refused with its own message (03 §6.2, AC-34).
 // Order: create the account → link it to the roster row → send the invite. Any failure undoes the
 // account, so a half-finished invite never leaves an account behind.
 
@@ -10,6 +12,7 @@ import { cleanEmail, isUuid, isValidEmail } from '../../_shared/validation.ts';
 
 import {
   audit,
+  clearForInvite,
   createInvitedAccount,
   deleteAccount,
   findAccountByEmail,
@@ -29,7 +32,12 @@ export async function inviteStudent(
   if (!student || !student.is_active) return fail('not_found');
   if (student.profile_id) return fail('already_has_account');
   if (!student.consent_recorded_at) return fail('consent_needed');
-  if (await findAccountByEmail(email)) return fail('already_exists');
+  const existing = await findAccountByEmail(email);
+  if (existing?.role === 'user' && existing.status === 'active' && existing.is_active) {
+    return fail('already_exists_user');
+  }
+  const cleared = await clearForInvite(existing, 'already_exists');
+  if ('code' in cleared) return fail(cleared.code);
 
   const created = await createInvitedAccount(email, student.full_name, 'student');
   if ('code' in created) return fail(created.code);

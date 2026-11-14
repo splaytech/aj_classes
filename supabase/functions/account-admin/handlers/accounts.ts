@@ -122,6 +122,58 @@ export async function sendAccountInvite(account: InviteAccount): Promise<boolean
 }
 
 /** Removes an account that was only just created (undo). Its links go with it. */
+/** A website sign-up (open sign-up, ADR-0011) that hasn't finished /portal/join and is active. */
+export function isUnfinishedSignUp(account: AccountRecord): boolean {
+  return account.role === 'user' && account.status === 'invited' && account.is_active;
+}
+
+/**
+ * Removes an unfinished website sign-up so an invite can use its e-mail (03 §6.1): whoever
+ * signed up hadn't finished, so nothing is lost, and the old confirmation link dies with it.
+ * Race-safe like cancel-invite: one statement switches off a row that is still an unfinished
+ * user, and complete_sign_up locks the same row and needs it switched on, so exactly one wins.
+ */
+export async function replaceUnfinishedSignUp(
+  account: AccountRecord,
+): Promise<'replaced' | 'not_unfinished' | 'server_error'> {
+  if (!isUnfinishedSignUp(account)) return 'not_unfinished';
+
+  const service = serviceClient();
+  const { data: claimed, error: claimError } = await service
+    .from('profiles')
+    .update({ is_active: false })
+    .eq('id', account.id)
+    .eq('role', 'user')
+    .eq('status', 'invited')
+    .eq('is_active', true)
+    .select('id');
+  if (claimError) return 'server_error';
+  if (!claimed?.length) return 'not_unfinished';
+
+  const { error } = await service.auth.admin.deleteUser(account.id);
+  if (error) {
+    await service.from('profiles').update({ is_active: true }).eq('id', account.id);
+    return 'server_error';
+  }
+  return 'replaced';
+}
+
+/**
+ * Makes way for a new invite to this e-mail: nothing there, or an unfinished sign-up that is now
+ * removed. Anything else is refused with the given code.
+ */
+export async function clearForInvite(
+  existing: AccountRecord | null,
+  refusal: string,
+): Promise<{ replaced: boolean } | { code: string }> {
+  if (!existing) return { replaced: false };
+  if (!isUnfinishedSignUp(existing)) return { code: refusal };
+  const outcome = await replaceUnfinishedSignUp(existing);
+  if (outcome === 'server_error') return { code: 'server_error' };
+  if (outcome === 'not_unfinished') return { code: refusal };
+  return { replaced: true };
+}
+
 export async function deleteAccount(userId: string): Promise<void> {
   await serviceClient().auth.admin.deleteUser(userId);
 }

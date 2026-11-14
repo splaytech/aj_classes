@@ -23,6 +23,7 @@ export async function cancelInvite(
 
   const target = await findAccount(input.userId);
   if (!target) return fail('not_found');
+  if (target.role === 'user') return fail('not_allowed'); // no invite to cancel; no delete in v1
   if (target.status !== 'invited') return fail('already_joined');
 
   const service = serviceClient();
