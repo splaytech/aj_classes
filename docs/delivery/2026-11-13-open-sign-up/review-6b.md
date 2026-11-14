@@ -36,3 +36,16 @@ The other ratings (2, 3, 4, 6, 8, 9, 10) are reasonable. Finding 3 is already fi
 ## Lead note (round 1)
 
 Finding 5 will be **fixed**, not deferred: a separate e-mail-code length and `otp_length = 8` go to the Developer in fix batch 2 (the mobile app has only a TOTP code field, so it is unaffected). Items 2 and 3: the lead's `00-decisions.md` lines are reworded. Item 4 goes to the Developer. Security revises `06-security.md` for items 1, 3 and 5.
+
+## Round 2
+
+**APPROVED.** Checked at `84d2691`:
+- Finding 5: now Medium (`06-security.md:7`, `:22`, `:80-93`) with the cumulative math and 8-digit figures; the code implements it (`config.toml:244`, `app.constants.ts:91`, the three e-mailed-code fields; TOTP stays 6).
+- Finding 3: fixed in code (`deploy.sh` link, `db push`, `secrets set --env-file`) and tested.
+- Bounce text: `06:36` names the hourly `email_sent` limit, about 3.5 h to use up the Free quota, and that a Resend pause stops invites, resets and portal mail; R4 in `00-decisions.md` matches.
+- §11.5 Info line present at `06:158`; Info count of 7 is right.
+
+### Findings
+
+1. **Non-blocking.** 06 lags the lead's ruling on finding 8: "For the lead" item 3 (`06:189`) still says it can wait for the Google release, but D8 is v1 (AC-56). Finding 8 (`06:112-119`) and the R4 mitigation (`06:40`) should note review-5 round 3 finding 1 (deactivated sign-ups are confirmed, so the clean-up skips them). Update once the Developer's fix lands.
+2. **Non-blocking.** Findings 3 (`06:59-69`) and 5 (`06:93`, "not yet verified") still read as open; mark them verified at `84d2691` when Security re-checks.

@@ -114,3 +114,26 @@ All seven findings go back to the Developer in one fix round before stage 6. Ite
 ## Lead note (round 2)
 
 Stage 5 gate passed. Nits 1 and 2 go to the Developer in the same batch as any 6b Security findings.
+
+## Round 3 (fix batch 2, `8a33156..84d2691`)
+
+**CHANGES_REQUESTED.** One blocking issue, in the 7-day clean-up. Every other fix in batch 2 was done as asked.
+
+**Checks run at `84d2691`:** lint and typecheck green; `pnpm test` 843 web tests in 93 files plus e2e-unit; `test-deploy-order.mjs` 50 `ok` (up from 39). `format:check` flags only the untracked `actionItems.md` and the git-ignored `supabase/.temp/linked-project.json`. Not run: `db:test`, `test:functions`, e2e (new pgTAP cases read, not run).
+
+**Verified:** Security 3 (no `--password`; `SUPABASE_DB_PASSWORD` exported; 0600 `--env-file` removed by the EXIT trap; quote/newline refused; tested). Security 4 (dialog warning). Security 5 (`otp_length = 8`; `emailCodeLength` on the account, join and finish fields; `reauthentication.html` states no length; TOTP stays 6 in `TwoStepCodeForm`, `two-step-setup`, `local-dev-two-step`, `[auth.mfa.phone]`; mobile has only `verify_totp_screen.dart` `maxLength: 6`). Security 6 (post-check covers Turnstile, `email_sent`, Google, manual linking, anonymous; one test each). Security 9 (no pre-fill; `btrim` with pgTAP). Security 10 (`enable_confirmations = true`; in GoTrue v2.197.0 its only other effect is that `PUT /user {phone}` now needs SMS confirmation, which fails with no provider: a side benefit). Review-5 round 2 nits 1 and 2. Stage 6a rulings (AC-12, AC-27, AC-56, D8). Tester bugs (Finish retry still safe since `complete_sign_up` needs `password_set_at >= session start`; Users page unknown status shows a retry and no switch; `invalid_name` shows `PROFILE_VALIDATION.nameLength`). Clean-up job deletes only `role='user'`, `status='invited'`, null `email_confirmed_at`, profile older than 7 days; staff, parents, students and confirmed users are never deleted; `sign_up_emails` untouched; no delete triggers on `profiles` or `auth.users`.
+
+### Findings
+
+1. **Blocking. The clean-up can't delete a deactivated sign-up, and one such row stops the whole job permanently** (`20261114100100_open_sign_up.sql:800-826`, `account-admin/handlers/set-active.ts:34-37`, `open_sign_up.test.sql:629`, `:644`).
+   - (a) Deactivation confirms the e-mail (`email_confirm: true`), so the job never matches a deactivated row, yet the R4 Watch line (`release-notes.md:34`) tells the admin to deactivate them because "unconfirmed ones are deleted after 7 days anyway". `03-design.md:776` "(deactivated or not)" is also untrue.
+   - (b) `admin_set_active` writes `audit_log(target_id = user)` before the ban/confirm step; `audit_log_target_id_fkey` is `NO ACTION`. If the ban fails and nobody retries, the row stays deactivated, unconfirmed and referenced; eight days later `delete … using` raises 23503 and rolls back the whole statement, every day, silently.
+   - The pgTAP fixture at `:629` makes a deactivated row with no audit entry, which the real path never produces.
+   - **Fix:** either leave unconfirmed rows alone (change the Watch line; add `and p.is_active` and a `not exists` audit_log guard so one row can't stop the job), or delete deactivated never-finished rows too (needs `audit_log` user FKs `on delete set null`). Either way add a pgTAP case that deactivates through `admin_set_active`, and update `03:776` and the release notes.
+2. **Non-blocking.** The post-check (`deploy.sh:174-184`) doesn't confirm `.mailer_otp_length == 8` or `.sms_autoconfirm == false`. Add both with a fake-curl case each.
+3. **Non-blocking.** The quote/newline refusal runs at step 6 (`deploy.sh:285-291`), after `db push` and functions. Move it into "Checking what's needed"; add a newline test.
+4. **Non-blocking (nit).** `apps/web/src/services/auth.service.ts:101` still says "Emails a 6-digit code".
+
+## Lead note (round 3)
+
+Finding 1: take the first option. Audit rows keep their target, the job skips deactivated rows and can't be stopped by one row, and the Watch line no longer tells the admin to deactivate junk sign-ups. Findings 2–4 and the Tester's "a 8-digit" typo go in the same fix batch 3.
