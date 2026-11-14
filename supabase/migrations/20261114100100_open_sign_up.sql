@@ -794,9 +794,12 @@ grant execute on function public.sign_up_guard_ready() to anon, authenticated;
 -- ---------------------------------------------------------------------------
 
 -- Anyone can sign up any address, and nobody proved the mailbox, so the name and e-mail are kept
--- no longer than needed (APP 11.2). Only signed-up users that are still invited and were never
--- confirmed; staff, students, parents and every confirmed account are never touched. Deleting the
--- auth.users row takes the profile, identity and sessions with it.
+-- no longer than needed (APP 11.2). Only active signed-up users that are still invited and were
+-- never confirmed; staff, students, parents and every confirmed account are never touched.
+-- Deleting the auth.users row takes the profile, identity and sessions with it.
+-- Skipped on purpose (review-5 round 3): a deactivated sign-up (an admin acted on it, and the
+-- audit row keeps its target), and any account an audit row points at. Each row is deleted on
+-- its own, so one that still can't go is logged and the rest are deleted anyway.
 create function private.delete_stale_sign_ups()
 returns integer
 language plpgsql
@@ -805,16 +808,29 @@ security definer
 set search_path = ''
 as $$
 declare
-  removed integer;
+  stale uuid;
+  removed integer := 0;
 begin
-  delete from auth.users u
-  using public.profiles p
-  where p.id = u.id
-    and p.role = 'user'
-    and p.status = 'invited'
-    and u.email_confirmed_at is null
-    and p.created_at < now() - interval '7 days';
-  get diagnostics removed = row_count;
+  for stale in
+    select u.id
+    from auth.users u
+    join public.profiles p on p.id = u.id
+    where p.role = 'user'
+      and p.status = 'invited'
+      and p.is_active
+      and u.email_confirmed_at is null
+      and p.created_at < now() - interval '7 days'
+      and not exists (
+        select 1 from public.audit_log a where a.target_id = u.id or a.actor_id = u.id
+      )
+  loop
+    begin
+      delete from auth.users where id = stale;
+      removed := removed + 1;
+    exception when others then
+      raise warning 'delete_stale_sign_ups: kept % (%)', stale, sqlerrm;
+    end;
+  end loop;
   return removed;
 end;
 $$;

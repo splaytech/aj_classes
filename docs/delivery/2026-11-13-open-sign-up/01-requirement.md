@@ -205,7 +205,7 @@ This document says what must be true. It does not choose how; the Architect is r
 
 ### Added at stage 6 (lead ruling)
 
-56. **Unconfirmed sign-ups are deleted after 7 days** (security 06 finding 8; was D8). A signed-up account whose e-mail was never confirmed, still `invited`, is deleted 7 days after it was created, with its profile and identity, by a daily job. Staff, students, parents, invitees and every confirmed account are never touched. The person can simply sign up again.
+56. **Unconfirmed sign-ups are deleted after 7 days** (security 06 finding 8; was D8). An active signed-up account whose e-mail was never confirmed, still `invited`, is deleted 7 days after it was created, with its profile and identity, by a daily job. Staff, students, parents, invitees and every confirmed account are never touched. A sign-up an admin deactivated is kept (its audit entry keeps pointing at it) and blocks a later invite to that address until it is reactivated and linked as a parent (review-5 round 3). The person can simply sign up again.
 
 ## Scope
 

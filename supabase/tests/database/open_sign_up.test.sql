@@ -639,16 +639,50 @@ where id in ('00000000-0000-0000-0000-0000000ac001', '00000000-0000-0000-0000-00
              '00000000-0000-0000-0000-0000000ac008', '00000000-0000-0000-0000-0000000ac009');
 update public.profiles set created_at = now() - interval '6 days' where id = '00000000-0000-0000-0000-0000000ac002';
 
-select is(private.delete_stale_sign_ups(), 2, 'The clean-up deletes exactly the two stale unconfirmed sign-ups');
-select is_empty($$ select 1 from auth.users where id in ('00000000-0000-0000-0000-0000000ac001', '00000000-0000-0000-0000-0000000ac005') $$,
-  'An unconfirmed sign-up older than 7 days is gone, deactivated or not');
+-- Deactivated through the real path (review-5 round 3): admin_set_active writes an audit row
+-- for the target first; the edge function's ban-and-confirm step then failed half-way, so the
+-- account stays deactivated and unconfirmed.
+select tests.create_staff('00000000-0000-0000-0000-0000000ac0a1', 'cleanup-admin@test.local', 'admin');
+select tests.create_sign_up('00000000-0000-0000-0000-0000000ac010', 'stale-banned-half@test.local', p_confirmed => false, p_finished => false);
+-- Deactivated, then reactivated: active again, but audit rows point at it.
+select tests.create_sign_up('00000000-0000-0000-0000-0000000ac011', 'stale-reactivated@test.local', p_confirmed => false, p_finished => false);
+-- One more stale row that something else still references, so its delete fails.
+select tests.create_sign_up('00000000-0000-0000-0000-0000000ac012', 'stale-blocked@test.local', p_confirmed => false, p_finished => false);
+update public.profiles set created_at = now() - interval '8 days'
+where id in ('00000000-0000-0000-0000-0000000ac010', '00000000-0000-0000-0000-0000000ac011',
+             '00000000-0000-0000-0000-0000000ac012');
+select tests.authenticate_as('00000000-0000-0000-0000-0000000ac0a1', 'aal2');
+select public.admin_set_active('00000000-0000-0000-0000-0000000ac010', false);
+select public.admin_set_active('00000000-0000-0000-0000-0000000ac011', false);
+select public.admin_set_active('00000000-0000-0000-0000-0000000ac011', true);
+reset role;
+select is((select count(*)::int from public.audit_log where target_id = '00000000-0000-0000-0000-0000000ac010'), 1,
+  'admin_set_active audited the half-finished deactivation');
+-- A plain table (rolled back with this test): a temporary one can't reference auth.users.
+create table tests.cleanup_blocker (user_id uuid references auth.users (id));
+insert into tests.cleanup_blocker values ('00000000-0000-0000-0000-0000000ac012');
+
+select is(private.delete_stale_sign_ups(), 1,
+  'The clean-up deletes the one stale, active, unreferenced sign-up');
+select is_empty($$ select 1 from auth.users where id = '00000000-0000-0000-0000-0000000ac001' $$,
+  'An active unconfirmed sign-up older than 7 days is gone');
 select is_empty($$ select 1 from public.profiles where id = '00000000-0000-0000-0000-0000000ac001' $$,
   'and its profile went with it');
+select isnt_empty($$ select 1 from auth.users where id = '00000000-0000-0000-0000-0000000ac010' $$,
+  'A sign-up deactivated through admin_set_active (ban step failed half-way) is kept, with its audit row');
+select isnt_empty($$ select 1 from auth.users where id = '00000000-0000-0000-0000-0000000ac011' $$,
+  'A reactivated sign-up that audit rows point at is kept');
+select isnt_empty($$ select 1 from auth.users where id = '00000000-0000-0000-0000-0000000ac005' $$,
+  'A deactivated sign-up is kept');
+select isnt_empty($$ select 1 from auth.users where id = '00000000-0000-0000-0000-0000000ac012' $$,
+  'A row whose delete fails is kept, and the job still deleted the others (no error)');
 select is((select count(*)::int from auth.users where id in (
   '00000000-0000-0000-0000-0000000ac002', '00000000-0000-0000-0000-0000000ac003', '00000000-0000-0000-0000-0000000ac004',
   '00000000-0000-0000-0000-0000000ac006', '00000000-0000-0000-0000-0000000ac007', '00000000-0000-0000-0000-0000000ac008',
   '00000000-0000-0000-0000-0000000ac009')), 7,
   'Never touched: a 6-day-old sign-up, confirmed and finished users, staff, parent and student invitees, a parent');
+delete from tests.cleanup_blocker;
+select is(private.delete_stale_sign_ups(), 1, 'Once nothing blocks it, the next run deletes that row');
 select results_eq(
   $$ select schedule, command, active from cron.job where jobname = 'delete-stale-sign-ups' $$,
   $$ values ('45 17 * * *', 'select private.delete_stale_sign_ups()', true) $$,
