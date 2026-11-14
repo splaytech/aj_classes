@@ -284,6 +284,7 @@ After editing, the Developer restarts the local stack so Auth reads it. The lead
   - If S2 finds no text part: `If the button doesn't work, copy this link into your browser:` followed by the same URL as plain text.
   - Then: `If you didn't sign up, you can ignore this e-mail. Nothing happens unless the link is used.`
 - **`recovery.html`**: change `this AJ Classes staff account` to `your AJ Classes account` and drop the `Staff` badge. Families and users already get this e-mail, so "staff" is untrue.
+- **`reauthentication.html`** (fix batches 2 and 4, review-6a item 10): signed-up users get this code e-mail too (finish step, Change password), so "staff portal" became "portal" and the `Staff` badge is dropped, as in `recovery.html`. It states no code length (`{{ .Token }}` is 8 digits since `otp_length = 8`).
 - **`invite.html`** (unused since ADR-0010): its condition becomes `eq . "parent"` (02 Q1).
 
 ## 5. `supabase/scripts/deploy.sh`
