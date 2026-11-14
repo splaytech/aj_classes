@@ -357,6 +357,15 @@ skip_nonce_check = false
 # If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
 email_optional = false
 
+# Open sign-up (ADR-0011): "Continue with Google". Off locally (there is no local Google client;
+# the portal hides the button while /auth/v1/settings says Google is off). To try it locally, put
+# a dev client's id here and its secret in SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET, never in git.
+[auth.external.google]
+enabled = false
+client_id = ""
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+skip_nonce_check = false
+
 # Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.
 # You can configure "web3" rate limit in the [auth.rate_limit] section and set up [auth.captcha] if self-hosting.
 [auth.web3.solana]
@@ -501,3 +510,12 @@ user = "resend"
 pass = "env(RESEND_API_KEY)"
 admin_email = "hello@ajclasses.com.au"
 sender_name = "AJ Classes"
+
+# Google sign-in on the hosted project. OFF for the first release (e-mail sign-up goes live first).
+# To switch it on: create the Google Cloud OAuth client (release-notes.md), put GOOGLE_CLIENT_ID
+# and GOOGLE_CLIENT_SECRET in supabase/.env.deploy, change this one line to true, and run
+# deploy.sh. deploy.sh asks for the two values only while this says true.
+[remotes.production.auth.external.google]
+enabled = false
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"

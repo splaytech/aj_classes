@@ -55,3 +55,10 @@ So the callback page maps by `error_description` first (our hook messages), then
 5. RESET (fresh seed).
 
 INT (`test-open-sign-up.mjs`, AC-42 section): all six signing-in seed accounts still sign in with confirmations on; every seed account is confirmed; a new parent invite is confirmed at creation and redeems; a Studio-style account (admin `createUser` with `email_confirm`, then the README `account_role` SQL) becomes `tutor/invited` and its recovery link reaches `my_onboarding` as a tutor.
+
+## Slice 4 — deploy.sh
+
+- New order 1/7 link → 2/7 gate → 3/7 `db push` → 4/7 guard check (5 tries, 3 s apart) → 5/7 functions → 6/7 secrets → 7/7 `config push` + hook post-check. Review-3 (a)–(d) are in; the token lives only in a 0600 `mktemp` header file removed by an `EXIT` trap.
+- `test-deploy-order.mjs`: 35 checks (dry-run order, fail-closed paths against fakes, Google gate, static config). Runs in `pnpm test`. It uses `/bin/bash` (3.2 on macOS) and a PATH of only the fakes plus `/usr/bin:/bin`; the fake `jq` logs and hands over to the real `jq` (it has no network).
+- Two test-only overrides were added beside 03's `DEPLOY_ENV_FILE`/`DEPLOY_CONFIG`: `DEPLOY_GUARD_RETRY_SECONDS` (default 3; the test uses 0).
+- [ASSUMPTION] With `[remotes.production.auth.external.google] enabled = false`, `config push` needs no `GOOGLE_*`: CLI v2.120.0 `pkg/config/config.go:1481-1483` skips validation of a disabled provider, and `auth.go:1295-1303` pushes only `external_google_enabled = false` (no client id or secret). Read from the CLI source; not run against the hosted project.

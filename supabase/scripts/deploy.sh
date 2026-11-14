@@ -2,8 +2,10 @@
 # Sets up (or updates) the hosted Supabase project for the portal and lead capture
 # (docs/requirements/release-2/go-live.md §3). Safe to run again after any change.
 #
-# Order matters: sign-ups are switched off and CHECKED before any table is created, because an
-# account created without an invite would otherwise become an active tutor (completion-todo §0).
+# Order matters: migrations first, checked by behaviour; the Auth settings that open sign-up last
+# (ADR-0011). Sign-up is only ever open with the sign-up guard installed (the before-user-created
+# hook, the linking and wipe triggers, users-by-default). If anything fails after sign-up was
+# opened, the script closes it again and says so.
 #
 # Usage, from the repo root:
 #   SUPABASE_ACCESS_TOKEN=… SUPABASE_DB_PASSWORD=… TURNSTILE_SECRET=… RESEND_API_KEY=… \
@@ -15,6 +17,9 @@
 # Optional, for Zoho CRM (leads-and-crm.md §4): ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET,
 # ZOHO_REFRESH_TOKEN, and optionally ZOHO_LEAD_SOURCE (an exact value from your Lead Source list).
 # Without them, enquiries are still saved; they just aren't sent to Zoho CRM.
+#
+# Google sign-in (ADR-0011): only when [remotes.production.auth.external.google] enabled = true in
+# supabase/config.toml, also GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET (release-notes.md).
 
 set -euo pipefail
 
@@ -28,7 +33,11 @@ FUNCTIONS=(account-admin invite-redeem leads notifications)
 
 # Secrets can also come from supabase/.env.deploy (git-ignored), so they never pass through chat
 # or shell history. Values already in the environment win.
-ENV_FILE="$(dirname "$0")/../.env.deploy"
+ENV_FILE="${DEPLOY_ENV_FILE:-$(dirname "$0")/../.env.deploy}" # the test points this at /dev/null
+CONFIG_FILE="${DEPLOY_CONFIG:-$(dirname "$0")/../config.toml}"  # read only to see if Google is on
+GUARD_RETRY_SECONDS="${DEPLOY_GUARD_RETRY_SECONDS:-3}"           # the test sets 0
+MANAGEMENT_API="https://api.supabase.com/v1/projects/${PROJECT_REF}/config/auth"
+HOOK_URI="pg-functions://postgres/public/hook_before_user_created"
 if [[ -f "$ENV_FILE" ]]; then
   while IFS='=' read -r key value; do
     [[ "$key" =~ ^[A-Z_]+$ && -n "$value" && -z "${!key:-}" ]] && export "$key=$value"
@@ -116,6 +125,50 @@ signups_are_off() {
     grep -q '"disable_signup":true'
 }
 
+# True only when the hosted database has the whole sign-up guard, checked by behaviour, not by
+# migration history (ADR-0011). Before the migration the function doesn't exist (404): false.
+sign_up_guard_ready() {
+  curl -fsS --max-time 20 -X POST "${PROJECT_URL}/rest/v1/rpc/sign_up_guard_ready" \
+    -H "apikey: ${PUBLISHABLE_KEY}" -H 'Content-Type: application/json' -d '{}' |
+    grep -qx 'true'
+}
+
+# PostgREST reloads its schema cache after `db push`, so a fresh function may 404 for a moment.
+sign_up_guard_ready_with_retries() {
+  local attempt
+  for attempt in 1 2 3 4 5; do
+    sign_up_guard_ready && return 0
+    [[ $attempt -lt 5 ]] && sleep "$GUARD_RETRY_SECONDS"
+  done
+  return 1
+}
+
+# True when [remotes.production.auth.external.google] in config.toml says enabled = true.
+google_enabled() {
+  awk '
+    /^\[/ { in_google = ($0 == "[remotes.production.auth.external.google]") ; next }
+    in_google && /^[[:space:]]*enabled[[:space:]]*=[[:space:]]*true[[:space:]]*(#.*)?$/ { found = 1 }
+    END { exit found ? 0 : 1 }
+  ' "$CONFIG_FILE"
+}
+
+# Is the hosted before-user-created hook on, pointing at our function? (Management API.)
+auth_hook_is_on() {
+  curl -fsS --max-time 20 -H @"$AUTH_HEADER_FILE" "$MANAGEMENT_API" |
+    jq -e --arg uri "$HOOK_URI" \
+      '.hook_before_user_created_enabled == true and .hook_before_user_created_uri == $uri' >/dev/null
+}
+
+# Turns public sign-up off on the hosted project. Never ends the script silently (set -e): if the
+# PATCH fails, it says what to do by hand.
+close_sign_up() {
+  if ! curl -fsS --max-time 20 -X PATCH -H @"$AUTH_HEADER_FILE" -H 'Content-Type: application/json' \
+    -d '{"disable_signup":true}' "$MANAGEMENT_API" >/dev/null; then
+    fail "Sign-up may be open without the hook: turn it off in Dashboard → Authentication → Sign In / Providers → 'Allow new users to sign up' now."
+  fi
+  printf '  Sign-up was closed again (disable_signup = true).\n'
+}
+
 say "Checking what's needed"
 command -v supabase >/dev/null || fail "Install the Supabase CLI: brew install supabase/tap/supabase"
 require SUPABASE_ACCESS_TOKEN "create one at supabase.com/dashboard/account/tokens"
@@ -126,32 +179,59 @@ require NOTIFY_WORKER_SECRET "a long random value of your own; also goes into Va
 if [[ "${NOTIFY_WORKER_SECRET:-}" == "$LOCAL_NOTIFY_SECRET" ]]; then
   fail "NOTIFY_WORKER_SECRET is the local value from config.toml. Use a real secret for the hosted project."
 fi
-command -v jq >/dev/null || fail "Install jq (brew install jq): it checks the hosted function settings."
+command -v jq >/dev/null || fail "Install jq (brew install jq): it checks the hosted settings."
+if google_enabled; then
+  require GOOGLE_CLIENT_ID "Google Cloud → APIs & Services → Credentials → your Web client"
+  require GOOGLE_CLIENT_SECRET "Google Cloud → APIs & Services → Credentials → the same Web client"
+  export GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET # read by config push through env()
+fi
 export SUPABASE_YES=1 # answer yes to config push prompts
 
-say "1/6 Linking the project"
-run supabase link --project-ref "$PROJECT_REF" --password "${SUPABASE_DB_PASSWORD:-}"
-
-say "2/6 Sign-in settings (invite only, captcha, email): supabase/config.toml"
-run supabase config push --project-ref "$PROJECT_REF"
-
-say "3/6 Confirming public sign-ups are off before creating any tables"
-if $DRY_RUN; then
-  printf '  (dry run) would check %s/auth/v1/settings for "disable_signup":true\n' "$PROJECT_URL"
-elif ! signups_are_off; then
-  fail "Sign-ups are still ON. Turn them off (Dashboard → Authentication → Sign In / Providers → \
-'Allow new users to sign up' off), then run this again. Nothing else was changed."
+# The Management API token goes in a 0600 header file, so it never shows in `ps` (curl -H @file).
+AUTH_HEADER_FILE=""
+if ! $DRY_RUN; then
+  umask 077
+  AUTH_HEADER_FILE="$(mktemp)"
+  trap 'rm -f "$AUTH_HEADER_FILE"' EXIT
+  printf 'Authorization: Bearer %s\n' "$SUPABASE_ACCESS_TOKEN" >"$AUTH_HEADER_FILE"
 fi
 
-say "4/6 Database tables, access rules and functions (supabase/migrations)"
+say "1/7 Linking the project"
+run supabase link --project-ref "$PROJECT_REF" --password "${SUPABASE_DB_PASSWORD:-}"
+
+say "2/7 Gate: sign-up is off, or the sign-up guard is already installed"
+SIGNUPS_WERE_ON=false
+if $DRY_RUN; then
+  printf '  (dry run) would check %s/auth/v1/settings for "disable_signup":true, or rpc/sign_up_guard_ready = true\n' "$PROJECT_URL"
+elif signups_are_off; then
+  printf '  Sign-up is off.\n'
+elif sign_up_guard_ready; then
+  SIGNUPS_WERE_ON=true
+  printf '  Sign-up is on and the sign-up guard is installed.\n'
+else
+  fail "Sign-ups are on but the sign-up guard isn't installed. Turn sign-ups off (Dashboard → Authentication → \
+Sign In / Providers → 'Allow new users to sign up' off) and run again. Nothing was changed."
+fi
+
+say "3/7 Database tables, access rules and functions (supabase/migrations)"
 run supabase db push --password "${SUPABASE_DB_PASSWORD:-}"
 
-say "5/6 Edge functions: ${FUNCTIONS[*]}"
+say "4/7 Checking the sign-up guard works (rpc/sign_up_guard_ready)"
+if $DRY_RUN; then
+  printf '  (dry run) would check %s/rest/v1/rpc/sign_up_guard_ready = true, up to 5 tries\n' "$PROJECT_URL"
+elif ! sign_up_guard_ready_with_retries; then
+  $SIGNUPS_WERE_ON && close_sign_up
+  fail "The migrations ran but the sign-up guard isn't ready. Sign-up is off. Nothing else was changed."
+else
+  printf '  The sign-up guard is ready.\n'
+fi
+
+say "5/7 Edge functions: ${FUNCTIONS[*]}"
 for name in "${FUNCTIONS[@]}"; do
   run supabase functions deploy "$name" --project-ref "$PROJECT_REF"
 done
 
-say "6/6 Function settings"
+say "6/7 Function settings"
 # One `secrets set` with every hosted value. The CLI also copies [edge_runtime.secrets] from
 # config.toml on this call (the local Zoho fake, Mailpit and the local email settings).
 secrets=(
@@ -180,6 +260,23 @@ if [[ -z "${ZOHO_REFRESH_TOKEN:-}" ]]; then
   printf '  Zoho CRM not configured: enquiries are saved but not sent to Zoho CRM (leads-and-crm.md §4).\n'
 fi
 
+# Last, because this is what opens sign-up (ADR-0011).
+if google_enabled; then
+  say "7/7 Sign-in settings (sign-up open, hook, confirmations; Google on): supabase/config.toml"
+else
+  say "7/7 Sign-in settings (sign-up open, hook, confirmations; Google off): supabase/config.toml"
+fi
+run supabase config push --project-ref "$PROJECT_REF"
+printf '  Checking the sign-up hook is on\n'
+if $DRY_RUN; then
+  printf '  (dry run) would check %s: hook_before_user_created_enabled and _uri = %s\n' "$MANAGEMENT_API" "$HOOK_URI"
+elif ! auth_hook_is_on; then
+  close_sign_up
+  fail "The sign-up hook isn't on, so sign-up was closed again. Check Dashboard → Authentication → Hooks → Before User Created, then run again."
+else
+  printf '  The sign-up hook is on.\n'
+fi
+
 cat <<'NEXT'
 
 ✔ Supabase is set up. What's left (go-live.md):
@@ -188,7 +285,8 @@ cat <<'NEXT'
       VITE_LEAD_CAPTURE       = on                        → enquiries saved + sent to Zoho CRM
     then redeploy.
   • First admins: supabase/README.md → "First admin on a new environment" (do it twice).
-  • Dashboard → Authentication → Users: should list only people you invited.
+  • Dashboard → Authentication → Users: invited people and signed-up users (role `user`).
+  • Close sign-up: Portal → Admin → Users → Close sign-up (supabase/README.md → "Close sign-up").
 NEXT
 
 # The cron job reads the worker's address and secret from Vault (ADR-0004). Printed, not run:

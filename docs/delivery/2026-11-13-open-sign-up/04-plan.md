@@ -165,7 +165,7 @@ The Developer runs them in slice 0 and records the counts. CI gates are document
   - **Check:** RESTART, RESET, DB, FN, FULL.
   - **Commit:** `feat(auth): turn on e-mail confirmations without locking out existing accounts`
 
-- [ ] **4. `deploy.sh`: guard first, sign-up last, fail closed; Google off in production** (03 §5 as amended by review-3 findings 1 and 2).
+- [x] **4. `deploy.sh`: guard first, sign-up last, fail closed; Google off in production** (03 §5 as amended by review-3 findings 1 and 2).
   - **ACs:** AC-47; also AC-15 and AC-39 through static config checks.
   - **Order matters.** This slice lands **before** any commit that sets `enable_signup = true` (slice 5). Then no commit on this branch pairs open sign-up with the old deploy order.
   - **Files:**
