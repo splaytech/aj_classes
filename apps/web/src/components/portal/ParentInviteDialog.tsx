@@ -124,6 +124,7 @@ export function ParentInviteDialog({
             {toConfirm.signedUpWith === 'google' && (
               <DialogContentText>{words.googleMobile}</DialogContentText>
             )}
+            <Alert severity="warning">{words.checkFirst}</Alert>
           </Stack>
         </DialogContent>
         <DialogActions>

@@ -99,6 +99,9 @@ export const PARENT_INVITE_DIALOG = {
     methods: { email: 'e-mail', google: 'Google' },
     googleMobile:
       "They signed up with Google, so they can't use the mobile app until they set a password with Forgot password on the website.",
+    // Security 06 finding 4: the account proves the mailbox, not that they are the parent.
+    checkFirst:
+      'Only link an e-mail that is already on this student’s enrolment record, or that you confirmed with the parent you already know. Never link one supplied only in a message.',
     confirm: 'Link as parent',
     linking: 'Linking…',
     done: (child: string) => `Linked as a parent of ${child}. No e-mail was sent.`,

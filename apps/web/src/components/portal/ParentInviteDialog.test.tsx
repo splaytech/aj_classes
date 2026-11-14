@@ -63,6 +63,15 @@ describe('ParentInviteDialog with a signed-up user (AC-33, R3)', () => {
     expect(onDone).not.toHaveBeenCalled();
   });
 
+  it('warns to link only an e-mail on the enrolment record or confirmed with the known parent (security 06 finding 4)', async () => {
+    onInvite.mockResolvedValueOnce(needsConfirmation('email'));
+    await submit();
+    expect(await screen.findByText(PARENT_INVITE_DIALOG.promote.checkFirst)).toBeInTheDocument();
+    expect(PARENT_INVITE_DIALOG.promote.checkFirst).toContain(
+      'Never link one supplied only in a message',
+    );
+  });
+
   it('says "Signed up with Google" and adds the mobile line only for Google', async () => {
     onInvite.mockResolvedValueOnce(needsConfirmation('google'));
     await submit();

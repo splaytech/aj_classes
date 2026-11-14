@@ -7,7 +7,7 @@ For Saurabh. Branch `feature/open-sign-up`, built and tested on the local stack 
 - On the Sign in page, "New to AJ Classes? Create an account" opens a sign-up page for parents and guardians: name and e-mail only. A confirmation link arrives by e-mail; it leads to a short finish step (a password and the Terms tick). They then see **Latest news** and their Account page, nothing else.
 - "Continue with Google" is built but **stays off** in this release. The button only appears once Google is switched on (step 4).
 - Admin → **Users** lists everyone who signed up (how, when, finished or not), with Close / Open sign-up and Deactivate / Reactivate.
-- On a student's page, **Invite or link a parent** with a signed-up user's e-mail asks you to confirm, then makes them a parent of that child. No e-mail is sent.
+- On a student's page, **Invite or link a parent** with a signed-up user's e-mail asks you to confirm, then makes them a parent of that child. No e-mail is sent. **Only link an e-mail that is already on this student's enrolment record, or that you confirmed with the parent you already know. Never link one supplied only in a message.** The account proves who owns the mailbox, not that they are the parent (security 06 finding 4); the dialog says the same.
 - New pages: `/terms` (Terms & Conditions). The Privacy Policy now says parents and guardians can sign up.
 
 ## What you need to do
