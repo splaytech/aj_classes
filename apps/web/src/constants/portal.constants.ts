@@ -567,6 +567,56 @@ export const STAFF_PAGE = {
   invited: (email: string) => `Invite sent to ${email}.`,
 } as const;
 
+// Admin → Users (open sign-up, 03 §7.8): people who signed up on the website, and the switch.
+export const USERS_PAGE = {
+  heading: 'Users',
+  intro:
+    'People who signed up on the website. They see only the latest news until you link them to a student.',
+  switch: {
+    heading: 'Sign-up',
+    open: 'Sign-up is open',
+    closed: 'Sign-up is closed',
+    close: 'Close sign-up',
+    reopen: 'Open sign-up',
+    closeDialog: {
+      title: 'Close sign-up?',
+      text: "New people won't be able to create an account, by e-mail or with Google. Everyone who already has an account can still sign in.",
+    },
+    openDialog: {
+      title: 'Open sign-up?',
+      text: 'Parents and guardians will be able to create an account again.',
+    },
+    closedNotice: 'Sign-up closed.',
+    openedNotice: 'Sign-up opened.',
+  },
+  columns: {
+    name: 'Name',
+    email: 'E-mail',
+    signedUp: 'Signed up',
+    how: 'How',
+    finished: 'Finished',
+    status: 'Status',
+    action: 'Action',
+  },
+  signedUpOn: (date: string) => `Signed up ${date}`,
+  how: { email: 'E-mail', google: 'Google' },
+  finished: { yes: 'Finished', no: 'Not finished' },
+  deactivate: 'Deactivate',
+  reactivate: 'Reactivate',
+  deactivateDialog: {
+    title: (name: string) => `Deactivate ${name}?`,
+    text: "They'll be signed out and can't sign in until you reactivate them.",
+  },
+  reactivateDialog: {
+    title: (name: string) => `Reactivate ${name}?`,
+    text: "They'll be able to sign in again.",
+  },
+  deactivated: (name: string) => `${name} was deactivated.`,
+  reactivated: (name: string) => `${name} was reactivated.`,
+  empty: 'No one has signed up yet.',
+  hint: "To link a user to their child, use Invite or link a parent on the student's page.",
+} as const;
+
 export const INVITE_DIALOG = {
   heading: 'Invite staff',
   intro: `They'll get an e-mail to set their password. The link works for ${INVITE_LIMITS.linkLifetimeDays} days; you can resend it.`,

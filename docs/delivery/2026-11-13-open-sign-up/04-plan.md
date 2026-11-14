@@ -517,7 +517,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Check:** ONE `src/routes/privacy.test.tsx`, then FULL.
   - **Commit:** `feat(privacy): say parents and guardians can sign up (draft for Saurabh's approval)`
 
-- [ ] **28. Admin → Users page** (03 §7.8, plus the `admin-dashboard` shortcut).
+- [x] **28. Admin → Users page** (03 §7.8, plus the `admin-dashboard` shortcut).
   - **ACs:** AC-31, AC-32, AC-48, AC-30 (dashboard counts unchanged).
   - **Files:** new `routes/portal/admin-users.tsx` (MUI, `getAdminClient`), `admin-dashboard.tsx`, `routes.ts`, and `USERS_PAGE` in `portal.constants.ts`.
   - **Tests:** new `admin-users.test.tsx`: the columns and labels, the empty state, both switch dialogs, and both Deactivate and Reactivate dialogs. Check `color="textSecondary"`.

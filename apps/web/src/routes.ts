@@ -63,6 +63,7 @@ export default [
           route(PORTAL_ROUTES.adminEmails, 'routes/portal/admin-emails.tsx'),
           route(PORTAL_ROUTES.adminStudents, 'routes/portal/admin-students.tsx'),
           route(PORTAL_ROUTE_PATTERNS.adminStudent, 'routes/portal/admin-student.tsx'),
+          route(PORTAL_ROUTES.adminUsers, 'routes/portal/admin-users.tsx'),
         ]),
       ]),
 

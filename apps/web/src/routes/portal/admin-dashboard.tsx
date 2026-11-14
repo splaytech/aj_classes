@@ -59,6 +59,7 @@ const SHORTCUTS = [
   { key: 'staff', to: PORTAL_ROUTES.adminStaff },
   { key: 'classes', to: PORTAL_ROUTES.classes },
   { key: 'students', to: PORTAL_ROUTES.adminStudents },
+  { key: 'users', to: PORTAL_ROUTES.adminUsers }, // people who signed up on the website
   { key: 'timetable', to: PORTAL_ROUTES.timetable },
   { key: 'enquiries', to: PORTAL_ROUTES.adminEnquiries },
   { key: 'posts', to: PORTAL_ROUTES.adminPosts },
