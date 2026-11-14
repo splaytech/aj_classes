@@ -95,6 +95,53 @@ begin
 end;
 $$;
 
+-- A person who signed up on the website (open sign-up, ADR-0011), made in GoTrue's order: the
+-- auth.users insert (the trigger makes a user profile), the identity insert, then the confirm
+-- update. E-mail sign-ups store a throwaway password hash at insert time, as signUp does.
+-- p_finished: they finished /portal/join (a password for e-mail accounts, terms, active).
+create or replace function tests.create_sign_up(
+  p_id uuid,
+  p_email text,
+  p_provider text default 'email',
+  p_confirmed boolean default true,
+  p_finished boolean default true,
+  p_active boolean default true
+)
+returns uuid
+language plpgsql
+set search_path = ''
+as $$
+begin
+  insert into auth.users (id, aud, role, email, encrypted_password, raw_app_meta_data, raw_user_meta_data)
+  values (
+    p_id, 'authenticated', 'authenticated', p_email,
+    case when p_provider = 'email' then 'throwaway-hash' end,
+    jsonb_build_object('provider', p_provider, 'providers', jsonb_build_array(p_provider)),
+    jsonb_build_object('full_name', 'Signed Up ' || split_part(p_email, '@', 1))
+  );
+  insert into auth.identities (id, user_id, provider_id, identity_data, provider, created_at, updated_at)
+  values (
+    gen_random_uuid(), p_id, case when p_provider = 'email' then p_id::text else 'google-' || p_id::text end,
+    jsonb_build_object('sub', p_id::text, 'email', p_email, 'email_verified', true),
+    p_provider, now(), now()
+  );
+  if p_confirmed then
+    update auth.users set email_confirmed_at = now() where id = p_id;
+  end if;
+
+  if p_finished then
+    if p_provider = 'email' then
+      update auth.users set encrypted_password = 'chosen-hash' where id = p_id;
+    end if;
+    update public.profiles
+    set status = 'active', joined_at = now(), terms_accepted_at = now()
+    where id = p_id;
+  end if;
+  update public.profiles set is_active = p_active where id = p_id;
+  return p_id;
+end;
+$$;
+
 -- A confirmed authenticator app, as if the person finished two-step setup.
 create or replace function tests.add_verified_factor(p_user_id uuid)
 returns void

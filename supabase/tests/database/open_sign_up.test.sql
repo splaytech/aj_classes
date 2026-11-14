@@ -156,5 +156,75 @@ select ok((select bool_and(relrowsecurity) from pg_class
            where oid in ('private.sign_up_settings'::regclass, 'private.sign_up_emails'::regclass)),
   'RLS is on for both private tables');
 
+-- #4 The linking rule (§3.6, S3, AC-52, AC-54, AC-14 case 2)
+create function tests.google_identity_sql(p_user uuid)
+returns text
+language sql
+set search_path = ''
+as $$
+  select format(
+    'insert into auth.identities (id, user_id, provider_id, identity_data, provider, created_at, updated_at) '
+    'values (gen_random_uuid(), %L, %L, %L, ''google'', now(), now())',
+    p_user, 'google-sub-' || p_user, jsonb_build_object('sub', 'google-sub-' || p_user, 'email_verified', true))
+$$;
+
+-- Nothing matches (GoTrue just created this account for the Google sign-in): allowed.
+insert into auth.users (id, aud, role, email, raw_app_meta_data)
+values ('00000000-0000-0000-0000-00000000bb01', 'authenticated', 'authenticated', 'new-google@test.local',
+        '{"provider":"google","providers":["google"]}');
+select lives_ok(tests.google_identity_sql('00000000-0000-0000-0000-00000000bb01'),
+  'A brand-new Google account gets its Google identity (AC-52)');
+select is((select role::text || '/' || status::text from public.profiles where id = '00000000-0000-0000-0000-00000000bb01'),
+  'user/invited', 'and it is a user, invited, until the finish step');
+select throws_ok(
+  format('insert into auth.identities (id, user_id, provider_id, identity_data, provider, created_at, updated_at) '
+         'values (gen_random_uuid(), %L, %L, ''{}'', ''google'', now(), now())',
+         '00000000-0000-0000-0000-00000000bb01', 'another-google-sub'),
+  '42501', 'identity_link_refused', 'A second Google identity on it is refused');
+
+-- Every existing account is refused.
+select tests.create_sign_up('00000000-0000-0000-0000-00000000bb02', 'unconfirmed@test.local', p_confirmed => false, p_finished => false);
+select throws_ok(tests.google_identity_sql('00000000-0000-0000-0000-00000000bb02'), '42501', 'identity_link_refused',
+  'S3 order: Google can''t attach to an unconfirmed e-mail sign-up whose e-mail identity is still there (AC-14 case 2)');
+select tests.create_sign_up('00000000-0000-0000-0000-00000000bb03', 'confirmed-unfinished@test.local', p_finished => false);
+select throws_ok(tests.google_identity_sql('00000000-0000-0000-0000-00000000bb03'), '42501', 'identity_link_refused',
+  'Google can''t attach to a confirmed, unfinished e-mail sign-up');
+select tests.create_sign_up('00000000-0000-0000-0000-00000000bb04', 'finished@test.local');
+select throws_ok(tests.google_identity_sql('00000000-0000-0000-0000-00000000bb04'), '42501', 'identity_link_refused',
+  'Google can''t attach to a finished e-mail user');
+select tests.create_sign_up('00000000-0000-0000-0000-00000000bb05', 'deactivated@test.local', p_active => false);
+select throws_ok(tests.google_identity_sql('00000000-0000-0000-0000-00000000bb05'), '42501', 'identity_link_refused',
+  'Google can''t attach to a deactivated user');
+select tests.create_staff('00000000-0000-0000-0000-00000000bb06', 'tutor@test.local');
+select throws_ok(tests.google_identity_sql('00000000-0000-0000-0000-00000000bb06'), '42501', 'identity_link_refused',
+  'Google can''t attach to a tutor');
+select tests.create_staff('00000000-0000-0000-0000-00000000bb07', 'admin@test.local', 'admin');
+select throws_ok(tests.google_identity_sql('00000000-0000-0000-0000-00000000bb07'), '42501', 'identity_link_refused',
+  'Google can''t attach to an admin');
+select tests.create_staff('00000000-0000-0000-0000-00000000bb08', 'invitee@test.local', p_joined => false);
+select throws_ok(tests.google_identity_sql('00000000-0000-0000-0000-00000000bb08'), '42501', 'identity_link_refused',
+  'Google can''t attach to an invitee');
+select tests.create_family_account('00000000-0000-0000-0000-00000000bb09', 'parent@test.local', 'parent');
+select throws_ok(tests.google_identity_sql('00000000-0000-0000-0000-00000000bb09'), '42501', 'identity_link_refused',
+  'Google can''t attach to a parent');
+select tests.create_family_account('00000000-0000-0000-0000-00000000bb10', 'student@test.local', 'student');
+select throws_ok(tests.google_identity_sql('00000000-0000-0000-0000-00000000bb10'), '42501', 'identity_link_refused',
+  'Google can''t attach to a student');
+
+-- Other providers are refused; e-mail identities are untouched by the rule.
+insert into auth.users (id, aud, role, email, raw_app_meta_data)
+values ('00000000-0000-0000-0000-00000000bb11', 'authenticated', 'authenticated', 'new-apple@test.local',
+        '{"provider":"apple","providers":["apple"]}');
+select throws_ok(
+  format('insert into auth.identities (id, user_id, provider_id, identity_data, provider, created_at, updated_at) '
+         'values (gen_random_uuid(), %L, ''apple-sub'', ''{}'', ''apple'', now(), now())',
+         '00000000-0000-0000-0000-00000000bb11'),
+  '42501', 'identity_link_refused', 'Any other provider is refused, even on a brand-new account');
+select lives_ok(
+  format('insert into auth.identities (id, user_id, provider_id, identity_data, provider, created_at, updated_at) '
+         'values (gen_random_uuid(), %L, %L, ''{}'', ''email'', now(), now())',
+         '00000000-0000-0000-0000-00000000bb11', '00000000-0000-0000-0000-00000000bb11'),
+  'An e-mail identity is always allowed (sign-up, invites)');
+
 select * from finish();
 rollback;

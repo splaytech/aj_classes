@@ -97,3 +97,10 @@ INT (`test-open-sign-up.mjs`, AC-42 section): all six signing-in seed accounts s
 - Templates are read when Auth starts: a template edit needs RESTART before INT sees it (bit me once).
 - `invite.html` (unused since ADR-0010): [ASSUMPTION] the condition now tests `eq . "parent"` first, then `"student"`, else Staff, so a staff invite with `account_role: tutor` still says Staff (a bare `eq . "parent"` with the old else-branch would have called staff "Parents").
 - `recovery.html`: "your AJ Classes account", no Staff badge.
+
+## Slice 7 — S3: the linking trigger
+
+- `postgres` creates `on_auth_identity_link_check` (`before insert on auth.identities`) locally: no permission problem. Seed and invite identities (`email`) pass.
+- pgTAP-OS: 14 rows. A brand-new Google account gets its identity and stays `user/invited`; a second Google identity, an unconfirmed sign-up (S3 order row: its e-mail identity is still there), confirmed-unfinished, finished, deactivated, tutor, admin, invitee, parent and student are all refused with `identity_link_refused` (42501); Apple is refused; e-mail identities are allowed.
+- [ASSUMPTION] The rule also requires `profiles.is_active` (not in 03's list). A brand-new Google account is always active, so nothing legitimate is refused; it only closes the corner of a deactivated, unconfirmed user with no identity, which 03 already refuses by other routes.
+- No "stored password" fallback (slice 0 confirmed the order).

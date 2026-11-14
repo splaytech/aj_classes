@@ -165,3 +165,49 @@ $$;
 grant usage on schema public to supabase_auth_admin; -- review-3 item 3 (harmless if already there)
 revoke execute on function public.hook_before_user_created(jsonb) from public, anon, authenticated;
 grant execute on function public.hook_before_user_created(jsonb) to supabase_auth_admin;
+
+-- ---------------------------------------------------------------------------
+-- §3.6 Triggers: the linking rule
+-- ---------------------------------------------------------------------------
+
+-- A Google login may only attach to a brand-new account: one Auth has just created for that
+-- Google sign-in (a user profile, invited, unconfirmed, with no identity yet). It never attaches
+-- to an existing account, whatever its role or state (ADR-0011 linking policy, AC-54). GoTrue
+-- inserts the new identity before it removes unconfirmed ones (external.go:322 then :416, S3), so
+-- an unconfirmed e-mail sign-up still has its e-mail identity here and is refused.
+create function private.check_identity_link()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.provider = 'email' then
+    return new;
+  end if;
+
+  if new.provider = 'google'
+     and exists (
+       select 1
+       from public.profiles p
+       join auth.users u on u.id = p.id
+       where p.id = new.user_id
+         and p.role = 'user'
+         and p.status = 'invited'
+         and p.is_active
+         and u.email_confirmed_at is null
+     )
+     and not exists (select 1 from auth.identities i where i.user_id = new.user_id) then
+    return new;
+  end if;
+
+  raise exception 'identity_link_refused' using errcode = '42501';
+end;
+$$;
+
+revoke execute on function private.check_identity_link() from public, anon, authenticated;
+
+create trigger on_auth_identity_link_check
+  before insert on auth.identities
+  for each row
+  execute function private.check_identity_link();

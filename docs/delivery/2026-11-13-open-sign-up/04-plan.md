@@ -237,7 +237,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Check:** RESTART, INT, FULL. Prettier covers `supabase/templates`.
   - **Commit:** `feat(auth): branded sign-up confirmation e-mail`
 
-- [ ] **7. S3: the linking trigger** (03 §3.6, "Linking rule").
+- [x] **7. S3: the linking trigger** (03 §3.6, "Linking rule").
   - **ACs:** AC-54 (DB), AC-52 (DB: a new Google user is allowed), AC-14 case 2 (the DB half).
   - **Files:**
     - the migration gains `private.check_identity_link()` and `on_auth_identity_link_check`;
