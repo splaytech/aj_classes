@@ -32,6 +32,8 @@ export type AccessState = {
   profile: { fullName: string; role: AppRole } | null;
   /** Set only for an invited account that hasn't finished the setup form (/portal/join). */
   onboarding: OnboardingInfo | null;
+  /** Set only for a website sign-up that hasn't finished its finish step (open sign-up). */
+  signUp: SignUpInfo | null;
   /** aal2 = password and authenticator code; aal1 = password (or email link) only. */
   aal: 'aal1' | 'aal2';
   hasVerifiedFactor: boolean;
@@ -44,6 +46,26 @@ export type OnboardingInfo = {
   email: string;
   /** Students: their roster year level, as a starting value (null: not set, or not at school). */
   yearLevel: number | null;
+};
+
+/** What the sign-up finish step needs (my_sign_up). */
+export type SignUpInfo = {
+  fullName: string;
+  email: string;
+  signedUpWith: 'email' | 'google';
+  /** False in a password-only session: only an e-mail link or Google can finish (AC-17, AC-20). */
+  canFinish: boolean;
+};
+
+/** One row of Admin → Users (admin_list_users). */
+export type SignedUpUser = {
+  id: string;
+  email: string;
+  fullName: string;
+  signedUpAt: string;
+  signedUpWith: 'email' | 'google';
+  finished: boolean;
+  isActive: boolean;
 };
 
 /** The setup form's answers. phone: staff only. yearLevel: students only ('other' = not at school). */
@@ -74,8 +96,8 @@ export type TwoStepEnrolment = {
   secret: string; // the same key as text, for people who can't scan
 };
 
-/** Which email link was opened: an invite or a password reset. */
-export type EmailLinkType = 'invite' | 'recovery';
+/** Which email link was opened: an invite, a password reset, or a sign-up confirmation. */
+export type EmailLinkType = 'invite' | 'recovery' | 'email';
 
 /** A staff member's profile, as shown and edited on the profile page. */
 export type StaffProfile = {
@@ -424,8 +446,19 @@ export type StudentFamily = StudentSummary & {
   classes: { id: string; name: string }[];
 };
 
-/** What happened when a parent was invited: a new account, or an existing one linked. */
-export type ParentInviteOutcome = { userId: string; linked: boolean };
+/**
+ * What happened when a parent was invited: a new account, an existing parent linked, a signed-up
+ * user promoted to parent, or a signed-up user the admin must confirm first (open sign-up).
+ */
+export type ParentInviteOutcome =
+  | { kind: 'invited' | 'linked' | 'promoted'; userId: string }
+  | {
+      kind: 'needsConfirmation';
+      userId: string;
+      fullName: string;
+      signedUpAt: string;
+      signedUpWith: 'email' | 'google';
+    };
 
 // --- Student and parent portals (R3b) -------------------------------------------------
 

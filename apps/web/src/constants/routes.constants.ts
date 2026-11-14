@@ -44,6 +44,12 @@ export const PORTAL_ROUTES = {
   student: '/portal/student',
   studentTimetable: '/portal/student/timetable',
   parent: '/portal/parent',
+  // Open sign-up (ADR-0011)
+  signUp: '/portal/sign-up',
+  signUpResend: '/portal/sign-up/resend',
+  authCallback: '/portal/auth/callback', // where Google sends people back (Supabase redirect URL)
+  user: '/portal/user', // a signed-up user's home: the latest news
+  adminUsers: '/portal/admin/users',
 } as const;
 
 // Portal pages with an id in the address (React Router patterns).
@@ -103,6 +109,11 @@ export const PORTAL_QUERY = {
   reason: 'reason', // why the person was sent to the sign-in page
   tokenHash: 'token_hash', // from reset emails (supabase/templates/recovery.html) and old invite links
   linkType: 'type',
+  // Sent back by Supabase after "Continue with Google" (in the query, and repeated in the fragment)
+  oauthCode: 'code',
+  oauthError: 'error',
+  oauthErrorCode: 'error_code',
+  oauthErrorDescription: 'error_description',
 } as const;
 
 // Names read from the address fragment (`#name=value`), which never reaches a server, its logs or
@@ -115,6 +126,7 @@ export const PORTAL_FRAGMENT = {
 export const SIGN_IN_REASONS = {
   inactive: 'inactive',
   passwordChanged: 'password-changed',
+  finishSignUp: 'finish-sign-up', // signed in by password before finishing sign-up (AC-20)
 } as const;
 
 export const SECTION_IDS = {

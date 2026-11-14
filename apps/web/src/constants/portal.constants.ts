@@ -47,6 +47,11 @@ export const PORTAL_SEO = {
   parent: 'My children',
   parentChild: 'Child',
   parentChildAssignment: 'Assignment',
+  signUp: 'Create an account',
+  signUpResend: 'Send the link again',
+  authCallback: 'Signing in',
+  user: 'Latest news',
+  adminUsers: 'Users',
 } as const;
 
 export const ROLE_LABELS: Record<AppRole, string> = {
@@ -54,6 +59,7 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   admin: 'Admin',
   student: 'Student',
   parent: 'Parent',
+  user: 'User',
 };
 
 export const PORTAL_COMMON = {
@@ -84,6 +90,7 @@ export const PORTAL_COMMON = {
     admin: 'Staff',
     student: 'Student',
     parent: 'Parent',
+    user: 'User',
   } satisfies Record<AppRole, string>,
   navLabel: 'Portal',
   nav: {
@@ -97,6 +104,7 @@ export const PORTAL_COMMON = {
     studentHome: 'My work',
     studentTimetable: 'Timetable',
     parentHome: 'My children',
+    userHome: 'Latest news',
   },
   themeToggle: {
     toDark: 'Switch to dark mode',
@@ -138,6 +146,9 @@ export const LOGIN_PAGE = {
   submitting: 'Signing in…',
   forgotPassword: 'Forgot your password?',
   passwordChanged: 'Your password has been changed. Please sign in.',
+  signUpPrompt: 'New to AJ Classes? ',
+  signUpLink: 'Create an account',
+  or: 'or',
 } as const;
 
 export const LOGIN_VERIFY_PAGE = {
@@ -165,11 +176,14 @@ export const AUTH_CONFIRM_PAGE = {
   heading: {
     invite: 'Welcome to AJ Classes',
     recovery: 'Reset your password',
+    email: 'Confirm your e-mail',
   },
   intro: {
     invite: "You've been invited to the AJ Classes portal. Continue to set up your account.",
     recovery: 'Continue to choose a new password.',
+    email: 'Continue to finish creating your account.',
   },
+  sendAgain: 'Send the link again',
   continue: 'Continue',
   checking: 'Checking your link…',
   invalidLink: 'This link is incomplete. Please use the button in the email.',
@@ -390,6 +404,7 @@ export const ADMIN_DASHBOARD = {
     posts: 'Posts',
     emails: 'Emails',
     activity: 'Activity',
+    users: 'Users',
   },
   recent: {
     heading: 'Recent activity',
@@ -640,6 +655,8 @@ export const ACTIVITY_LABELS = {
   consent_recorded: 'Recorded consent for',
   consent_changed: 'Changed their permissions',
   account_activated: 'Finished account setup',
+  sign_up_opened: 'Opened sign-up',
+  sign_up_closed: 'Closed sign-up',
 } as const;
 
 export const ACTIVITY_PAGE = {

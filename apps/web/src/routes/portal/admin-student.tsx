@@ -454,7 +454,7 @@ function ParentsSection({ student, onChanged }: SectionProps) {
         onInvite={(email, fullName) => inviteParent(student.id, email, fullName)}
         onDone={(email, outcome) => {
           setInviting(false);
-          action.announce(outcome.linked ? texts.linked(email) : texts.invited(email));
+          action.announce(outcome.kind === 'linked' ? texts.linked(email) : texts.invited(email));
           onChanged();
         }}
         onClose={() => setInviting(false)}

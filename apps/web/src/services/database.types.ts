@@ -809,16 +809,30 @@ export type Database = {
           terms_accepted_at: string;
         }[];
       };
+      admin_list_users: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          email: string;
+          finished: boolean;
+          full_name: string;
+          id: string;
+          is_active: boolean;
+          signed_up_at: string;
+          signed_up_with: string;
+        }[];
+      };
       admin_log: {
         Args: { action: string; actor: string; details?: Json; target: string };
         Returns: undefined;
       };
+      admin_promote_user: { Args: { target: string; target_student: string }; Returns: undefined };
       admin_record_consent: { Args: { target_student: string }; Returns: undefined };
       admin_set_active: { Args: { active: boolean; target: string }; Returns: undefined };
       admin_set_role: {
         Args: { new_role: Database['public']['Enums']['app_role']; target: string };
         Returns: undefined;
       };
+      admin_set_sign_up_open: { Args: { is_open: boolean }; Returns: undefined };
       admin_unlink_parent: {
         Args: { target_parent: string; target_student: string };
         Returns: undefined;
@@ -836,10 +850,16 @@ export type Database = {
         };
         Returns: undefined;
       };
+      complete_sign_up: {
+        Args: { accepts_terms?: boolean; new_full_name: string };
+        Returns: undefined;
+      };
+      hook_before_user_created: { Args: { event: Json }; Returns: Json };
       invite_token_claim: { Args: { client_ip_hash: string; hash: string }; Returns: string };
       invite_token_release: { Args: { hash: string }; Returns: undefined };
       invite_token_store: { Args: { hash: string; target: string }; Returns: string };
       move_question: { Args: { step: number; target: string }; Returns: undefined };
+      my_has_password: { Args: Record<PropertyKey, never>; Returns: boolean };
       my_onboarding: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -847,6 +867,15 @@ export type Database = {
           full_name: string;
           role: Database['public']['Enums']['app_role'];
           year_level: number;
+        }[];
+      };
+      my_sign_up: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          can_finish: boolean;
+          email: string;
+          full_name: string;
+          signed_up_with: string;
         }[];
       };
       notify_claim_emails: {
@@ -932,6 +961,8 @@ export type Database = {
         };
         Returns: undefined;
       };
+      sign_up_guard_ready: { Args: Record<PropertyKey, never>; Returns: boolean };
+      sign_up_status: { Args: Record<PropertyKey, never>; Returns: string };
       student_assignment: { Args: { target: string }; Returns: Json };
       student_assignments: {
         Args: Record<PropertyKey, never>;
@@ -984,7 +1015,7 @@ export type Database = {
     };
     Enums: {
       account_status: 'invited' | 'active';
-      app_role: 'tutor' | 'admin' | 'student' | 'parent';
+      app_role: 'tutor' | 'admin' | 'student' | 'parent' | 'user';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1100,7 +1131,7 @@ export const Constants = {
   public: {
     Enums: {
       account_status: ['invited', 'active'],
-      app_role: ['tutor', 'admin', 'student', 'parent'],
+      app_role: ['tutor', 'admin', 'student', 'parent', 'user'],
     },
   },
 } as const;

@@ -112,14 +112,36 @@ export async function inviteStudentAccount(
 }
 
 /** Invites a new parent, or links one who already has an account (FA2). */
+/**
+ * Invites a parent, links an existing one, or (with confirmUserId, after the admin confirmed)
+ * links a signed-up user as a parent. A signed-up user first comes back as needsConfirmation.
+ */
 export async function inviteParent(
   studentId: string,
   email: string,
   fullName: string,
+  confirmUserId?: string,
 ): Promise<Result<ParentInviteOutcome>> {
-  const result = await callAccountAdmin('invite-parent', { studentId, email, fullName });
+  const result = await callAccountAdmin('invite-parent', {
+    studentId,
+    email,
+    fullName,
+    ...(confirmUserId ? { confirmUserId } : {}),
+  });
   if (!result.ok) return result;
-  return succeed({ userId: String(result.data.userId), linked: result.data.linked === true });
+  const data = result.data;
+  const userId = String(data.userId);
+  if (data.needsConfirmation === true) {
+    return succeed({
+      kind: 'needsConfirmation',
+      userId,
+      fullName: String(data.fullName ?? ''),
+      signedUpAt: String(data.signedUpAt ?? ''),
+      signedUpWith: data.signedUpWith === 'google' ? 'google' : 'email',
+    });
+  }
+  if (data.promoted === true) return succeed({ kind: 'promoted', userId });
+  return succeed({ kind: data.linked === true ? 'linked' : 'invited', userId });
 }
 
 /** Removes a parent's link to this student (F25). Their account stays. */

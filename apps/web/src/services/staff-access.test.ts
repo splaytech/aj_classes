@@ -39,6 +39,7 @@ function signedInAs(role: AppRole | null, aal: 'aal1' | 'aal2' = 'aal1'): Access
     email: '',
     profile: role ? { fullName: 'Someone', role } : null,
     onboarding: null,
+    signUp: null,
     aal,
     hasVerifiedFactor: aal === 'aal2',
   };

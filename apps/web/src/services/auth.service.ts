@@ -4,7 +4,7 @@
 import { clearStoredSession, getSupabase, isPortalConfigured } from './supabase.client';
 import { attempt, fail, succeed } from './result';
 import { toErrorKey } from './auth-errors';
-import type { AccessState, OnboardingInfo, Result } from './types';
+import type { AccessState, OnboardingInfo, Result, SignUpInfo } from './types';
 
 const SIGNED_OUT: AccessState = {
   signedIn: false,
@@ -12,6 +12,7 @@ const SIGNED_OUT: AccessState = {
   email: '',
   profile: null,
   onboarding: null,
+  signUp: null,
   aal: 'aal1',
   hasVerifiedFactor: false,
 };
@@ -174,6 +175,7 @@ async function readAccessState(userId: string, email: string): Promise<AccessSta
   const row = profileResult.data;
   const profile = row?.is_active ? { fullName: row.full_name, role: row.role } : null;
   const onboarding = profile ? null : await readOnboarding();
+  const signUp = profile || onboarding ? null : await readSignUp();
 
   return {
     signedIn: true,
@@ -181,6 +183,7 @@ async function readAccessState(userId: string, email: string): Promise<AccessSta
     email,
     profile,
     onboarding,
+    signUp,
     aal: levelResult.data?.currentLevel === 'aal2' ? 'aal2' : 'aal1',
     hasVerifiedFactor: levelResult.data?.nextLevel === 'aal2',
   };
@@ -199,6 +202,22 @@ async function readOnboarding(): Promise<OnboardingInfo | null> {
     fullName: row.full_name,
     email: row.email,
     yearLevel: row.year_level ?? null,
+  };
+}
+
+/** The finish step's details, or null unless the account is an unfinished website sign-up. */
+async function readSignUp(): Promise<SignUpInfo | null> {
+  const supabase = await getSupabase();
+  const { data, error } = await supabase.rpc('my_sign_up');
+  if (error) throw error;
+
+  const row = data?.[0];
+  if (!row) return null;
+  return {
+    fullName: row.full_name,
+    email: row.email,
+    signedUpWith: row.signed_up_with === 'google' ? 'google' : 'email',
+    canFinish: row.can_finish === true,
   };
 }
 

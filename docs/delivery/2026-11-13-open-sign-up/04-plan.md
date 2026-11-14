@@ -420,7 +420,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
 
 ### Phase E: web pages (`apps/web/src`; services are the only Supabase callers, and every word lives in constants)
 
-- [ ] **20. Constants, types and services** (03 §7.1, §7.2).
+- [x] **20. Constants, types and services** (03 §7.1, §7.2).
   - Nothing new on screen yet.
   - **Files:**
     - `pnpm db:types` regenerates `database.types.ts`;

@@ -10,6 +10,7 @@ const signedOut: AccessState = {
   email: '',
   profile: null,
   onboarding: null,
+  signUp: null,
   aal: 'aal1',
   hasVerifiedFactor: false,
 };
@@ -20,6 +21,7 @@ const tutor: AccessState = {
   email: 'tutor@example.com',
   profile: { fullName: 'Tutor', role: 'tutor' },
   onboarding: null,
+  signUp: null,
   aal: 'aal1',
   hasVerifiedFactor: false,
 };

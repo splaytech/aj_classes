@@ -128,7 +128,15 @@ export const STAFF_ROLES = ['tutor', 'admin'] as const;
 export type StaffRole = (typeof STAFF_ROLES)[number];
 export const FAMILY_ROLES = ['student', 'parent'] as const;
 export type FamilyRole = (typeof FAMILY_ROLES)[number];
-export type AppRole = StaffRole | FamilyRole;
+// Someone who signed up on the website (open sign-up, ADR-0011): sees only the latest news until
+// an admin links them to a student.
+export const USER_ROLE = 'user' as const;
+export type UserRole = typeof USER_ROLE;
+export type AppRole = StaffRole | FamilyRole | UserRole;
+
+// What sign_up_status() says: open, busy (today's 15 are used up), or closed by an admin.
+export const SIGN_UP_STATUSES = ['open', 'busy', 'closed'] as const;
+export type SignUpStatus = (typeof SIGN_UP_STATUSES)[number];
 
 // Who recorded parental consent for a student's account (R3b D5): an admin (e.g. a paper
 // enrolment form) or a linked parent in the portal.

@@ -25,6 +25,7 @@ const DEACTIVATED: AccessState = {
   email: 'student@test.local',
   profile: null,
   onboarding: null,
+  signUp: null,
   aal: 'aal1',
   hasVerifiedFactor: false,
 };

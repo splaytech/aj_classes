@@ -22,6 +22,18 @@ export {
   watchForSignOut,
 } from './auth.service';
 export { completeOnboarding } from './onboarding.service';
+export {
+  completeSignUp,
+  confirmSignUpLink,
+  finishGoogleSignIn,
+  getSignUpOptions,
+  hasPassword,
+  resendSignUpLink,
+  signUpWithEmail,
+  startGoogleSignIn,
+} from './sign-up.service';
+export type { FinishSignUpInput, SignUpOptions } from './sign-up.service';
+export { listUsers, setSignUpOpen } from './users.service';
 export { redeemInvite, signInWithInviteHop } from './invites.service';
 export { getMyConsents, setMyConsents } from './consents.service';
 export {
@@ -148,6 +160,8 @@ export type {
   OnboardingInfo,
   OnboardingInput,
   ParentInviteOutcome,
+  SignedUpUser,
+  SignUpInfo,
   Post,
   PostInput,
   PublicPost,

@@ -41,6 +41,7 @@ const HOME_BY_ROLE: Record<AppRole, string> = {
   admin: PORTAL_ROUTES.admin,
   student: PORTAL_ROUTES.student,
   parent: PORTAL_ROUTES.parent,
+  user: PORTAL_ROUTES.user,
 };
 
 export function homeForRole(role: AppRole): string {
