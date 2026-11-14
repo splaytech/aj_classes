@@ -287,7 +287,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **If not:** if S4(b) sends nothing, the lead decides whether §6.4's "confirm on deactivate" stays. The default is to keep it.
   - **Commit:** `test(auth): captcha guards sign-up and resend; an unconfirmed sign-in reads as a wrong password`
 
-- [ ] **10. S5: the finish step on the server** (03 §3.3 `signed_up_with` and `session_can_finish_sign_up`; §3.7 `my_sign_up`, `complete_sign_up` and `my_has_password`).
+- [x] **10. S5: the finish step on the server** (03 §3.3 `signed_up_with` and `session_can_finish_sign_up`; §3.7 `my_sign_up`, `complete_sign_up` and `my_has_password`).
   - **ACs:** AC-6 and AC-7 (server), AC-14 (all six cases), AC-17, AC-20, AC-24, AC-45 (terms).
   - **Files:**
     - the migration gains those functions;

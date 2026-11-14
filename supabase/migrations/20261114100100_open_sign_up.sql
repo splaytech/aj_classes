@@ -246,3 +246,151 @@ create trigger on_auth_user_email_confirmed
   for each row
   when (old.email_confirmed_at is null and new.email_confirmed_at is not null)
   execute function private.wipe_unproven_credentials();
+
+-- ---------------------------------------------------------------------------
+-- §3.3 Private helpers for the finish step
+-- ---------------------------------------------------------------------------
+
+-- 'google' when the account has a Google identity, else 'email'.
+create function private.signed_up_with(target uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select case
+           when exists (select 1 from auth.identities i where i.user_id = target and i.provider = 'google')
+             then 'google'
+           else 'email'
+         end
+$$;
+
+-- True only when this session was made by an e-mail link (confirmation or Forgot password) or a
+-- Google sign-in: every amr entry must be one of those methods. A password session, an unknown
+-- method, an empty list or no claim at all gives false (fail closed, 02 Q4; review-3 item 6).
+-- S5 (05-dev-notes.md): links give [otp], Google gives [oauth], and a refresh keeps the method.
+create function private.session_can_finish_sign_up()
+returns boolean
+language sql
+stable
+set search_path = ''
+as $$
+  select coalesce(
+    jsonb_typeof(auth.jwt() -> 'amr') = 'array'
+    and jsonb_array_length(auth.jwt() -> 'amr') > 0
+    and not exists (
+      select 1
+      from jsonb_array_elements(auth.jwt() -> 'amr') as entry
+      where coalesce(entry ->> 'method', '') not in ('otp', 'recovery', 'email/signup', 'magiclink', 'oauth')
+    ),
+    false
+  )
+$$;
+
+revoke execute on function private.signed_up_with(uuid) from public, anon, authenticated;
+revoke execute on function private.session_can_finish_sign_up() from public, anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- §3.7 The finish step (/portal/join for a signed-up user)
+-- ---------------------------------------------------------------------------
+
+-- What the finish step needs: one row for the caller while they are an unfinished, active user.
+create function public.my_sign_up()
+returns table (full_name text, email text, signed_up_with text, can_finish boolean)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.full_name, p.email, private.signed_up_with(p.id), private.session_can_finish_sign_up()
+  from public.profiles p
+  where p.id = (select auth.uid())
+    and p.role = 'user'
+    and p.status = 'invited'
+    and p.is_active
+$$;
+
+-- Saves the finish step: the name, the Terms tick and (for e-mail accounts) a password chosen in
+-- this very session. Only from a session made by an e-mail link or Google (AC-17). All or nothing.
+create function public.complete_sign_up(new_full_name text, accepts_terms boolean default false)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  me constant uuid := (select auth.uid());
+  this_session constant uuid := nullif(auth.jwt() ->> 'session_id', '')::uuid;
+  clean_name constant text := trim(coalesce(new_full_name, ''));
+  set_at timestamptz;
+  session_started timestamptz;
+  via text;
+begin
+  -- Locks the row, so this can't race an invite replacing the sign-up (account-admin).
+  select p.password_set_at into set_at
+  from public.profiles p
+  where p.id = me and p.role = 'user' and p.status = 'invited' and p.is_active
+  for update;
+  if not found then
+    raise exception 'not_invited' using errcode = '42501';
+  end if;
+
+  if (select u.email_confirmed_at from auth.users u where u.id = me) is null then
+    raise exception 'not_invited' using errcode = '42501';
+  end if;
+
+  if not private.session_can_finish_sign_up() then
+    raise exception 'sign_up_link_needed' using errcode = '42501';
+  end if;
+
+  via := private.signed_up_with(me);
+  if via = 'email' then
+    select s.created_at into session_started
+    from auth.sessions s
+    where s.id = this_session and s.user_id = me;
+    if session_started is null or set_at is null or set_at < session_started then
+      raise exception 'password_not_set';
+    end if;
+  end if;
+
+  if accepts_terms is not true then
+    raise exception 'terms_required';
+  end if;
+  if not private.is_valid_full_name(clean_name) then
+    raise exception 'invalid_name';
+  end if;
+
+  update public.profiles
+  set full_name = clean_name,
+      terms_accepted_at = now(),
+      status = 'active',
+      joined_at = now()
+  where id = me;
+
+  -- Anything added before this point by someone else is gone (AC-14 case 6).
+  delete from auth.mfa_factors f where f.user_id = me;
+  delete from auth.sessions s where s.user_id = me and s.id is distinct from this_session;
+
+  insert into public.audit_log (actor_id, action, target_id, details)
+  values (me, 'account_activated', me, jsonb_build_object('role', 'user', 'via', via));
+end;
+$$;
+
+-- Whether the caller has a password (Account → Change password shows only then, AC-23).
+create function public.my_has_password()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce((select u.encrypted_password from auth.users u where u.id = (select auth.uid())), '') <> ''
+$$;
+
+revoke execute on function public.my_sign_up() from public, anon, authenticated;
+revoke execute on function public.complete_sign_up(text, boolean) from public, anon, authenticated;
+revoke execute on function public.my_has_password() from public, anon, authenticated;
+grant execute on function public.my_sign_up() to authenticated;
+grant execute on function public.complete_sign_up(text, boolean) to authenticated;
+grant execute on function public.my_has_password() to authenticated;

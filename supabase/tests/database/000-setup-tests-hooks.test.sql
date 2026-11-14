@@ -168,6 +168,38 @@ begin
 end;
 $$;
 
+-- Act as a signed-in user in a real session (an auth.sessions row), with the sign-in methods
+-- Auth would put in the token's amr claim. p_amr null leaves the claim out. Returns the session
+-- id. Undo with `reset role;`.
+create or replace function tests.authenticate_with_session(
+  p_user_id uuid,
+  p_amr text[],
+  p_aal text default 'aal1'
+)
+returns uuid
+language plpgsql
+set search_path = ''
+as $$
+declare
+  new_session uuid := gen_random_uuid();
+  claims jsonb;
+begin
+  insert into auth.sessions (id, user_id, created_at, updated_at, aal)
+  values (new_session, p_user_id, now(), now(), p_aal::auth.aal_level);
+  claims := jsonb_build_object('sub', p_user_id, 'role', 'authenticated', 'aal', p_aal,
+                               'session_id', new_session);
+  if p_amr is not null then
+    claims := claims || jsonb_build_object('amr', coalesce(
+      (select jsonb_agg(jsonb_build_object('method', m, 'timestamp', extract(epoch from now())::bigint))
+       from unnest(p_amr) as m),
+      '[]'::jsonb));
+  end if;
+  perform set_config('request.jwt.claims', claims::text, true);
+  perform set_config('role', 'authenticated', true);
+  return new_session;
+end;
+$$;
+
 -- Act as a signed-out visitor. Undo with `reset role;`.
 create or replace function tests.authenticate_as_anon()
 returns void

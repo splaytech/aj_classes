@@ -579,6 +579,250 @@ async function captchaAndResendChecks() {
   check('S4(b) recorded (see 05-dev-notes.md)', true);
 }
 
+const amrOf = (jwt) =>
+  JSON.parse(Buffer.from(jwt.split('.')[1], 'base64url').toString()).amr?.map((a) => a.method);
+const refreshSession = async (refreshToken) =>
+  (await api('/auth/v1/token?grant_type=refresh_token', { body: { refresh_token: refreshToken } }))
+    .json;
+const rpc = (name, token, body = {}) => api(`/rest/v1/rpc/${name}`, { token, body });
+const finishSignUp = (token, fullName = 'Finished Parent', acceptsTerms = true) =>
+  rpc('complete_sign_up', token, { new_full_name: fullName, accepts_terms: acceptsTerms });
+const profileState = (email) =>
+  sql(`select role || '/' || status from public.profiles where email = '${email}'`);
+
+/** Forgot password → the recovery link → a session, as /portal/auth/confirm does. */
+async function recoverySession(email) {
+  skipResendWait(email);
+  await forgotPassword(email);
+  await settle();
+  const mail = await fullMail(email);
+  const hash = mail?.HTML.match(/token_hash=([0-9a-f]+)&(?:amp;)?type=recovery/)?.[1] ?? '';
+  const reply = await api('/auth/v1/verify', { body: { type: 'recovery', token_hash: hash } });
+  return {
+    status: reply.status,
+    token: reply.json?.access_token,
+    refresh: reply.json?.refresh_token,
+  };
+}
+
+async function finishChecks() {
+  console.log('\nS5: the finish step (AC-6, AC-14, AC-17, AC-20, AC-24)');
+  plantCapRows(0);
+  const P2 = `${PREFIX}-P2-owner`;
+  const PA = `${PREFIX}-PA-stranger`;
+
+  // The real amr arrays (recorded in 05-dev-notes.md).
+  const probe = address('amr');
+  await rawSignUp(probe, 'Amr Probe');
+  const confirmation = await openConfirmationLink(probe);
+  amrSeen.confirmation = amrOf(confirmation.token);
+  amrSeen.confirmationRefreshed = amrOf((await refreshSession(confirmation.refresh)).access_token);
+  check(
+    'S5: a confirmation-link session is [otp], and still [otp] after a refresh',
+    JSON.stringify(amrSeen.confirmation) === '["otp"]' &&
+      JSON.stringify(amrSeen.confirmationRefreshed) === '["otp"]',
+    JSON.stringify(amrSeen),
+  );
+  await setPassword(confirmation.token, P2);
+  const pw = await passwordSignIn(probe, P2);
+  amrSeen.password = amrOf(pw.token);
+  amrSeen.passwordRefreshed = amrOf((await refreshSession(pw.refresh)).access_token);
+  check(
+    'S5: a password session is [password], also after a refresh',
+    JSON.stringify(amrSeen.password) === '["password"]' &&
+      JSON.stringify(amrSeen.passwordRefreshed) === '["password"]',
+  );
+  const refused = await finishSignUp(pw.token);
+  check(
+    'AC-17: the finish step is refused from a password session (sign_up_link_needed)',
+    refused.json?.message === 'sign_up_link_needed' && profileState(probe) === 'user/invited',
+    JSON.stringify(refused.json),
+  );
+  const recovery = await recoverySession(probe);
+  amrSeen.recovery = amrOf(recovery.token);
+  amrSeen.recoveryRefreshed = amrOf((await refreshSession(recovery.refresh)).access_token);
+  check(
+    'S5: a recovery-link session is [otp], and still [otp] after a refresh',
+    JSON.stringify(amrSeen.recovery) === '["otp"]' &&
+      JSON.stringify(amrSeen.recoveryRefreshed) === '["otp"]',
+  );
+
+  // AC-14 case 1: A signs up; B finishes from the link and types P2.
+  const case1 = address('finish-case1');
+  await rawSignUpWithPassword(case1, PA);
+  const owner1 = await openConfirmationLink(case1);
+  const noPassword = await finishSignUp(owner1.token);
+  check(
+    'AC-6: saving without choosing a password in this session: password_not_set',
+    noPassword.json?.message === 'password_not_set',
+    JSON.stringify(noPassword.json),
+  );
+  await setPassword(owner1.token, P2);
+  const saved1 = await finishSignUp(owner1.token);
+  check(
+    'The finish step saves from a confirmation-link session',
+    saved1.status === 204 && profileState(case1) === 'user/active',
+    JSON.stringify({ status: saved1.status, body: saved1.json }),
+  );
+  check(
+    'AC-14 case 1: only P2 signs in',
+    (await signsIn(case1, P2)) && !(await signsIn(case1, PA)),
+  );
+
+  // AC-14 case 2 (the e-mail half; the Google refusal is pgTAP): B finishes via Forgot password.
+  const case2 = address('finish-case2');
+  await rawSignUpWithPassword(case2, PA);
+  const owner2 = await recoverySession(case2);
+  check('Forgot password on an unconfirmed sign-up gives a session', Boolean(owner2.token));
+  check(
+    'and the recovery link confirmed the e-mail and wiped the old password',
+    sql(
+      `select (email_confirmed_at is not null)::text || '/' || coalesce(encrypted_password, 'NULL') from auth.users where email = '${case2}'`,
+    ) === 'true/NULL',
+  );
+  await setPassword(owner2.token, P2);
+  const saved2 = await finishSignUp(owner2.token);
+  check(
+    'The finish step saves from a recovery-link session (AC-14 case 2, AC-20 route)',
+    saved2.status === 204 && profileState(case2) === 'user/active',
+    JSON.stringify(saved2.json),
+  );
+  check(
+    "AC-14 case 2: only B's password signs in",
+    (await signsIn(case2, P2)) && !(await signsIn(case2, PA)),
+  );
+
+  // AC-14 cases 3 and 4 in full: two sign-ups, the newest link finishes.
+  for (const [label, first, second] of [
+    ['3', PA, `${PREFIX}-PB-throwaway`],
+    ['4', `${PREFIX}-PB-throwaway`, PA],
+  ]) {
+    const email = address(`finish-case${label}`);
+    await rawSignUpWithPassword(email, first);
+    skipResendWait(email);
+    await rawSignUpWithPassword(email, second);
+    const owner = await openConfirmationLink(email);
+    await setPassword(owner.token, P2);
+    const saved = await finishSignUp(owner.token);
+    check(
+      `AC-14 case ${label}: B finishes from the newest link, and only B's password signs in`,
+      saved.status === 204 &&
+        (await signsIn(email, P2)) &&
+        !(await signsIn(email, PA)) &&
+        !(await signsIn(email, `${PREFIX}-PB-throwaway`)),
+    );
+  }
+
+  // AC-14 case 5 in full, and case 6: a factor enrolled before the save is gone after it.
+  const case5 = address('finish-case5');
+  await rawSignUpWithPassword(case5, PA);
+  const owner5 = await openConfirmationLink(case5);
+  const strangerTry = await passwordSignIn(case5, PA);
+  check('AC-14 case 5: A never gets a session with P1', !strangerTry.token);
+  const enrolled = await api('/auth/v1/factors', {
+    token: owner5.token,
+    body: { factor_type: 'totp', friendly_name: 'Before finishing' },
+  });
+  const otherSession = await refreshSession(owner5.refresh);
+  check(
+    'AC-14 case 6: an authenticator can be enrolled before finishing',
+    Boolean(enrolled.json?.id),
+    JSON.stringify(enrolled.json),
+  );
+  await setPassword(otherSession.access_token, P2);
+  const saved5 = await finishSignUp(otherSession.access_token);
+  check(
+    "AC-14 case 5: when B finishes, only B's password signs in",
+    saved5.status === 204 && (await signsIn(case5, P2)) && !(await signsIn(case5, PA)),
+    JSON.stringify(saved5.json),
+  );
+  check(
+    'AC-14 case 6: the authenticator enrolled before the save is gone after it',
+    sql(
+      `select count(*) from auth.mfa_factors f join auth.users u on u.id = f.user_id where u.email = '${case5}'`,
+    ) === '0',
+  );
+
+  // AC-17: saving deletes every other session (a second sign-in by the owner, then the save).
+  const case7 = address('finish-sessions');
+  await rawSignUp(case7, 'Sessions Parent');
+  const linkA = await openConfirmationLink(case7);
+  await setPassword(linkA.token, P2);
+  const secondSession = await passwordSignIn(case7, P2);
+  check(
+    "A second session made by a password sign-in can't finish (AC-17)",
+    (await finishSignUp(secondSession.token)).json?.message === 'sign_up_link_needed',
+  );
+  const linkB = await recoverySession(case7);
+  await setPassword(linkB.token, `${P2}-again`);
+  await finishSignUp(linkB.token);
+  check(
+    'AC-17: after the save, only the saving session is left',
+    sql(
+      `select count(*) from auth.sessions s join auth.users u on u.id = s.user_id where u.email = '${case7}'`,
+    ) === '1',
+  );
+  check(
+    'and the other session can no longer refresh',
+    !(await refreshSession(secondSession.refresh))?.access_token,
+  );
+
+  // AC-24: a finished user resets and changes the password.
+  const reset = await recoverySession(case1);
+  const resetTo = `${P2}-reset`;
+  const resetReply = await setPassword(reset.token, resetTo);
+  check(
+    'AC-24: a finished user resets the password with Forgot password',
+    resetReply.status === 200 && (await signsIn(case1, resetTo)),
+    JSON.stringify(resetReply.json),
+  );
+  const session1 = await passwordSignIn(case1, resetTo);
+  const changeTo = `${P2}-changed`;
+  const changed = await setPassword(session1.token, changeTo);
+  check(
+    'AC-24: and changes it while signed in',
+    changed.status === 200 && (await signsIn(case1, changeTo)),
+    JSON.stringify(changed.json),
+  );
+  check(
+    'my_has_password is true for them',
+    (await rpc('my_has_password', session1.token)).json === true,
+  );
+
+  // AC-20: the unreachable state, built with ONE admin call (Confirm runs before UpdatePassword).
+  const unreachable = address('finish-ac20');
+  const made = await rawSignUp(unreachable, 'Unreachable Parent');
+  const ac20Password = `${PREFIX}-admin-set`;
+  await adminApi(`/auth/v1/admin/users/${made.json?.id}`, {
+    method: 'PUT',
+    body: { email_confirm: true, password: ac20Password },
+  });
+  const ac20 = await passwordSignIn(unreachable, ac20Password);
+  check(
+    'AC-20 setup: the admin-set password survives the confirm in the same call',
+    Boolean(ac20.token),
+  );
+  const ac20Row = (await rpc('my_sign_up', ac20.token)).json?.[0];
+  check(
+    'AC-20: my_sign_up().can_finish is false in that password session',
+    ac20Row?.can_finish === false,
+    JSON.stringify(ac20Row),
+  );
+  const ac20Save = await finishSignUp(ac20.token);
+  check(
+    'AC-20: complete_sign_up refuses with sign_up_link_needed, not password_not_set',
+    ac20Save.json?.message === 'sign_up_link_needed',
+    JSON.stringify(ac20Save.json),
+  );
+  check(
+    'AC-20: password_set_at was set by the admin update, so only the amr check refused',
+    sql(
+      `select (password_set_at is not null)::text from public.profiles where email = '${unreachable}'`,
+    ) === 'true',
+  );
+}
+
+const amrSeen = {};
 let captchaShape = null;
 let resendTooSoonShape = null;
 let resendConfirmedShape = null;
@@ -600,6 +844,7 @@ async function main() {
     await templateChecks();
     await wipeChecks();
     await captchaAndResendChecks();
+    await finishChecks();
   } finally {
     cleanUp();
   }
@@ -609,7 +854,14 @@ async function main() {
   );
   console.log(
     '\nRecorded:',
-    JSON.stringify({ captchaShape, resendTooSoonShape, resendConfirmedShape, s4b, s1bShape }),
+    JSON.stringify({
+      amrSeen,
+      captchaShape,
+      resendTooSoonShape,
+      resendConfirmedShape,
+      s4b,
+      s1bShape,
+    }),
   );
   finish();
 }

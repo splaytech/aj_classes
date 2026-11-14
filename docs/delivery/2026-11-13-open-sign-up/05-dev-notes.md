@@ -131,3 +131,23 @@ INT (`test-open-sign-up.mjs`, AC-42 section): all six signing-in seed accounts s
 - AC-19 raw replies: resend to an unconfirmed sign-up → 200, new link, old link dead; a second resend inside 60 s → `429 over_email_send_rate_limit` (the page maps it to "sent"); resend to a confirmed, unfinished sign-up → 200 and nothing sent; resends never take a cap slot.
 - AC-46: with 15 planted, resend and Forgot password both still send and neither is counted.
 - INT: 62 checks.
+
+## Slice 10 — S5: the finish step
+
+**Real `amr` arrays (GoTrue v2.197.0, local, from the JWT):**
+
+| Session | `amr` | After one refresh | After two |
+|---|---|---|---|
+| Confirmation link (`verify` type `email`) | `[otp]` | `[otp]` | – |
+| Recovery link (`verify` type `recovery`) | `[otp]` | `[otp]` | `[otp]` |
+| Password sign-in | `[password]` | `[password]` | – |
+| Google PKCE (source, slice 0) | `[oauth]` | (not run: no local Google) | – |
+
+- A refresh keeps the session's original method: GoTrue reads `amr` from `auth.mfa_amr_claims` for the session and adds no `token_refresh` claim. So a link session stays recognisable after an hour. **Stop condition 4 does not apply.**
+- Recovery links give `otp`, not `recovery`. `recovery`, `email/signup` and `magiclink` stay on the list as 03 has them (methods GoTrue can issue for link sessions); no method was added and there is no catch-all.
+- `updateUser({ password })` in a link session doesn't change its `amr`, so the finish step saves from the same session that chose the password.
+- No clock-skew problem: `password_set_at` (Postgres `now()`) was always after `auth.sessions.created_at` (GoTrue). No allowance added.
+
+INT (89 checks so far): finish saves from a confirmation session and from a recovery session (the recovery link also confirms an unconfirmed sign-up and wipes its old password); refused from a password session with `sign_up_link_needed`; without a password chosen in the session, `password_not_set`; AC-14 cases 1–6 in full, each on a fresh `signUp` (never the planted-P1 account); saving leaves only the saving session (the other one can't refresh); AC-24 reset and change; AC-20 built with one admin `PUT { email_confirm, password }`: the password survives, `can_finish` is false and the refusal is `sign_up_link_needed`, with `password_set_at` set.
+
+pgTAP-OS (the `amr` matrix with crafted claims): `[otp]`, `[recovery]`, `[oauth]` save; `[password]`, `[token_refresh]`, `[otp, unknown]`, `[otp, password]`, `[]` and no claim refuse; `password_not_set` for a password set before the session or none; Google needs no password; saving deletes factors and other sessions and audits `{role: user, via}`.

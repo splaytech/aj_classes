@@ -258,5 +258,155 @@ select ok((select prosecdef from pg_proc where oid = 'private.wipe_unproven_cred
           and (select prosecdef from pg_proc where oid = 'private.check_identity_link()'::regprocedure),
   'Both trigger functions are security definer');
 
+-- #6 The finish step (§3.3, §3.7; S5, AC-6, AC-7, AC-17, AC-20, AC-24, AC-45, AC-52)
+-- A confirmed, unfinished e-mail sign-up with a password chosen at the start of the session.
+create function tests.ready_to_finish(p_id uuid, p_provider text default 'email')
+returns uuid
+language plpgsql
+set search_path = ''
+as $$
+begin
+  perform tests.create_sign_up(p_id, 'finish-' || right(p_id::text, 4) || '@test.local', p_provider,
+                               p_confirmed => true, p_finished => false);
+  if p_provider = 'email' then
+    update auth.users set encrypted_password = 'chosen-in-session' where id = p_id;
+  end if;
+  return p_id;
+end;
+$$;
+
+-- The amr matrix: [otp], [recovery], [oauth] save.
+select tests.ready_to_finish('00000000-0000-0000-0000-00000000dd01');
+select tests.add_verified_factor('00000000-0000-0000-0000-00000000dd01');
+insert into auth.sessions (id, user_id, created_at, updated_at, aal)
+values ('00000000-0000-0000-0000-0000000005e1', '00000000-0000-0000-0000-00000000dd01', now(), now(), 'aal1');
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000dd01', array['otp']);
+select results_eq($$ select full_name, email, signed_up_with, can_finish from public.my_sign_up() $$,
+  $$ values ('Signed Up finish-dd01', 'finish-dd01@test.local', 'email', true) $$,
+  'my_sign_up: the caller''s row, e-mail, and can_finish in a link session');
+select ok(public.my_has_password(), 'my_has_password: true once a password is chosen (AC-24)');
+select throws_ok($$ select public.complete_sign_up('Finished Parent', false) $$, 'P0001', 'terms_required',
+  'No tick: terms_required (AC-7)');
+select throws_ok($$ select public.complete_sign_up('A', true) $$, 'P0001', 'invalid_name',
+  'A one-character name: invalid_name (AC-4)');
+select lives_ok($$ select public.complete_sign_up('  Finished Parent  ', true) $$,
+  'An [otp] session (confirmation or Forgot-password link) saves the finish step');
+select is_empty($$ select 1 from public.my_sign_up() $$, 'my_sign_up has no row once finished');
+reset role;
+select results_eq(
+  $$ select full_name, status::text, joined_at is not null, terms_accepted_at is not null, role::text
+     from public.profiles where id = '00000000-0000-0000-0000-00000000dd01' $$,
+  $$ values ('Finished Parent', 'active', true, true, 'user') $$,
+  'Saving trims the name, records the Terms tick and makes the account an active user');
+select is((select count(*)::int from auth.mfa_factors where user_id = '00000000-0000-0000-0000-00000000dd01'), 0,
+  'Saving deletes every authenticator (AC-14 case 6)');
+select is((select count(*)::int from auth.sessions where user_id = '00000000-0000-0000-0000-00000000dd01'), 1,
+  'Saving deletes every other session and keeps this one');
+select is_empty($$ select 1 from auth.sessions where id = '00000000-0000-0000-0000-0000000005e1' $$,
+  'The other session is the one that went');
+select results_eq(
+  $$ select actor_id, details from public.audit_log
+     where action = 'account_activated' and target_id = '00000000-0000-0000-0000-00000000dd01' $$,
+  $$ values ('00000000-0000-0000-0000-00000000dd01'::uuid, '{"role": "user", "via": "email"}'::jsonb) $$,
+  'Saving is audited as account_activated {role: user, via: email}');
+
+select tests.ready_to_finish('00000000-0000-0000-0000-00000000dd02');
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000dd02', array['recovery']);
+select lives_ok($$ select public.complete_sign_up('Recovery Parent', true) $$, 'A [recovery] session saves');
+reset role;
+
+-- Google (AC-52): an [oauth] session saves with no password at all.
+insert into auth.users (id, aud, role, email, raw_app_meta_data, raw_user_meta_data)
+values ('00000000-0000-0000-0000-00000000dd03', 'authenticated', 'authenticated', 'google-finish@test.local',
+        '{"provider":"google","providers":["google"]}', '{"full_name":"Google Parent"}');
+select lives_ok(tests.google_identity_sql('00000000-0000-0000-0000-00000000dd03'), 'A new Google account');
+update auth.users set email_confirmed_at = now() where id = '00000000-0000-0000-0000-00000000dd03';
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000dd03', array['oauth']);
+select results_eq($$ select signed_up_with, can_finish from public.my_sign_up() $$,
+  $$ values ('google', true) $$, 'my_sign_up: a Google account in an [oauth] session');
+select ok(not public.my_has_password(), 'my_has_password: false for a Google-only account');
+select lives_ok($$ select public.complete_sign_up('Google Parent', true) $$,
+  'An [oauth] session saves a Google account with no password (AC-52)');
+reset role;
+select is((select details ->> 'via' from public.audit_log
+           where action = 'account_activated' and target_id = '00000000-0000-0000-0000-00000000dd03'),
+  'google', 'and the audit says via google');
+
+-- Refused: [password], [token_refresh], [otp, unknown], [] and no amr claim (fail closed).
+select tests.ready_to_finish('00000000-0000-0000-0000-00000000dd04');
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000dd04', array['password']);
+select is((select can_finish from public.my_sign_up()), false, 'my_sign_up: can_finish false in a password session');
+select throws_ok($$ select public.complete_sign_up('Some Parent', true) $$, '42501', 'sign_up_link_needed',
+  '[password] is refused: sign_up_link_needed (AC-17, AC-20)');
+reset role;
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000dd04', array['token_refresh']);
+select throws_ok($$ select public.complete_sign_up('Some Parent', true) $$, '42501', 'sign_up_link_needed',
+  '[token_refresh] is refused');
+reset role;
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000dd04', array['otp', 'unknown']);
+select throws_ok($$ select public.complete_sign_up('Some Parent', true) $$, '42501', 'sign_up_link_needed',
+  '[otp, unknown] is refused: every entry must be a link method (review-3 item 6)');
+reset role;
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000dd04', array['otp', 'password']);
+select throws_ok($$ select public.complete_sign_up('Some Parent', true) $$, '42501', 'sign_up_link_needed',
+  '[otp, password] is refused');
+reset role;
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000dd04', array[]::text[]);
+select throws_ok($$ select public.complete_sign_up('Some Parent', true) $$, '42501', 'sign_up_link_needed',
+  'An empty amr is refused');
+reset role;
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000dd04', null);
+select throws_ok($$ select public.complete_sign_up('Some Parent', true) $$, '42501', 'sign_up_link_needed',
+  'A missing amr claim is refused');
+reset role;
+select is((select status::text from public.profiles where id = '00000000-0000-0000-0000-00000000dd04'), 'invited',
+  'After every refusal the account is still invited');
+
+-- An e-mail account must choose its password in this session.
+select tests.ready_to_finish('00000000-0000-0000-0000-00000000dd05');
+update public.profiles set password_set_at = now() - interval '1 minute' where id = '00000000-0000-0000-0000-00000000dd05';
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000dd05', array['otp']);
+select throws_ok($$ select public.complete_sign_up('Some Parent', true) $$, 'P0001', 'password_not_set',
+  'A password set before this session doesn''t count: password_not_set (AC-6)');
+reset role;
+update public.profiles set password_set_at = null where id = '00000000-0000-0000-0000-00000000dd05';
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000dd05', array['otp']);
+select throws_ok($$ select public.complete_sign_up('Some Parent', true) $$, 'P0001', 'password_not_set',
+  'No password at all: password_not_set');
+reset role;
+select is((select status::text from public.profiles where id = '00000000-0000-0000-0000-00000000dd05'), 'invited',
+  'and the account stays invited');
+
+-- Not an unfinished user: not_invited.
+select tests.create_sign_up('00000000-0000-0000-0000-00000000dd06', 'unconfirmed-finish@test.local', p_confirmed => false, p_finished => false);
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000dd06', array['otp']);
+select throws_ok($$ select public.complete_sign_up('Some Parent', true) $$, '42501', 'not_invited',
+  'An unconfirmed account can''t finish (defence)');
+reset role;
+select tests.create_family_account('00000000-0000-0000-0000-00000000dd07', 'invited-parent@test.local', 'parent', p_joined => false);
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000dd07', array['otp']);
+select throws_ok($$ select public.complete_sign_up('Some Parent', true) $$, '42501', 'not_invited',
+  'An invited parent uses complete_onboarding, not this');
+select is_empty($$ select 1 from public.my_sign_up() $$, 'and my_sign_up has no row for them');
+reset role;
+select tests.create_sign_up('00000000-0000-0000-0000-00000000dd08', 'inactive-finish@test.local', p_finished => false, p_active => false);
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000dd08', array['otp']);
+select throws_ok($$ select public.complete_sign_up('Some Parent', true) $$, '42501', 'not_invited',
+  'A deactivated sign-up can''t finish');
+reset role;
+
+-- Grants
+select ok(has_function_privilege('authenticated', 'public.complete_sign_up(text, boolean)', 'execute')
+          and not has_function_privilege('anon', 'public.complete_sign_up(text, boolean)', 'execute'),
+  'complete_sign_up: authenticated only');
+select ok(has_function_privilege('authenticated', 'public.my_sign_up()', 'execute')
+          and not has_function_privilege('anon', 'public.my_sign_up()', 'execute')
+          and has_function_privilege('authenticated', 'public.my_has_password()', 'execute')
+          and not has_function_privilege('anon', 'public.my_has_password()', 'execute'),
+  'my_sign_up and my_has_password: authenticated only');
+select ok(not has_function_privilege('authenticated', 'private.session_can_finish_sign_up()', 'execute')
+          and not has_function_privilege('authenticated', 'private.signed_up_with(uuid)', 'execute'),
+  'The private helpers are not callable from the API');
+
 select * from finish();
 rollback;
