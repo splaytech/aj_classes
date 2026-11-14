@@ -24,7 +24,7 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 | Mailpit (all local emails) | http://127.0.0.1:55324                                    |
 | Database                   | `postgresql://postgres:postgres@127.0.0.1:55322/postgres` |
 
-**Local accounts** are created by [`seed.sql`](seed.sql) (`admin@`, `newadmin@`, `tutor@`, `inactive@local.test`; since R3b also `parent@local.test`, the parent of Aarav Demo and Noah Demo, and `student@local.test`, Aarav Demo's own account; the local-only password is in that file). The seed also adds demo classes and online assignments in every state (returned, waiting for marking, to do, all multiple choice, draft). It never runs on staging or prod. `pnpm db:reset` recreates every account, so sign in again afterwards.
+**Local accounts** are created by [`seed.sql`](seed.sql) (`admin@`, `newadmin@`, `tutor@`, `inactive@local.test`; since R3b also `parent@local.test`, the parent of Aarav Demo and Noah Demo, and `student@local.test`, Aarav Demo's own account; since open sign-up also `user@local.test`, a finished signed-up user who sees only Latest news; the local-only password is in that file). The seed also adds demo classes and online assignments in every state (returned, waiting for marking, to do, all multiple choice, draft). It never runs on staging or prod. `pnpm db:reset` recreates every account, so sign in again afterwards.
 
 **Two-step locally:** `admin@local.test` has a local-only authenticator, and with `VITE_LOCAL_ADMIN_TWO_STEP_KEY` in `apps/web/.env.development.local` the dev server enters its code for you (design §16.1). Use `newadmin@local.test` to see the two-step setup screen.
 
@@ -38,12 +38,21 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 
 **Captcha locally** uses Cloudflare Turnstile's always-pass test keys. API calls need `"gotrue_meta_security": {"captcha_token": "XXXX.DUMMY.TOKEN.XXXX"}`.
 
+**Sign-up locally** (open sign-up, [ADR-0011](../docs/decisions/0011-open-sign-up-supabase-public-and-google.md)): http://localhost:5173/portal/sign-up, or "Create an account" on the sign-in page. The confirmation e-mail arrives in **Mailpit** (http://127.0.0.1:55324); its link opens `/portal/auth/confirm`, then the finish step. Google is off locally (no local Google client), so the Google button is hidden. The before-user-created hook lets through 15 e-mail sign-ups a day; manual testing can fill that, so reset the count with:
+
+```bash
+docker exec supabase_db_aj_classes psql -U postgres -c "delete from private.sign_up_emails"
+```
+
+The switch is in `private.sign_up_settings` (Admin → Users locally too). `pnpm test:functions` (`test-open-sign-up.mjs`) empties the count and reopens the switch when it finishes.
+
 ## Rules
 
 - Never edit a migration that has been applied to staging or prod. Add a new one: `supabase migration new <name>`.
 - Every new table: `enable row level security`, `revoke all … from anon, authenticated`, then grant only what's needed (design §7.1).
 - Every new function: `set search_path = ''`, revoke `execute` from `public` and `anon`, grant explicitly.
 - Roles never come from user metadata.
+- No role marker means a signed-up `user`, never a tutor (ADR-0011): anything that creates an account outside account-admin must set `app_metadata.account_role` (see "First admin" below).
 
 ## Runbooks
 
@@ -77,6 +86,14 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 ### Someone leaves
 
 Portal → Admin → Staff → the person → **Deactivate**. Check `public.audit_log`.
+
+### Close sign-up (ADR-0011)
+
+Portal → Admin → **Users** → **Close sign-up**, and confirm. New people can't create an account, by e-mail or with Google; everyone who has an account still signs in. **Open sign-up** there reopens it. Both are in `public.audit_log` (`sign_up_closed`, `sign_up_opened`).
+
+Emergency fallback, if the portal itself is down: Dashboard → Authentication → Sign In / Providers → turn off **Allow new users to sign up**. The next `deploy.sh` turns that setting back on (it pushes `enable_signup = true`), so also close the admin switch above as soon as you can. To take sign-up out entirely, set `[auth] enable_signup = false` in `config.toml` and run `deploy.sh`.
+
+Signed-up users are listed on the same page; **Deactivate** / **Reactivate** work for them whether or not they finished. To link one to their child, use **Invite or link a parent** on the student's page: it asks you to confirm, then makes them a parent without sending an e-mail.
 
 ### A student leaves a class, or was enrolled by mistake (ADR-0007)
 

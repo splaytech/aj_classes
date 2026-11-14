@@ -543,7 +543,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Check:** E2E and CSP. Afterwards, no `e2e-%` rows are left in posts, enquiries or profiles; the run's `sign_up_emails` rows are deleted; and nothing listens on 5173.
   - **Commit:** `test(e2e): e-mail sign-up to Latest news, and the Google button and refusal`
 
-- [ ] **31. Docs and runbooks** (03 §9).
+- [x] **31. Docs and runbooks** (03 §9).
   - **Files:**
     - `supabase/README.md`: local accounts with `user@`; "Sign-up locally" with the cap reset; the "First admin" SQL (from slice 2: check it's there); "Close sign-up", including the Dashboard fallback;
     - root `README.md` portal paragraph: sign-up for parents and guardians, linking to `supabase/README.md`;

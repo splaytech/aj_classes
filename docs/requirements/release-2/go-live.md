@@ -18,12 +18,22 @@
 > exists after the merge; so create the first admin in the dashboard (§5) and invite everyone
 > else after going live. Secrets for the script live in the git-ignored `supabase/.env.deploy`.
 
-## 0. Before anything: public sign-ups must be off
+## 0. Public sign-ups: only with the sign-up guard
 
-The hosted project currently allows anyone to sign up. Once the tables exist, an account created
-without an invite would become an **active tutor**. The setup script (§3) switches sign-ups off
-and **refuses to create any table until it has confirmed they are off**. If you'd rather do it by
-hand first: Dashboard → Authentication → Sign In / Providers → turn off **Allow new users to sign up**.
+> **Updated for open sign-up ([ADR-0011](../../decisions/0011-open-sign-up-supabase-public-and-google.md)).**
+> Sign-ups may now be on, **but only with the ADR-0011 guard installed**: new accounts with no
+> role marker become a signed-up `user` (never a tutor), a before-user-created hook enforces the
+> sign-up switch and the daily cap, and two triggers stop a Google login attaching to an
+> existing account and wipe any password set before the mailbox is proven. `deploy.sh` checks
+> the guard by behaviour (`sign_up_guard_ready()`) before and after the migrations, pushes the
+> settings that open sign-up last, checks the hook is on afterwards, and closes sign-up again if
+> any of that fails. Closing sign-up: [supabase/README.md](../../../supabase/README.md) → "Close sign-up".
+
+Before ADR-0011 the rule was: sign-ups must be off, because an account created without an invite
+would have become an **active tutor**. That is still true of any hosted project that hasn't run
+the ADR-0011 migrations: `deploy.sh` refuses to go on if sign-ups are on there and the guard isn't
+installed. If you'd rather turn them off by hand first: Dashboard → Authentication → Sign In /
+Providers → turn off **Allow new users to sign up**.
 
 ## 1. Accounts to create (owner)
 

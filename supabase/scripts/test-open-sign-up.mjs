@@ -1336,7 +1336,36 @@ function cleanUp() {
   sql(`delete from public.students where full_name = 'Open Sign-up ${RUN}'`);
 }
 
+// AC-39, opt-in (`--rate-limit`), run last and by hand: 31 sign-in attempts in a row from this
+// machine, and Auth should refuse one with over_request_rate_limit ([auth.rate_limit]
+// sign_in_sign_ups = 30 per 5 minutes per IP). If Auth enforces it, this IP can't sign in for 5
+// minutes. GoTrue rate-limits only by a configured forwarded-address header
+// (GOTRUE_RATE_LIMIT_HEADER or Sb-Forwarded-For; api/middleware.go:72-131), and the local stack
+// sets neither, so locally this reports that it isn't enforced instead of failing.
+async function rateLimitCheck() {
+  console.log('\nAC-39: the per-IP sign-in and sign-up limit (opt-in)');
+  const email = address('rate-limit');
+  const replies = [];
+  for (let attempt = 1; attempt <= 31; attempt += 1) {
+    replies.push(await passwordSignIn(email, `${PREFIX}-wrong-${attempt}`));
+  }
+  const limited = replies.findIndex((reply) => reply.code === 'over_request_rate_limit');
+  if (limited >= 0) {
+    check(`Auth refused attempt ${limited + 1} with over_request_rate_limit`, limited <= 30);
+  } else {
+    console.log(
+      'NOT ENFORCED on this stack: 31 attempts, no over_request_rate_limit. Local GoTrue has no rate-limit header set; check the hosted limit by hand (05-dev-notes).',
+    );
+  }
+  check('No account was created by the attempts', userCount(email) === '0');
+}
+
 async function main() {
+  if (process.argv.includes('--rate-limit')) {
+    await rateLimitCheck();
+    finish();
+    return;
+  }
   console.log('Open sign-up (local stack only)');
   admin = await adminTwoStepToken();
   try {
