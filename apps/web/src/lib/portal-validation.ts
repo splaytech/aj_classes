@@ -23,6 +23,14 @@ export function checkPasswordsMatch(password: string, confirmation: string): str
   return password === confirmation ? '' : PORTAL_VALIDATION.passwordsDiffer;
 }
 
+/** A code Auth e-mailed (re-authentication before a password change). */
+export function checkEmailCode(code: string): string {
+  return /^\d+$/.test(code) && code.length === AUTH_LIMITS.emailCodeLength
+    ? ''
+    : PORTAL_VALIDATION.emailCodeInvalid;
+}
+
+/** An authenticator (TOTP) code. */
 export function checkCode(code: string): string {
   return /^\d+$/.test(code) && code.length === AUTH_LIMITS.codeLength
     ? ''

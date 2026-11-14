@@ -238,7 +238,10 @@ secure_password_change = true
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
 max_frequency = "60s"
 # Number of characters used in the email OTP.
-otp_length = 6
+# Security 06 finding 5 (review-6b): 8 digits, so a resent code can't be guessed within Auth's
+# 30 checks per 5 minutes per IP. The web portal's e-mailed-code field follows
+# AUTH_LIMITS.emailCodeLength; authenticator (TOTP) codes stay 6 digits.
+otp_length = 8
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 

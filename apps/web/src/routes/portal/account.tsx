@@ -27,11 +27,12 @@ import {
   PORTAL_SEO,
   ROLE_LABELS,
   THEME_MODES,
+  AUTH_LIMITS,
 } from '@/constants';
 import type { ThemeMode } from '@/constants';
 import { NO_CONSENTS, asksForConsents } from '@/lib/consents';
 import { isFamilyRole, isStaffRole } from '@/lib/portal-access';
-import { checkCode, checkNewPassword, checkPasswordsMatch } from '@/lib/portal-validation';
+import { checkEmailCode, checkNewPassword, checkPasswordsMatch } from '@/lib/portal-validation';
 import { useAppearance } from '@/lib/appearance-context';
 import { buildPortalMeta } from '@/lib/seo';
 import {
@@ -167,7 +168,7 @@ function ChangePasswordSection() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const errors = {
-      code: needsCode ? checkCode(code) : '',
+      code: needsCode ? checkEmailCode(code) : '',
       password: checkNewPassword(password),
       confirm: checkPasswordsMatch(password, confirmation),
     };
@@ -225,6 +226,7 @@ function ChangePasswordSection() {
             <FormStatus message={codeMessage} />
             <CodeInput
               id={FIELD_IDS.code}
+              length={AUTH_LIMITS.emailCodeLength}
               label={ACCOUNT_PAGE.password.labels.code}
               value={code}
               onChange={setCode}

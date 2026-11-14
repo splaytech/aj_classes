@@ -87,7 +87,8 @@ export const APP_CONFIG = {
 // Staff sign-in rules (R2a design §8). Must match supabase/config.toml.
 export const AUTH_LIMITS = {
   passwordMin: 12,
-  codeLength: 6, // authenticator and emailed codes
+  codeLength: 6, // authenticator (TOTP) codes
+  emailCodeLength: 8, // codes Auth e-mails (re-authentication); [auth.email] otp_length in config.toml
   linkExpiryHours: 1, // password-reset links (Supabase otp_expiry); invites use INVITE_LIMITS
   maxAuthenticators: 2, // per admin: phone app + one backup
   authenticatorNameMax: 30,

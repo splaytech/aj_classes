@@ -124,6 +124,7 @@ export const PORTAL_VALIDATION = {
   passwordTooShort: `Please use at least ${AUTH_LIMITS.passwordMin} characters.`,
   passwordsDiffer: "The two passwords don't match.",
   codeInvalid: `Please enter the ${AUTH_LIMITS.codeLength}-digit code.`,
+  emailCodeInvalid: `Please enter the ${AUTH_LIMITS.emailCodeLength}-digit code from the email.`,
   nameRequired: 'Please enter a name.',
   phoneInvalid: 'Please enter an Australian phone number, like 0412 345 678.',
   yearLevelRequired: 'Please choose your year level.',

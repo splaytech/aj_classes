@@ -148,12 +148,25 @@ describe('FinishSignUpForm', () => {
     const user = await fill();
     expect(await screen.findByText(FINISH_SIGN_UP.codeSent)).toBeInTheDocument();
     vi.mocked(completeSignUp).mockResolvedValueOnce({ ok: true, data: undefined });
-    await user.type(screen.getByLabelText(FINISH_SIGN_UP.labels.code), '123456');
+    await user.type(screen.getByLabelText(FINISH_SIGN_UP.labels.code), '12345678');
     await user.click(screen.getByRole('button', { name: FINISH_SIGN_UP.submit }));
     expect(completeSignUp).toHaveBeenLastCalledWith(
       { fullName: 'Priya Shah', password: PASSWORD, acceptsTerms: true },
-      '123456',
+      '12345678',
     );
+  });
+
+  it('asks for the 8-digit e-mailed code, not a 6-digit one (security 06 finding 5)', async () => {
+    vi.mocked(completeSignUp).mockResolvedValueOnce({ ok: false, error: 'reauthNeeded' });
+    vi.mocked(sendReauthCode).mockResolvedValue({ ok: true, data: undefined });
+    renderForm();
+    const user = await fill();
+    const field = await screen.findByLabelText(FINISH_SIGN_UP.labels.code);
+    expect(field).toHaveAttribute('maxLength', '8');
+    await user.type(field, '123456');
+    await user.click(screen.getByRole('button', { name: FINISH_SIGN_UP.submit }));
+    expect(await screen.findByText(PORTAL_VALIDATION.emailCodeInvalid)).toBeInTheDocument();
+    expect(completeSignUp).toHaveBeenCalledTimes(1);
   });
 
   it('shows the server refusal when the session can’t finish', async () => {

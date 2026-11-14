@@ -14,8 +14,9 @@ import {
   PORTAL_ERRORS,
   PORTAL_ROUTES,
   PROFILE_LIMITS,
+  AUTH_LIMITS,
 } from '@/constants';
-import { checkCode } from '@/lib/portal-validation';
+import { checkEmailCode } from '@/lib/portal-validation';
 import { validateFinishSignUp } from '@/lib/sign-up-validation';
 import type { FinishSignUpErrors, FinishSignUpValues } from '@/lib/sign-up-validation';
 import { completeSignUp, sendReauthCode, signOut } from '@/services';
@@ -69,7 +70,7 @@ export function FinishSignUpForm({ signUp, onDone }: FinishSignUpFormProps) {
     event.preventDefault();
     const found = validateFinishSignUp(values, asksForPassword);
     setErrors(found);
-    const badCode = needsCode ? checkCode(code) : '';
+    const badCode = needsCode ? checkEmailCode(code) : '';
     setCodeError(badCode);
     if (Object.keys(found).length > 0 || badCode) return;
 
@@ -169,6 +170,7 @@ export function FinishSignUpForm({ signUp, onDone }: FinishSignUpFormProps) {
           <FormStatus message={FINISH_SIGN_UP.codeSent} />
           <CodeInput
             id={FIELD_IDS.code}
+            length={AUTH_LIMITS.emailCodeLength}
             label={FINISH_SIGN_UP.labels.code}
             value={code}
             onChange={setCode}

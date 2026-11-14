@@ -36,6 +36,7 @@ import {
   PROFILE_LIMITS,
   YEAR_LEVEL_TEXT,
   YEAR_LEVELS,
+  AUTH_LIMITS,
 } from '@/constants';
 import {
   asksForPhone,
@@ -48,7 +49,7 @@ import {
 import type { OnboardingErrors, OnboardingValues } from '@/lib/onboarding-validation';
 import { NO_CONSENTS, asksForConsents } from '@/lib/consents';
 import { guardPortalPage } from '@/lib/portal-guard';
-import { checkCode } from '@/lib/portal-validation';
+import { checkEmailCode } from '@/lib/portal-validation';
 import { buildPortalMeta } from '@/lib/seo';
 import { completeOnboarding, sendReauthCode, signOut } from '@/services';
 import type { OnboardingInfo } from '@/services';
@@ -124,7 +125,7 @@ function JoinForm({ onboarding }: { onboarding: OnboardingInfo }) {
 
     const found = validateOnboarding(values, role);
     setErrors(found);
-    const badCode = needsCode ? checkCode(code) : '';
+    const badCode = needsCode ? checkEmailCode(code) : '';
     setCodeError(badCode);
     if (Object.keys(found).length > 0 || badCode) return;
 
@@ -275,6 +276,7 @@ function JoinForm({ onboarding }: { onboarding: OnboardingInfo }) {
           <FormStatus message={JOIN_PAGE.codeSent} />
           <CodeInput
             id={FIELD_IDS.code}
+            length={AUTH_LIMITS.emailCodeLength}
             label={JOIN_PAGE.labels.code}
             value={code}
             onChange={setCode}
