@@ -432,7 +432,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Check:** `pnpm db:types`, then FULL.
   - **Commit:** `feat(portal): sign-up services and wording`
 
-- [ ] **21. Access rules and the user home** (03 §7.3; §7.4 `PortalLayout` and `PublicPostsList`; §7.6 `/portal/user`).
+- [x] **21. Access rules and the user home** (03 §7.3; §7.4 `PortalLayout` and `PublicPostsList`; §7.6 `/portal/user`).
   - **ACs:** AC-21, AC-22, AC-25.
   - **Files:**
     - `lib/portal-access.ts`, `lib/portal-guard.ts` (step 2b, `revoke`), `PortalLayout.tsx`;

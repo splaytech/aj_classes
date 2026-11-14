@@ -234,3 +234,93 @@ describe('safeNextPath (design §11.3, G7)', () => {
     expect(safeNextPath(input)).toBeNull();
   });
 });
+
+describe('signed-up users (open sign-up, ADR-0011)', () => {
+  const user: AccessState = { ...tutor, profile: { fullName: 'User', role: 'user' } };
+  const unfinished: AccessState = {
+    ...tutor,
+    profile: null,
+    signUp: {
+      fullName: 'New Parent',
+      email: 'p@example.com',
+      signedUpWith: 'email',
+      canFinish: true,
+    },
+  };
+  const unfinishedByPassword: AccessState = {
+    ...unfinished,
+    signUp: { ...unfinished.signUp!, canFinish: false },
+  };
+
+  it('AC-25: a user is not allowed on staff, admin, student or parent pages', () => {
+    for (const area of ['staff', 'admin', 'student', 'parent'] as const) {
+      expect(decidePortalAccess(user, area, '/portal/x')).toEqual({ kind: 'forbidden' });
+    }
+  });
+
+  it('AC-21/22: a user gets the member pages and their own home, and no one else gets it', () => {
+    expect(decidePortalAccess(user, 'member', '/portal/account')).toEqual({ kind: 'allow' });
+    expect(decidePortalAccess(user, 'user', '/portal/user')).toEqual({ kind: 'allow' });
+    expect(homeForRole('user')).toBe('/portal/user');
+    for (const other of [tutor, student, parent, adminFull]) {
+      expect(decidePortalAccess(other, 'user', '/portal/user')).toEqual({ kind: 'forbidden' });
+    }
+  });
+
+  it('AC-17: an unfinished sign-up in a link or Google session can use only the finish step', () => {
+    expect(decidePortalAccess(unfinished, 'join', '/portal/join')).toEqual({ kind: 'allow' });
+    for (const area of ['member', 'user', 'staff', 'signedOutOnly', 'setPassword'] as const) {
+      expect(decidePortalAccess(unfinished, area, '/portal/user')).toEqual({
+        kind: 'redirect',
+        to: '/portal/join',
+      });
+    }
+  });
+
+  it('AC-20: an unfinished sign-up in a password session is signed out on the server, with the hint', () => {
+    for (const area of ['join', 'member', 'user'] as const) {
+      expect(decidePortalAccess(unfinishedByPassword, area, '/portal/join')).toEqual({
+        kind: 'signOut',
+        to: '/portal/login?reason=finish-sign-up',
+        revoke: true,
+      });
+    }
+  });
+});
+
+describe('every area layout in routes.ts (AC-25 route walk)', () => {
+  type RouteNode = { file: string; children?: RouteNode[] };
+  // Which access area each layout's loader checks. A new layout must be added here, so a new
+  // area can't slip past the user check.
+  const AREA_OF_LAYOUT: Record<string, Parameters<typeof decidePortalAccess>[1]> = {
+    'routes/portal/staff-layout.tsx': 'staff',
+    'routes/portal/admin-layout.tsx': 'admin',
+    'routes/portal/student-layout.tsx': 'student',
+    'routes/portal/parent-layout.tsx': 'parent',
+    'routes/portal/user-layout.tsx': 'user',
+  };
+
+  function layoutsUnder(nodes: RouteNode[]): string[] {
+    return nodes.flatMap((node) =>
+      node.children ? [node.file, ...layoutsUnder(node.children)] : [],
+    );
+  }
+
+  it('knows every layout inside the member layout, and only the user area lets a user in', async () => {
+    const routes = (await import('../routes')).default as RouteNode[];
+    const portalRoot = routes.find((node) => node.file === 'routes/portal/portal-root.tsx');
+    const member = portalRoot?.children?.find(
+      (node) => node.file === 'routes/portal/member-layout.tsx',
+    );
+    const layouts = layoutsUnder(member?.children ?? []);
+    expect(layouts.length).toBeGreaterThan(0);
+
+    const user: AccessState = { ...tutor, profile: { fullName: 'User', role: 'user' } };
+    for (const file of layouts) {
+      const area = AREA_OF_LAYOUT[file];
+      expect(area, `${file} needs an entry in AREA_OF_LAYOUT`).toBeDefined();
+      const decision = decidePortalAccess(user, area!, '/portal/x');
+      expect(decision).toEqual(area === 'user' ? { kind: 'allow' } : { kind: 'forbidden' });
+    }
+  });
+});

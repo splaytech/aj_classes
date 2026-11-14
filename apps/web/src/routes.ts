@@ -67,6 +67,9 @@ export default [
         route(PORTAL_ROUTE_PATTERNS.studentAssignment, 'routes/portal/student-assignment.tsx'),
         route(PORTAL_ROUTES.studentTimetable, 'routes/portal/student-timetable.tsx'),
       ]),
+      layout('routes/portal/user-layout.tsx', [
+        route(PORTAL_ROUTES.user, 'routes/portal/user-home.tsx'),
+      ]),
       layout('routes/portal/parent-layout.tsx', [
         route(PORTAL_ROUTES.parent, 'routes/portal/parent-home.tsx'),
         route(PORTAL_ROUTE_PATTERNS.parentChild, 'routes/portal/parent-child.tsx'),

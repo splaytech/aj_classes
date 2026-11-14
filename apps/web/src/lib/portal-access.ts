@@ -17,23 +17,27 @@ export type PortalArea =
   | 'staff' // tutors and admins
   | 'admin' // admins only
   | 'student' // students only
-  | 'parent'; // parents only
+  | 'parent' // parents only
+  | 'user'; // signed-up users only (open sign-up): the latest news
 
 export type AccessDecision =
   | { kind: 'allow' }
   | { kind: 'redirect'; to: string }
-  | { kind: 'signOut'; to: string }
+  // revoke: also end the session on the server (a working session that must not stay open);
+  // otherwise only this device's copy is cleared (deactivated: the server already refuses it).
+  | { kind: 'signOut'; to: string; revoke?: boolean }
   | { kind: 'forbidden' };
 
 const ALLOW: AccessDecision = { kind: 'allow' };
 
 // Signed-in pages, and the roles allowed on each (any role for 'member').
 const PAGE_AREAS: Partial<Record<PortalArea, readonly AppRole[]>> = {
-  member: ['tutor', 'admin', 'student', 'parent'],
+  member: ['tutor', 'admin', 'student', 'parent', 'user'],
   staff: ['tutor', 'admin'],
   admin: ['admin'],
   student: ['student'],
   parent: ['parent'],
+  user: ['user'],
 };
 
 const HOME_BY_ROLE: Record<AppRole, string> = {
@@ -51,6 +55,16 @@ export function homeForRole(role: AppRole): string {
 /** Tutors and admins: they get the staff pages and navigation. */
 export function isStaffRole(role: AppRole): boolean {
   return role === 'tutor' || role === 'admin';
+}
+
+/** Students and parents: they get the family pages, e-mail settings and choices. */
+export function isFamilyRole(role: AppRole): boolean {
+  return role === 'student' || role === 'parent';
+}
+
+/** The sign-in page with ?reason= set, so it can say why the person is there. */
+function loginWith(reason: string): string {
+  return `${PORTAL_ROUTES.login}?${new URLSearchParams({ [PORTAL_QUERY.reason]: reason })}`;
 }
 
 /** A portal URL with ?next= set, so the person comes back after the extra step. */
@@ -80,10 +94,19 @@ export function decidePortalAccess(
     return area === 'join' ? ALLOW : { kind: 'redirect', to: PORTAL_ROUTES.join };
   }
 
+  // 2b. Signed up on the website and not finished yet (open sign-up). Only a session made by an
+  //     e-mail link or Google can finish; a password session is ended on the server and sent to
+  //     the sign-in page with the hint (AC-17, AC-20).
+  if (state.signUp) {
+    if (!state.signUp.canFinish) {
+      return { kind: 'signOut', to: loginWith(SIGN_IN_REASONS.finishSignUp), revoke: true };
+    }
+    return area === 'join' ? ALLOW : { kind: 'redirect', to: PORTAL_ROUTES.join };
+  }
+
   // 3. Signed in, but no readable profile: deactivated
   if (!state.profile) {
-    const to = `${PORTAL_ROUTES.login}?${new URLSearchParams({ [PORTAL_QUERY.reason]: SIGN_IN_REASONS.inactive })}`;
-    return { kind: 'signOut', to };
+    return { kind: 'signOut', to: loginWith(SIGN_IN_REASONS.inactive) };
   }
 
   const { role } = state.profile;
