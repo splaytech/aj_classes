@@ -408,7 +408,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Check:** FN, FULL.
   - **Commit:** `feat(account-admin): link a signed-up user as a parent after the admin confirms`
 
-- [ ] **19. `set-active` for users, and the AC-12 matrix** (03 §6.4).
+- [x] **19. `set-active` for users, and the AC-12 matrix** (03 §6.4).
   - **ACs:** AC-32 (server), AC-12, AC-29 (mail).
   - **INT:**
     - deactivating and reactivating finished and unfinished users bans and unbans them and writes the audits;

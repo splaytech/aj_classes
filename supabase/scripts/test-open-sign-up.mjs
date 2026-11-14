@@ -1222,6 +1222,105 @@ async function promotionChecks() {
   );
 }
 
+const bannedState = (id) =>
+  sql(
+    `select (u.banned_until is not null and u.banned_until > now())::text || '/' || p.is_active::text || '/' || (u.email_confirmed_at is not null)::text from auth.users u join public.profiles p on p.id = u.id where u.id = '${id}'`,
+  );
+const accountFingerprint = (email) =>
+  sql(
+    `select p.full_name || '|' || p.role || '|' || p.status || '|' || p.is_active || '|' || coalesce(u.encrypted_password, 'NULL') from public.profiles p join auth.users u on u.id = p.id where p.email = '${email}'`,
+  );
+
+async function setActiveChecks() {
+  console.log('\nset-active for users, and the AC-12 matrix (AC-12, AC-29, AC-32)');
+  plantCapRows(0);
+  const finished = await finishedUser('active-finished');
+  const unconfirmed = await unfinishedUser('active-unconfirmed');
+  for (const [label, user] of [
+    ['finished', finished],
+    ['unfinished, unconfirmed', unconfirmed],
+  ]) {
+    const off = await accountAdmin({ action: 'set-active', userId: user.id, active: false });
+    check(
+      `AC-32: deactivating a ${label} user bans them`,
+      off.json?.ok === true && bannedState(user.id).startsWith('true/false/'),
+      JSON.stringify([off.json, bannedState(user.id)]),
+    );
+  }
+  check(
+    'Deactivating an unconfirmed user confirms it (03 §6.4), so Auth stops mailing it',
+    bannedState(unconfirmed.id) === 'true/false/true',
+  );
+  const tryFinished = await passwordSignIn(finished.email, finished.password);
+  check(
+    "A deactivated user can't sign in (the same message as a wrong password)",
+    !tryFinished.token,
+    JSON.stringify(tryFinished),
+  );
+  const on = await accountAdmin({ action: 'set-active', userId: finished.id, active: true });
+  check(
+    'AC-32: reactivating unbans them and they sign in again',
+    on.json?.ok === true &&
+      bannedState(finished.id) === 'false/true/true' &&
+      (await signsIn(finished.email, finished.password)),
+    JSON.stringify(on.json),
+  );
+  check(
+    'Each change is audited (deactivated, reactivated)',
+    sql(
+      `select string_agg(action, ',' order by created_at) from public.audit_log where target_id = '${finished.id}' and action in ('deactivated', 'reactivated')`,
+    ) === 'deactivated,reactivated',
+  );
+
+  // AC-12: a sign-up with any existing e-mail changes nothing and sends nothing.
+  const invitee = address('ac12-invitee');
+  await accountAdmin({ action: 'invite', email: invitee, fullName: 'Invited Staff' });
+  const deactivatedFinished = await finishedUser('ac12-deactivated-finished');
+  await accountAdmin({ action: 'set-active', userId: deactivatedFinished.id, active: false });
+  const matrix = [
+    ['admin', 'admin@local.test'],
+    ['tutor', 'tutor@local.test'],
+    ['student', 'student@local.test'],
+    ['parent', 'parent@local.test'],
+    ['invited', invitee],
+    ['finished user', finished.email],
+    ['deactivated finished', deactivatedFinished.email],
+    ['deactivated unfinished', unconfirmed.email],
+  ];
+  for (const [label, email] of matrix) {
+    skipResendWait(email);
+    const before = accountFingerprint(email);
+    const mailsBefore = await mailCount(email);
+    const reply = await rawSignUp(email, 'Someone Else');
+    await settle();
+    ac12Replies[label] = reply.status === 200 ? 200 : `${reply.status} ${reply.json?.error_code}`;
+    check(
+      `AC-12 (${label}): sign-up changes nothing (name, role, status, password) and sends nothing`,
+      (reply.status === 200 || reply.json?.error_code === 'user_already_exists') &&
+        accountFingerprint(email) === before &&
+        (await mailCount(email)) === mailsBefore,
+      JSON.stringify({ status: reply.status, code: reply.json?.error_code }),
+    );
+  }
+
+  // AC-29: a user's mailbox holds only account e-mails.
+  const subjects = (await mailsTo(finished.email)).map((mail) => mail.Subject);
+  ac29Subjects = [...new Set(subjects)];
+  check(
+    'AC-29: a user gets no portal e-mails (new work, due tomorrow, returned work)',
+    subjects.every(
+      (subject) =>
+        subject === 'Confirm your e-mail for AJ Classes' ||
+        subject === 'Reset your AJ Classes password' ||
+        // Auth's own security notice, sent to every account (R2a G19): an account e-mail too.
+        subject === 'Your password was changed',
+    ),
+    JSON.stringify(ac29Subjects),
+  );
+}
+
+const ac12Replies = {};
+let ac29Subjects = [];
 const pkceSeen = {};
 const amrSeen = {};
 let captchaShape = null;
@@ -1251,6 +1350,7 @@ async function main() {
     await switchChecks();
     await inviteReplaceChecks();
     await promotionChecks();
+    await setActiveChecks();
   } finally {
     cleanUp();
   }
@@ -1261,6 +1361,8 @@ async function main() {
   console.log(
     '\nRecorded:',
     JSON.stringify({
+      ac12Replies,
+      ac29Subjects,
       pkceSeen,
       amrSeen,
       captchaShape,

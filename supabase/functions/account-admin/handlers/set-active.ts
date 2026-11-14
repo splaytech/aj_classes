@@ -1,12 +1,17 @@
 // Deactivate or reactivate an account: staff (R2a story US17), students and parents (R3b FA3).
 // The database function makes the decision (guards + audit) as the caller; the ban stops their
 // sessions refreshing. The order means a half-finished action always leaves NO access (R2a G26).
+// Signed-up users can be deactivated finished or not (open sign-up, 03 §6.4): an unconfirmed one
+// is also confirmed, because Auth still mails a banned, unconfirmed address on a repeat sign-up or
+// resend (S4(b)); once confirmed it gets Auth's quiet reply and nothing is sent (AC-12).
 
 import type { Caller } from '../../_shared/auth.ts';
 import { serviceClient } from '../../_shared/clients.ts';
 import { fail, succeed } from '../../_shared/responses.ts';
 import type { ActionResult } from '../../_shared/responses.ts';
 import { isUuid } from '../../_shared/validation.ts';
+
+import { findAccount } from './accounts.ts';
 
 const BAN_FOREVER = '876000h'; // 100 years; 'infinity' breaks sign-in (R2a review)
 const NO_BAN = 'none';
@@ -28,7 +33,16 @@ export async function setActive(
 
   const recorded = await recordActive(caller, userId, false);
   if (!recorded.ok) return recorded;
-  return (await setBan(userId, BAN_FOREVER)) ? succeed() : fail('ban_failed');
+  const confirmEmail = await isUnconfirmedSignUp(userId);
+  return (await setBan(userId, BAN_FOREVER, confirmEmail)) ? succeed() : fail('ban_failed');
+}
+
+/** A website sign-up whose e-mail was never confirmed (its wipe clears a password nobody knows). */
+async function isUnconfirmedSignUp(userId: string): Promise<boolean> {
+  const account = await findAccount(userId);
+  if (account?.role !== 'user') return false;
+  const { data } = await serviceClient().auth.admin.getUserById(userId);
+  return Boolean(data.user) && !data.user?.email_confirmed_at;
 }
 
 async function recordActive(
@@ -41,9 +55,10 @@ async function recordActive(
   return fail(DATABASE_REFUSALS.includes(error.message) ? error.message : 'not_allowed');
 }
 
-async function setBan(userId: string, duration: string): Promise<boolean> {
+async function setBan(userId: string, duration: string, confirmEmail = false): Promise<boolean> {
   const { error } = await serviceClient().auth.admin.updateUserById(userId, {
     ban_duration: duration,
+    ...(confirmEmail ? { email_confirm: true } : {}),
   });
   return !error;
 }
