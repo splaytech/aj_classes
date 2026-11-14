@@ -10,6 +10,7 @@ import type { InviteAccount } from '../issue-invite.ts';
 export type AccountRecord = {
   id: string;
   email: string;
+  full_name: string;
   role: string;
   status: 'invited' | 'active';
   is_active: boolean;
@@ -27,7 +28,7 @@ export type StudentRecord = {
   consent_recorded_at: string | null;
 };
 
-const ACCOUNT_COLUMNS = 'id, email, role, status, is_active, joined_at, last_sign_in_at';
+const ACCOUNT_COLUMNS = 'id, email, full_name, role, status, is_active, joined_at, last_sign_in_at';
 
 /** Anyone's profile (read with the secret key), or null if there isn't one. */
 export async function findAccount(userId: string): Promise<AccountRecord | null> {
@@ -172,6 +173,33 @@ export async function clearForInvite(
   if (outcome === 'server_error') return { code: 'server_error' };
   if (outcome === 'not_unfinished') return { code: refusal };
   return { replaced: true };
+}
+
+/**
+ * Makes app_metadata.account_role match the profile role, which the mobile app reads (R3b D2).
+ * Used after a signed-up user is promoted, and again on any later parent link, so a promotion
+ * whose second step failed heals on retry (03 §6.3). True when it matches afterwards.
+ */
+export async function syncAccountRole(userId: string, role: 'parent'): Promise<boolean> {
+  const auth = serviceClient().auth.admin;
+  const { data, error } = await auth.getUserById(userId);
+  if (error || !data.user) return false;
+  const current = data.user.app_metadata ?? {};
+  if (current.account_role === role) return true;
+  const { error: updateError } = await auth.updateUserById(userId, {
+    app_metadata: { ...current, account_role: role },
+  });
+  return !updateError;
+}
+
+/** How and when a signed-up user signed up, for the admin's confirm message (AC-33). */
+export async function signUpFacts(
+  userId: string,
+): Promise<{ signedUpWith: 'email' | 'google'; signedUpAt: string } | null> {
+  const { data, error } = await serviceClient().auth.admin.getUserById(userId);
+  if (error || !data.user) return null;
+  const google = (data.user.identities ?? []).some((identity) => identity.provider === 'google');
+  return { signedUpWith: google ? 'google' : 'email', signedUpAt: data.user.created_at };
 }
 
 export async function deleteAccount(userId: string): Promise<void> {

@@ -1086,6 +1086,142 @@ async function inviteReplaceChecks() {
   );
 }
 
+const appRole = (id) =>
+  sql(
+    `select coalesce(raw_app_meta_data ->> 'account_role', 'none') from auth.users where id = '${id}'`,
+  );
+
+// Makes Auth's app_metadata write fail for one account, so syncAccountRole fails (local only;
+// dropped again in a finally and by cleanUp).
+const breakRoleSync = (id) =>
+  sql(
+    `create function private.osu_test_break_role_sync() returns trigger language plpgsql as 'begin raise exception ''test: role sync broken''; end'; create trigger osu_test_break_role_sync before update of raw_app_meta_data on auth.users for each row when (new.id = '${id}') execute function private.osu_test_break_role_sync()`,
+  );
+const mendRoleSync = () =>
+  sql('drop function if exists private.osu_test_break_role_sync() cascade');
+
+async function promotionChecks() {
+  console.log('\nPromotion in invite-parent (AC-33, AC-35)');
+  plantCapRows(0);
+  const studentId = consentedStudent();
+  const studentName = `Open Sign-up ${RUN}`;
+  const user = await finishedUser('promote');
+  const ask = await accountAdmin({
+    action: 'invite-parent',
+    studentId,
+    email: user.email,
+    fullName: '',
+  });
+  check(
+    'AC-33: a finished user gives needsConfirmation with the method and date',
+    ask.json?.ok === true &&
+      ask.json.data.needsConfirmation === true &&
+      ask.json.data.userId === user.id &&
+      ask.json.data.signedUpWith === 'email' &&
+      Boolean(Date.parse(ask.json.data.signedUpAt)) &&
+      ask.json.data.fullName === 'Finished promote',
+    JSON.stringify(ask.json),
+  );
+  check('and nothing changed yet', profileState(user.email) === 'user/active');
+
+  const changed = await accountAdmin({
+    action: 'invite-parent',
+    studentId,
+    email: user.email,
+    confirmUserId: '00000000-0000-0000-0000-000000000bad',
+  });
+  check(
+    'A confirm for a different account gives promotion_changed',
+    changed.json?.code === 'promotion_changed',
+    JSON.stringify(changed.json),
+  );
+
+  const mailsBefore = await mailCount(user.email);
+  const promoted = await accountAdmin({
+    action: 'invite-parent',
+    studentId,
+    email: user.email,
+    confirmUserId: user.id,
+  });
+  await settle();
+  check(
+    'AC-33: confirming gives promoted',
+    promoted.json?.ok === true &&
+      promoted.json.data.promoted === true &&
+      promoted.json.data.linked === true,
+    JSON.stringify(promoted.json),
+  );
+  check('AC-33: no e-mail was sent', (await mailCount(user.email)) === mailsBefore);
+  check(
+    'AC-35: they are a parent, linked to the student, and app_metadata says parent',
+    profileState(user.email) === 'parent/active' &&
+      sql(
+        `select count(*) from public.student_guardians where parent_id = '${user.id}' and student_id = '${studentId}'`,
+      ) === '1' &&
+      appRole(user.id) === 'parent',
+  );
+  check(
+    'AC-33: audited as parent_linked {promoted_from: user}',
+    sql(
+      `select details ->> 'promoted_from' || '/' || (details ->> 'student_name') from public.audit_log where action = 'parent_linked' and target_id = '${user.id}'`,
+    ) === `user/${studentName}`,
+  );
+  check('AC-35: their password still signs in', await signsIn(user.email, user.password));
+  const again = await accountAdmin({
+    action: 'invite-parent',
+    studentId,
+    email: user.email,
+    confirmUserId: user.id,
+  });
+  check(
+    'A second confirm after the promotion goes down the parent path (already_linked)',
+    again.json?.code === 'already_linked',
+    JSON.stringify(again.json),
+  );
+
+  // role_sync_failed, then a retry heals it.
+  const broken = await finishedUser('promote-sync');
+  breakRoleSync(broken.id);
+  let failedReply;
+  try {
+    failedReply = await accountAdmin({
+      action: 'invite-parent',
+      studentId,
+      email: broken.email,
+      confirmUserId: broken.id,
+    });
+  } finally {
+    mendRoleSync();
+  }
+  check(
+    'A failed app_metadata update gives role_sync_failed, and the database step stays',
+    failedReply.json?.code === 'role_sync_failed' &&
+      profileState(broken.email) === 'parent/active' &&
+      appRole(broken.id) === 'none',
+    JSON.stringify(failedReply.json),
+  );
+  const healed = await accountAdmin({ action: 'invite-parent', studentId, email: broken.email });
+  check(
+    'A retry heals it: app_metadata now says parent',
+    healed.json?.code === 'already_linked' && appRole(broken.id) === 'parent',
+    JSON.stringify(healed.json),
+  );
+
+  // Not a finished user any more: promotion_changed.
+  const unfinished = await unfinishedUser('promote-unfinished');
+  const tooEarly = await accountAdmin({
+    action: 'invite-parent',
+    studentId,
+    email: unfinished.email,
+    confirmUserId: unfinished.id,
+  });
+  check(
+    'A confirm for an unfinished sign-up gives promotion_changed',
+    tooEarly.json?.code === 'promotion_changed',
+    JSON.stringify(tooEarly.json),
+  );
+}
+
 const pkceSeen = {};
 const amrSeen = {};
 let captchaShape = null;
@@ -1094,6 +1230,7 @@ let resendConfirmedShape = null;
 let s4b = null;
 
 function cleanUp() {
+  mendRoleSync();
   sql(`delete from auth.users where lower(email) like '${PREFIX}-%'`);
   sql('delete from private.sign_up_emails');
   sql('update private.sign_up_settings set open = true');
@@ -1113,6 +1250,7 @@ async function main() {
     await pkceChecks();
     await switchChecks();
     await inviteReplaceChecks();
+    await promotionChecks();
   } finally {
     cleanUp();
   }

@@ -397,7 +397,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Check:** FN, FULL.
   - **Commit:** `feat(account-admin): invites replace an unfinished sign-up and refuse a finished one`
 
-- [ ] **18. Promotion in `invite-parent`** (03 §6.1 `syncAccountRole` and `signUpFacts`; §6.3).
+- [x] **18. Promotion in `invite-parent`** (03 §6.1 `syncAccountRole` and `signUpFacts`; §6.3).
   - **ACs:** AC-33 (server), AC-35.
   - **INT:**
     - a finished user gives `needsConfirmation`, with the method and date;
