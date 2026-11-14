@@ -447,7 +447,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Visible:** sign in as `user@local.test` and you land on `/portal/user`, headed "Latest news". The nav shows only Latest news, Account and Sign out. `/portal/admin` shows "not allowed".
   - **Commit:** `feat(portal): signed-up users get a Latest news home and nothing else`
 
-- [ ] **22. Account page trim** (03 §7.6 `/portal/account`).
+- [x] **22. Account page trim** (03 §7.6 `/portal/account`).
   - **ACs:** AC-23.
   - **Files:** `routes/portal/account.tsx`, new `account.test.tsx`.
   - **Check:** ONE, FULL.
