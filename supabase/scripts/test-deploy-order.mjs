@@ -8,7 +8,7 @@
 // Run: node supabase/scripts/test-deploy-order.mjs   (part of root `pnpm test`)
 
 import { spawnSync } from 'node:child_process';
-import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -16,6 +16,15 @@ const HERE = import.meta.dirname;
 const DEPLOY = path.join(HERE, 'deploy.sh');
 const CONFIG = path.join(HERE, '..', 'config.toml');
 const TOKEN = 'fake-access-token-not-a-secret-7f3a';
+// Every value is distinct, so the argv check can tell them apart (security 06 finding 3).
+const FAKE_SECRETS = {
+  SUPABASE_DB_PASSWORD: 'fake-db-password-9c1',
+  TURNSTILE_SECRET: 'fake-turnstile-secret-4e2',
+  RESEND_API_KEY: 'fake-resend-key-7a3',
+  NOTIFY_WORKER_SECRET: 'fake-notify-secret-5b8',
+  ZOHO_CLIENT_SECRET: 'fake-zoho-secret-2d6',
+  ZOHO_REFRESH_TOKEN: 'fake-zoho-refresh-1f0',
+};
 
 let failures = 0;
 function check(description, condition, detail = '') {
@@ -29,6 +38,20 @@ const FAKE_SUPABASE = `#!/bin/bash
 echo "supabase $*" >> "$FAKE_LOG"
 [[ -n "$FAKE_SUPABASE_FAILS" ]] && exit 1
 [[ "$1 $2" == "config push" && -n "$FAKE_CONFIG_PUSH_FAILS" ]] && exit 1
+# link and db push must find the DB password in the environment, never on argv.
+if [[ "$1" == "link" || "$1 $2" == "db push" ]]; then
+  [[ -n "$SUPABASE_DB_PASSWORD" ]] && echo "$1" >> "$FAKE_DIR/db-password-in-env"
+fi
+# secrets set reads a file: keep its mode and content for the test (the file itself must go).
+if [[ "$1 $2" == "secrets set" ]]; then
+  for ((i = 1; i <= $#; i++)); do
+    if [[ "\${!i}" == "--env-file" ]]; then
+      j=$((i + 1)); file="\${!j}"
+      ls -l "$file" | cut -c1-10 > "$FAKE_DIR/envfile-perms"
+      cp "$file" "$FAKE_DIR/envfile-copy"
+    fi
+  done
+fi
 if [[ "$1 $2" == "secrets list" ]]; then
   digest() { printf %s "$1" | shasum -a 256 | cut -d' ' -f1; }
   printf '[{"name":"NOTIFY_WORKER_SECRET","value":"%s"},{"name":"EMAIL_TRANSPORT","value":"%s"},{"name":"SITE_URL","value":"%s"}]\\n' \\
@@ -53,9 +76,10 @@ case "$method $url" in
     answer=$(echo "$FAKE_GUARD" | cut -d, -f"$n"); [[ -z "$answer" ]] && answer=$(echo "$FAKE_GUARD" | awk -F, '{print $NF}')
     [[ "$answer" == "true" ]] && echo true || exit 22 ;;
   "GET "*/config/auth)
-    autoconfirm=false; [[ "$FAKE_AUTOCONFIRM" == "true" ]] && autoconfirm=true
-    [[ "$FAKE_HOOK_ON" == "true" ]] && printf '{"hook_before_user_created_enabled":true,"hook_before_user_created_uri":"pg-functions://postgres/public/hook_before_user_created","mailer_autoconfirm":%s,"disable_signup":false}\\n' "$autoconfirm" \\
-      || echo '{"hook_before_user_created_enabled":false}' ;;
+    if [[ "$FAKE_HOOK_ON" != "true" ]]; then echo '{"hook_before_user_created_enabled":false}'; exit 0; fi
+    printf '{"hook_before_user_created_enabled":true,"hook_before_user_created_uri":"pg-functions://postgres/public/hook_before_user_created","mailer_autoconfirm":%s,"disable_signup":%s,"security_captcha_enabled":%s,"security_captcha_provider":"%s","rate_limit_email_sent":%s,"external_google_enabled":%s,"security_manual_linking_enabled":%s,"external_anonymous_users_enabled":%s}\\n' \\
+      "\${FAKE_AUTOCONFIRM:-false}" "\${FAKE_DISABLE_SIGNUP:-false}" "\${FAKE_CAPTCHA:-true}" "\${FAKE_CAPTCHA_PROVIDER:-turnstile}" \\
+      "\${FAKE_EMAIL_SENT:-30}" "\${FAKE_GOOGLE:-false}" "\${FAKE_MANUAL_LINKING:-false}" "\${FAKE_ANONYMOUS:-false}" ;;
   "PATCH "*/config/auth)
     [[ "$FAKE_PATCH_FAILS" == "true" ]] && exit 22 || echo '{}' ;;
   *) exit 7 ;;
@@ -104,10 +128,7 @@ function runDeploy({ dryRun = true, env = {}, config = CONFIG } = {}) {
       DEPLOY_CONFIG: config,
       DEPLOY_GUARD_RETRY_SECONDS: '0',
       SUPABASE_ACCESS_TOKEN: TOKEN,
-      SUPABASE_DB_PASSWORD: 'dry-run-not-a-password',
-      TURNSTILE_SECRET: 'dry-run-not-a-secret',
-      RESEND_API_KEY: 'dry-run-not-a-key',
-      NOTIFY_WORKER_SECRET: 'dry-run-not-a-secret',
+      ...FAKE_SECRETS,
       ...env,
     },
   });
@@ -115,8 +136,22 @@ function runDeploy({ dryRun = true, env = {}, config = CONFIG } = {}) {
   const leftovers = spawnSync('/bin/sh', ['-c', `ls "${dir}" | grep '^tmp' || true`], {
     encoding: 'utf8',
   }).stdout.trim();
+  const readIfThere = (name) =>
+    existsSync(path.join(dir, name)) ? readFileSync(path.join(dir, name), 'utf8') : '';
+  const envFile = {
+    perms: readIfThere('envfile-perms').trim(),
+    content: readIfThere('envfile-copy'),
+  };
+  const dbPasswordInEnv = readIfThere('db-password-in-env').split('\n').filter(Boolean);
   rmSync(dir, { recursive: true, force: true });
-  return { status: result.status, out: `${result.stdout}${result.stderr}`, calls, leftovers };
+  return {
+    status: result.status,
+    out: `${result.stdout}${result.stderr}`,
+    calls,
+    leftovers,
+    envFile,
+    dbPasswordInEnv,
+  };
 }
 
 const STEPS = [
@@ -281,10 +316,79 @@ function failClosedChecks() {
     all.every((run) => run.calls.every((call) => !call.includes(TOKEN))),
   );
   check(
-    'The header file is gone after exit, on success and on failure',
+    'The header and secrets files are gone after exit, on success and on failure',
     all.every((run) => run.leftovers === ''),
     all.map((run) => run.leftovers).join(','),
   );
+
+  // Security 06 finding 3: no secret value on any command line.
+  const secretValues = Object.values(FAKE_SECRETS);
+  check(
+    'No fake ever saw a secret value in its arguments (DB password, Resend, worker, Zoho)',
+    all.every((run) =>
+      run.calls.every((call) => secretValues.every((value) => !call.includes(value))),
+    ),
+    all
+      .flatMap((run) => run.calls.filter((c) => secretValues.some((v) => c.includes(v))))
+      .join(' | '),
+  );
+  check(
+    'link and db push run with no --password, and find SUPABASE_DB_PASSWORD in the environment',
+    !happy.calls.some((call) => call.includes('--password')) &&
+      happy.dbPasswordInEnv.join(',') === 'link,db',
+    happy.dbPasswordInEnv.join(','),
+  );
+  check(
+    'secrets set reads a 0600 --env-file holding every hosted value, single-quoted',
+    happy.calls.some((call) =>
+      /^supabase secrets set --project-ref \S+ --env-file \S+$/.test(call),
+    ) &&
+      happy.envFile.perms === '-rw-------' &&
+      happy.envFile.content.includes(
+        `NOTIFY_WORKER_SECRET='${FAKE_SECRETS.NOTIFY_WORKER_SECRET}'`,
+      ) &&
+      happy.envFile.content.includes(`RESEND_API_KEY='${FAKE_SECRETS.RESEND_API_KEY}'`) &&
+      happy.envFile.content.includes(`ZOHO_CLIENT_SECRET='${FAKE_SECRETS.ZOHO_CLIENT_SECRET}'`) &&
+      happy.envFile.content.includes("EMAIL_TRANSPORT='resend'"),
+    JSON.stringify(happy.envFile.perms),
+  );
+  const quoted = realRun({
+    FAKE_SIGNUPS_OFF: 'true',
+    FAKE_GUARD: 'true',
+    FAKE_HOOK_ON: 'true',
+    RESEND_API_KEY: "has'quote",
+  });
+  check(
+    "A secret with a quote is refused before secrets set, and config push doesn't run",
+    quoted.status !== 0 &&
+      quoted.out.includes('RESEND_API_KEY contains a quote') &&
+      !quoted.calls.some((call) => call.startsWith('supabase config push')),
+    quoted.out.slice(-200),
+  );
+
+  // Security 06 finding 6, review-5 round 2 nit 2: every safety setting is checked after the
+  // push, and any one wrong closes sign-up again.
+  for (const [label, env] of [
+    ['sign-up off after the push (disable_signup)', { FAKE_DISABLE_SIGNUP: 'true' }],
+    ['Turnstile off', { FAKE_CAPTCHA: 'false' }],
+    ['another captcha provider', { FAKE_CAPTCHA_PROVIDER: 'hcaptcha' }],
+    ['the hourly e-mail limit not the configured 30', { FAKE_EMAIL_SENT: '1000' }],
+    ['Google on while config.toml says off', { FAKE_GOOGLE: 'true' }],
+    ['manual linking on', { FAKE_MANUAL_LINKING: 'true' }],
+    ['anonymous sign-ins on', { FAKE_ANONYMOUS: 'true' }],
+  ]) {
+    const run = realRun({
+      FAKE_SIGNUPS_OFF: 'true',
+      FAKE_GUARD: 'true',
+      FAKE_HOOK_ON: 'true',
+      ...env,
+    });
+    check(
+      `Post-check: ${label} → non-zero exit and one PATCH closes sign-up`,
+      run.status !== 0 && patches(run.calls).length === 1,
+      run.out.slice(-200),
+    );
+  }
 }
 
 function googleGateChecks() {
@@ -307,6 +411,7 @@ function googleGateChecks() {
         FAKE_SIGNUPS_OFF: 'true',
         FAKE_GUARD: 'true',
         FAKE_HOOK_ON: 'true',
+        FAKE_GOOGLE: 'true', // Google on, as this config.toml copy says
         GOOGLE_CLIENT_ID: 'dry-run-client',
         GOOGLE_CLIENT_SECRET: 'dry-run-not-a-secret',
       },

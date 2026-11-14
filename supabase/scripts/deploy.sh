@@ -51,7 +51,8 @@ say() { printf '\n▶ %s\n' "$1"; }
 fail() { printf '\n✖ %s\n' "$1" >&2; exit 1; }
 
 # Prints a command for --dry-run without its secret values: the argument after --password, and
-# the value of every NAME=value pair.
+# the value of every NAME=value pair. (No command passes a secret on argv any more; this stays as
+# a backstop.)
 describe_command() {
   local shown=() hide_next=false arg
   for arg in "$@"; do
@@ -152,15 +153,35 @@ google_enabled() {
   ' "$CONFIG_FILE"
 }
 
-# After config push, are the hosted Auth settings the safe ones? The before-user-created hook on
-# and pointing at our function, e-mail confirmations on (with autoconfirm, a stranger's
-# password would sign in without the mailbox ever being proven: AC-14), and sign-up on as pushed.
-# (Management API; review-5 finding 5.)
+# A plain `key = value` setting from one [table] of config.toml (no quotes, no inline tables).
+config_value() {
+  local table="$1" key="$2"
+  awk -v table="[$table]" -v key="$key" '
+    /^\[/ { in_table = ($0 == table); next }
+    in_table && $1 == key && $2 == "=" { print $3; exit }
+  ' "$CONFIG_FILE"
+}
+
+# After config push, are the hosted Auth settings the safe ones? The safety argument (ADR-0011)
+# rests on all of them (review-5 finding 5, security 06 finding 6):
+#   - the before-user-created hook on, pointing at our function;
+#   - e-mail confirmations on (with autoconfirm, a stranger's password would sign in without the
+#     mailbox ever being proven: AC-14) and sign-up on as pushed;
+#   - Turnstile on, and Auth's hourly e-mail limit as configured (R1, R2, R4 lean on both);
+#   - Google exactly as config.toml says; manual linking and anonymous sign-ins off.
 auth_settings_are_safe() {
+  local google=false
+  google_enabled && google=true
   curl -fsS --max-time 20 -H @"$AUTH_HEADER_FILE" "$MANAGEMENT_API" |
-    jq -e --arg uri "$HOOK_URI" \
+    jq -e --arg uri "$HOOK_URI" --argjson email_sent "$(config_value auth.rate_limit email_sent)" \
+      --argjson google "$google" \
       '.hook_before_user_created_enabled == true and .hook_before_user_created_uri == $uri
-       and .mailer_autoconfirm == false and .disable_signup == false' >/dev/null
+       and .mailer_autoconfirm == false and .disable_signup == false
+       and .security_captcha_enabled == true and .security_captcha_provider == "turnstile"
+       and .rate_limit_email_sent == $email_sent
+       and .external_google_enabled == $google
+       and .security_manual_linking_enabled == false
+       and .external_anonymous_users_enabled == false' >/dev/null
 }
 
 # Turns public sign-up off on the hosted project. Never ends the script silently (set -e): if the
@@ -177,6 +198,9 @@ say "Checking what's needed"
 command -v supabase >/dev/null || fail "Install the Supabase CLI: brew install supabase/tap/supabase"
 require SUPABASE_ACCESS_TOKEN "create one at supabase.com/dashboard/account/tokens"
 require SUPABASE_DB_PASSWORD "the database password chosen when the project was created"
+# The CLI reads it from the environment (SUPABASE_DB_PASSWORD), so it never goes on argv where
+# `ps` can show it (security 06 finding 3).
+export SUPABASE_DB_PASSWORD
 require TURNSTILE_SECRET "Cloudflare dashboard → Turnstile → your widget → Secret key"
 require RESEND_API_KEY "resend.com → API keys (the SMTP password for sign-in emails, and app emails)"
 require NOTIFY_WORKER_SECRET "a long random value of your own; also goes into Vault (supabase/README.md)"
@@ -192,16 +216,18 @@ fi
 export SUPABASE_YES=1 # answer yes to config push prompts
 
 # The Management API token goes in a 0600 header file, so it never shows in `ps` (curl -H @file).
+# The function secrets get their own 0600 file at step 6 (`secrets set --env-file`). Both go at exit.
 AUTH_HEADER_FILE=""
+SECRETS_FILE=""
 if ! $DRY_RUN; then
   umask 077
   AUTH_HEADER_FILE="$(mktemp)"
-  trap 'rm -f "$AUTH_HEADER_FILE"' EXIT
+  trap 'rm -f "$AUTH_HEADER_FILE" "$SECRETS_FILE"' EXIT
   printf 'Authorization: Bearer %s\n' "$SUPABASE_ACCESS_TOKEN" >"$AUTH_HEADER_FILE"
 fi
 
 say "1/7 Linking the project"
-run supabase link --project-ref "$PROJECT_REF" --password "${SUPABASE_DB_PASSWORD:-}"
+run supabase link --project-ref "$PROJECT_REF"
 
 say "2/7 Gate: sign-up is off, or the sign-up guard is already installed"
 SIGNUPS_WERE_ON=false
@@ -218,7 +244,7 @@ Sign In / Providers → 'Allow new users to sign up' off) and run again. Nothing
 fi
 
 say "3/7 Database tables, access rules and functions (supabase/migrations)"
-run supabase db push --password "${SUPABASE_DB_PASSWORD:-}"
+run supabase db push
 
 say "4/7 Checking the sign-up guard works (rpc/sign_up_guard_ready)"
 if $DRY_RUN; then
@@ -248,7 +274,23 @@ secrets=(
 for name in ZOHO_CLIENT_ID ZOHO_CLIENT_SECRET ZOHO_REFRESH_TOKEN ZOHO_LEAD_SOURCE; do
   [[ -n "${!name:-}" ]] && secrets+=("${name}=${!name}")
 done
-run supabase secrets set --project-ref "$PROJECT_REF" "${secrets[@]}"
+# Through a 0600 file, never argv (security 06 finding 3). Each value is single-quoted so the
+# CLI's .env reader takes it literally (no $ expansion); a value with a quote or a line break is
+# refused rather than mangled.
+if $DRY_RUN; then
+  printf '  (dry run) supabase secrets set --project-ref %s --env-file <0600 temp file with: %s>\n' \
+    "$PROJECT_REF" "$(printf '%s ' "${secrets[@]%%=*}")"
+else
+  SECRETS_FILE="$(mktemp)"
+  for pair in "${secrets[@]}"; do
+    value="${pair#*=}"
+    if [[ "$value" == *"'"* || "$value" == *$'\n'* ]]; then
+      fail "${pair%%=*} contains a quote or a line break, which the secrets file can't hold. Change it and run again."
+    fi
+    printf "%s='%s'\n" "${pair%%=*}" "$value" >>"$SECRETS_FILE"
+  done
+  supabase secrets set --project-ref "$PROJECT_REF" --env-file "$SECRETS_FILE"
+fi
 # Then, last of all, remove the local-only values it copied (unless set on purpose here). No
 # `secrets set` runs after this, so nothing copies them back.
 local_only=(ZOHO_ACCOUNTS_URL ZOHO_API_URL MAILPIT_URL)
@@ -277,7 +319,8 @@ if ! run supabase config push --project-ref "$PROJECT_REF"; then
 fi
 printf '  Checking the sign-up hook is on and confirmations are on\n'
 if $DRY_RUN; then
-  printf '  (dry run) would check %s: hook_before_user_created_enabled and _uri = %s, mailer_autoconfirm false, disable_signup false\n' "$MANAGEMENT_API" "$HOOK_URI"
+  printf '  (dry run) would check %s: hook on (%s), mailer_autoconfirm false, disable_signup false, Turnstile on, rate_limit_email_sent = %s, Google as config.toml, manual linking and anonymous sign-ins off\n' \
+    "$MANAGEMENT_API" "$HOOK_URI" "$(config_value auth.rate_limit email_sent)"
 elif ! auth_settings_are_safe; then
   close_sign_up
   fail "The sign-up hook isn't on, or e-mail confirmations are off, so sign-up was closed again. Check Dashboard → Authentication → Hooks → Before User Created and Sign In / Providers → Confirm email, then run again."
