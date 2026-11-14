@@ -100,6 +100,15 @@ function SignUpForm({
 
     setFormError('');
     setSubmitting(true);
+    // The cap may have filled, or sign-up closed, since the page loaded. Ask again, so everyone
+    // gets the same busy or closed answer whatever their e-mail (AC-46, AC-12; review-5 finding 2).
+    const latest = await getSignUpOptions();
+    if (latest.status !== 'open') {
+      setSubmitting(false);
+      if (latest.status === 'closed') return onClosed();
+      setFormError(SIGN_UP_PAGE.busy);
+      return;
+    }
     const result = await signUpWithEmail(fullName, email, captchaToken);
     setSubmitting(false);
     if (result.ok) return onSent();

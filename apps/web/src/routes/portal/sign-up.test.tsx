@@ -9,7 +9,7 @@ import {
   PORTAL_VALIDATION,
   SIGN_UP_PAGE,
 } from '@/constants';
-import { signUpWithEmail } from '@/services';
+import { getSignUpOptions, signUpWithEmail } from '@/services';
 import type { SignUpOptions } from '@/services';
 import { TurnstileStub, turnstileResets } from '@/test/turnstile-stub';
 import { setupUser } from '@/test/user';
@@ -44,6 +44,8 @@ async function fillAndSubmit(name = 'Priya Shah', email = 'priya@example.com', p
 
 beforeEach(() => {
   vi.mocked(signUpWithEmail).mockReset();
+  // What the page reads again just before sending (review-5 finding 2): still open by default.
+  vi.mocked(getSignUpOptions).mockReset().mockResolvedValue({ status: 'open', google: false });
   turnstileResets.count = 0;
 });
 
@@ -120,6 +122,36 @@ describe('/portal/sign-up', () => {
     expect(await screen.findByText(SIGN_UP_PAGE.busy)).toBeInTheDocument();
     expect(signUpWithEmail).not.toHaveBeenCalled();
   });
+
+  it.each([
+    ['a new e-mail', 'new-parent@example.com'],
+    ['an e-mail that already has an account', 'parent@local.test'],
+  ])(
+    'AC-46: open when the page loaded but busy at submit: %s gets the busy message, and nothing is sent',
+    async (_kind, email) => {
+      renderWith({ status: 'open', google: false });
+      vi.mocked(getSignUpOptions).mockResolvedValue({ status: 'busy', google: false });
+      await fillAndSubmit('Priya Shah', email);
+      expect(await screen.findByText(SIGN_UP_PAGE.busy)).toBeInTheDocument();
+      expect(signUpWithEmail).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    ['a new e-mail', 'new-parent@example.com'],
+    ['an e-mail that already has an account', 'parent@local.test'],
+  ])(
+    'AC-48: open when the page loaded but closed at submit: %s gets the closed card',
+    async (_kind, email) => {
+      renderWith({ status: 'open', google: false });
+      vi.mocked(getSignUpOptions).mockResolvedValue({ status: 'closed', google: false });
+      await fillAndSubmit('Priya Shah', email);
+      expect(
+        await screen.findByRole('heading', { name: SIGN_UP_PAGE.closed.heading }),
+      ).toBeInTheDocument();
+      expect(signUpWithEmail).not.toHaveBeenCalled();
+    },
+  );
 
   it('AC-48: shows the closed card, with a Sign in link, when sign-up is closed', async () => {
     renderWith({ status: 'closed', google: false });

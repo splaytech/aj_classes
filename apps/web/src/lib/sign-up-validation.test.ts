@@ -13,6 +13,13 @@ describe('checkFullName (AC-4)', () => {
     expect(checkFullName('a'.repeat(101))).toBe(PROFILE_VALIDATION.nameLength);
   });
 
+  it('counts characters as the database does (code points), so one emoji is too short', () => {
+    expect(checkFullName('😀')).toBe(PROFILE_VALIDATION.nameLength);
+    expect(checkFullName('😀😀')).toBe('');
+    expect(checkFullName('😀'.repeat(100))).toBe('');
+    expect(checkFullName('😀'.repeat(101))).toBe(PROFILE_VALIDATION.nameLength);
+  });
+
   it('refuses control characters and text-direction overrides, as the database does', () => {
     for (const bad of ['Line\nBreak', 'Tab\tName', 'Evil‮Name', 'Iso⁦late', 'Del\u007fete']) {
       expect(checkFullName(bad)).toBe(PORTAL_VALIDATION.nameCharacters);

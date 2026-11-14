@@ -14,7 +14,10 @@ const NAME_CHARACTERS_REFUSED = /[\u0000-\u001f\u007f-\u009f‪-‮⁦-⁩]/;
 /** The full name rule (AC-4): 2–100 characters after trimming, on one plain line. */
 export function checkFullName(fullName: string): string {
   const name = fullName.trim();
-  if (name.length < PROFILE_LIMITS.nameMin || name.length > PROFILE_LIMITS.nameMax) {
+  // Characters as the database counts them (char_length: code points), not UTF-16 units, so an
+  // emoji counts once here too and the browser never lets through a name the server refuses.
+  const length = [...name].length;
+  if (length < PROFILE_LIMITS.nameMin || length > PROFILE_LIMITS.nameMax) {
     return PROFILE_VALIDATION.nameLength;
   }
   if (NAME_CHARACTERS_REFUSED.test(name)) return PORTAL_VALIDATION.nameCharacters;
