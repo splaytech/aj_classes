@@ -26,6 +26,7 @@ const PAGES = [
   '/resources',
   '/resources/victorian-selective-entry-exam',
   '/privacy',
+  '/terms',
   '/careers',
   '/posts',
   '/subscribed',

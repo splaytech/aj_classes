@@ -131,6 +131,7 @@ describe('public CSP (ADR-0005)', () => {
     for (const path of [
       '/',
       '/privacy',
+      '/terms',
       '/careers',
       '/posts',
       '/programmes/vce',

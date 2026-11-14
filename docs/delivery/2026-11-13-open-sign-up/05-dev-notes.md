@@ -212,3 +212,9 @@ pgTAP-OS (the `amr` matrix with crafted claims): `[otp]`, `[recovery]`, `[oauth]
 - Slice 24: `LegalLink` moved to `components/portal/LegalLink.tsx` and shared by the invite setup form and the finish step. The finish step has its own "press Finish again" code line (`FINISH_SIGN_UP.codeSent`); `JOIN_PAGE.codeSent` names "Finish setup".
 - Slice 25: the callback reads its parameters once at first render and shares the code exchange per code, because React runs effects twice in development (StrictMode) and a code works once. [ASSUMPTION] A failed code exchange (expired or reused code) shows that error's own message (for example "This link has expired…"), not message M; message M is for refusals that come back in the redirect, as 03 says.
 - A first `e2e/tests/open-sign-up.spec.ts` test (e-mail sign-up → Mailpit link → Continue → finish → Latest news, plus the database check) was run early, after slice 24, against the real dev server: **pass**. It's committed with slice 30.
+
+## Slice 26 — Terms & Conditions
+
+- `/terms` from 03 §7.9's draft (`TERMS`, headed by the DRAFT comment), own `ErrorBoundary`, pre-rendered (`build/client/terms/index.html`, one `h1`), in the sitemap right after `/privacy`, in `hosting-csp.test.ts`, `public-csp.spec.ts` and `lighthouserc.json`. `LEGAL_LINKS.terms = ROUTES.terms`, so the invite setup form and the finish step now link it (new tab).
+- The "Your information" section renders its Privacy link from a `privacyLink` part rather than splitting the sentence.
+- CSP sweep: **23** passed (was 21). Each path runs at 375 px and 1280 px, so `/terms` adds 2, not 1 as 04/03 expected. `ci-gates.md` gets 23 in slice 31.

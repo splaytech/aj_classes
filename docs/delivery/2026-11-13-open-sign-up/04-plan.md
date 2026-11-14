@@ -496,7 +496,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Optional manual run:** only if Saurabh gives the team a **dev** Google client. Its redirect is `http://127.0.0.1:55321/auth/v1/callback`, and its secret is never committed.
   - **Commit:** `feat(portal): Continue with Google and the OAuth callback page`
 
-- [ ] **26. Terms & Conditions page** (03 §7.5, §7.9). This slice is independent of the others: do it early, so Saurabh can read the draft sooner.
+- [x] **26. Terms & Conditions page** (03 §7.5, §7.9). This slice is independent of the others: do it early, so Saurabh can read the draft sooner.
   - **ACs:** AC-50.
   - **Files:**
     - new `routes/terms.tsx`, with its own `ErrorBoundary` copied from `careers.tsx:59-69`;

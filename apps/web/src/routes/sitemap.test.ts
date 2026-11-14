@@ -17,6 +17,13 @@ describe('sitemap pages', () => {
     expect(paths).toContain(ROUTES.privacy);
   });
 
+  it('lists /terms right after /privacy, with and without Supabase (open sign-up AC-50)', () => {
+    for (const supabaseConfigured of [true, false]) {
+      const paths = publicSitemapPaths(supabaseConfigured);
+      expect(paths.indexOf(ROUTES.terms)).toBe(paths.indexOf(ROUTES.privacy) + 1);
+    }
+  });
+
   it('lists /careers with and without Supabase (AC-20)', () => {
     expect(publicSitemapPaths(true)).toContain(ROUTES.careers);
     expect(publicSitemapPaths(false)).toContain(ROUTES.careers);

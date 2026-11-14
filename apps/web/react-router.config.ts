@@ -13,6 +13,7 @@ export default {
   prerender: [
     ROUTES.home,
     ROUTES.privacy,
+    ROUTES.terms,
     ROUTES.careers,
     ...PROGRAMME_PATHS, // includes VCE
     ROUTES.resources,

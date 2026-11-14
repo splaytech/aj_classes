@@ -4,6 +4,7 @@
 export const ROUTES = {
   home: '/',
   privacy: '/privacy',
+  terms: '/terms', // Terms & Conditions for every portal account (open sign-up AC-50)
   programmes: '/programmes', // one page per programme under here (programme-pages.md)
   resources: '/resources', // parent guides (completion-todo §5.3)
   areas: '/tutoring', // one page for Melbourne's west and one for the north (local-seo.md)
@@ -96,11 +97,10 @@ export function parentChildAssignmentPath(studentId: string, assignmentId: strin
   return `${parentChildPath(studentId)}/assignments/${assignmentId}`;
 }
 
-// Legal pages linked from the setup form's terms checkbox. The Terms & Conditions page doesn't
-// exist yet: until the owner provides one (set its URL here), the words show without a link.
-export const LEGAL_LINKS: { privacy: string; terms: string | null } = {
+// Legal pages linked from the tick boxes on the invite setup form and the sign-up finish step.
+export const LEGAL_LINKS: { privacy: string; terms: string } = {
   privacy: ROUTES.privacy,
-  terms: null,
+  terms: ROUTES.terms,
 };
 
 // Query-string names used by portal pages and email links.

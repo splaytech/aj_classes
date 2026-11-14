@@ -438,6 +438,72 @@ export const PRIVACY = {
   backHome: '← Back to home',
 };
 
+// DRAFT for Saurabh's approval before release (AC-50, A14). Covers every portal account.
+// Kept consistent with PRIVACY above; claims nothing that isn't built (no mock tests yet).
+export const TERMS = {
+  heading: 'Terms & Conditions',
+  lastUpdated: 'Last updated: November 2026',
+  intro:
+    'These terms cover every AJ Classes portal account: staff, students, parents and guardians, and people who sign up on our website. By creating or using an account, you agree to them.',
+  sections: [
+    {
+      heading: 'Who we are',
+      text: `AJ Classes is a tutoring business in Melbourne. You can contact us at ${BUSINESS.email}.`,
+    },
+    {
+      heading: 'Who can have an account',
+      text: "Staff, students and parents get their accounts by invitation from AJ Classes. A student's account is only created after a parent or guardian agrees. Parents and guardians can also sign up on our website when sign-up is open. Students can't sign up themselves.",
+    },
+    {
+      heading: 'What a signed-up account is for',
+      text: "An account you create yourself shows our latest news. It doesn't give access to classes, students or anyone else's information. If you enrol with us, we can link your account to your child, and you then see what a parent sees.",
+    },
+    {
+      heading: 'Keeping your account safe',
+      text: 'Use your own e-mail address and keep your password to yourself. Don’t share your account with anyone, including your child. Tell us straight away if you think someone else has used it.',
+    },
+    {
+      heading: 'Using the portal',
+      text: "Don't use the portal to break the law, to harass anyone, to try to see information that isn't yours, to upload anything harmful, or to get around its security.",
+    },
+    {
+      heading: 'E-mails from us',
+      text: 'We send account e-mails, such as confirming your address and resetting your password. Families who enrol also get e-mails, SMS and calls about classes, their account and invoices, which are part of our service. We only send news and offers if you agree to them separately.',
+    },
+    {
+      heading: 'Closing accounts',
+      text: `We may deactivate an account that breaks these terms, that is no longer needed, or to protect students and families. You can ask us to close your account at any time by e-mailing ${BUSINESS.email}.`,
+    },
+    {
+      heading: 'Your information',
+      text: '',
+      privacyLink: {
+        before: 'Our ',
+        label: 'Privacy Policy',
+        after: ' explains what we collect and how we use it.',
+      },
+    },
+    {
+      heading: 'The portal itself',
+      text: 'We try to keep the portal available and accurate, but it may sometimes be unavailable or change. Nothing in these terms limits your rights under the Australian Consumer Law.',
+    },
+    {
+      heading: 'Changes to these terms',
+      text: 'We may update these terms. The date at the top shows when they last changed.',
+    },
+  ] as {
+    heading: string;
+    text: string;
+    privacyLink?: { before: string; label: string; after: string };
+  }[],
+  errorBoundary: {
+    heading: 'Something went wrong',
+    text: "This page couldn't be shown. Please try again later.",
+    backHome: 'Back to the home page',
+  },
+  backHome: '← Back to home',
+};
+
 // Flyer-style slides beside the hero headline. Each one links to the contact form.
 // `art` picks the illustration; `tone` picks the colour scheme (see HeroSlideshow.module.css).
 export const HERO_SLIDES = {

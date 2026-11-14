@@ -12,6 +12,7 @@ const AREA_ROUTE = `${ROUTES.areas}/:slug`;
 export default [
   index('routes/home.tsx'),
   route(ROUTES.privacy, 'routes/privacy.tsx'),
+  route(ROUTES.terms, 'routes/terms.tsx'),
   route(ROUTES.vce, 'routes/vce.tsx'), // a fixed path wins over the :slug pattern below
   route(PROGRAMME_PAGE, 'routes/programme.tsx'),
   route(ROUTES.resources, 'routes/resources.tsx'),

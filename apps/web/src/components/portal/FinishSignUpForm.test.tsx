@@ -93,12 +93,14 @@ describe('FinishSignUpForm', () => {
     expect(await screen.findByText(PORTAL_ERRORS.samePassword)).toBeInTheDocument();
   });
 
-  it('AC-7: the tick says parent or guardian and links Privacy in a new tab', () => {
+  it('AC-7, AC-50: the tick says parent or guardian and links Terms and Privacy in a new tab', () => {
     renderForm();
     expect(screen.getByText(FINISH_SIGN_UP.terms.before, { exact: false })).toBeInTheDocument();
-    expect(screen.getByText(FINISH_SIGN_UP.terms.termsLink, { exact: false })).toBeInTheDocument();
+    const terms = screen.getByRole('link', { name: FINISH_SIGN_UP.terms.termsLink });
     const privacy = screen.getByRole('link', { name: FINISH_SIGN_UP.terms.privacyLink });
+    expect(terms).toHaveAttribute('href', '/terms');
     expect(privacy).toHaveAttribute('href', LEGAL_LINKS.privacy);
+    expect(terms).toHaveAttribute('target', '_blank');
     expect(privacy).toHaveAttribute('target', '_blank');
   });
 
