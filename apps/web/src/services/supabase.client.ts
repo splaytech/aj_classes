@@ -30,6 +30,9 @@ export async function getSupabase(): Promise<SupabaseClient<Database>> {
         autoRefreshToken: true,
         // Email links are handled by /portal/auth/confirm with a Continue button (design §9.1).
         detectSessionInUrl: false,
+        // PKCE, so "Continue with Google" returns a one-time code, never tokens in the URL (open
+        // sign-up S7). E-mail links still verify with token_hash, so they are unaffected.
+        flowType: 'pkce',
         storageKey: sessionStorageKey(APP_CONFIG.supabase.url),
       },
     });

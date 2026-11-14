@@ -72,3 +72,11 @@ describe('the stored session (BUG-15)', () => {
     expect(network).not.toHaveBeenCalled();
   });
 });
+
+describe('the auth flow (open sign-up S7)', () => {
+  it('uses PKCE, so a Google sign-in comes back as a one-time code', async () => {
+    const supabase = await getSupabase();
+    // flowType is protected in the types, but it's what auth-js reads.
+    expect((supabase.auth as unknown as { flowType: string }).flowType).toBe('pkce');
+  });
+});

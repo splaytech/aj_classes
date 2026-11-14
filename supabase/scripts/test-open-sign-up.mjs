@@ -237,7 +237,7 @@ async function hookChecks() {
 let s1bShape = null;
 
 const CONFIRM_LINK =
-  /http:\/\/localhost:5173\/portal\/auth\/confirm\?token_hash=([0-9a-f]+)&(?:amp;)?type=email/;
+  /http:\/\/localhost:5173\/portal\/auth\/confirm\?token_hash=((?:pkce_)?[0-9a-f]+)&(?:amp;)?type=email/;
 
 /** The newest Mailpit message to this address, in full (HTML, Text, headers). */
 async function fullMail(email) {
@@ -596,7 +596,8 @@ async function recoverySession(email) {
   await forgotPassword(email);
   await settle();
   const mail = await fullMail(email);
-  const hash = mail?.HTML.match(/token_hash=([0-9a-f]+)&(?:amp;)?type=recovery/)?.[1] ?? '';
+  const hash =
+    mail?.HTML.match(/token_hash=((?:pkce_)?[0-9a-f]+)&(?:amp;)?type=recovery/)?.[1] ?? '';
   const reply = await api('/auth/v1/verify', { body: { type: 'recovery', token_hash: hash } });
   return {
     status: reply.status,
@@ -822,6 +823,71 @@ async function finishChecks() {
   );
 }
 
+/** supabase-js configured like the portal's client (PKCE), with in-memory storage. */
+function pkceClient() {
+  const items = new Map();
+  return createClient(API, PUBLISHABLE_KEY, {
+    auth: {
+      flowType: 'pkce',
+      persistSession: true,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      storage: {
+        getItem: (key) => items.get(key) ?? null,
+        setItem: (key, value) => items.set(key, value),
+        removeItem: (key) => items.delete(key),
+      },
+    },
+  });
+}
+
+async function pkceChecks() {
+  console.log('\nS7: e-mail links still work with the PKCE client (AC-42)');
+  plantCapRows(0);
+  const options = { captchaToken: CAPTCHA.captcha_token };
+  const email = address('pkce');
+  const signUp = await pkceClient().auth.signUp({
+    email,
+    password: `${PREFIX}-throwaway-Pw1!`,
+    options: { ...options, data: { full_name: 'Pkce Parent' } },
+  });
+  check('A PKCE sign-up is accepted', !signUp.error, JSON.stringify(signUp.error));
+  const firstHash = await confirmationHash(email);
+  skipResendWait(email);
+  const resent = await pkceClient().auth.resend({ type: 'signup', email, options });
+  await settle();
+  const resentHash = await confirmationHash(email);
+  check(
+    'A PKCE resend sends a new token_hash link',
+    !resent.error && resentHash !== '' && resentHash !== firstHash,
+    JSON.stringify(resent.error),
+  );
+  const confirmed = await pkceClient().auth.verifyOtp({ token_hash: resentHash, type: 'email' });
+  check(
+    'The sign-up confirmation link verifies with token_hash in a PKCE client',
+    !confirmed.error && Boolean(confirmed.data.session),
+    JSON.stringify(confirmed.error),
+  );
+  pkceSeen.confirmationHashPrefix = resentHash.slice(0, 5);
+
+  skipResendWait(email);
+  const reset = await pkceClient().auth.resetPasswordForEmail(email, options);
+  await settle();
+  const recoveryHash =
+    (await fullMail(email))?.HTML.match(/token_hash=([^&"]+)&(?:amp;)?type=recovery/)?.[1] ?? '';
+  const recovered = await pkceClient().auth.verifyOtp({
+    token_hash: recoveryHash,
+    type: 'recovery',
+  });
+  check(
+    'A PKCE reset-password link verifies with token_hash (Forgot password unchanged)',
+    !reset.error && !recovered.error && Boolean(recovered.data.session),
+    JSON.stringify(reset.error ?? recovered.error),
+  );
+  pkceSeen.recoveryHashPrefix = recoveryHash.slice(0, 5);
+}
+
+const pkceSeen = {};
 const amrSeen = {};
 let captchaShape = null;
 let resendTooSoonShape = null;
@@ -845,6 +911,7 @@ async function main() {
     await wipeChecks();
     await captchaAndResendChecks();
     await finishChecks();
+    await pkceChecks();
   } finally {
     cleanUp();
   }
@@ -855,6 +922,7 @@ async function main() {
   console.log(
     '\nRecorded:',
     JSON.stringify({
+      pkceSeen,
       amrSeen,
       captchaShape,
       resendTooSoonShape,

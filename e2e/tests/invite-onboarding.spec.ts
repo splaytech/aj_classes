@@ -163,9 +163,11 @@ test.describe('Invite onboarding', () => {
     const nameMarker = marker('old-invite');
     const email = `${nameMarker.value}@example.test`;
     // An Auth user with no invited_at, as the migration leaves every pending invite (ADR-0010).
+    // Staff invites carry account_role 'tutor'; without it the account would be a signed-up user
+    // (open sign-up, ADR-0011).
     const [user] = await db.query<{ id: string }>(
-      `INSERT INTO auth.users (id, aud, role, email, raw_user_meta_data)
-       VALUES (gen_random_uuid(), 'authenticated', 'authenticated', $1, $2)
+      `INSERT INTO auth.users (id, aud, role, email, raw_user_meta_data, raw_app_meta_data)
+       VALUES (gen_random_uuid(), 'authenticated', 'authenticated', $1, $2, '{"account_role":"tutor"}')
        RETURNING id`,
       [email, JSON.stringify({ full_name: `E2E Old Invite ${nameMarker.value}` })],
     );

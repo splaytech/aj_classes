@@ -315,7 +315,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
     - a refreshed link session loses its link method: **stop** (see stop condition 4).
   - **Commit:** `feat(db): finish-sign-up step that only an e-mail link or Google session can save`
 
-- [ ] **11. S7: PKCE without breaking e-mail links.**
+- [x] **11. S7: PKCE without breaking e-mail links.**
   - **ACs:** AC-42 (reset and e-mail change still work), groundwork for AC-51.
   - **Files:** `apps/web/src/services/supabase.client.ts` gets `flowType: 'pkce'`, with a unit test that pins it.
   - **INT:** the sign-up confirmation and resend links verify with `token_hash`.

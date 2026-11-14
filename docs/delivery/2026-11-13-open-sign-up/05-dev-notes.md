@@ -151,3 +151,13 @@ INT (`test-open-sign-up.mjs`, AC-42 section): all six signing-in seed accounts s
 INT (89 checks so far): finish saves from a confirmation session and from a recovery session (the recovery link also confirms an unconfirmed sign-up and wipes its old password); refused from a password session with `sign_up_link_needed`; without a password chosen in the session, `password_not_set`; AC-14 cases 1–6 in full, each on a fresh `signUp` (never the planted-P1 account); saving leaves only the saving session (the other one can't refresh); AC-24 reset and change; AC-20 built with one admin `PUT { email_confirm, password }`: the password survives, `can_finish` is false and the refusal is `sign_up_link_needed`, with `password_set_at` set.
 
 pgTAP-OS (the `amr` matrix with crafted claims): `[otp]`, `[recovery]`, `[oauth]` save; `[password]`, `[token_refresh]`, `[otp, unknown]`, `[otp, password]`, `[]` and no claim refuse; `password_not_set` for a password set before the session or none; Google needs no password; saving deletes factors and other sessions and audits `{role: user, via}`.
+
+## Slice 11 — S7: PKCE and e-mail links
+
+**Outcome: pass, main client switched to `flowType: 'pkce'`** (no `getOAuthClient()` fallback needed).
+
+- With PKCE, GoTrue prefixes the e-mailed token hash: links read `token_hash=pkce_<hex>`. `verifyOtp({ token_hash, type })` accepts it in a fresh client with no stored code verifier (so a link opened on another device still works). `/portal/auth/confirm` passes the hash through without a format check, so nothing on the page changes.
+- INT: a PKCE `signUp`, a PKCE `resend` (new `pkce_` link), `verifyOtp` type `email` on that link, and a PKCE `resetPasswordForEmail` whose `pkce_` recovery link verifies with type `recovery`. All pass.
+- E-mail-change links: the portal has no e-mail-change flow (no `updateUser({ email })` anywhere), so there's nothing to break. Not tested.
+- E2E smoke: 10 passed (the invite → recovery-`verifyOtp` journey and the staff 2FA login run in a real browser on the PKCE client). The explicit "reset still works" browser test lands in `open-sign-up.spec.ts` in slice 30, so the smoke count becomes 13 there.
+- **To the lead (stop list item 9, informational):** `e2e/tests/invite-onboarding.spec.ts` AC 25 inserted a bare `auth.users` row to stand for an old staff invite. Since slice 2 such a row is a signed-up `user`, so it no longer showed on the staff page. The fixture now carries `account_role: tutor`, as every real staff invite does. Same intent, fixture only. I should have run E2E in slice 2; it was caught here.
