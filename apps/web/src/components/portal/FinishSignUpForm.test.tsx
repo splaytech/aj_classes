@@ -8,6 +8,7 @@ import {
   PORTAL_COMMON,
   PORTAL_ERRORS,
   PORTAL_VALIDATION,
+  PROFILE_VALIDATION,
 } from '@/constants';
 import { completeSignUp, sendReauthCode } from '@/services';
 import type { SignUpInfo } from '@/services';
@@ -167,6 +168,14 @@ describe('FinishSignUpForm', () => {
     await user.click(screen.getByRole('button', { name: FINISH_SIGN_UP.submit }));
     expect(await screen.findByText(PORTAL_VALIDATION.emailCodeInvalid)).toBeInTheDocument();
     expect(completeSignUp).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a server-side name refusal in the form's own words (Tester 6a bug 3)", async () => {
+    vi.mocked(completeSignUp).mockResolvedValue({ ok: false, error: 'invalidName' });
+    renderForm();
+    await fill();
+    expect(await screen.findByText(PROFILE_VALIDATION.nameLength)).toBeInTheDocument();
+    expect(screen.queryByText(PORTAL_ERRORS.invalidName)).not.toBeInTheDocument();
   });
 
   it('shows the server refusal when the session can’t finish', async () => {

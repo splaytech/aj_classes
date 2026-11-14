@@ -3,14 +3,14 @@ import { createRoutesStub } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PORTAL_ROUTES, USERS_PAGE } from '@/constants';
-import { getSignUpOptions, listUsers, setAccountActive, setSignUpOpen } from '@/services';
+import { getSignUpStatus, listUsers, setAccountActive, setSignUpOpen } from '@/services';
 import type { SignedUpUser } from '@/services';
 import { setupUser } from '@/test/user';
 
 import AdminUsersPage, { clientLoader } from './admin-users';
 
 vi.mock('@/services', () => ({
-  getSignUpOptions: vi.fn(),
+  getSignUpStatus: vi.fn(),
   listUsers: vi.fn(),
   setAccountActive: vi.fn(),
   setSignUpOpen: vi.fn(),
@@ -37,7 +37,7 @@ const GOOGLE_UNFINISHED: SignedUpUser = {
 
 function renderPage(users: SignedUpUser[], status: 'open' | 'busy' | 'closed' = 'open') {
   vi.mocked(listUsers).mockResolvedValue({ ok: true, data: users });
-  vi.mocked(getSignUpOptions).mockResolvedValue({ status, google: false });
+  vi.mocked(getSignUpStatus).mockResolvedValue({ ok: true, data: status });
   const Stub = createRoutesStub([
     { path: PORTAL_ROUTES.adminUsers, Component: AdminUsersPage, loader: () => clientLoader() },
   ]);
@@ -119,10 +119,27 @@ describe('Admin → Users (AC-31, AC-32, AC-48)', () => {
     expect(setAccountActive).toHaveBeenCalledWith('u2', true);
   });
 
+  it("says the status couldn't be loaded, with a retry, rather than claim closed (Tester 6a bug 2)", async () => {
+    vi.mocked(listUsers).mockResolvedValue({ ok: true, data: [] });
+    vi.mocked(getSignUpStatus).mockResolvedValue({ ok: false, error: 'network' });
+    const Stub = createRoutesStub([
+      { path: PORTAL_ROUTES.adminUsers, Component: AdminUsersPage, loader: () => clientLoader() },
+    ]);
+    render(<Stub initialEntries={[PORTAL_ROUTES.adminUsers]} />);
+    expect(await screen.findByText(USERS_PAGE.switch.unknown)).toBeInTheDocument();
+    expect(screen.queryByText(USERS_PAGE.switch.closed)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: USERS_PAGE.switch.reopen }),
+    ).not.toBeInTheDocument();
+    vi.mocked(getSignUpStatus).mockResolvedValue({ ok: true, data: 'open' });
+    await setupUser().click(screen.getByRole('button', { name: USERS_PAGE.switch.retry }));
+    expect(await screen.findByText(USERS_PAGE.switch.open)).toBeInTheDocument();
+  });
+
   it('sends no sign-up status read when the list is refused (not an admin with two-step)', async () => {
     vi.mocked(listUsers).mockResolvedValue({ ok: false, error: 'notAllowed' });
-    vi.mocked(getSignUpOptions).mockReset();
+    vi.mocked(getSignUpStatus).mockReset();
     await clientLoader();
-    expect(getSignUpOptions).not.toHaveBeenCalled();
+    expect(getSignUpStatus).not.toHaveBeenCalled();
   });
 });

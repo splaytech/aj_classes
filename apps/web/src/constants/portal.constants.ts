@@ -585,6 +585,8 @@ export const USERS_PAGE = {
       title: 'Open sign-up?',
       text: 'Parents and guardians will be able to create an account again.',
     },
+    unknown: "We couldn't load whether sign-up is open.",
+    retry: 'Try again',
     closedNotice: 'Sign-up closed.',
     openedNotice: 'Sign-up opened.',
   },

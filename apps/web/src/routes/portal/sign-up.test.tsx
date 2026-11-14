@@ -8,6 +8,7 @@ import {
   PORTAL_SEO,
   PORTAL_VALIDATION,
   SIGN_UP_PAGE,
+  PROFILE_VALIDATION,
 } from '@/constants';
 import { getSignUpOptions, signUpWithEmail } from '@/services';
 import type { SignUpOptions } from '@/services';
@@ -152,6 +153,14 @@ describe('/portal/sign-up', () => {
       expect(signUpWithEmail).not.toHaveBeenCalled();
     },
   );
+
+  it("shows a server-side name refusal in the page's own words (Tester 6a bug 3)", async () => {
+    vi.mocked(signUpWithEmail).mockResolvedValueOnce({ ok: false, error: 'invalidName' });
+    renderWith({ status: 'open', google: false });
+    await fillAndSubmit();
+    expect(await screen.findByText(PROFILE_VALIDATION.nameLength)).toBeInTheDocument();
+    expect(screen.queryByText(PORTAL_ERRORS.invalidName)).not.toBeInTheDocument();
+  });
 
   it('AC-48: shows the closed card, with a Sign in link, when sign-up is closed', async () => {
     renderWith({ status: 'closed', google: false });

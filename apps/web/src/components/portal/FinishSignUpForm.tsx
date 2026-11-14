@@ -15,6 +15,7 @@ import {
   PORTAL_ROUTES,
   PROFILE_LIMITS,
   AUTH_LIMITS,
+  PROFILE_VALIDATION,
 } from '@/constants';
 import { checkEmailCode } from '@/lib/portal-validation';
 import { validateFinishSignUp } from '@/lib/sign-up-validation';
@@ -95,7 +96,8 @@ export function FinishSignUpForm({ signUp, onDone }: FinishSignUpFormProps) {
     }
     setSaving(false);
     if (result.error === 'invalidName') {
-      setErrors({ fullName: PORTAL_ERRORS.invalidName });
+      // The self-service wording, as the browser check gives (Tester 6a bug 3).
+      setErrors({ fullName: PROFILE_VALIDATION.nameLength });
       return;
     }
     // samePassword: ask for a different password; weakPassword and the rest: their message.

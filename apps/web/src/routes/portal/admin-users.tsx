@@ -25,7 +25,7 @@ import {
 import { PORTAL_ERRORS, PORTAL_SEO, USERS_PAGE } from '@/constants';
 import { formatDate } from '@/lib/format';
 import { buildPortalMeta } from '@/lib/seo';
-import { getSignUpOptions, listUsers, setAccountActive, setSignUpOpen } from '@/services';
+import { getSignUpStatus, listUsers, setAccountActive, setSignUpOpen } from '@/services';
 import type { SignedUpUser } from '@/services';
 
 export function meta() {
@@ -37,9 +37,10 @@ export function meta() {
 export async function clientLoader() {
   const users = await listUsers();
   // Someone who isn't an admin with two-step sends no further request (staff-client.ts).
-  if (!users.ok) return { users, signUpOpen: false };
-  const options = await getSignUpOptions();
-  return { users, signUpOpen: options.status !== 'closed' };
+  if (!users.ok) return { users, signUpOpen: null };
+  const status = await getSignUpStatus();
+  // null: the status couldn't be read, so the page says so rather than guess (Tester 6a bug 2).
+  return { users, signUpOpen: status.ok ? status.data !== 'closed' : null };
 }
 
 type Pending = { kind: 'switch' } | { kind: 'active'; user: SignedUpUser };
@@ -55,7 +56,7 @@ export default function AdminUsersPage() {
   if (!users.ok) return <LoadError error={users.error} />;
 
   async function confirm() {
-    if (!pending) return;
+    if (!pending || (pending.kind === 'switch' && signUpOpen === null)) return;
     setBusy(true);
     setError('');
     const result =
@@ -68,7 +69,7 @@ export default function AdminUsersPage() {
       setError(PORTAL_ERRORS[result.error]);
       return;
     }
-    setNotice(noticeFor(pending, signUpOpen));
+    setNotice(noticeFor(pending, signUpOpen === true));
     revalidator.revalidate();
   }
 
@@ -88,16 +89,31 @@ export default function AdminUsersPage() {
       )}
 
       <SectionCard title={USERS_PAGE.switch.heading}>
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={2}
-          sx={{ alignItems: { sm: 'center' } }}
-        >
-          <Typography>{signUpOpen ? USERS_PAGE.switch.open : USERS_PAGE.switch.closed}</Typography>
-          <Button variant="outlined" onClick={() => setPending({ kind: 'switch' })}>
-            {signUpOpen ? USERS_PAGE.switch.close : USERS_PAGE.switch.reopen}
-          </Button>
-        </Stack>
+        {signUpOpen === null ? (
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            sx={{ alignItems: { sm: 'center' } }}
+          >
+            <Typography>{USERS_PAGE.switch.unknown}</Typography>
+            <Button variant="outlined" onClick={() => revalidator.revalidate()}>
+              {USERS_PAGE.switch.retry}
+            </Button>
+          </Stack>
+        ) : (
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            sx={{ alignItems: { sm: 'center' } }}
+          >
+            <Typography>
+              {signUpOpen ? USERS_PAGE.switch.open : USERS_PAGE.switch.closed}
+            </Typography>
+            <Button variant="outlined" onClick={() => setPending({ kind: 'switch' })}>
+              {signUpOpen ? USERS_PAGE.switch.close : USERS_PAGE.switch.reopen}
+            </Button>
+          </Stack>
+        )}
       </SectionCard>
 
       <TableContainer component={Paper} variant="outlined" sx={{ mt: 4 }}>
@@ -151,7 +167,7 @@ export default function AdminUsersPage() {
         <ConfirmDialog
           open
           busy={busy}
-          {...dialogFor(pending, signUpOpen)}
+          {...dialogFor(pending, signUpOpen === true)}
           onConfirm={confirm}
           onClose={() => setPending(null)}
         />

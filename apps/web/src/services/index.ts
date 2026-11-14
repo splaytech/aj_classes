@@ -27,6 +27,7 @@ export {
   confirmSignUpLink,
   finishGoogleSignIn,
   getSignUpOptions,
+  getSignUpStatus,
   hasPassword,
   resendSignUpLink,
   signUpWithEmail,

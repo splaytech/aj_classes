@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   completeSignUp,
   getSignUpOptions,
+  getSignUpStatus,
   resendSignUpLink,
   signUpWithEmail,
 } from './sign-up.service';
@@ -196,6 +197,15 @@ describe('getSignUpOptions', () => {
   });
 });
 
+describe('getSignUpStatus (Admin → Users)', () => {
+  it('reports a failed read as a failure, not as closed (Tester 6a bug 2)', async () => {
+    rpc.mockResolvedValueOnce({ data: 'closed', error: null });
+    expect(await getSignUpStatus()).toEqual({ ok: true, data: 'closed' });
+    rpc.mockResolvedValueOnce({ data: null, error: { code: '500', message: 'boom' } });
+    expect((await getSignUpStatus()).ok).toBe(false);
+  });
+});
+
 describe('completeSignUp', () => {
   it('sets the password first, then saves the name and the tick', async () => {
     updateUser.mockResolvedValue({ data: {}, error: null });
@@ -221,15 +231,27 @@ describe('completeSignUp', () => {
     expect(updateUser).not.toHaveBeenCalled();
   });
 
-  it('stops at a refused password (e.g. the same password), without saving', async () => {
-    updateUser.mockResolvedValue({ data: {}, error: { code: 'same_password' } });
+  it('stops at a refused password (e.g. a weak one), without saving', async () => {
+    updateUser.mockResolvedValue({ data: {}, error: { code: 'weak_password' } });
     expect(
       await completeSignUp({ fullName: 'P S', password: 'x'.repeat(12), acceptsTerms: true }),
-    ).toEqual({
-      ok: false,
-      error: 'samePassword',
-    });
+    ).toEqual({ ok: false, error: 'weakPassword' });
     expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('on a retry after a failed save, the "same password" reply goes on to save (Tester 6a bug 1)', async () => {
+    updateUser.mockResolvedValue({ data: {}, error: { code: 'same_password' } });
+    rpc.mockResolvedValue({ data: null, error: null });
+    const result = await completeSignUp({
+      fullName: 'P S',
+      password: 'x'.repeat(12),
+      acceptsTerms: true,
+    });
+    expect(result.ok).toBe(true);
+    expect(rpc).toHaveBeenCalledWith('complete_sign_up', {
+      new_full_name: 'P S',
+      accepts_terms: true,
+    });
   });
 
   it('maps the server refusals', async () => {

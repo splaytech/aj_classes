@@ -18,6 +18,7 @@ import {
   PORTAL_SEO,
   PORTAL_VALIDATION,
   SIGN_UP_PAGE,
+  PROFILE_VALIDATION,
 } from '@/constants';
 import { useAppearance } from '@/lib/appearance-context';
 import { guardPortalPage } from '@/lib/portal-guard';
@@ -116,7 +117,8 @@ function SignUpForm({
 
     resetCaptcha();
     if (result.error === 'invalidName') {
-      setFieldErrors({ fullName: PORTAL_ERRORS.invalidName });
+      // The self-service wording, as the browser check gives (Tester 6a bug 3).
+      setFieldErrors({ fullName: PROFILE_VALIDATION.nameLength });
       return;
     }
     setFormError(PORTAL_ERRORS[result.error]);

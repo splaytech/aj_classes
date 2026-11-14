@@ -41,6 +41,22 @@ export async function getSignUpOptions(): Promise<SignUpOptions> {
 }
 
 /**
+ * Just the status, for Admin → Users: unlike getSignUpOptions, a failed read is reported as a
+ * failure, so the page never claims a state it doesn't know (Tester 6a bug 2).
+ */
+export async function getSignUpStatus(): Promise<Result<SignUpStatus>> {
+  if (!isPortalConfigured()) return fail('notConfigured');
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { data, error } = await supabase.rpc('sign_up_status');
+    if (error) return fail(toErrorKey(error));
+    return SIGN_UP_STATUSES.includes(data as SignUpStatus)
+      ? succeed(data as SignUpStatus)
+      : fail('unknown');
+  });
+}
+
+/**
  * Supabase needs a password at sign-up; this one is random, never shown, stored or returned, and
  * the confirm-time wipe clears it (03 §3.6). The person chooses their own on the finish step.
  */
@@ -144,7 +160,10 @@ export async function completeSignUp(
 ): Promise<Result> {
   if (input.password !== null) {
     const saved = await changePassword(input.password, emailedCode);
-    if (!saved.ok) return saved;
+    // "Same password" on a retry means an earlier press already saved this password and only the
+    // second step failed (Tester 6a bug 1). Go on: complete_sign_up still checks the password was
+    // set in this session (password_not_set otherwise).
+    if (!saved.ok && saved.error !== 'samePassword') return saved;
   }
   return attempt(async () => {
     const supabase = await getSupabase();
