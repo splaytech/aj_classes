@@ -115,7 +115,7 @@ The Developer runs them in slice 0 and records the counts. CI gates are document
 
 ### Phase A: close the tutor hole and make deploy fail closed (safe on their own)
 
-- [ ] **1. Migration 1: the `user` enum value.**
+- [x] **1. Migration 1: the `user` enum value.**
   - **ACs:** groundwork for AC-28 and AC-41.
   - **Files:**
     - new `supabase/migrations/20261114100000_user_role.sql` (03 §3, item 1);
