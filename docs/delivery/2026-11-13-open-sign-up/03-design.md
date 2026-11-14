@@ -182,7 +182,7 @@ Both functions are **`security definer`, `set search_path = ''`**, with execute 
 - Trigger `on_auth_identity_link_check`: `before insert on auth.identities for each row`.
 - Rules:
   - `new.provider = 'email'` → `return new`.
-  - `new.provider = 'google'` **and** the profile is `role 'user'`, `status 'invited'`, joined to `auth.users` with `email_confirmed_at is null`, **and** `not exists (select 1 from auth.identities i where i.user_id = new.user_id)` → `return new`.
+  - `new.provider = 'google'` **and** the profile is `role 'user'`, `status 'invited'`, `is_active`, joined to `auth.users` with `email_confirmed_at is null`, **and** `not exists (select 1 from auth.identities i where i.user_id = new.user_id)` → `return new`. (`is_active` was added in the build, slice 7: a brand-new account is always active, so it refuses nothing legitimate.)
   - Otherwise `raise exception 'identity_link_refused' using errcode = '42501'`.
 - (S1 outcome B adds the switch and `identity_data ->> 'email_verified'` checks for `google` here.)
 
@@ -199,7 +199,7 @@ Every new function starts with `revoke execute on function … from public, anon
 | Signature | Kind | Grant | Does |
 |---|---|---|---|
 | `sign_up_status() returns text` | sql, stable, definer | `anon, authenticated` | `'closed'` if the switch is off (or the row is missing); `'busy'` if `sign_up_emails` rows newer than 24 h `>= cap`; else `'open'` |
-| `sign_up_guard_ready() returns boolean` | sql, stable, definer | `anon, authenticated` | True only when: `role_from_app_metadata('{}')`, `('{"account_role":"x"}')` and `('{"account_role":"admin"}')` all = `'user'`; `pg_get_expr` of the `profiles.role` default is like `'''user''::%'`; `to_regprocedure('public.hook_before_user_created(jsonb)')` is not null; `has_function_privilege('supabase_auth_admin', …, 'execute')`; `has_schema_privilege('supabase_auth_admin', 'public', 'usage')`; both triggers exist and are enabled (`pg_trigger`, `tgenabled <> 'D'`); and the settings row exists. Returns a boolean only |
+| `sign_up_guard_ready() returns boolean` | sql, stable, definer | `anon, authenticated` | True only when: `role_from_app_metadata('{}')`, `('{"account_role":"x"}')` and `('{"account_role":"admin"}')` all = `'user'`; `pg_get_expr` of the `profiles.role` default is like `'''user''::%'`; `to_regprocedure('public.hook_before_user_created(jsonb)')` is not null; `has_function_privilege('supabase_auth_admin', …, 'execute')`; `has_schema_privilege('supabase_auth_admin', 'public', 'usage')`; both triggers exist and are enabled (`pg_trigger`, `tgenabled <> 'D'`); `postgres` can DELETE from `auth.mfa_factors` and `auth.sessions` and UPDATE `auth.users` (`private.can_write_auth_tables`, review-5 finding 4); and the settings row exists. Returns a boolean only |
 | `my_sign_up() returns table (full_name text, email text, signed_up_with text, can_finish boolean)` | sql, stable, definer | `authenticated` | One row only for the caller when `role 'user'`, `status 'invited'`, `is_active`. `can_finish = private.session_can_finish_sign_up()` |
 | `complete_sign_up(new_full_name text, accepts_terms boolean default false) returns void` | plpgsql, definer | `authenticated` | Below |
 | `my_has_password() returns boolean` | sql, stable, definer | `authenticated` | Whether the caller's `auth.users.encrypted_password` is non-empty (AC-23) |
@@ -250,7 +250,7 @@ Copy the list from `20261023110000_onboarding_consents.sql` lines **20–27** an
 |---|---|---|---|---|
 | `sign_up_status`, `sign_up_guard_ready` | ✓ | ✓ | – | default |
 | `my_sign_up`, `complete_sign_up`, `my_has_password`, `admin_set_sign_up_open`, `admin_list_users`, `admin_promote_user` | – | ✓ | – | default |
-| `hook_before_user_created` | – | – | ✓ | – |
+| `hook_before_user_created` | – | – | ✓ | – (revoked explicitly: the default privileges grant it otherwise, review-5 finding 7) |
 | `private.*` (new), both trigger functions | – | – | – | – |
 | `private.sign_up_settings`, `private.sign_up_emails` | – | – | – | – (RLS on, no policies) |
 
@@ -297,7 +297,7 @@ New order (02 Q1). The step labels change from `n/6` to `n/7`.
 | 4/7 **check** | (new) | `sign_up_guard_ready`, **retried up to 5 times, 3 s apart** (PostgREST reloads its schema cache after `db push`; review-3 2c). If it still fails: when the gate in 2/7 passed with sign-up **on** (a re-deploy), call `close_sign_up` (below) before failing (review-3 2a). Then fail with "The migrations ran but the sign-up guard isn't ready. Sign-up is off. Nothing else was changed." |
 | 5/7 functions | 149–152 | unchanged |
 | 6/7 secrets | 154–181 | unchanged. **No new function secret** (the kill switch is in the database) |
-| 7/7 `config push` | 135–136 | moved to the end. Label: "Sign-in settings (sign-up open, hook, confirmations; Google only if enabled)". Then **post-check** `auth_hook_is_on`: `curl -fsS -H @"$AUTH_HEADER_FILE" "https://api.supabase.com/v1/projects/${PROJECT_REF}/config/auth" \| jq -e '.hook_before_user_created_enabled == true and .hook_before_user_created_uri == "pg-functions://postgres/public/hook_before_user_created"'` (S1(f) confirms the names). On failure: `close_sign_up`, then `fail "The sign-up hook isn't on, so sign-up was closed again. …"`. In dry run, print what it would check |
+| 7/7 `config push` | 135–136 | moved to the end. Label: "Sign-in settings (sign-up open, hook, confirmations; Google only if enabled)". A failed `config push` runs `close_sign_up` and fails loudly (it may have opened sign-up part-way). Then **post-check** `auth_settings_are_safe`: `curl -fsS -H @"$AUTH_HEADER_FILE" "https://api.supabase.com/v1/projects/${PROJECT_REF}/config/auth" \| jq -e '… hook_before_user_created_enabled == true and .hook_before_user_created_uri == "pg-functions://postgres/public/hook_before_user_created" and .mailer_autoconfirm == false and .disable_signup == false'` (S1(f) confirms the names; the last two from review-5 finding 5). On failure: `close_sign_up`, then fail with "The sign-up hook isn't on, or e-mail confirmations are off, so sign-up was closed again. …". In dry run, print what it would check |
 | Helpers | (new) | **`AUTH_HEADER_FILE`** (review-3 2d): `umask 077; AUTH_HEADER_FILE="$(mktemp)"; printf 'Authorization: Bearer %s\n' "$SUPABASE_ACCESS_TOKEN" > "$AUTH_HEADER_FILE"; trap 'rm -f "$AUTH_HEADER_FILE"' EXIT`. Each Management API call uses `curl -H @"$AUTH_HEADER_FILE"`, so the token never appears in `ps`. Not created in dry run. **`close_sign_up`** (review-3 2a, 2b): `curl -fsS -X PATCH -H @"$AUTH_HEADER_FILE" -H 'Content-Type: application/json' -d '{"disable_signup":true}' "https://api.supabase.com/v1/projects/${PROJECT_REF}/config/auth"`. It runs inside `if ! …; then`, so `set -e` can't end the script silently. If the PATCH fails: `fail "Sign-up may be open without the hook: turn it off in Dashboard → Authentication → Sign In / Providers → 'Allow new users to sign up' now."` |
 | Old step 3 | 138–144 | removed (replaced by 2/7) |
 | Header comment | 5–6 | "Order matters: migrations first, checked by behaviour; the Auth settings that open sign-up last (ADR-0011)" |
@@ -631,7 +631,9 @@ The CSP and hosting files themselves don't change (DEC-WH-1 precedent).
 1. **What we collect:** after "subscribe," add "or sign up for a portal account,".
 2. **Portal accounts:** replace the first sentence, `Portal accounts are created only by invitation from AJ Classes.`, with:
 
-   > Portal accounts are created by invitation from AJ Classes, or by parents and guardians signing up themselves when sign-up is open. When you sign up, we collect your name and e-mail address, when you agreed to our Terms & Conditions and this policy, and whether you signed up with your e-mail or with Google. If you sign in with Google, Google gives us only your name and e-mail address. A signed-up account that isn't linked to a student sees only our latest news, and gets only account e-mails (confirming your address and password resets).
+   > Portal accounts are created by invitation from AJ Classes, or by parents and guardians signing up themselves when sign-up is open. When you sign up, we collect your name and e-mail address, when you agreed to our Terms & Conditions and this policy, and whether you signed up with your e-mail or with Google. If you sign in with Google, Google gives us your name, your e-mail address and a link to your Google profile picture; we use only your name and e-mail address. A signed-up account that isn't linked to a student sees only our latest news, and gets only account e-mails, such as confirming your address, password resets and security notices.
+
+   (Corrected in the build, slice 27: GoTrue stores Google's picture link, `provider/google.go:120-131`, and every account gets Auth's "Your password was changed" notice, slice 19.)
 
    The rest of the section stays. Its student sentences stay true.
 3. **Optional permissions:** "When parents set up their portal account, they can choose" becomes "Parents linked to a student can choose, when they set up their account or later in Account → Your choices". This is true for promoted parents too.
@@ -644,7 +646,7 @@ The CSP and hosting files themselves don't change (DEC-WH-1 precedent).
 
 | Call | Success | Refusals the page handles |
 |---|---|---|
-| `signUp` | 200 (new, unconfirmed resend, or the fake reply for confirmed: R1) | 429 `sign_up_busy` / `sign_up_closed` / `sign_up_refused` / `invalid_name` (hook); `captcha_failed`; `over_request_rate_limit` (AC-39); `over_email_send_rate_limit` → shown as success |
+| `signUp` | 200 (new, or an unconfirmed resend). For an address that already has a **confirmed** account GoTrue v2.197.0 answers **`422 user_already_exists`** (`signup.go:293`, because SMS confirmations are off), creating, changing and sending nothing; the page shows it as success (R1; found in the build, slice 17) | 429 `sign_up_busy` / `sign_up_closed` / `sign_up_refused` / `invalid_name` (hook); `captcha_failed`; `over_request_rate_limit` (AC-39); `over_email_send_rate_limit` and `user_already_exists` → shown as success |
 | `resend({type:'signup'})` | 200 (also unknown or confirmed: nothing sent) | `captcha_failed`; `over_request_rate_limit`; anything else → success |
 | `verifyOtp({type:'email'})` | session (`amr` `otp`) | `otp_expired` → `linkExpired` |
 | `signInWithOAuth` / `exchangeCodeForSession` | session (`amr` `oauth`) | the S3 shapes → M / AC-53 / closed / not active |
@@ -726,7 +728,7 @@ pgTAP helpers to add to `000-setup-tests-hooks.test.sql`:
 | 8 | web unit; INT (S2) | captcha message and widget reset. `/signup` without a token is refused |
 | 10 | web unit | `sign-up.test.tsx`: the same card for a new e-mail, the fake reply and `over_email_send_rate_limit`; the hours come from `AUTH_LIMITS`; Sign in and reset links |
 | 11 | web unit | `noindex` meta; not in `sitemap.test.ts`; inherits the `portal-root` `ErrorBoundary` (route-table assertion) |
-| 12 | web unit; INT | The page shows the identical card (unit). INT, for each of admin, tutor, student, parent, invited, finished user, deactivated finished and deactivated unfinished: `signUp` returns 200; name, role, status and password are unchanged; the Mailpit count is unchanged. The raw-API difference is R1 (no test) |
+| 12 | web unit; INT | The page shows the identical card (unit). INT, for each of admin, tutor, student, parent, invited, finished user, deactivated finished and deactivated unfinished: `signUp` returns `422 user_already_exists` (all eight are confirmed; see §8.1), which the page shows as the AC-10 card; name, role, status and password are unchanged; the Mailpit count is unchanged. Unit: the page also re-reads the sign-up status just before sending, so a cap that filled or a switch that closed after the page loaded gives everyone the same busy or closed answer (review-5 finding 2). The raw-API difference is R1 (no test) |
 | 13 | INT | Invite a parent, `signUp` with that e-mail, and the invite link still redeems through `invite-redeem` |
 | 14 | INT (S6); pgTAP-OS | Cases 1–6 exactly as in 01, with A as a stranger and B the owner. Case 2 uses a pgTAP Google identity insert, refused. Case 5 uses the raw API with P1 → `Email or password is incorrect.` and no session. Case 6: a factor row before confirmation is gone after; one before the save is gone after. A repeat sign-up sends a new link and the old one fails |
 | 15 | INT (S2); static test | Mailpit: subject, branded HTML, the link to `/portal/auth/confirm?…type=email`, and the text part or visible link. A config test: `[remotes.production.auth.email.smtp]` `sender_name = "AJ Classes"`, `admin_email = "hello@ajclasses.com.au"`. `[TBC AC-15 text part]` |
