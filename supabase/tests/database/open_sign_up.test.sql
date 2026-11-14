@@ -682,6 +682,20 @@ select is((select count(*)::int from auth.users where id in (
   '00000000-0000-0000-0000-0000000ac009')), 7,
   'Never touched: a 6-day-old sign-up, confirmed and finished users, staff, parent and student invitees, a parent');
 delete from tests.cleanup_blocker;
+-- Security 06 finding 12: the delete re-checks every condition, through the same helper, so a
+-- row that stops qualifying (confirmed, deactivated or audited meanwhile) is no longer deleted.
+select ok(private.is_stale_sign_up('00000000-0000-0000-0000-0000000ac012'), 'The blocked row still qualifies');
+savepoint requalify;
+update auth.users set email_confirmed_at = now() where id = '00000000-0000-0000-0000-0000000ac012';
+select ok(not private.is_stale_sign_up('00000000-0000-0000-0000-0000000ac012'), 'Confirmed meanwhile: no longer qualifies');
+rollback to savepoint requalify;
+update public.profiles set is_active = false where id = '00000000-0000-0000-0000-0000000ac012';
+select ok(not private.is_stale_sign_up('00000000-0000-0000-0000-0000000ac012'), 'Deactivated meanwhile: no longer qualifies');
+select is(private.delete_stale_sign_ups(), 0, 'and the job leaves it alone');
+rollback to savepoint requalify;
+insert into public.audit_log (action, target_id) values ('deactivated', '00000000-0000-0000-0000-0000000ac012');
+select ok(not private.is_stale_sign_up('00000000-0000-0000-0000-0000000ac012'), 'Audited meanwhile: no longer qualifies');
+rollback to savepoint requalify;
 select is(private.delete_stale_sign_ups(), 1, 'Once nothing blocks it, the next run deletes that row');
 select results_eq(
   $$ select schedule, command, active from cron.job where jobname = 'delete-stale-sign-ups' $$,

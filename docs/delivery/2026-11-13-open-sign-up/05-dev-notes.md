@@ -283,3 +283,9 @@ pgTAP-OS (the `amr` matrix with crafted claims): `[otp]`, `[recovery]`, `[oauth]
 2. **Post-check** also needs `.mailer_otp_length ==` `[auth.email] otp_length` (8) and `.sms_autoconfirm == false` (names in the CLI's OpenAPI `AuthConfigResponse_Output`). One fake-curl case each.
 3. **`deploy.sh` order.** The secrets list is built, and a value with a quote or a line break refused, in "Checking what's needed", before step 1. Tests for both, asserting no command ran. Deploy test: 53 checks.
 4. **Nits.** `auth.service.ts` comment says 8-digit; Change password reads "an 8-digit code"; a test fails if any constant says "a 8-digit". The other e-mailed-code strings ("we've emailed you a code", "Please enter the 8-digit code from the email") were already right.
+
+## Fix batch 4 (review-6a item 10, review-5 round 4, security 06 finding 12)
+
+- `reauthentication.html`: no `Staff` badge (signed-up users get this code e-mail from the finish step and Change password). No test reads the template.
+- The clean-up's comment now says what review-5 round 4 found: `audit_log`'s FKs are `ON DELETE SET NULL` (checked in the catalogue), so the `not exists` audit check is what keeps audit history pointing at the account. Batch 3's note that they were plain foreign keys was wrong.
+- Security 06 finding 12: the conditions moved into `private.is_stale_sign_up(id)`, which picks the rows and is repeated in each row's `DELETE … where id = stale and private.is_stale_sign_up(id)`, so a sign-up confirmed, deactivated or audited while the job runs stays. The count only rises when a row was really deleted. pgTAP: the helper turns false for a row confirmed, deactivated or audited "meanwhile", and the job then leaves it. `pnpm db:test`: 1225.

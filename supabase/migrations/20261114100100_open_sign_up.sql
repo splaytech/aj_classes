@@ -797,9 +797,38 @@ grant execute on function public.sign_up_guard_ready() to anon, authenticated;
 -- no longer than needed (APP 11.2). Only active signed-up users that are still invited and were
 -- never confirmed; staff, students, parents and every confirmed account are never touched.
 -- Deleting the auth.users row takes the profile, identity and sessions with it.
--- Skipped on purpose (review-5 round 3): a deactivated sign-up (an admin acted on it, and the
--- audit row keeps its target), and any account an audit row points at. Each row is deleted on
--- its own, so one that still can't go is logged and the rest are deleted anyway.
+-- Skipped on purpose (review-5 rounds 3 and 4): a deactivated sign-up (an admin acted on it), and
+-- any account an audit row names. audit_log's foreign keys are ON DELETE SET NULL, so without the
+-- audit check a delete would silently clear those rows' target or actor: the check is what keeps
+-- audit history pointing at the account.
+create function private.is_stale_sign_up(target uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from auth.users u
+    join public.profiles p on p.id = u.id
+    where u.id = target
+      and p.role = 'user'
+      and p.status = 'invited'
+      and p.is_active
+      and u.email_confirmed_at is null
+      and p.created_at < now() - interval '7 days'
+      and not exists (
+        select 1 from public.audit_log a where a.target_id = u.id or a.actor_id = u.id
+      )
+  )
+$$;
+
+revoke execute on function private.is_stale_sign_up(uuid) from public, anon, authenticated;
+
+-- Each row is deleted on its own, re-checking every condition at delete time (security 06
+-- finding 12: a sign-up confirmed or deactivated while the job runs must not go), so one that
+-- still can't go is logged and the rest are deleted anyway.
 create function private.delete_stale_sign_ups()
 returns integer
 language plpgsql
@@ -812,21 +841,13 @@ declare
   removed integer := 0;
 begin
   for stale in
-    select u.id
-    from auth.users u
-    join public.profiles p on p.id = u.id
-    where p.role = 'user'
-      and p.status = 'invited'
-      and p.is_active
-      and u.email_confirmed_at is null
-      and p.created_at < now() - interval '7 days'
-      and not exists (
-        select 1 from public.audit_log a where a.target_id = u.id or a.actor_id = u.id
-      )
+    select u.id from auth.users u where private.is_stale_sign_up(u.id)
   loop
     begin
-      delete from auth.users where id = stale;
-      removed := removed + 1;
+      delete from auth.users u where u.id = stale and private.is_stale_sign_up(u.id);
+      if found then
+        removed := removed + 1;
+      end if;
     exception when others then
       raise warning 'delete_stale_sign_ups: kept % (%)', stale, sqlerrm;
     end;
