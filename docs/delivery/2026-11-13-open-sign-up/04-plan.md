@@ -98,7 +98,7 @@ The Developer runs them in slice 0 and records the counts. CI gates are document
 
 ### Phase 0: before any code
 
-- [ ] **0. Baseline, the hosted-hook question, and source-reading spikes.**
+- [x] **0. Baseline, the hosted-hook question, and source-reading spikes.**
   - **Baseline.** Run FULL, RESET (so the counts start from a fresh seed), DB, FN, E2E and CSP. Record each count in `05-dev-notes.md`.
   - **Hosted hook (S1, hosted part).** Today, the Developer asks the lead to ask Saurabh to do a read-only check. He opens Dashboard → Authentication → Hooks and confirms that "Before User Created" is offered on this plan. Record his answer.
     - This is a **release gate, not a build gate** (review-4 finding 1). The local stack runs the hook, so the build goes on whatever he answers, slice 5 included.
