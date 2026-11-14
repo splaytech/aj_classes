@@ -90,6 +90,19 @@ export const PARENT_INVITE_DIALOG = {
   emailRequired: 'Please enter their e-mail address.',
   send: 'Invite or link',
   sending: 'Sending…',
+  // The e-mail belongs to someone who signed up on the website (open sign-up AC-33, R3).
+  promote: {
+    heading: 'Link a signed-up user?',
+    text: (child: string) =>
+      `This e-mail belongs to a signed-up user. They'll become a parent of ${child}.`,
+    signedUp: (method: string, date: string) => `Signed up with ${method} on ${date}.`,
+    methods: { email: 'e-mail', google: 'Google' },
+    googleMobile:
+      "They signed up with Google, so they can't use the mobile app until they set a password with Forgot password on the website.",
+    confirm: 'Link as parent',
+    linking: 'Linking…',
+    done: (child: string) => `Linked as a parent of ${child}. No e-mail was sent.`,
+  },
 } as const;
 
 // --- Student and parent portals ---------------------------------------------------------------

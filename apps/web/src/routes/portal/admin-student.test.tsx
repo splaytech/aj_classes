@@ -4,7 +4,7 @@ import type { ClientLoaderFunctionArgs } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ADMIN_STUDENT_PAGE, CONSENT_KINDS, PORTAL_ERRORS } from '@/constants';
-import { getStudentFamily, resendInvite } from '@/services';
+import { getStudentFamily, inviteStudentAccount, resendInvite } from '@/services';
 import type { FamilyAccount, StudentFamily } from '@/services';
 import { setupUser } from '@/test/user';
 
@@ -116,5 +116,23 @@ describe('student page: re-sending an invite (AC 24)', () => {
 
     expect(await screen.findByText(PORTAL_ERRORS.emailFailed)).toBeInTheDocument();
     expect(getStudentFamily).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('student invite to a signed-up user (open sign-up AC-34)', () => {
+  it('shows the alreadyExistsUser message', async () => {
+    vi.mocked(getStudentFamily).mockResolvedValue({
+      ok: true,
+      data: { ...family(1), account: null, parents: [] },
+    });
+    vi.mocked(inviteStudentAccount).mockResolvedValue({ ok: false, error: 'alreadyExistsUser' });
+    renderPage();
+    const user = setupUser();
+    await user.type(
+      await screen.findByLabelText(ADMIN_STUDENT_PAGE.account.emailLabel, { exact: false }),
+      'priya@example.com',
+    );
+    await user.click(screen.getByRole('button', { name: ADMIN_STUDENT_PAGE.account.send }));
+    expect(await screen.findByText(PORTAL_ERRORS.alreadyExistsUser)).toBeInTheDocument();
   });
 });

@@ -525,7 +525,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Visible:** as `admin@` (2FA), the page lists `user@` and the sign-ups from earlier slices, and the switch closes and reopens sign-up (the login link hides and shows). `tutor@` gets "not allowed".
   - **Commit:** `feat(admin): Users page with the sign-up switch, deactivate and reactivate`
 
-- [ ] **29. Promotion dialog** (03 §7.4 `ParentInviteDialog`, §7.7; `admin-student.tsx`).
+- [x] **29. Promotion dialog** (03 §7.4 `ParentInviteDialog`, §7.7; `admin-student.tsx`).
   - **ACs:** AC-33, AC-34 (page side).
   - **Tests:** new `ParentInviteDialog.test.tsx`: the text, "Signed up with …", and the mobile line only for Google. The student invite shows `alreadyExistsUser`.
   - **Check:** ONE, FULL.

@@ -48,7 +48,7 @@ import {
   setAccountActive,
   unlinkParent,
 } from '@/services';
-import type { FamilyAccount, StudentFamily } from '@/services';
+import type { FamilyAccount, ParentInviteOutcome, StudentFamily } from '@/services';
 
 type SectionProps = { student: StudentFamily; onChanged: () => void };
 type PortalAction = ReturnType<typeof usePortalAction>;
@@ -451,10 +451,12 @@ function ParentsSection({ student, onChanged }: SectionProps) {
       <ParentInviteDialog
         open={inviting}
         studentName={student.fullName}
-        onInvite={(email, fullName) => inviteParent(student.id, email, fullName)}
+        onInvite={(email, fullName, confirmUserId) =>
+          inviteParent(student.id, email, fullName, confirmUserId)
+        }
         onDone={(email, outcome) => {
           setInviting(false);
-          action.announce(outcome.kind === 'linked' ? texts.linked(email) : texts.invited(email));
+          action.announce(parentInviteNotice(outcome, email, student.fullName));
           onChanged();
         }}
         onClose={() => setInviting(false)}
@@ -495,4 +497,11 @@ function ClassesSection({ student }: { student: StudentFamily }) {
       )}
     </SectionCard>
   );
+}
+
+/** What to say after Invite or link: invited, an existing parent linked, or a user promoted. */
+function parentInviteNotice(outcome: ParentInviteOutcome, email: string, child: string): string {
+  const texts = ADMIN_STUDENT_PAGE.parents;
+  if (outcome.kind === 'promoted') return PARENT_INVITE_DIALOG.promote.done(child);
+  return outcome.kind === 'linked' ? texts.linked(email) : texts.invited(email);
 }
