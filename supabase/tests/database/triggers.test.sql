@@ -4,7 +4,8 @@ begin;
 select no_plan();
 select tests.remove_all_accounts();
 
--- A new auth user gets a tutor profile, even if they try to claim a role in their metadata.
+-- A new auth user with no role marker gets a signed-up user profile (ADR-0011), even if they try
+-- to claim a role in their metadata.
 insert into auth.users (id, aud, role, email, invited_at, raw_user_meta_data)
 values (
   '00000000-0000-0000-0000-0000000000e1', 'authenticated', 'authenticated', 'New.Person@Test.Local', now(),
@@ -14,8 +15,8 @@ values (
 select results_eq(
   $$ select email, full_name, role::text, is_active, joined_at is null
      from public.profiles where id = '00000000-0000-0000-0000-0000000000e1' $$,
-  $$ values ('new.person@test.local', 'New Person', 'tutor', true, true) $$,
-  'A new auth user gets a tutor profile: email lower-cased, name trimmed, role metadata ignored'
+  $$ values ('new.person@test.local', 'New Person', 'user', true, true) $$,
+  'A new auth user gets a user profile: email lower-cased, name trimmed, role metadata ignored'
 );
 
 -- Clicking the invite link (e-mail confirmed, signed in) does NOT make the account joined: only

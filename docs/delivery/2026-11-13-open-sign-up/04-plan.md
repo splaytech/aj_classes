@@ -123,7 +123,7 @@ The Developer runs them in slice 0 and records the counts. CI gates are document
   - **Check:** RESET, then DB (all green, with the new file counted), then FULL.
   - **Commit:** `feat(db): add the user account role`
 
-- [ ] **2. Migration 2a: no role marker means `user`, and staff invites carry `tutor`** (03 §3.1).
+- [x] **2. Migration 2a: no role marker means `user`, and staff invites carry `tutor`** (03 §3.1).
   - **ACs:** AC-28 (the mapping and default rows), AC-41 (part), AC-42 (part).
   - **Files:**
     - new `20261114100100_open_sign_up.sql` with §3.1 only;

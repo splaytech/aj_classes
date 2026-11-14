@@ -8,6 +8,7 @@
 --   inactive@local.test  deactivated tutor
 --   parent@local.test    parent of Aarav Demo and Noah Demo (R3b)
 --   student@local.test   Aarav Demo's student account (R3b)
+--   user@local.test      signed-up user (open sign-up, ADR-0011): sees only Latest news
 --
 -- Local-only password: local-password-123
 --
@@ -21,14 +22,16 @@ declare
   new_id uuid;
 begin
   -- account_role goes in app_metadata, as the account-admin function does it (R3b design D2).
+  -- Staff carry 'tutor' (admins are promoted below); no marker means a signed-up user (ADR-0011).
   for account in
     select * from (values
-      ('admin@local.test', 'Local Admin', null),
-      ('newadmin@local.test', 'New Admin', null),
-      ('tutor@local.test', 'Local Tutor', null),
-      ('inactive@local.test', 'Inactive Tutor', null),
+      ('admin@local.test', 'Local Admin', 'tutor'),
+      ('newadmin@local.test', 'New Admin', 'tutor'),
+      ('tutor@local.test', 'Local Tutor', 'tutor'),
+      ('inactive@local.test', 'Inactive Tutor', 'tutor'),
       ('parent@local.test', 'Local Parent', 'parent'),
-      ('student@local.test', 'Aarav Demo', 'student')
+      ('student@local.test', 'Aarav Demo', 'student'),
+      ('user@local.test', 'Local User', null)
     ) as accounts (email, full_name, account_role)
   loop
     new_id := gen_random_uuid();

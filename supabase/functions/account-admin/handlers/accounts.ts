@@ -61,10 +61,10 @@ export async function findStudent(studentId: string): Promise<StudentRecord | nu
 
 /**
  * Creates an invited account without sending anything yet (ADR-0010: the invite email is ours, so
- * Auth's inviteUserByEmail is no longer used). Student and parent roles go in app_metadata, which
- * only the server can set (R3b D2) and the mobile app reads; the database turns it into the
- * profile role (F30), and we check that it did before going on. Staff join as tutors, with no
- * account_role.
+ * Auth's inviteUserByEmail is no longer used). The role always goes in app_metadata, which only
+ * the server can set (R3b D2) and the mobile app reads; the database turns it into the profile
+ * role (F30), and we check that it did before going on. Staff join as tutors with
+ * account_role 'tutor': an account with no marker becomes a signed-up user (ADR-0011).
  */
 export async function createInvitedAccount(
   email: string,
@@ -75,7 +75,7 @@ export async function createInvitedAccount(
   const { data, error } = await service.auth.admin.createUser({
     email,
     user_metadata: { full_name: fullName }, // the profile trigger reads only full_name (R2a G2)
-    ...(role === 'tutor' ? {} : { app_metadata: { account_role: role } }),
+    app_metadata: { account_role: role },
   });
   if (error || !data.user) {
     return { code: error?.code === 'email_exists' ? 'already_exists' : 'server_error' };

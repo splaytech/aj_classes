@@ -50,6 +50,10 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 ### First admin on a new environment
 
 1. Supabase dashboard → Authentication → Users → **Add user** → **Create new user**: their **Email address**, and any long random **User Password** (it is required; they choose their own on the setup form, so don't keep it). Leave **Auto confirm user?** ticked, then **Create user**.
+   Straight away, in the SQL editor, mark them as staff. Without this the account becomes a signed-up `user` (open sign-up, ADR-0011):
+   ```sql
+   update auth.users set raw_app_meta_data = raw_app_meta_data || '{"account_role":"tutor"}' where email = 'their@email';
+   ```
    Then click their row → **Reset password** → **Send password recovery**. The 1-hour link opens `/portal/auth/confirm?…&type=recovery`, then the set-password page, and the portal sends an invited account on to the setup form (`/portal/join`). Don't use **Send invitation**: Supabase invite links are refused since ADR-0010.
 2. After they finish the setup form, in the SQL editor:
    ```sql
