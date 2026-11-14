@@ -621,5 +621,40 @@ select ok(not public.sign_up_guard_ready(), 'false when postgres can''t write th
 rollback to savepoint guard;
 select ok(public.sign_up_guard_ready(), 'true again once everything is back');
 
+-- #11 Unconfirmed sign-ups are deleted after 7 days (security 06 finding 8)
+select tests.create_sign_up('00000000-0000-0000-0000-0000000ac001', 'stale@test.local', p_confirmed => false, p_finished => false);
+select tests.create_sign_up('00000000-0000-0000-0000-0000000ac002', 'fresh@test.local', p_confirmed => false, p_finished => false);
+select tests.create_sign_up('00000000-0000-0000-0000-0000000ac003', 'old-confirmed@test.local', p_finished => false);
+select tests.create_sign_up('00000000-0000-0000-0000-0000000ac004', 'old-finished@test.local');
+select tests.create_sign_up('00000000-0000-0000-0000-0000000ac005', 'stale-deactivated@test.local', p_confirmed => false, p_finished => false, p_active => false);
+select tests.create_staff('00000000-0000-0000-0000-0000000ac006', 'old-tutor-invitee@test.local', p_joined => false);
+update auth.users set email_confirmed_at = null where id = '00000000-0000-0000-0000-0000000ac006';
+select tests.create_family_account('00000000-0000-0000-0000-0000000ac007', 'old-parent-invitee@test.local', 'parent', p_joined => false);
+select tests.create_family_account('00000000-0000-0000-0000-0000000ac008', 'old-student-invitee@test.local', 'student', p_joined => false);
+select tests.create_family_account('00000000-0000-0000-0000-0000000ac009', 'old-parent@test.local', 'parent');
+update public.profiles set created_at = now() - interval '8 days'
+where id in ('00000000-0000-0000-0000-0000000ac001', '00000000-0000-0000-0000-0000000ac003',
+             '00000000-0000-0000-0000-0000000ac004', '00000000-0000-0000-0000-0000000ac005',
+             '00000000-0000-0000-0000-0000000ac006', '00000000-0000-0000-0000-0000000ac007',
+             '00000000-0000-0000-0000-0000000ac008', '00000000-0000-0000-0000-0000000ac009');
+update public.profiles set created_at = now() - interval '6 days' where id = '00000000-0000-0000-0000-0000000ac002';
+
+select is(private.delete_stale_sign_ups(), 2, 'The clean-up deletes exactly the two stale unconfirmed sign-ups');
+select is_empty($$ select 1 from auth.users where id in ('00000000-0000-0000-0000-0000000ac001', '00000000-0000-0000-0000-0000000ac005') $$,
+  'An unconfirmed sign-up older than 7 days is gone, deactivated or not');
+select is_empty($$ select 1 from public.profiles where id = '00000000-0000-0000-0000-0000000ac001' $$,
+  'and its profile went with it');
+select is((select count(*)::int from auth.users where id in (
+  '00000000-0000-0000-0000-0000000ac002', '00000000-0000-0000-0000-0000000ac003', '00000000-0000-0000-0000-0000000ac004',
+  '00000000-0000-0000-0000-0000000ac006', '00000000-0000-0000-0000-0000000ac007', '00000000-0000-0000-0000-0000000ac008',
+  '00000000-0000-0000-0000-0000000ac009')), 7,
+  'Never touched: a 6-day-old sign-up, confirmed and finished users, staff, parent and student invitees, a parent');
+select results_eq(
+  $$ select schedule, command, active from cron.job where jobname = 'delete-stale-sign-ups' $$,
+  $$ values ('45 17 * * *', 'select private.delete_stale_sign_ups()', true) $$,
+  'cron.job runs the clean-up daily');
+select ok(not has_function_privilege('authenticated', 'private.delete_stale_sign_ups()', 'execute'),
+  'The API roles can''t run the clean-up');
+
 select * from finish();
 rollback;

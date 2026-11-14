@@ -746,6 +746,7 @@ as $$
   select has_table_privilege(role_name, 'auth.mfa_factors', 'DELETE')
      and has_table_privilege(role_name, 'auth.sessions', 'DELETE')
      and has_table_privilege(role_name, 'auth.users', 'UPDATE')
+     and has_table_privilege(role_name, 'auth.users', 'DELETE') -- the daily clean-up below
 $$;
 
 revoke execute on function private.can_write_auth_tables(text) from public, anon, authenticated;
@@ -787,3 +788,39 @@ $$;
 
 revoke execute on function public.sign_up_guard_ready() from public, anon, authenticated;
 grant execute on function public.sign_up_guard_ready() to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Unconfirmed sign-ups are deleted after 7 days (security 06 finding 8; lead ruling: D8 in v1)
+-- ---------------------------------------------------------------------------
+
+-- Anyone can sign up any address, and nobody proved the mailbox, so the name and e-mail are kept
+-- no longer than needed (APP 11.2). Only signed-up users that are still invited and were never
+-- confirmed; staff, students, parents and every confirmed account are never touched. Deleting the
+-- auth.users row takes the profile, identity and sessions with it.
+create function private.delete_stale_sign_ups()
+returns integer
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  removed integer;
+begin
+  delete from auth.users u
+  using public.profiles p
+  where p.id = u.id
+    and p.role = 'user'
+    and p.status = 'invited'
+    and u.email_confirmed_at is null
+    and p.created_at < now() - interval '7 days';
+  get diagnostics removed = row_count;
+  return removed;
+end;
+$$;
+
+revoke execute on function private.delete_stale_sign_ups() from public, anon, authenticated;
+
+-- cron.schedule replaces a job of the same name, so re-running this is safe. Kill switch
+-- (supabase/README.md): select cron.unschedule('delete-stale-sign-ups');
+select cron.schedule('delete-stale-sign-ups', '45 17 * * *', $$select private.delete_stale_sign_ups()$$);
