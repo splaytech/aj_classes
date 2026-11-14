@@ -4,7 +4,12 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
 
 **Verdict: PASS, no Blocking or High findings.** No self sign-up can reach any role other than `user`, and none can read any class, student, family or staff data. Before sign-up opens in production, Saurabh should decide on findings 1 and 2, which are new abuse paths the accepted risks don't cover. Finding 5 (guessing the 6-digit e-mail code) must be fixed before release, and the lead has decided to fix it. Finding 3 is a pre-existing breach of the house rule against secrets in argv, and it is cheap to fix.
 
-**Counts:** Blocking 0 · High 0 · Medium 5 · Low 5 · Info 7. (Round 2, after `review-6b.md`: finding 5 moved from Low to Medium.)
+**Counts:** Blocking 0 · High 0 · Medium 5 · Low 6 · Info 7. (Round 2, after `review-6b.md`: finding 5 moved from Low to Medium. Round 3: finding 12 added.)
+
+**Round 3, re-checked at `1562010`** (`git show` only; the stack was not migrated or touched):
+- Fixed and verified by reading the code: findings 3, 5, 6, 8 and 10.
+- Fix batch 3 (`84d2691..1562010`) has one new Low, finding 12. The Info note on swallowed errors is §11.7.
+- Still open for Saurabh's decision: findings 1 and 2.
 
 ## How I checked (local stack only, nothing left behind)
 
@@ -19,7 +24,7 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
 | Asset | Attacker | Main path | Control that holds | Residual |
 |---|---|---|---|---|
 | Child data (marks, timetable, assignments) | Anyone on the internet | Self sign-up, then escalate | Role fails closed to `user`. RLS and helper functions key on `my_active_role()`. No user-callable path changes `role`. | Getting **promoted by an admin** (finding 4) |
-| Staff and admin accounts | Anyone | Google auto-link, or pre-registering a staff address | Linking trigger, confirm-time wipe, invites confirmed at creation | Guessing the e-mailed code (finding 5, Medium, being fixed) |
+| Staff and admin accounts | Anyone | Google auto-link, or pre-registering a staff address | Linking trigger, confirm-time wipe, invites confirmed at creation | Guessing the e-mailed code (finding 5, Medium, fixed at `1562010`) |
 | A parent's future account | Stranger pre-registers the parent's address | Hold a password until the parent confirms | Throwaway password, wipe on confirm, `amr` allow-list, password set in the link session, invite-replace path | Name pre-filled with the stranger's text (finding 9) |
 | Resend quota and sender reputation | Anyone with Turnstile solves | Confirmations, resends, e-mail change | Cap of 15 new a day, Turnstile, 60 s per address, `email_sent = 30`/h | R2 (accepted). Cap-fill and bounces (finding 1) |
 | Who is a client or staff member | Anyone | Raw replies | Same card on the page | R1 (accepted). E-mail-change oracle (finding 2) |
@@ -34,10 +39,15 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
   - Every real parent then gets "Sign-up is busy" for 24 hours. Repeating this daily keeps sign-up shut, for about 15 human or solver-service captcha solves a day.
   - The 15 confirmation e-mails, plus resends to the same accounts every 60 s, go to addresses that don't exist.
   - **Bounce rate.** Resends to those 15 addresses can take the whole `email_sent = 30`/h. In about 3.5 hours they can spend most of the day's 100 Resend Free e-mails on hard bounces. A high bounce rate on a new sending domain can get Resend to pause sending. Then invites, password resets and portal e-mails stop too, not just sign-up mail.
-  - The unconfirmed rows never expire (finding 8).
+  - At `8a33156` the unconfirmed rows never expired. Since batches 2 and 3, a daily job deletes them after 7 days (finding 8).
 - **Why it isn't R2:** R2 covers mail outside the cap using up the quota. Nothing in 02, 03 or 00 covers deliberately filling the cap (a denial of service), or bounce reputation.
 - **Fix (Saurabh to choose, smallest first):**
-  1. Record it as accepted risk R4, with the bounce rate named in the R4 text, so Saurabh accepts that a Resend pause stops invites, resets and portal mail as well. Add to `release-notes.md` §Watch: "Admin → Users shows many unconfirmed sign-ups with odd addresses: close sign-up, deactivate them, check Resend → Suppressions/Bounces."
+  1. Record it as accepted risk R4, with the bounce rate named in the R4 text, so Saurabh accepts that a Resend pause stops invites, resets and portal mail as well. **As built at `1562010`:** R4 in `00-decisions.md` and the `release-notes.md` §6 Watch line say this:
+     - If many odd unconfirmed sign-ups appear, close sign-up and check Resend → Suppressions/Bounces.
+     - Leave the unconfirmed rows to the 7-day job.
+     - Deactivate a row only if its owner complains about repeated e-mails. Deactivation confirms the address (`set-active.ts`) and the job then keeps the row, so it blocks a later invite to that address.
+
+     That advice is correct for the build. My round 1 wording ("deactivate them") would have turned every junk row into a permanent one.
   2. Free the slot when an admin deactivates an unfinished, unconfirmed sign-up, so the admin can undo a fill. This needs a row id or user id on `sign_up_emails`, which the design deliberately avoided (APP 3), so it is a trade-off.
   3. Raise the cap and move to Resend Pro if it happens.
 
@@ -56,7 +66,12 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
   - Record it as an extension of R1 and R2 in `00-decisions.md` ("any signed-in account can test whether an e-mail exists, without Turnstile, at about 30 per 5 min per IP; and can send e-mail-change mail within the 30/h limit"), and let Saurabh accept or reject it.
   - If rejected, the only real fixes are a custom Auth domain with a WAF rule on `PUT /auth/v1/user` bodies that contain `email`, which Decision 8 declined for now, or an Auth send-email hook (rejected in the ADR).
 
-### 3. Medium (pre-existing): the DB password and hosted secrets go on argv in `deploy.sh`
+### 3. Medium (pre-existing), fixed and verified at `1562010`: the DB password and hosted secrets go on argv in `deploy.sh`
+
+**Verified at `1562010`:**
+- `supabase link` (`deploy.sh:254`) and `supabase db push` (`:271`) no longer take `--password`; the CLI reads `SUPABASE_DB_PASSWORD` from the environment.
+- `secrets set` uses `--env-file` (`:299`). The file is a `mktemp` file under `umask 077` (`:247`, `:295`) and is removed by the `EXIT` trap (`:249`). Each value is single-quoted (`:297`), and a value with a quote or a line break is refused by name, before step 1 (batch 3).
+- No secret value is printed. The line references below are for `8a33156`.
 
 - **Where:**
   - `supabase/scripts/deploy.sh:204`: `supabase link … --password "$SUPABASE_DB_PASSWORD"`
@@ -77,7 +92,7 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
   - Add one line to the promotion dialog (`03 §7.7`) and to `release-notes.md`: "Only link an e-mail that is already on this student's enrolment record, or that you confirmed with the parent you already know. Never link one supplied only in a message."
   - Optionally, show the student's existing guardian e-mails beside the confirm button.
 
-### 5. Medium (was Low; lead decided to fix): the 6-digit e-mailed code can be guessed, which confirms a pre-registered address
+### 5. Medium (was Low), fixed and verified at `1562010`: the 6-digit e-mailed code can be guessed, which confirms a pre-registered address
 
 - **Where:** `supabase/config.toml:214` (`token_verifications = 30`) and `:241-243` (`otp_length = 6`, `otp_expiry = 3600`). Also `PortalField.tsx:217`, where the e-mail code field shares `AUTH_LIMITS.codeLength` with the TOTP field.
 - **Exploit:** GoTrue accepts `POST /verify {type: "signup", email, token}` with the 6-digit code that exists alongside the link. Our template doesn't show the code, but the API still accepts it.
@@ -90,9 +105,16 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
 - **Decision (lead, `00-decisions.md` stage 6b, after `review-6b.md`):** fix it, not defer it. E-mailed codes go to 8 digits (`otp_length = 8`), with their own length constant on the web instead of the shared `AUTH_LIMITS.codeLength`. The authenticator (TOTP) code stays at 6, and the mobile app, which has only a TOTP field, is unaffected.
   - With 8 digits, the same attacks drop to about 0.26% (1 IP, a month) and about 0.6% (10 IPs, a week).
   - Shortening `otp_expiry` on its own wouldn't help, because it doesn't change the guess rate.
-  - It is in fix batch 2 and not yet verified. I re-check at the next SHA.
+  - **Verified at `1562010`:**
+    - `config.toml:244`: `[auth.email] otp_length = 8`. The other `otp_length = 6`, at `:354`, is outside `[auth.email]`.
+    - `app.constants.ts:90-91`: `codeLength: 6` for TOTP and `emailCodeLength: 8` for e-mailed codes.
+    - The three e-mailed-code fields use `emailCodeLength`: `FinishSignUpForm.tsx:175`, `account.tsx:229` and `join.tsx:279`, with validation in `portal-validation.ts:28`.
+    - TOTP still uses `codeLength` (`TwoStepCodeForm.tsx:68`, `portal-validation.ts:35`).
+    - The `deploy.sh` post-check now also requires the hosted `mailer_otp_length` to equal `[auth.email] otp_length`. If that value can't be read, `--argjson` fails and sign-up is closed, so it fails closed.
 
-### 6. Low: the `deploy.sh` post-check doesn't cover the other settings the safety argument relies on
+### 6. Low, fixed and verified at `1562010`: the `deploy.sh` post-check doesn't cover the other settings the safety argument relies on
+
+**Verified at `1562010`:** `auth_settings_are_safe` now checks every field listed below, plus `mailer_otp_length` and `sms_autoconfirm == false`. Expected values come from `config.toml` through `config_value`. Any jq or curl failure closes sign-up. The field names follow the CLI OpenAPI (05 dev notes); they can only be proven against hosted on the first real run.
 
 - **Where:** `supabase/scripts/deploy.sh:159-164` (`auth_settings_are_safe`).
 - **Gap:** it checks the hook, `mailer_autoconfirm` and `disable_signup`, but not:
@@ -109,7 +131,19 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
 - **Exploit:** with open sign-up, "authenticated" now includes anyone. A signed-up user can run `select author_id from posts` and get staff profile UUIDs. RLS on `profiles` makes those UUIDs useless today, which is why this is Low. It still undoes a stated hardening decision.
 - **Fix:** either accept it and note it in `03 §14`, or make the admin page read posts through an `admin_list_posts()` RPC. Then `revoke select on public.posts from authenticated; grant select (id, created_at, updated_at, title, body) on public.posts to authenticated;`.
 
-### 8. Low: unconfirmed sign-ups are never removed
+### 8. Low, fixed and verified at `1562010`: unconfirmed sign-ups are never removed
+
+**Built in v1:** the lead moved D8 into v1, and it is now AC-56. Verified at `1562010`:
+- `private.delete_stale_sign_ups()` (`20261114100100_open_sign_up.sql:803-836`) runs daily at 17:45 UTC through `cron.schedule('delete-stale-sign-ups', …)` (`:842`).
+- It deletes only rows that are:
+  - role `user`, `status = 'invited'` and `is_active`;
+  - `email_confirmed_at is null`, and created more than 7 days ago;
+  - not pointed at by any `audit_log` row as actor or target.
+- It deletes one row at a time, each in its own sub-block, so one row that can't be deleted is logged and the rest still go.
+- **Deactivated sign-ups are kept.** `set-active` confirms an unconfirmed sign-up when it deactivates it, and the job requires both `is_active` and unconfirmed, so it skips them. Their `deactivated` audit row also keeps them.
+- EXECUTE is revoked from `public`, `anon` and `authenticated` (`:838`). `sign_up_guard_ready()` now also requires `postgres` to hold DELETE on `auth.users` (`:749`), so the job can't fail silently on hosted.
+
+One residual is finding 12. The round 1 text follows.
 
 - **Where:** no clean-up exists in the migration or in cron.
 - **Exploit:** anyone can make up to 15 rows a day at any address, each holding a name of the attacker's choosing, forever.
@@ -131,7 +165,9 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
   - Optionally, don't pre-fill the name on the finish step for e-mail sign-ups.
   - This can wait until Google is switched on, except the pre-fill change.
 
-### 10. Low: tighten R1 cheaply
+### 10. Low, fixed and verified at `1562010`: tighten R1 cheaply
+
+**Verified at `1562010`:** `config.toml:303` sets `[auth.sms] enable_confirmations = true`, and the `deploy.sh` post-check requires `sms_autoconfirm == false`.
 
 - **Where:** `supabase/config.toml:292-296` (`[auth.sms] enable_confirmations = false`).
 - **Detail:** per 05 slice 17, this makes GoTrue answer `422 user_already_exists` for a confirmed address, instead of its fake 200, so the raw-API oracle is trivial to read.
@@ -169,6 +205,24 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
    - The `.env.deploy` loader exports any unset `[A-Z_]+` name, `BASH_ENV` and `HTTPS_PROXY` included. That is the operator's own file, so it is the same trust level.
    - Whether `supabase config push` prints hashed or plain SMTP, Turnstile and Google secrets in its diff isn't verified. Watch the first real run.
    - R3 is recorded in 03 and the release notes, but Saurabh hasn't formally accepted it in `00-decisions.md`.
+   - Batch 3 clean-up (`:830-831`): `exception when others` only raises a warning, with the user's uuid and `sqlerrm`, and no e-mail or name. That is acceptable: a failure keeps data rather than exposing it. But the warning appears only in the Postgres log, not in `cron.job_run_details`, so nobody would notice the job keeping rows. Optionally, return or log a count of kept rows that an admin can see.
+   - Batch 3 `deploy.sh`: refusing a secret value that holds a quote or a line break now happens before step 1, so nothing changes on hosted. The message names the variable, never its value. A carriage return isn't refused; that is harmless for the CLI's `.env` reader.
+
+### 12. Low (new in batch 3): the clean-up deletes by id without re-checking, so a sign-up confirmed or deactivated mid-run can still be deleted
+
+- **Where:** `20261114100100_open_sign_up.sql` at `1562010`, lines 814-826 and 828. The loop picks its ids with conditions and no row lock (`for stale in select u.id … where … email_confirmed_at is null and p.is_active …`). It then runs `delete from auth.users where id = stale`, which has no conditions.
+- **Exploit or failure:** the job runs at 17:45 UTC over rows more than 7 days old. Two things can happen between the select and that row's delete.
+  - The owner opens a Forgot-password link, which confirms the address, and the confirmed account is deleted straight afterwards.
+  - An admin deactivates the row and writes an audit entry. The row the design says to keep is deleted, and the audit row is left pointing at nothing.
+- **Impact:** availability and integrity only. Nobody gains access; at worst a person loses an account they had only just confirmed and signs up again. The window is milliseconds, once a day, which is why this is Low.
+- **Fix:** repeat the conditions in the delete, so the check and the delete are one statement:
+  ```sql
+  delete from auth.users u using public.profiles p
+  where u.id = stale and p.id = u.id and p.role = 'user' and p.status = 'invited'
+    and p.is_active and u.email_confirmed_at is null
+    and not exists (select 1 from public.audit_log a where a.target_id = u.id or a.actor_id = u.id);
+  ```
+  Count only when `found`. Alternatively, add `for update of u, p skip locked` to the loop's query. Add one pgTAP case: confirm a planted row between the select and the delete, and expect it kept.
 
 ## Accepted risks: still bounded as accepted?
 
@@ -185,6 +239,14 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
 ## For the lead
 
 1. Decide findings 1 and 2 with Saurabh: accept as R4 (bounce rate included), and as an R1/R2 extension, or fix. These are the only items that still need his answer before sign-up opens.
-2. Finding 5 must be fixed before release. Fix batch 2 is doing that (8-digit e-mail codes with their own constant, TOTP left at 6). Security re-verifies it at the next SHA.
-3. Developer: findings 3 (already fixed after the pin in `19905ba`, to re-check) and 6 are small. Findings 4 and 9's pre-fill are wording or UI. Findings 7, 8 and the Google half of 9 can wait for the Google release. Finding 7 should go into `03 §14` so the reversal of the earlier hardening decision is on record.
+2. Verified at `1562010`:
+   - finding 5 (8-digit e-mailed codes with their own constant; TOTP stays 6; post-check on `mailer_otp_length`);
+   - finding 3 (no secrets on argv);
+   - finding 6 (full post-check);
+   - finding 8 (D8 in v1 as AC-56: a 7-day job that deletes one row at a time and only active, unconfirmed sign-ups no audit row points at; deactivated sign-ups are confirmed and kept);
+   - finding 10 (SMS confirmations on).
+3. Developer:
+   - Finding 12 (new, Low) is a small fix: re-check the conditions inside the clean-up's DELETE. It can go in the next batch, and it doesn't block release.
+   - Finding 7 and the Google half of finding 9 stay deferred to the Google release, as the lead recorded. Finding 7 should go into `03 §14` so the reversal of the earlier hardening decision is on record.
+   - I didn't re-check findings 4 and 9's pre-fill in this round.
 4. Tester (optional): confirm finding 2 with one `user@local.test` session and `PUT /auth/v1/user {"email":"admin@local.test"}`, expecting `422 email_exists`. It writes nothing for an address that already exists.

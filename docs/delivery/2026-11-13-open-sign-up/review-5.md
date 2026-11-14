@@ -137,3 +137,24 @@ Stage 5 gate passed. Nits 1 and 2 go to the Developer in the same batch as any 6
 ## Lead note (round 3)
 
 Finding 1: take the first option. Audit rows keep their target, the job skips deactivated rows and can't be stopped by one row, and the Watch line no longer tells the admin to deactivate junk sign-ups. Findings 2–4 and the Tester's "a 8-digit" typo go in the same fix batch 3.
+
+## Round 4 (fix batch 3, `84d2691..1562010`)
+
+**APPROVED.** All four round 3 findings are fixed as asked; nothing new blocks the merge.
+
+**Checks run at `1562010`:** lint and typecheck pass; `pnpm test` 844 web tests in 93 files plus e2e-unit; `test-deploy-order.mjs` 53 `ok`, 0 `not ok`. `db:test`, `test:functions`, e2e not run (pgTAP read). The deployed `private.delete_stale_sign_ups()` body on the local stack is byte-for-byte the migration.
+
+**Verified:**
+1. Clean-up (`20261114100100_open_sign_up.sql:796-836`): picks only `role='user'`, `status='invited'`, `is_active`, `email_confirmed_at is null`, profile over 7 days; skips rows `audit_log` names as `target_id` or `actor_id`; deletes one row at a time inside `begin … exception when others` with a warning, so no exception escapes; `audit_log` FKs unchanged. pgTAP (`open_sign_up.test.sql:642-685`): real `admin_set_active` audit row; half-finished deactivation kept; deactivated-then-reactivated kept; deactivated without audit kept; a row blocked by a test FK table kept while another is deleted, then deleted next run. `03:776`, `release-notes.md:34`, `01` AC-56 and `00-decisions.md` R4 agree with the code.
+2. Post-check (`deploy.sh:179-187`) requires `mailer_otp_length` = configured `otp_length` (8) and `sms_autoconfirm == false`; one failing case each; dry-run text lists them.
+3. Secret refusal runs at `deploy.sh:221-240`, before step 1; quote and newline tests assert no calls and no `1/7`.
+4. `codeSent` says "an 8-digit"; `auth.service.ts:101` fixed; a test rejects `a 8-digit` in `@/constants`; remaining "6-digit" strings are TOTP only.
+
+### Findings
+
+1. **Non-blocking. Correction to round 3 finding 1(b):** `audit_log_actor_id_fkey` and `audit_log_target_id_fkey` are `ON DELETE SET NULL` (`20261006004522_staff_accounts.sql:82,87`, same on the local DB), not `NO ACTION`. The old job would not have stopped; it would have deleted a half-deactivated sign-up and silently cleared its audit target. The chosen fix still covers it (the `not exists` guard keeps audit targets); the per-row handler now guards against FKs no current table has.
+2. **Non-blocking (nit).** `03-design.md:776` "audit rows keep their target" holds only because of the `not exists` guard; say so in the comment at `20261114100100_open_sign_up.sql:800-802`.
+
+## Lead note (round 4)
+
+Stage 5 gate passed. Round 3 finding 1(b)'s mechanism was wrong (SET NULL, not NO ACTION); the real risk was silent loss of audit targets, which the guard closes. Nit 2 goes to the Developer with batch 4.
