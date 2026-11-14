@@ -268,7 +268,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **If not:** if any GoTrue write puts a hash back, or a null password gives a 500: **stop**. Report to the lead; the Architect decides.
   - **Commit:** `feat(auth): proving the mailbox wipes any earlier password and authenticator`
 
-- [ ] **9. S2 (captcha) and S4 (unconfirmed sign-in).**
+- [x] **9. S2 (captcha) and S4 (unconfirmed sign-in).**
   - **ACs:** AC-8 and AC-38 (server), AC-14 (case 5, no session before confirmation; a repeat sign-up), AC-19, AC-46 (outside the cap), AC-12 (part).
   - **INT:**
     - `/signup` and `/resend` without `captcha_token` are refused, and nothing is created or sent;

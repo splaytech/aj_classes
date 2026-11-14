@@ -440,6 +440,150 @@ const rawSignUpWithPassword = (email, password) =>
     body: { email, password, data: { full_name: 'Some Person' }, gotrue_meta_security: CAPTCHA },
   });
 
+const capCount = () => sql('select count(*) from private.sign_up_emails');
+/** POST /auth/v1/resend {type: signup} as /portal/sign-up/resend does. */
+const resendSignUp = (email, { captcha = true } = {}) =>
+  api('/auth/v1/resend', {
+    body: { type: 'signup', email, ...(captcha ? { gotrue_meta_security: CAPTCHA } : {}) },
+  });
+/** POST /auth/v1/recover as Forgot password does. */
+const forgotPassword = (email) =>
+  api('/auth/v1/recover', { body: { email, gotrue_meta_security: CAPTCHA } });
+const settle = () => new Promise((resolve) => setTimeout(resolve, 500));
+
+async function captchaAndResendChecks() {
+  console.log(
+    '\nS2/S4: captcha, resend and unconfirmed sign-in (AC-8, AC-14, AC-19, AC-38, AC-46)',
+  );
+  plantCapRows(0);
+  const noCaptcha = address('no-captcha');
+  const signUpNoCaptcha = await rawSignUp(noCaptcha, 'No Captcha', { captcha: false });
+  check(
+    'AC-38: /signup without a captcha token is refused, nothing created or sent',
+    signUpNoCaptcha.status >= 400 &&
+      userCount(noCaptcha) === '0' &&
+      (await mailCount(noCaptcha)) === 0 &&
+      capCount() === '0',
+    JSON.stringify({ status: signUpNoCaptcha.status, body: signUpNoCaptcha.json }),
+  );
+  captchaShape = { status: signUpNoCaptcha.status, ...signUpNoCaptcha.json };
+
+  const unconfirmed = address('resend-unconfirmed');
+  await rawSignUp(unconfirmed, 'Resend Parent');
+  const mailsBefore = await mailCount(unconfirmed);
+  const resendNoCaptcha = await resendSignUp(unconfirmed, { captcha: false });
+  await settle();
+  check(
+    'AC-38: /resend without a captcha token is refused and sends nothing',
+    resendNoCaptcha.status >= 400 && (await mailCount(unconfirmed)) === mailsBefore,
+    JSON.stringify({ status: resendNoCaptcha.status, body: resendNoCaptcha.json }),
+  );
+  const recoverNoCaptcha = await api('/auth/v1/recover', { body: { email: unconfirmed } });
+  check(
+    'The existing Forgot-password captcha check still holds',
+    recoverNoCaptcha.status >= 400,
+    recoverNoCaptcha.status,
+  );
+
+  const s4a = await passwordSignIn(unconfirmed, `${PREFIX}-throwaway-Pw1!`);
+  check(
+    'S4(a): a password sign-in to an unconfirmed e-mail returns email_not_confirmed',
+    !s4a.token && s4a.code === 'email_not_confirmed',
+    JSON.stringify(s4a),
+  );
+
+  // AC-19: an unconfirmed sign-up gets a new mail, and the old link fails.
+  const oldHash = await confirmationHash(unconfirmed);
+  const capBefore = capCount();
+  skipResendWait(unconfirmed);
+  const resent = await resendSignUp(unconfirmed);
+  await settle();
+  const newHash = await confirmationHash(unconfirmed);
+  check(
+    'AC-19: resend to an unconfirmed sign-up sends a new link',
+    resent.status === 200 && newHash !== '' && newHash !== oldHash,
+    JSON.stringify({ status: resent.status }),
+  );
+  check(
+    'AC-19: and the old link fails',
+    (await openConfirmationLink(unconfirmed, oldHash)).status !== 200,
+  );
+  const tooSoon = await resendSignUp(unconfirmed);
+  resendTooSoonShape = { status: tooSoon.status, code: tooSoon.json?.error_code };
+  check(
+    'AC-19: a second resend within 60 s is either 200 or over_email_send_rate_limit (the page shows both as sent)',
+    tooSoon.status === 200 ||
+      (tooSoon.status === 429 && tooSoon.json?.error_code === 'over_email_send_rate_limit'),
+    JSON.stringify(resendTooSoonShape),
+  );
+  check('AC-19: resends take no cap slot', capCount() === capBefore);
+
+  // AC-19: a confirmed but unfinished sign-up gets no mail.
+  const confirmedUnfinished = address('resend-confirmed');
+  await rawSignUp(confirmedUnfinished, 'Confirmed Parent');
+  await openConfirmationLink(confirmedUnfinished);
+  skipResendWait(confirmedUnfinished);
+  const before = await mailCount(confirmedUnfinished);
+  const resentConfirmed = await resendSignUp(confirmedUnfinished);
+  await settle();
+  check(
+    'AC-19: resend to a confirmed, unfinished sign-up sends nothing',
+    (await mailCount(confirmedUnfinished)) === before,
+    JSON.stringify({ status: resentConfirmed.status, body: resentConfirmed.json }),
+  );
+  resendConfirmedShape = { status: resentConfirmed.status, code: resentConfirmed.json?.error_code };
+
+  // AC-46: with the cap full, resend and Forgot password still send and aren't counted.
+  const atCap = address('at-cap');
+  await rawSignUp(atCap, 'At Cap');
+  plantCapRows(15);
+  skipResendWait(atCap);
+  const atCapResend = await resendSignUp(atCap);
+  await settle();
+  check(
+    'AC-46: at the cap, resend still sends',
+    atCapResend.status === 200 && (await mailCount(atCap)) === 2,
+    JSON.stringify({ status: atCapResend.status, body: atCapResend.json }),
+  );
+  skipResendWait(atCap);
+  const atCapRecover = await forgotPassword(atCap);
+  await settle();
+  check(
+    'AC-46: at the cap, Forgot password still sends',
+    atCapRecover.status === 200 && (await mailCount(atCap)) === 3,
+    JSON.stringify({ status: atCapRecover.status, body: atCapRecover.json }),
+  );
+  check('AC-46: neither was counted', capCount() === '15');
+  plantCapRows(0);
+
+  // S4(b): a banned, unconfirmed sign-up. Does Auth still send on signUp and resend?
+  const banned = address('banned-unconfirmed');
+  const bannedReply = await rawSignUp(banned, 'Banned Parent');
+  await adminApi(`/auth/v1/admin/users/${bannedReply.json?.id}`, {
+    method: 'PUT',
+    body: { ban_duration: '876000h' },
+  });
+  skipResendWait(banned);
+  const beforeBan = await mailCount(banned);
+  const bannedSignUp = await rawSignUp(banned, 'Banned Parent');
+  await settle();
+  const afterSignUp = await mailCount(banned);
+  skipResendWait(banned);
+  const bannedResend = await resendSignUp(banned);
+  await settle();
+  const afterResend = await mailCount(banned);
+  s4b = {
+    signUp: { status: bannedSignUp.status, sent: afterSignUp - beforeBan },
+    resend: { status: bannedResend.status, sent: afterResend - afterSignUp },
+  };
+  check('S4(b) recorded (see 05-dev-notes.md)', true);
+}
+
+let captchaShape = null;
+let resendTooSoonShape = null;
+let resendConfirmedShape = null;
+let s4b = null;
+
 function cleanUp() {
   sql(`delete from auth.users where lower(email) like '${PREFIX}-%'`);
   sql('delete from private.sign_up_emails');
@@ -455,12 +599,17 @@ async function main() {
     await hookChecks();
     await templateChecks();
     await wipeChecks();
+    await captchaAndResendChecks();
   } finally {
     cleanUp();
   }
   check(
     'Clean-up left no test accounts',
     sql(`select count(*) from auth.users where email like '${PREFIX}-%'`) === '0',
+  );
+  console.log(
+    '\nRecorded:',
+    JSON.stringify({ captchaShape, resendTooSoonShape, resendConfirmedShape, s4b, s1bShape }),
   );
   finish();
 }

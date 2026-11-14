@@ -119,3 +119,15 @@ INT (`test-open-sign-up.mjs`, AC-42 section): all six signing-in seed accounts s
 - AC-14 cases 3, 4 and 5 pass up to "only B's password signs in" (B sets the password with `updateUser` in the link session; the finish RPC comes in slice 10). A repeat sign-up sends a new link and the old link stops working.
 - Tests skip Auth's 60-second resend wait by back-dating `confirmation_sent_at` with SQL (local only).
 - pgTAP-OS: a factor added before confirmation is gone after it; a second confirm update leaves a later password alone; a staff invitee's password and factor are kept. `triggers.test.sql`: account `…e1` (no marker, so a user) now also asserts it has no password after confirming.
+
+## Slice 9 — S2 (captcha) and S4 (unconfirmed sign-in)
+
+| Spike | Observed | Branch |
+|---|---|---|
+| S2 captcha | `/signup` and `/resend` without a token: `400 {"error_code":"captcha_failed","msg":"captcha protection: request disallowed (no captcha_token found)"}`; nothing created, nothing sent, no cap slot. `/recover` without a token is still refused | none |
+| S4(a) | Password sign-in to an unconfirmed e-mail: `400 email_not_confirmed`. `auth-errors.ts` now maps it to `invalidCredentials` | none |
+| S4(b) | Ban an unconfirmed sign-up (admin `ban_duration`), then `signUp` again → **200 and 1 e-mail sent**; `resend` → **200 and 1 e-mail sent**. GoTrue doesn't check the ban on either | **Keep** §6.4 "confirm on deactivate" (it is what stops these e-mails; the plan's default). Lead to note (stop condition 7, informational) |
+
+- AC-19 raw replies: resend to an unconfirmed sign-up → 200, new link, old link dead; a second resend inside 60 s → `429 over_email_send_rate_limit` (the page maps it to "sent"); resend to a confirmed, unfinished sign-up → 200 and nothing sent; resends never take a cap slot.
+- AC-46: with 15 planted, resend and Forgot password both still send and neither is counted.
+- INT: 62 checks.

@@ -18,6 +18,9 @@ const ERROR_KEYS_BY_CODE: Record<string, ErrorKey> = {
   // Supabase reports the ban before it checks the password (R2a review V18).
   invalid_credentials: 'invalidCredentials',
   user_banned: 'invalidCredentials',
+  // An unconfirmed sign-up reads as a wrong password too, so sign-in never reveals that an
+  // e-mail has an unfinished sign-up (open sign-up S4, ADR-0011).
+  email_not_confirmed: 'invalidCredentials',
 
   // Limits
   over_request_rate_limit: 'tooManyAttempts',

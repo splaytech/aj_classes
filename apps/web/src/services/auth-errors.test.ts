@@ -8,6 +8,10 @@ describe('toErrorKey', () => {
     expect(toErrorKey({ code: 'user_banned', status: 400 })).toBe('invalidCredentials');
   });
 
+  it('gives an unconfirmed sign-up the wrong-password message too (open sign-up S4)', () => {
+    expect(toErrorKey({ code: 'email_not_confirmed', status: 400 })).toBe('invalidCredentials');
+  });
+
   it('maps codes, not wording', () => {
     expect(toErrorKey({ code: 'weak_password' })).toBe('weakPassword');
     expect(toErrorKey({ code: 'mfa_verification_failed' })).toBe('wrongCode');
