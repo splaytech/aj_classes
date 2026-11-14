@@ -19,3 +19,9 @@ Asked after stage 2 (Architect). Answers verbatim in quotes; lead's reading in [
 8. **Custom Auth domain (~US$10/month):** "Not now (Recommended)".
 - Linking policy: in every option, a provider login never attaches itself to an existing account (stated in the question, not objected to).
 - [ASSUMPTION] Cap strictness (count new sign-ups only) and the new `user` enum value are the Architect's call (review-2 round 2 item 10); recorded, not asked.
+
+## Lead assumptions on stage 3 open questions — 2026-11-14 (no reply from Saurabh yet; overrulable)
+- [ASSUMPTION] Q1 AC-15: if Supabase's sign-up e-mail is HTML only, "the full link is visible as text in the e-mail" satisfies the plain-text part.
+- [ASSUMPTION] Q2 AC-32: a deactivated account's password sign-in keeps today's "Email or password is incorrect" (R2a V18, deliberate); AC-32's "not active" applies only where the app already shows it.
+- [ASSUMPTION] Q3: e-mail sign-up may go live before Google. `deploy.sh` must not require Google credentials; the Google button stays hidden until the provider is configured (AC-51).
+- [ASSUMPTION] Q4: no footer Terms link in v1 (not in any AC); the Terms page is linked from the sign-up and setup forms.
