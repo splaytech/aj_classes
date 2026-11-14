@@ -158,3 +158,10 @@ Finding 1: take the first option. Audit rows keep their target, the job skips de
 ## Lead note (round 4)
 
 Stage 5 gate passed. Round 3 finding 1(b)'s mechanism was wrong (SET NULL, not NO ACTION); the real risk was silent loss of audit targets, which the guard closes. Nit 2 goes to the Developer with batch 4.
+
+## Round 5 (batch 4, `1562010..5e92ee6`): lead check
+
+**APPROVED.** Small diff (8 files), read by the lead, not a fresh reviewer.
+- `a55579f`: the `Staff` badge is gone from `reauthentication.html` (review-6a item 10).
+- `5e92ee6`: the eligibility rule moved into `private.is_stale_sign_up(uuid)` (security definer, `search_path = ''`, execute revoked from public, anon, authenticated). The per-row delete repeats it (`delete … where u.id = stale and private.is_stale_sign_up(u.id)`) and counts only when `found` (security 06 finding 12). The comment says the audit check is what keeps audit targets, since the FKs are `ON DELETE SET NULL` (round 4 nit). Under READ COMMITTED each plpgsql statement takes a fresh snapshot, so the re-check sees a confirmation or deactivation committed after the loop query.
+- Developer-reported: scoped full check green (web 844), `pnpm db:test` 1225. The Tester's run re-runs every suite.
