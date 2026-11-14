@@ -77,9 +77,9 @@ case "$method $url" in
     [[ "$answer" == "true" ]] && echo true || exit 22 ;;
   "GET "*/config/auth)
     if [[ "$FAKE_HOOK_ON" != "true" ]]; then echo '{"hook_before_user_created_enabled":false}'; exit 0; fi
-    printf '{"hook_before_user_created_enabled":true,"hook_before_user_created_uri":"pg-functions://postgres/public/hook_before_user_created","mailer_autoconfirm":%s,"disable_signup":%s,"security_captcha_enabled":%s,"security_captcha_provider":"%s","rate_limit_email_sent":%s,"external_google_enabled":%s,"security_manual_linking_enabled":%s,"external_anonymous_users_enabled":%s}\\n' \\
+    printf '{"hook_before_user_created_enabled":true,"hook_before_user_created_uri":"pg-functions://postgres/public/hook_before_user_created","mailer_autoconfirm":%s,"disable_signup":%s,"security_captcha_enabled":%s,"security_captcha_provider":"%s","rate_limit_email_sent":%s,"external_google_enabled":%s,"security_manual_linking_enabled":%s,"external_anonymous_users_enabled":%s,"mailer_otp_length":%s,"sms_autoconfirm":%s}\\n' \\
       "\${FAKE_AUTOCONFIRM:-false}" "\${FAKE_DISABLE_SIGNUP:-false}" "\${FAKE_CAPTCHA:-true}" "\${FAKE_CAPTCHA_PROVIDER:-turnstile}" \\
-      "\${FAKE_EMAIL_SENT:-30}" "\${FAKE_GOOGLE:-false}" "\${FAKE_MANUAL_LINKING:-false}" "\${FAKE_ANONYMOUS:-false}" ;;
+      "\${FAKE_EMAIL_SENT:-30}" "\${FAKE_GOOGLE:-false}" "\${FAKE_MANUAL_LINKING:-false}" "\${FAKE_ANONYMOUS:-false}" "\${FAKE_OTP_LENGTH:-8}" "\${FAKE_SMS_AUTOCONFIRM:-false}" ;;
   "PATCH "*/config/auth)
     [[ "$FAKE_PATCH_FAILS" == "true" ]] && exit 22 || echo '{}' ;;
   *) exit 7 ;;
@@ -352,19 +352,26 @@ function failClosedChecks() {
       happy.envFile.content.includes("EMAIL_TRANSPORT='resend'"),
     JSON.stringify(happy.envFile.perms),
   );
-  const quoted = realRun({
-    FAKE_SIGNUPS_OFF: 'true',
-    FAKE_GUARD: 'true',
-    FAKE_HOOK_ON: 'true',
-    RESEND_API_KEY: "has'quote",
-  });
-  check(
-    "A secret with a quote is refused before secrets set, and config push doesn't run",
-    quoted.status !== 0 &&
-      quoted.out.includes('RESEND_API_KEY contains a quote') &&
-      !quoted.calls.some((call) => call.startsWith('supabase config push')),
-    quoted.out.slice(-200),
-  );
+  // Review-5 round 3 finding 3: refused in "Checking what's needed", before anything changes.
+  for (const [label, value] of [
+    ['a quote', "has'quote"],
+    ['a line break', 'has\nnewline'],
+  ]) {
+    const refused = realRun({
+      FAKE_SIGNUPS_OFF: 'true',
+      FAKE_GUARD: 'true',
+      FAKE_HOOK_ON: 'true',
+      RESEND_API_KEY: value,
+    });
+    check(
+      `A secret with ${label} is refused while checking what's needed, before any command runs`,
+      refused.status !== 0 &&
+        refused.out.includes('RESEND_API_KEY contains a quote or a line break') &&
+        !refused.out.includes('1/7') &&
+        refused.calls.length === 0,
+      refused.out.slice(-200),
+    );
+  }
 
   // Security 06 finding 6, review-5 round 2 nit 2: every safety setting is checked after the
   // push, and any one wrong closes sign-up again.
@@ -376,6 +383,8 @@ function failClosedChecks() {
     ['Google on while config.toml says off', { FAKE_GOOGLE: 'true' }],
     ['manual linking on', { FAKE_MANUAL_LINKING: 'true' }],
     ['anonymous sign-ins on', { FAKE_ANONYMOUS: 'true' }],
+    ['e-mailed codes 6 digits, not 8', { FAKE_OTP_LENGTH: '6' }],
+    ['SMS sign-up auto-confirmed', { FAKE_SMS_AUTOCONFIRM: 'true' }],
   ]) {
     const run = realRun({
       FAKE_SIGNUPS_OFF: 'true',

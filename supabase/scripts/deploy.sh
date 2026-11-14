@@ -168,20 +168,23 @@ config_value() {
 #   - e-mail confirmations on (with autoconfirm, a stranger's password would sign in without the
 #     mailbox ever being proven: AC-14) and sign-up on as pushed;
 #   - Turnstile on, and Auth's hourly e-mail limit as configured (R1, R2, R4 lean on both);
-#   - Google exactly as config.toml says; manual linking and anonymous sign-ins off.
+#   - Google exactly as config.toml says; manual linking and anonymous sign-ins off;
+#   - e-mailed codes as long as config.toml says (8: security 06 finding 5), and SMS sign-up not
+#     auto-confirmed (the quiet reply for existing e-mails: finding 10). Review-5 round 3.
 auth_settings_are_safe() {
   local google=false
   google_enabled && google=true
   curl -fsS --max-time 20 -H @"$AUTH_HEADER_FILE" "$MANAGEMENT_API" |
     jq -e --arg uri "$HOOK_URI" --argjson email_sent "$(config_value auth.rate_limit email_sent)" \
-      --argjson google "$google" \
+      --argjson google "$google" --argjson otp_length "$(config_value auth.email otp_length)" \
       '.hook_before_user_created_enabled == true and .hook_before_user_created_uri == $uri
        and .mailer_autoconfirm == false and .disable_signup == false
        and .security_captcha_enabled == true and .security_captcha_provider == "turnstile"
        and .rate_limit_email_sent == $email_sent
        and .external_google_enabled == $google
        and .security_manual_linking_enabled == false
-       and .external_anonymous_users_enabled == false' >/dev/null
+       and .external_anonymous_users_enabled == false
+       and .mailer_otp_length == $otp_length and .sms_autoconfirm == false' >/dev/null
 }
 
 # Turns public sign-up off on the hosted project. Never ends the script silently (set -e): if the
@@ -214,6 +217,27 @@ if google_enabled; then
   export GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET # read by config push through env()
 fi
 export SUPABASE_YES=1 # answer yes to config push prompts
+
+# One `secrets set` with every hosted value. The CLI also copies [edge_runtime.secrets] from
+# config.toml on this call (the local Zoho fake, Mailpit and the local email settings).
+secrets=(
+  "ALLOWED_ORIGINS=${SITE_ORIGINS}"
+  "EMAIL_TRANSPORT=resend"
+  "SITE_URL=${SITE_URL}"
+  "NOTIFY_WORKER_SECRET=${NOTIFY_WORKER_SECRET:-}"
+  "RESEND_API_KEY=${RESEND_API_KEY:-}"
+)
+for name in ZOHO_CLIENT_ID ZOHO_CLIENT_SECRET ZOHO_REFRESH_TOKEN ZOHO_LEAD_SOURCE; do
+  [[ -n "${!name:-}" ]] && secrets+=("${name}=${!name}")
+done
+# The secrets file single-quotes each value, so a quote or a line break can't be held: refuse it
+# here, before anything changes (review-5 round 3 finding 3).
+for pair in "${secrets[@]}"; do
+  value="${pair#*=}"
+  if [[ "$value" == *"'"* || "$value" == *$'\n'* ]]; then
+    fail "${pair%%=*} contains a quote or a line break, which the secrets file can't hold. Change it and run again."
+  fi
+done
 
 # The Management API token goes in a 0600 header file, so it never shows in `ps` (curl -H @file).
 # The function secrets get their own 0600 file at step 6 (`secrets set --env-file`). Both go at exit.
@@ -262,32 +286,15 @@ for name in "${FUNCTIONS[@]}"; do
 done
 
 say "6/7 Function settings"
-# One `secrets set` with every hosted value. The CLI also copies [edge_runtime.secrets] from
-# config.toml on this call (the local Zoho fake, Mailpit and the local email settings).
-secrets=(
-  "ALLOWED_ORIGINS=${SITE_ORIGINS}"
-  "EMAIL_TRANSPORT=resend"
-  "SITE_URL=${SITE_URL}"
-  "NOTIFY_WORKER_SECRET=${NOTIFY_WORKER_SECRET:-}"
-  "RESEND_API_KEY=${RESEND_API_KEY:-}"
-)
-for name in ZOHO_CLIENT_ID ZOHO_CLIENT_SECRET ZOHO_REFRESH_TOKEN ZOHO_LEAD_SOURCE; do
-  [[ -n "${!name:-}" ]] && secrets+=("${name}=${!name}")
-done
 # Through a 0600 file, never argv (security 06 finding 3). Each value is single-quoted so the
-# CLI's .env reader takes it literally (no $ expansion); a value with a quote or a line break is
-# refused rather than mangled.
+# CLI's .env reader takes it literally (no $ expansion); values were checked before step 1.
 if $DRY_RUN; then
   printf '  (dry run) supabase secrets set --project-ref %s --env-file <0600 temp file with: %s>\n' \
     "$PROJECT_REF" "$(printf '%s ' "${secrets[@]%%=*}")"
 else
   SECRETS_FILE="$(mktemp)"
   for pair in "${secrets[@]}"; do
-    value="${pair#*=}"
-    if [[ "$value" == *"'"* || "$value" == *$'\n'* ]]; then
-      fail "${pair%%=*} contains a quote or a line break, which the secrets file can't hold. Change it and run again."
-    fi
-    printf "%s='%s'\n" "${pair%%=*}" "$value" >>"$SECRETS_FILE"
+    printf "%s='%s'\n" "${pair%%=*}" "${pair#*=}" >>"$SECRETS_FILE"
   done
   supabase secrets set --project-ref "$PROJECT_REF" --env-file "$SECRETS_FILE"
 fi
@@ -319,8 +326,8 @@ if ! run supabase config push --project-ref "$PROJECT_REF"; then
 fi
 printf '  Checking the sign-up hook is on and confirmations are on\n'
 if $DRY_RUN; then
-  printf '  (dry run) would check %s: hook on (%s), mailer_autoconfirm false, disable_signup false, Turnstile on, rate_limit_email_sent = %s, Google as config.toml, manual linking and anonymous sign-ins off\n' \
-    "$MANAGEMENT_API" "$HOOK_URI" "$(config_value auth.rate_limit email_sent)"
+  printf '  (dry run) would check %s: hook on (%s), mailer_autoconfirm false, disable_signup false, Turnstile on, rate_limit_email_sent = %s, Google as config.toml, manual linking and anonymous sign-ins off, mailer_otp_length = %s, sms_autoconfirm false\n' \
+    "$MANAGEMENT_API" "$HOOK_URI" "$(config_value auth.rate_limit email_sent)" "$(config_value auth.email otp_length)"
 elif ! auth_settings_are_safe; then
   close_sign_up
   fail "The sign-up hook isn't on, or e-mail confirmations are off, so sign-up was closed again. Check Dashboard → Authentication → Hooks → Before User Created and Sign In / Providers → Confirm email, then run again."
