@@ -728,3 +728,44 @@ revoke execute on function public.admin_list_users() from public, anon, authenti
 revoke execute on function public.admin_promote_user(uuid, uuid) from public, anon, authenticated;
 grant execute on function public.admin_list_users() to authenticated;
 grant execute on function public.admin_promote_user(uuid, uuid) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- §3.7 sign_up_guard_ready(): deploy.sh opens sign-up only when this is true (ADR-0011)
+-- ---------------------------------------------------------------------------
+
+-- Checks the guard by behaviour, not by migration history: no marker maps to user, the profiles
+-- default is user, the hook exists and Auth can call it, both triggers are there and enabled,
+-- and the switch row exists. Returns only a boolean, so it tells a caller nothing else.
+create function public.sign_up_guard_ready()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(
+    private.role_from_app_metadata('{}') = 'user'
+    and private.role_from_app_metadata('{"account_role":"x"}') = 'user'
+    and private.role_from_app_metadata('{"account_role":"admin"}') = 'user'
+    and (select pg_get_expr(d.adbin, d.adrelid)
+         from pg_catalog.pg_attrdef d
+         join pg_catalog.pg_attribute a on a.attrelid = d.adrelid and a.attnum = d.adnum
+         where d.adrelid = 'public.profiles'::regclass and a.attname = 'role') like '''user''::%'
+    and case
+          when to_regprocedure('public.hook_before_user_created(jsonb)') is null then false
+          else has_function_privilege('supabase_auth_admin', 'public.hook_before_user_created(jsonb)', 'execute')
+        end
+    and has_schema_privilege('supabase_auth_admin', 'public', 'usage')
+    and exists (select 1 from pg_catalog.pg_trigger t
+                where t.tgrelid = 'auth.identities'::regclass
+                  and t.tgname = 'on_auth_identity_link_check' and t.tgenabled <> 'D')
+    and exists (select 1 from pg_catalog.pg_trigger t
+                where t.tgrelid = 'auth.users'::regclass
+                  and t.tgname = 'on_auth_user_email_confirmed' and t.tgenabled <> 'D')
+    and exists (select 1 from private.sign_up_settings),
+    false
+  )
+$$;
+
+revoke execute on function public.sign_up_guard_ready() from public, anon, authenticated;
+grant execute on function public.sign_up_guard_ready() to anon, authenticated;

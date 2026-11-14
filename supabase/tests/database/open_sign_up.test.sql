@@ -579,5 +579,35 @@ select results_eq($$ select student_id, full_name from public.parent_children() 
   'The promoted Google parent reads their child through parent_children()');
 reset role;
 
+-- #10 sign_up_guard_ready() (§3.7, AC-47; review-3 item 3). Each break is undone with a savepoint.
+select ok(public.sign_up_guard_ready(), 'sign_up_guard_ready: true after the migration');
+select ok(has_function_privilege('anon', 'public.sign_up_guard_ready()', 'execute'),
+  'deploy.sh can call it with the publishable key');
+
+savepoint guard;
+drop function private.check_identity_link() cascade; -- drops on_auth_identity_link_check
+select ok(not public.sign_up_guard_ready(), 'false without the linking trigger');
+rollback to savepoint guard;
+drop function private.wipe_unproven_credentials() cascade; -- drops on_auth_user_email_confirmed
+select ok(not public.sign_up_guard_ready(), 'false without the wipe trigger');
+rollback to savepoint guard;
+revoke execute on function public.hook_before_user_created(jsonb) from supabase_auth_admin;
+select ok(not public.sign_up_guard_ready(), 'false without the hook''s execute grant');
+rollback to savepoint guard;
+drop function public.hook_before_user_created(jsonb);
+select ok(not public.sign_up_guard_ready(), 'false without the hook');
+rollback to savepoint guard;
+-- Everyone (PUBLIC) has usage on public by default, so both grants go to take it away.
+revoke usage on schema public from public, supabase_auth_admin;
+select ok(not public.sign_up_guard_ready(), 'false without usage on schema public for supabase_auth_admin');
+rollback to savepoint guard;
+delete from private.sign_up_settings;
+select ok(not public.sign_up_guard_ready(), 'false without the settings row');
+rollback to savepoint guard;
+alter table public.profiles alter column role set default 'tutor';
+select ok(not public.sign_up_guard_ready(), 'false when the profiles default is tutor again');
+rollback to savepoint guard;
+select ok(public.sign_up_guard_ready(), 'true again once everything is back');
+
 select * from finish();
 rollback;

@@ -359,7 +359,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Check:** RESET, DB, FULL.
   - **Commit:** `feat(db): list signed-up users and promote one to parent`
 
-- [ ] **15. `sign_up_guard_ready()`** (03 §3.7, plus review-3 finding 3).
+- [x] **15. `sign_up_guard_ready()`** (03 §3.7, plus review-3 finding 3).
   - **ACs:** AC-47.
   - **pgTAP-OS:**
     - true after the migration;

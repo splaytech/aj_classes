@@ -167,3 +167,11 @@ pgTAP-OS (the `amr` matrix with crafted claims): `[otp]`, `[recovery]`, `[oauth]
 - `admin_set_sign_up_open`'s UPDATE needed `where id`: API sessions run with `pg-safeupdate`, which refuses an UPDATE without a WHERE (pgTAP, as `postgres`, didn't notice; INT through PostgREST did). Fixed in the migration.
 - pgTAP-OS: status open, busy (15 in 24 h), old rows ignored, closed (switch off or row missing); the switch is admin-at-aal2 only (tutor and aal1 admin → `not_admin`), null → `invalid_input`, no-ops write no audit, real changes audit `sign_up_closed` / `sign_up_opened` with no target.
 - INT: closed by the seeded admin at aal2 → `signUp` 429 `sign_up_closed`, no account, no mail; user and staff still sign in; a tutor can't reopen; reopening works.
+
+## Slices 13–15 — guards, list and promote, sign_up_guard_ready
+
+- Slice 13: `complete_onboarding`, `my_onboarding` and `admin_set_active` copied from their latest definitions (`20261023110000:38-138`, `20261023100000:195-210`, `20261006004522:366-407`, line numbers re-checked) with one change each. Existing onboarding pgTAP stays green unchanged.
+- Slice 14: `admin_list_users` (admin at aal2, newest first, `signed_up_with`, `finished`) and `admin_promote_user` (role first, then the guardian link; keeps password and sessions; audits `parent_linked {promoted_from: 'user', signed_up_with}`). A promoted Google user in an `[oauth]` session reads their child through `parent_children()`.
+- Slice 15: `sign_up_guard_ready()` returns a bare `true` over PostgREST as `anon` (what `deploy.sh`'s `grep -qx true` needs).
+  - [ASSUMPTION] "False after disabling each trigger" can't be simulated: `postgres` doesn't own `auth.users`/`auth.identities`, so it can't `alter table … disable trigger` or `drop trigger`. pgTAP instead drops each trigger through its function (`drop function … cascade`, inside a savepoint) and checks false; the `tgenabled <> 'D'` clause is covered by reading only. Hosted, only `supabase_auth_admin` could disable them.
+  - `usage on schema public` comes to `supabase_auth_admin` through PUBLIC as well as its own grant, so the "without usage" case revokes both.
