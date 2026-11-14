@@ -10,6 +10,7 @@ import {
   AuthCard,
   FinishSignUpHint,
   FormAlert,
+  GoogleButton,
   FormStatus,
   PasswordInput,
   TextInput,
@@ -31,7 +32,7 @@ import { guardPortalPage } from '@/lib/portal-guard';
 import { checkEmail, checkPasswordEntered } from '@/lib/portal-validation';
 import { useAppearance } from '@/lib/appearance-context';
 import { buildPortalMeta } from '@/lib/seo';
-import { getSignUpOptions, signIn } from '@/services';
+import { getSignUpOptions, signIn, startGoogleSignIn } from '@/services';
 
 const FIELD_IDS = { email: 'login-email', password: 'login-password' } as const;
 
@@ -151,6 +152,12 @@ export default function LoginPage() {
           <Link to={PORTAL_ROUTES.forgotPassword}>{LOGIN_PAGE.forgotPassword}</Link>
         </div>
       </form>
+      {loaded?.signUp.google && (
+        <>
+          <p className={formStyles.hint}>{LOGIN_PAGE.or}</p>
+          <GoogleButton onStart={startGoogleSignIn} />
+        </>
+      )}
       {signUpOpen && (
         <p>
           {LOGIN_PAGE.signUpPrompt}

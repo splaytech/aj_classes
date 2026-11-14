@@ -481,7 +481,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Visible:** a full e-mail sign-up by hand: Mailpit link → Continue → finish → `/portal/user`.
   - **Commit:** `feat(portal): confirm the e-mail and finish signing up`
 
-- [ ] **25. Google button and the callback page** (03 §7.4 `GoogleButton`; §7.6 `/portal/auth/callback`; §4.1 redirect URLs).
+- [x] **25. Google button and the callback page** (03 §7.4 `GoogleButton`; §7.6 `/portal/auth/callback`; §4.1 redirect URLs).
   - **ACs:** AC-51, AC-52 to AC-55 (page side), AC-32 (banned → `notActive`).
   - **Files:**
     - new `GoogleButton.tsx` and `routes/portal/auth-callback.tsx`;

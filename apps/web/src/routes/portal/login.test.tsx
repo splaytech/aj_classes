@@ -3,13 +3,17 @@ import { createRoutesStub } from 'react-router';
 import type { ClientLoaderFunctionArgs } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { FINISH_SIGN_UP_HINT, LOGIN_PAGE, PORTAL_ROUTES } from '@/constants';
+import { FINISH_SIGN_UP_HINT, LOGIN_PAGE, PORTAL_ROUTES, SIGN_UP_PAGE } from '@/constants';
 import { getSignUpOptions } from '@/services';
 import type { SignUpOptions } from '@/services';
 
 import LoginPage, { clientLoader } from './login';
 
-vi.mock('@/services', () => ({ getSignUpOptions: vi.fn(), signIn: vi.fn() }));
+vi.mock('@/services', () => ({
+  getSignUpOptions: vi.fn(),
+  signIn: vi.fn(),
+  startGoogleSignIn: vi.fn(),
+}));
 vi.mock('@/lib/portal-guard', () => ({ guardPortalPage: vi.fn(async () => null) }));
 
 function renderAt(path: string, options: SignUpOptions) {
@@ -46,6 +50,17 @@ describe('/portal/login and sign-up (AC-1, AC-48)', () => {
     renderAt(PORTAL_ROUTES.login, { status: 'closed', google: false });
     expect(await screen.findByRole('heading', { name: LOGIN_PAGE.heading })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: LOGIN_PAGE.signUpLink })).not.toBeInTheDocument();
+  });
+
+  it('AC-51: shows Continue with Google only when Google is on', async () => {
+    renderAt(PORTAL_ROUTES.login, { status: 'open', google: true });
+    expect(await screen.findByRole('button', { name: SIGN_UP_PAGE.google })).toBeInTheDocument();
+  });
+
+  it('AC-51: hides it when Google is off or the settings read failed', async () => {
+    renderAt(PORTAL_ROUTES.login, { status: 'closed', google: false });
+    await screen.findByRole('heading', { name: LOGIN_PAGE.heading });
+    expect(screen.queryByRole('button', { name: SIGN_UP_PAGE.google })).not.toBeInTheDocument();
   });
 
   it('AC-20: after a password sign-in to an unfinished sign-up, shows the finish hint', async () => {

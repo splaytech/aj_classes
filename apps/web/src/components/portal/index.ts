@@ -8,6 +8,7 @@ export { EnrolDialog } from './EnrolDialog';
 export { AnswersList, ProgressSummary, ResultsCard, scoreText } from './FamilyWork';
 export { FinishSignUpHint } from './FinishSignUpHint';
 export { FormDialog } from './FormDialog';
+export { GoogleButton } from './GoogleButton';
 export { FinishSignUpForm } from './FinishSignUpForm';
 export { LegalLink } from './LegalLink';
 export { HoldResultsSetting } from './HoldResultsSetting';

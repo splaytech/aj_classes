@@ -17,7 +17,11 @@ import { setupUser } from '@/test/user';
 import routes from '../../routes';
 import SignUpPage, { meta } from './sign-up';
 
-vi.mock('@/services', () => ({ getSignUpOptions: vi.fn(), signUpWithEmail: vi.fn() }));
+vi.mock('@/services', () => ({
+  getSignUpOptions: vi.fn(),
+  signUpWithEmail: vi.fn(),
+  startGoogleSignIn: vi.fn(),
+}));
 vi.mock('@/components/ui', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/components/ui')>()),
   TurnstileField: TurnstileStub,
@@ -62,6 +66,17 @@ describe('/portal/sign-up', () => {
       'href',
       PORTAL_ROUTES.login,
     );
+  });
+
+  it('AC-51: shows Continue with Google only when Google is on', async () => {
+    renderWith({ status: 'open', google: true });
+    expect(await screen.findByRole('button', { name: SIGN_UP_PAGE.google })).toBeInTheDocument();
+  });
+
+  it('AC-51: hides Continue with Google when it is off (or the settings read failed)', async () => {
+    renderWith({ status: 'open', google: false });
+    await screen.findByRole('heading', { level: 1, name: SIGN_UP_PAGE.heading });
+    expect(screen.queryByRole('button', { name: SIGN_UP_PAGE.google })).not.toBeInTheDocument();
   });
 
   it('AC-10: shows the same "check your e-mail" card for any accepted sign-up', async () => {

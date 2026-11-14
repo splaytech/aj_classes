@@ -7,7 +7,7 @@ import type { FormEvent } from 'react';
 import { Link, useLoaderData } from 'react-router';
 import type { ClientLoaderFunctionArgs } from 'react-router';
 
-import { AuthCard, FormAlert, TextInput } from '@/components/portal';
+import { AuthCard, FormAlert, GoogleButton, TextInput } from '@/components/portal';
 import formStyles from '@/components/portal/PortalForm.module.css';
 import { Button, TurnstileField } from '@/components/ui';
 import type { TurnstileInstance } from '@/components/ui';
@@ -24,7 +24,7 @@ import { guardPortalPage } from '@/lib/portal-guard';
 import { buildPortalMeta } from '@/lib/seo';
 import { validateSignUp } from '@/lib/sign-up-validation';
 import type { SignUpErrors } from '@/lib/sign-up-validation';
-import { getSignUpOptions, signUpWithEmail } from '@/services';
+import { getSignUpOptions, signUpWithEmail, startGoogleSignIn } from '@/services';
 import type { SignUpOptions } from '@/services';
 
 const FIELD_IDS = { fullName: 'sign-up-name', email: 'sign-up-email' } as const;
@@ -49,6 +49,7 @@ export default function SignUpPage() {
   return (
     <SignUpForm
       busy={options.status === 'busy'}
+      google={options.google}
       onSent={() => setView('sent')}
       onClosed={() => setView('closed')}
     />
@@ -57,10 +58,12 @@ export default function SignUpPage() {
 
 function SignUpForm({
   busy,
+  google,
   onSent,
   onClosed,
 }: {
   busy: boolean;
+  google: boolean;
   onSent: () => void;
   onClosed: () => void;
 }) {
@@ -149,6 +152,12 @@ function SignUpForm({
           {submitting ? SIGN_UP_PAGE.submitting : SIGN_UP_PAGE.submit}
         </Button>
       </form>
+      {google && (
+        <>
+          <p className={formStyles.hint}>{SIGN_UP_PAGE.or}</p>
+          <GoogleButton onStart={startGoogleSignIn} />
+        </>
+      )}
       <p>
         {SIGN_UP_PAGE.haveAccount}
         <Link to={PORTAL_ROUTES.login}>{SIGN_UP_PAGE.signIn}</Link>
