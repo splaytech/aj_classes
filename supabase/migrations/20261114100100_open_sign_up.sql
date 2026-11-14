@@ -27,3 +27,14 @@ alter table public.profiles alter column role set default 'user';
 
 comment on table public.profiles is
   'One row per account: staff (tutor, admin), families (student, parent) and signed-up users (user). Created by a trigger on auth.users.';
+
+-- ---------------------------------------------------------------------------
+-- §3.2 Confirm existing non-user accounts (AC-42)
+-- ---------------------------------------------------------------------------
+
+-- E-mail confirmations are now on. Staff, students and parents were all created by AJ Classes
+-- (invites, Studio), so their addresses count as confirmed and nobody is locked out. This runs
+-- before the confirm-time wipe trigger (§3.6) exists, so no password is touched.
+update auth.users u set email_confirmed_at = now()
+where u.email_confirmed_at is null
+  and exists (select 1 from public.profiles p where p.id = u.id and p.role <> 'user');

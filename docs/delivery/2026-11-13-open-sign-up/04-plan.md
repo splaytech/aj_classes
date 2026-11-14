@@ -143,7 +143,7 @@ The Developer runs them in slice 0 and records the counts. CI gates are document
   - **Visible:** on the dev server, the seeded `tutor@local.test` still signs in as a tutor. The staff invite in `test-account-admin.mjs` still makes a tutor.
   - **Commit:** `fix(db): accounts with no role marker become users, never tutors`
 
-- [ ] **3. E-mail confirmations on, with no lock-out** (03 §3.2, §4.1 `enable_confirmations`, §6.1 `email_confirm`).
+- [x] **3. E-mail confirmations on, with no lock-out** (03 §3.2, §4.1 `enable_confirmations`, §6.1 `email_confirm`).
   - **ACs:** AC-42.
   - **Files:**
     - the migration gains §3.2 (it runs before any wipe trigger exists);

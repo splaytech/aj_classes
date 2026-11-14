@@ -623,10 +623,16 @@ async function resendChecks() {
     check(`AC 12 (${role}): and the new one signs in`, await signsInAs(account, next.token));
   }
 
-  // AC 14: opened (e-mail now confirmed), setup never finished, then re-sent
+  // AC 14: opened, setup never finished, then re-sent
   const halfway = await inviteStaff('halfway');
   check(
-    'AC 14: the first link signs in (this confirms the e-mail)',
+    'Open sign-up AC-42: a fresh invite is confirmed at creation, before any redeem',
+    sql(
+      `select (email_confirmed_at is not null)::text from auth.users where id = '${halfway.id}'`,
+    ) === 'true',
+  );
+  check(
+    'AC 14: the first link signs in (the e-mail was confirmed at creation)',
     await signsInAs(halfway, halfway.token),
   );
   check(

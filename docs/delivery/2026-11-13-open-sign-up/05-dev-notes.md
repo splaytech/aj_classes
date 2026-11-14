@@ -45,3 +45,13 @@ Asked through the lead: Saurabh to open Dashboard → Authentication → Hooks a
 | Auth sign-up switch off (`disable_signup`) | `access_denied` | `signup_disabled` | `Signups not allowed for this instance` |
 
 So the callback page maps by `error_description` first (our hook messages), then `error_code` (`user_banned`, `signup_disabled`); everything else, including case (i), is message M (AC-54).
+
+## Slice 3 — AC-42 migration step test (by hand, local)
+
+1. `supabase db reset --local --version 20261030100000` (18 migrations, seed applied).
+2. Inserted an unconfirmed staff invitee the old way (no `account_role`, `email_confirmed_at` null) and stored an invite token hash for it with `invite_token_store`. Profile: `tutor/invited`, unconfirmed.
+3. `supabase migration up --local`: applied `20261114100000_user_role.sql` and `20261114100100_open_sign_up.sql`.
+4. Result: still `tutor/invited`, now **confirmed**. `invite-redeem` accepted the token and the `/verify` hop gave a 200 session for that account.
+5. RESET (fresh seed).
+
+INT (`test-open-sign-up.mjs`, AC-42 section): all six signing-in seed accounts still sign in with confirmations on; every seed account is confirmed; a new parent invite is confirmed at creation and redeems; a Studio-style account (admin `createUser` with `email_confirm`, then the README `account_role` SQL) becomes `tutor/invited` and its recovery link reaches `my_onboarding` as a tutor.

@@ -74,6 +74,9 @@ export async function createInvitedAccount(
   const service = serviceClient();
   const { data, error } = await service.auth.admin.createUser({
     email,
+    // We e-mail the invite link to this address, so it counts as confirmed (ADR-0011: Auth now
+    // requires confirmation, and an invitee must not need a separate confirmation e-mail).
+    email_confirm: true,
     user_metadata: { full_name: fullName }, // the profile trigger reads only full_name (R2a G2)
     app_metadata: { account_role: role },
   });
