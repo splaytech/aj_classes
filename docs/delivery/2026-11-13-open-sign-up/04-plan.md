@@ -251,7 +251,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **If not:** if the order in slice 0's reading is the other way round, also refuse a `google` insert when `encrypted_password is not null`, add a pgTAP row, and tell the lead. That is not a stop.
   - **Commit:** `feat(db): a Google login can only attach to a brand-new account`
 
-- [ ] **8. S6: the confirm-time wipe.** This is the riskiest slice (see Risks).
+- [x] **8. S6: the confirm-time wipe.** This is the riskiest slice (see Risks).
   - **03 reference:** §3.6, "Confirm-time wipe".
   - **ACs:** AC-14 (cases 3, 4, 5, and the first half of case 6).
   - **Files:**

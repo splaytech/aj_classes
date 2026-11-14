@@ -226,5 +226,37 @@ select lives_ok(
          '00000000-0000-0000-0000-00000000bb11', '00000000-0000-0000-0000-00000000bb11'),
   'An e-mail identity is always allowed (sign-up, invites)');
 
+-- #5 The confirm-time wipe (§3.6, S6, AC-14 case 6)
+select tests.create_sign_up('00000000-0000-0000-0000-00000000cc01', 'wipe@test.local', p_confirmed => false, p_finished => false);
+select tests.add_verified_factor('00000000-0000-0000-0000-00000000cc01');
+select is((select count(*)::int from auth.mfa_factors where user_id = '00000000-0000-0000-0000-00000000cc01'), 1,
+  'Before confirmation: a stored password and an authenticator');
+update auth.users set email_confirmed_at = now() where id = '00000000-0000-0000-0000-00000000cc01';
+select is((select encrypted_password from auth.users where id = '00000000-0000-0000-0000-00000000cc01'), null,
+  'Confirming wipes the password stored before the mailbox was proven');
+select is((select count(*)::int from auth.mfa_factors where user_id = '00000000-0000-0000-0000-00000000cc01'), 0,
+  'and the authenticator added before it (AC-14 case 6)');
+select is((select password_set_at from public.profiles where id = '00000000-0000-0000-0000-00000000cc01'), null,
+  'and no password counts as set');
+
+update auth.users set encrypted_password = 'chosen-later' where id = '00000000-0000-0000-0000-00000000cc01';
+update auth.users set email_confirmed_at = now() where id = '00000000-0000-0000-0000-00000000cc01';
+select is((select encrypted_password from auth.users where id = '00000000-0000-0000-0000-00000000cc01'), 'chosen-later',
+  'A later confirm update (already confirmed) leaves the password alone');
+
+-- Not a user: nothing is wiped (staff, families and invitees).
+select tests.create_staff('00000000-0000-0000-0000-00000000cc02', 'staff-unconfirmed@test.local', p_joined => false);
+update auth.users set encrypted_password = 'staff-hash' where id = '00000000-0000-0000-0000-00000000cc02';
+select tests.add_verified_factor('00000000-0000-0000-0000-00000000cc02');
+update auth.users set email_confirmed_at = now() where id = '00000000-0000-0000-0000-00000000cc02';
+select is((select encrypted_password from auth.users where id = '00000000-0000-0000-0000-00000000cc02'), 'staff-hash',
+  'Confirming a staff invitee keeps its password');
+select is((select count(*)::int from auth.mfa_factors where user_id = '00000000-0000-0000-0000-00000000cc02'), 1,
+  'and its authenticator');
+
+select ok((select prosecdef from pg_proc where oid = 'private.wipe_unproven_credentials()'::regprocedure)
+          and (select prosecdef from pg_proc where oid = 'private.check_identity_link()'::regprocedure),
+  'Both trigger functions are security definer');
+
 select * from finish();
 rollback;

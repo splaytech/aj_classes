@@ -32,6 +32,13 @@ select results_eq(
   $$ values ('invited', true, true, true) $$,
   'Clicking the invite link leaves the account invited; sign-in is copied; updated_at unchanged'
 );
+-- This account has no role marker, so it is a signed-up user: confirming wipes any password it
+-- had (open sign-up, ADR-0011). It had none, so this is harmless here.
+select is(
+  (select encrypted_password from auth.users where id = '00000000-0000-0000-0000-0000000000e1'),
+  null,
+  'Confirming a signed-up user leaves no password'
+);
 
 update public.profiles set bio = 'Hello' where id = '00000000-0000-0000-0000-0000000000e1';
 select isnt(

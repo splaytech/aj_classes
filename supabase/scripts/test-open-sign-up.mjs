@@ -286,6 +286,160 @@ async function templateChecks() {
   );
 }
 
+/** Lets a repeat sign-up or resend send again straight away (Auth waits 60 s between e-mails). */
+const skipResendWait = (email) =>
+  sql(
+    `update auth.users set confirmation_sent_at = now() - interval '2 minutes', recovery_sent_at = now() - interval '2 minutes' where email = '${email}'`,
+  );
+
+/** A password sign-in. Returns { status, code, token }. */
+async function passwordSignIn(email, password) {
+  const reply = await api('/auth/v1/token?grant_type=password', {
+    body: { email, password, gotrue_meta_security: CAPTCHA },
+  });
+  return {
+    status: reply.status,
+    code: reply.json?.error_code ?? reply.json?.code,
+    token: reply.json?.access_token,
+    refresh: reply.json?.refresh_token,
+  };
+}
+const signsIn = async (email, password) => Boolean((await passwordSignIn(email, password)).token);
+
+/** Opens the newest confirmation link the way /portal/auth/confirm does. Returns the session. */
+async function openConfirmationLink(email, tokenHash) {
+  const hash = tokenHash ?? (await confirmationHash(email));
+  const reply = await api('/auth/v1/verify', { body: { type: 'email', token_hash: hash } });
+  return {
+    status: reply.status,
+    token: reply.json?.access_token,
+    refresh: reply.json?.refresh_token,
+    json: reply.json,
+  };
+}
+
+/** updateUser({ password }) in a session, as the finish step does. */
+const setPassword = (token, password) =>
+  api('/auth/v1/user', { method: 'PUT', token, body: { password } });
+
+const storedHash = (email) =>
+  sql(`select coalesce(encrypted_password, 'NULL') from auth.users where email = '${email}'`);
+const lowCostHash = (email, password) =>
+  sql(
+    `update auth.users set encrypted_password = extensions.crypt('${password}', extensions.gen_salt('bf', 4)) where email = '${email}'`,
+  );
+
+async function wipeChecks() {
+  console.log('\nS6: the confirm-time wipe (AC-14)');
+  plantCapRows(0);
+  // Checks 1-3 use one account whose P1 is planted with SQL (which also sets password_set_at).
+  // It is never reused for an AC-14 case (review-4 finding 4).
+  const planted = address('planted-p1');
+  const P1 = `${PREFIX}-P1-stranger`;
+  const P2 = `${PREFIX}-P2-owner`;
+  await rawSignUp(planted, 'Planted Person');
+  lowCostHash(planted, P1);
+  check(
+    'Before confirming, P1 is stored at bcrypt cost 4',
+    storedHash(planted).startsWith('$2a$04$'),
+  );
+  const link = await openConfirmationLink(planted);
+  check(
+    'The confirmation link gives a session',
+    link.status === 200 && Boolean(link.token),
+    link.status,
+  );
+  check('S6(1): after confirming, encrypted_password is null', storedHash(planted) === 'NULL');
+  const p1Try = await passwordSignIn(planted, P1);
+  check('S6(1): P1 no longer signs in', !p1Try.token);
+  check(
+    'S6(3): a sign-in against a null password reads as a wrong password, not a 500',
+    p1Try.status === 400 && p1Try.code === 'invalid_credentials',
+    JSON.stringify(p1Try),
+  );
+  const setP2 = await setPassword(link.token, P2);
+  check(
+    'S6(2): the owner sets P2 in the link session',
+    setP2.status === 200,
+    JSON.stringify(setP2.json),
+  );
+  lowCostHash(planted, P2);
+  const lowHash = storedHash(planted);
+  check('S6(2): P2 signs in', await signsIn(planted, P2));
+  const upgraded = storedHash(planted);
+  // GoTrue re-hashes a cost-4 hash only in memory (models/user.go:497-503) and writes it back
+  // only with database encryption on (token.go:139-149, off locally). Either way it runs only
+  // after the typed password matched the stored hash, so it can never bring back a wiped one.
+  check(
+    'S6(2): the sign-in wrote no other hash (local: no encryption, so no write-back)',
+    storedHash(planted) === lowHash,
+    storedHash(planted).slice(0, 7),
+  );
+  check('S6(2): P1 still fails after the P2 sign-in', !(await signsIn(planted, P1)));
+  check('S6(2): the wipe did not fire on that sign-in', storedHash(planted) !== 'NULL');
+
+  // AC-14 case 3: A then B sign up; B finishes from the newest link.
+  const case3 = address('case3');
+  const PA = `${PREFIX}-PA-stranger`;
+  const PB = `${PREFIX}-PB-owner-throwaway`;
+  await rawSignUpWithPassword(case3, PA);
+  skipResendWait(case3);
+  const oldHash3 = await confirmationHash(case3);
+  await rawSignUpWithPassword(case3, PB);
+  const newHash3 = await confirmationHash(case3);
+  check('AC-14: a repeat sign-up sends a new link', newHash3 !== '' && newHash3 !== oldHash3);
+  check(
+    'AC-14: the old link stops working',
+    (await openConfirmationLink(case3, oldHash3)).status !== 200,
+  );
+  const owner3 = await openConfirmationLink(case3, newHash3);
+  await setPassword(owner3.token, P2);
+  check(
+    "AC-14 case 3: only B's password signs in",
+    (await signsIn(case3, P2)) && !(await signsIn(case3, PA)) && !(await signsIn(case3, PB)),
+  );
+
+  // AC-14 case 4: B then A sign up; B finishes from the newest link.
+  const case4 = address('case4');
+  await rawSignUpWithPassword(case4, PB);
+  skipResendWait(case4);
+  await rawSignUpWithPassword(case4, PA);
+  const owner4 = await openConfirmationLink(case4);
+  await setPassword(owner4.token, P2);
+  check(
+    "AC-14 case 4: only B's password signs in",
+    (await signsIn(case4, P2)) && !(await signsIn(case4, PA)) && !(await signsIn(case4, PB)),
+  );
+
+  // AC-14 case 5: A uses the raw API with P1; B opens the link but doesn't finish; A tries P1.
+  const case5 = address('case5');
+  await rawSignUpWithPassword(case5, P1);
+  const beforeConfirm = await passwordSignIn(case5, P1);
+  check(
+    'AC-14 case 5: before B confirms, A gets no session with P1',
+    !beforeConfirm.token,
+    JSON.stringify(beforeConfirm),
+  );
+  const owner5 = await openConfirmationLink(case5);
+  const afterConfirm = await passwordSignIn(case5, P1);
+  check(
+    'AC-14 case 5: after B opens the link, P1 still gets no session (invalid_credentials)',
+    !afterConfirm.token && afterConfirm.code === 'invalid_credentials',
+    JSON.stringify(afterConfirm),
+  );
+  await setPassword(owner5.token, P2);
+  check(
+    "AC-14 case 5: when B sets a password, only B's password signs in",
+    (await signsIn(case5, P2)) && !(await signsIn(case5, P1)),
+  );
+}
+
+/** A raw sign-up with a chosen password (a stranger using the API directly). */
+const rawSignUpWithPassword = (email, password) =>
+  api('/auth/v1/signup', {
+    body: { email, password, data: { full_name: 'Some Person' }, gotrue_meta_security: CAPTCHA },
+  });
+
 function cleanUp() {
   sql(`delete from auth.users where lower(email) like '${PREFIX}-%'`);
   sql('delete from private.sign_up_emails');
@@ -300,6 +454,7 @@ async function main() {
     await existingAccountChecks();
     await hookChecks();
     await templateChecks();
+    await wipeChecks();
   } finally {
     cleanUp();
   }

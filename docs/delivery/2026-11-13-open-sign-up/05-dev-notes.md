@@ -104,3 +104,18 @@ INT (`test-open-sign-up.mjs`, AC-42 section): all six signing-in seed accounts s
 - pgTAP-OS: 14 rows. A brand-new Google account gets its identity and stays `user/invited`; a second Google identity, an unconfirmed sign-up (S3 order row: its e-mail identity is still there), confirmed-unfinished, finished, deactivated, tutor, admin, invitee, parent and student are all refused with `identity_link_refused` (42501); Apple is refused; e-mail identities are allowed.
 - [ASSUMPTION] The rule also requires `profiles.is_active` (not in 03's list). A brand-new Google account is always active, so nothing legitimate is refused; it only closes the corner of a deactivated, unconfirmed user with no identity, which 03 already refuses by other routes.
 - No "stored password" fallback (slice 0 confirmed the order).
+
+## Slice 8 — S6: the confirm-time wipe
+
+**Outcome: pass, no stop.** `postgres` creates `on_auth_user_email_confirmed` (`before update of email_confirmed_at on auth.users`) and the trigger deletes from `auth.mfa_factors` without any permission problem.
+
+| Check | Result |
+|---|---|
+| (1) P1 planted at bcrypt cost 4 before confirmation; confirm through the e-mail link | `encrypted_password` is **null** afterwards; P1 doesn't sign in |
+| (3) password sign-in against the null hash | **400 `invalid_credentials`**, no 500 (`models/user.go:468-476` returns "no match" before any compare) |
+| (2) owner sets P2 with `updateUser` in the link session; test re-plants P2 at cost 4; P2 sign-in | P2 signs in, P1 still fails, the wipe doesn't fire. **Surprise:** no hash is written back at all. GoTrue re-hashes a cost-4 (or > 10) hash only in memory (`models/user.go:490-503`) and persists only when database encryption is on (`token.go:139-149`; off locally). In both cases it runs only after the typed password matched the stored hash, so it can't restore a wiped one. The check now asserts "no other hash written" locally |
+| GoTrue writes after `Confirm()` | `Confirm()` itself is `UpdateOnly(confirmation_token, email_confirmed_at)` (`models/user.go:529`), then `user_metadata.email_verified` and the one-time tokens. A repeat `signUp` for an unconfirmed address doesn't touch the user ("do not update the user", `signup.go:194`) |
+
+- AC-14 cases 3, 4 and 5 pass up to "only B's password signs in" (B sets the password with `updateUser` in the link session; the finish RPC comes in slice 10). A repeat sign-up sends a new link and the old link stops working.
+- Tests skip Auth's 60-second resend wait by back-dating `confirmation_sent_at` with SQL (local only).
+- pgTAP-OS: a factor added before confirmation is gone after it; a second confirm update leaves a later password alone; a staff invitee's password and factor are kept. `triggers.test.sql`: account `…e1` (no marker, so a user) now also asserts it has no password after confirming.

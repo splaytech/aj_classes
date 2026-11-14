@@ -211,3 +211,38 @@ create trigger on_auth_identity_link_check
   before insert on auth.identities
   for each row
   execute function private.check_identity_link();
+
+-- ---------------------------------------------------------------------------
+-- §3.6 Triggers: the confirm-time wipe
+-- ---------------------------------------------------------------------------
+
+-- The moment a signed-up user proves the mailbox (confirmation or Forgot-password link), any
+-- password or authenticator stored before then is wiped: whoever typed it hadn't proven they
+-- own the address (AC-14). GoTrue's Confirm() writes only confirmation_token and
+-- email_confirmed_at (models/user.go:529), so nothing writes the old hash back. Invitees are
+-- confirmed when they are created, so this never touches them.
+create function private.wipe_unproven_credentials()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if exists (
+    select 1 from public.profiles p
+    where p.id = new.id and p.role = 'user' and p.status = 'invited'
+  ) then
+    new.encrypted_password := null;
+    delete from auth.mfa_factors f where f.user_id = new.id;
+  end if;
+  return new;
+end;
+$$;
+
+revoke execute on function private.wipe_unproven_credentials() from public, anon, authenticated;
+
+create trigger on_auth_user_email_confirmed
+  before update of email_confirmed_at on auth.users
+  for each row
+  when (old.email_confirmed_at is null and new.email_confirmed_at is not null)
+  execute function private.wipe_unproven_credentials();
