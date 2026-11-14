@@ -458,5 +458,45 @@ select results_eq(
 select ok(not has_function_privilege('anon', 'public.admin_set_sign_up_open(boolean)', 'execute'),
   'Signed-out visitors can''t call the switch');
 
+-- #8 Guards in existing functions (§3.8; AC-28, AC-31, AC-32, AC-40, AC-41)
+select tests.ready_to_finish('00000000-0000-0000-0000-00000000ff01');
+select tests.authenticate_with_session('00000000-0000-0000-0000-00000000ff01', array['otp']);
+select throws_ok($$ select public.complete_onboarding('Sneaky User', null, null, true) $$, '42501', 'not_invited',
+  'complete_onboarding refuses a signed-up user (not_invited): no path to tutor (AC-28)');
+select is_empty($$ select 1 from public.my_onboarding() $$,
+  'my_onboarding returns no row for an unfinished user (mobile never sees "invited") (AC-40)');
+reset role;
+select is((select role::text || '/' || status::text from public.profiles where id = '00000000-0000-0000-0000-00000000ff01'),
+  'user/invited', 'and the account is unchanged');
+
+select tests.create_staff('00000000-0000-0000-0000-00000000ff02', 'guard-admin@test.local', 'admin');
+select tests.create_sign_up('00000000-0000-0000-0000-00000000ff03', 'guard-unfinished@test.local', p_finished => false);
+select tests.create_sign_up('00000000-0000-0000-0000-00000000ff04', 'guard-finished@test.local');
+select tests.create_staff('00000000-0000-0000-0000-00000000ff05', 'guard-invitee@test.local', p_joined => false);
+select tests.authenticate_as('00000000-0000-0000-0000-00000000ff02', 'aal2');
+select lives_ok($$ select public.admin_set_active('00000000-0000-0000-0000-00000000ff03', false) $$,
+  'admin_set_active deactivates an unfinished user (AC-32)');
+select lives_ok($$ select public.admin_set_active('00000000-0000-0000-0000-00000000ff04', false) $$,
+  'and a finished user');
+select lives_ok($$ select public.admin_set_active('00000000-0000-0000-0000-00000000ff03', true) $$,
+  'and reactivates the unfinished one');
+select throws_ok($$ select public.admin_set_active('00000000-0000-0000-0000-00000000ff05', false) $$, 'P0001', 'not_joined',
+  'A staff invitee still can''t be deactivated (unchanged: cancel the invite instead)');
+reset role;
+select results_eq(
+  $$ select id, is_active from public.profiles
+     where id in ('00000000-0000-0000-0000-00000000ff03', '00000000-0000-0000-0000-00000000ff04') order by id $$,
+  $$ values ('00000000-0000-0000-0000-00000000ff03'::uuid, true), ('00000000-0000-0000-0000-00000000ff04'::uuid, false) $$,
+  'The deactivations stuck');
+select is((select count(*)::int from public.audit_log
+           where actor_id = '00000000-0000-0000-0000-00000000ff02' and action in ('deactivated', 'reactivated')),
+  3, 'Each change is audited');
+
+-- The mobile app's columns keep their names (AC-41).
+select has_column('public', 'profiles', 'role', 'profiles.role is still there');
+select has_column('public', 'profiles', 'full_name', 'profiles.full_name is still there');
+select has_column('public', 'profiles', 'is_active', 'profiles.is_active is still there');
+select has_column('public', 'profiles', 'invited_at', 'profiles.invited_at is still there');
+
 select * from finish();
 rollback;

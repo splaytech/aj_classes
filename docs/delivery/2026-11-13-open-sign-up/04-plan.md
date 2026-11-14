@@ -338,7 +338,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Check:** RESET, DB, INT, FULL.
   - **Commit:** `feat(db): admin switch to close and reopen sign-up`
 
-- [ ] **13. Guards in existing functions** (03 §3.8: copy the latest body, change one line).
+- [x] **13. Guards in existing functions** (03 §3.8: copy the latest body, change one line).
   - **ACs:** AC-28, AC-40 (DB), AC-32 (DB).
   - **pgTAP-OS:**
     - `complete_onboarding` → `not_invited` for a user;

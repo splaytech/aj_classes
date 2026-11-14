@@ -470,3 +470,178 @@ revoke execute on function public.sign_up_status() from public, anon, authentica
 revoke execute on function public.admin_set_sign_up_open(boolean) from public, anon, authenticated;
 grant execute on function public.sign_up_status() to anon, authenticated;
 grant execute on function public.admin_set_sign_up_open(boolean) to authenticated;
+
+
+-- ---------------------------------------------------------------------------
+-- §3.8 Guards in existing functions (each copied from its latest definition; one change each)
+-- ---------------------------------------------------------------------------
+
+-- From 20261023110000_onboarding_consents.sql: invite onboarding refuses signed-up users, who
+-- finish with complete_sign_up instead (AC-28).
+create or replace function public.complete_onboarding(
+  new_full_name text,
+  new_phone text default null,
+  new_year_level text default null,
+  accepts_terms boolean default false,
+  wants_marketing boolean default false,
+  allows_results_publicity boolean default false,
+  allows_video_publicity boolean default false
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  me constant uuid := (select auth.uid());
+  my_role public.app_role;
+  clean_name text := trim(coalesce(new_full_name, ''));
+  clean_phone text;
+  level smallint;
+begin
+  -- Locks the row, so two submits at once can't both get past here.
+  select p.role into my_role
+  from public.profiles p
+  where p.id = me and p.is_active and p.status = 'invited' and p.role <> 'user'
+  for update;
+
+  if my_role is null then
+    raise exception 'not_invited' using errcode = '42501';
+  end if;
+
+  if not exists (
+    select 1 from public.profiles p where p.id = me and p.password_set_at is not null
+  ) then
+    raise exception 'password_not_set';
+  end if;
+
+  if accepts_terms is not true then
+    raise exception 'terms_required';
+  end if;
+
+  -- No control characters (newlines, tabs) and no text-direction overrides, which could make a
+  -- name display misleadingly on admin pages and in the audit log.
+  if char_length(clean_name) not between 2 and 100
+     or clean_name ~ '[[:cntrl:]\u202A-\u202E\u2066-\u2069]' then
+    raise exception 'invalid_name';
+  end if;
+
+  if my_role in ('tutor', 'admin') then
+    clean_phone := private.normalise_au_phone(new_phone);
+    if clean_phone is null then
+      raise exception 'invalid_phone';
+    end if;
+  elsif new_phone is not null then
+    raise exception 'invalid_input';
+  end if;
+
+  if my_role = 'student' then
+    if new_year_level = 'other' then
+      level := null;
+    elsif new_year_level ~ '^([2-9]|1[0-2])$' then
+      level := new_year_level::smallint;
+    else
+      raise exception 'invalid_year_level';
+    end if;
+
+    update public.students s set year_level = level where s.profile_id = me;
+    if not found then
+      raise exception 'not_found' using errcode = 'P0002';
+    end if;
+  elsif new_year_level is not null then
+    raise exception 'invalid_input';
+  end if;
+
+  -- The optional choices are offered to parents only (a minor can't agree to publicity).
+  if my_role <> 'parent'
+     and (wants_marketing is true or allows_results_publicity is true
+          or allows_video_publicity is true) then
+    raise exception 'invalid_input';
+  end if;
+
+  update public.profiles
+  set full_name = clean_name,
+      phone = clean_phone,
+      terms_accepted_at = now(),
+      marketing_consent_at = case when wants_marketing is true then now() end,
+      results_publicity_consent_at = case when allows_results_publicity is true then now() end,
+      video_publicity_consent_at = case when allows_video_publicity is true then now() end,
+      status = 'active',
+      joined_at = now()
+  where id = me;
+
+  insert into public.audit_log (actor_id, action, target_id, details)
+  values (me, 'account_activated', me, jsonb_build_object(
+    'role', my_role,
+    'marketing', wants_marketing is true,
+    'results_publicity', allows_results_publicity is true,
+    'video_publicity', allows_video_publicity is true
+  ));
+end;
+$$;
+
+-- From 20261023100000_invite_onboarding.sql: the mobile app and the invite setup form never see a
+-- signed-up user as "invited, unfinished" (AC-40).
+create or replace function public.my_onboarding()
+returns table (role public.app_role, full_name text, email text, year_level smallint)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.role,
+         p.full_name,
+         p.email,
+         (select s.year_level from public.students s where s.profile_id = p.id)
+  from public.profiles p
+  where p.id = (select auth.uid())
+    and p.is_active
+    and p.status = 'invited'
+    and p.role <> 'user'
+$$;
+
+-- From 20261006004522_staff_accounts.sql: a signed-up user can be deactivated before finishing.
+create or replace function public.admin_set_active(target uuid, active boolean)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  currently_active boolean;
+  has_joined boolean;
+  current_role_value public.app_role;
+begin
+  perform private.lock_admin_changes();
+  if not private.is_admin() then
+    raise exception 'not_admin' using errcode = '42501';
+  end if;
+  if not active and target = (select auth.uid()) then
+    raise exception 'cannot_deactivate_self';
+  end if;
+
+  select p.is_active, p.joined_at is not null, p.role
+  into currently_active, has_joined, current_role_value
+  from public.profiles p
+  where p.id = target;
+
+  if not found then
+    raise exception 'not_found' using errcode = 'P0002';
+  end if;
+  -- Signed-up users can be deactivated whether or not they finished (AC-31, AC-32).
+  if not has_joined and current_role_value <> 'user' then
+    raise exception 'not_joined';
+  end if;
+  if currently_active = active then
+    return;
+  end if;
+  if not active and private.is_last_active_admin(target) then
+    raise exception 'last_admin';
+  end if;
+
+  update public.profiles set is_active = active where id = target;
+
+  insert into public.audit_log (actor_id, action, target_id)
+  values ((select auth.uid()), case when active then 'reactivated' else 'deactivated' end, target);
+end;
+$$;
