@@ -226,7 +226,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
     - (f) different names: use the documented ones in `deploy.sh` and amend slice 4's test.
   - **Commit:** `feat(auth): before-user-created hook for the sign-up switch, daily cap and Google e-mail check`
 
-- [ ] **6. Confirmation e-mail template** (03 §4.2). Every INT that follows an e-mail link needs it.
+- [x] **6. Confirmation e-mail template** (03 §4.2). Every INT that follows an e-mail link needs it.
   - **ACs:** AC-15, AC-16 (where the link points).
   - **Files:**
     - new `supabase/templates/confirmation.html`;

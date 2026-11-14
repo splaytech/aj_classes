@@ -1,0 +1,77 @@
+<!doctype html>
+<!-- Open sign-up confirmation (ADR-0011, 03 §4.2). Same frame and colours as recovery.html. -->
+<html lang="en">
+  <body
+    style="
+      margin: 0;
+      padding: 24px;
+      background: #f5f9ff;
+      font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        sans-serif;
+      color: #172033;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 16px"
+    >
+      <tr>
+        <td
+          style="
+            padding: 24px 32px;
+            background: #172554;
+            border-radius: 16px 16px 0 0;
+            color: #ffffff;
+            font-size: 20px;
+          "
+        >
+          <strong>AJ</strong> Classes
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 32px; font-size: 16px; line-height: 1.6">
+          <h1 style="margin: 0 0 16px; font-size: 22px; color: #172554">Confirm your e-mail</h1>
+          <p style="margin: 0">
+            Someone, hopefully you, asked to create an AJ Classes account with this e-mail. Click
+            the button to confirm it and finish signing up.
+          </p>
+          <p style="margin: 24px 0">
+            <a
+              href="{{ .SiteURL }}/portal/auth/confirm?token_hash={{ .TokenHash }}&type=email"
+              style="
+                display: inline-block;
+                padding: 12px 24px;
+                background: #2563eb;
+                color: #ffffff;
+                border-radius: 8px;
+                font-weight: 700;
+                text-decoration: none;
+              "
+              >Confirm my e-mail</a
+            >
+          </p>
+          <p style="margin: 0; color: #4b5563; font-size: 14px">
+            This link expires in 1 hour and works once.
+          </p>
+          <p style="margin: 16px 0 0; color: #4b5563; font-size: 14px">
+            If the button doesn't work, copy this link into your browser:
+          </p>
+          <p style="margin: 4px 0 0; font-size: 14px; word-break: break-all">
+            {{ .SiteURL }}/portal/auth/confirm?token_hash={{ .TokenHash }}&type=email
+          </p>
+          <p style="margin: 24px 0 0; color: #4b5563; font-size: 14px">
+            If you didn't sign up, you can ignore this e-mail. Nothing happens unless the link is
+            used.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

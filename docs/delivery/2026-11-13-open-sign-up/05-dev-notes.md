@@ -90,3 +90,10 @@ INT (`test-open-sign-up.mjs`, AC-42 section): all six signing-in seed accounts s
 - INT: 26 checks (AC-42 section plus the hook: allowed sign-up has no `account_role` (AC-41), is `user/invited` with the form's name; 16th → 429 `sign_up_busy`, no account, no mail; closed → 429 `sign_up_closed`; 1-character name → 429 `invalid_name`; a mixed-case e-mail is stored lower-case (AC-5)).
 - pgTAP-OS: 49 checks in the file so far.
 - [ASSUMPTION] INT empties `private.sign_up_emails` before planting and again at clean-up, and reopens the switch. It's the local stack I own, and handover needs an empty cap anyway.
+
+## Slice 6 — confirmation e-mail (S2 text part)
+
+- **S2 text part: none.** GoTrue v2.197.0 sends the confirmation as `Content-Type: text/html; charset=UTF-8` only (Mailpit's `Text` is its own rendering of the HTML). Took 03's "if not": the template prints the full link as visible text under the button ("If the button doesn't work, copy this link into your browser:"). `[TBC: AC-15 "plain-text part" is met as "link visible as text" – PO]`; the lead's assumption Q1 already accepts this.
+- Templates are read when Auth starts: a template edit needs RESTART before INT sees it (bit me once).
+- `invite.html` (unused since ADR-0010): [ASSUMPTION] the condition now tests `eq . "parent"` first, then `"student"`, else Staff, so a staff invite with `account_role: tutor` still says Staff (a bare `eq . "parent"` with the old else-branch would have called staff "Parents").
+- `recovery.html`: "your AJ Classes account", no Staff badge.

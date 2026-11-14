@@ -8,6 +8,7 @@ import path from 'node:path';
 
 import {
   API,
+  MAILPIT,
   SITE_ORIGIN,
   adminApi,
   adminTwoStepToken,
@@ -235,6 +236,56 @@ async function hookChecks() {
 
 let s1bShape = null;
 
+const CONFIRM_LINK =
+  /http:\/\/localhost:5173\/portal\/auth\/confirm\?token_hash=([0-9a-f]+)&(?:amp;)?type=email/;
+
+/** The newest Mailpit message to this address, in full (HTML, Text, headers). */
+async function fullMail(email) {
+  const summary = await latestMailTo(email);
+  if (!summary) return null;
+  const message = await (await fetch(`${MAILPIT}/api/v1/message/${summary.ID}`)).json();
+  const headers = await (await fetch(`${MAILPIT}/api/v1/message/${summary.ID}/headers`)).json();
+  return { ...message, contentType: headers['Content-Type']?.[0] ?? '' };
+}
+
+/** The token_hash from the newest confirmation e-mail to this address. */
+async function confirmationHash(email) {
+  return (await fullMail(email))?.HTML.match(CONFIRM_LINK)?.[1] ?? '';
+}
+
+async function templateChecks() {
+  console.log('\nAC-15/16: the confirmation e-mail (S2 text part)');
+  plantCapRows(0);
+  const email = address('template');
+  await rawSignUp(email, 'Template Parent');
+  const mail = await fullMail(email);
+  check(
+    'Subject "Confirm your e-mail for AJ Classes"',
+    mail?.Subject === 'Confirm your e-mail for AJ Classes',
+    mail?.Subject,
+  );
+  check(
+    'Branded HTML: heading and the Confirm my e-mail button',
+    mail?.HTML.includes('Confirm your e-mail</h1>') && mail?.HTML.includes('>Confirm my e-mail</a'),
+  );
+  check(
+    'The link goes to /portal/auth/confirm?token_hash=…&type=email',
+    CONFIRM_LINK.test(mail?.HTML ?? ''),
+  );
+  check('No Staff badge', !mail?.HTML.includes('Staff'));
+  check(
+    'S2: Auth sends HTML only, so the full link is also printed as visible text',
+    mail?.contentType.startsWith('text/html') &&
+      (mail?.Text ?? '').includes('/portal/auth/confirm?token_hash=') &&
+      mail?.HTML.includes("If the button doesn't work, copy this link into your browser:"),
+    mail?.contentType,
+  );
+  check(
+    'The expiry line says 1 hour',
+    mail?.HTML.includes('This link expires in 1 hour and works once.'),
+  );
+}
+
 function cleanUp() {
   sql(`delete from auth.users where lower(email) like '${PREFIX}-%'`);
   sql('delete from private.sign_up_emails');
@@ -248,6 +299,7 @@ async function main() {
   try {
     await existingAccountChecks();
     await hookChecks();
+    await templateChecks();
   } finally {
     cleanUp();
   }

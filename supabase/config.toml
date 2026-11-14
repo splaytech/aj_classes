@@ -251,6 +251,11 @@ otp_expiry = 3600
 subject = "You're invited to the AJ Classes portal"
 content_path = "./supabase/templates/invite.html"
 
+# Open sign-up (ADR-0011): the confirmation e-mail for a new sign-up.
+[auth.email.template.confirmation]
+subject = "Confirm your e-mail for AJ Classes"
+content_path = "./supabase/templates/confirmation.html"
+
 [auth.email.template.recovery]
 subject = "Reset your AJ Classes password"
 content_path = "./supabase/templates/recovery.html"
