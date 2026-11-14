@@ -2,9 +2,9 @@
 
 Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewed against `git diff develop...8a33156` (119 files). I read 00, 02, 03, 05, review-5, ADR-0011, the migrations, the account-admin handlers, `deploy.sh`, `config.toml`, the templates and the web portal routes and services. I also read the mobile repo's `RoleResolver`, and parts of the GoTrue v2.197.0 source on GitHub (`api.go`, `user.go`, `mail.go`, `magic_link.go`, `apilimiter.go`).
 
-**Verdict: PASS, no Blocking or High findings.** No self sign-up can reach any role other than `user`, and none can read any class, student, family or staff data. Before sign-up opens in production, Saurabh should decide on findings 1 and 2, which are new abuse paths the accepted risks don't cover. Finding 3 is a pre-existing breach of the house rule against secrets in argv, and it is cheap to fix.
+**Verdict: PASS, no Blocking or High findings.** No self sign-up can reach any role other than `user`, and none can read any class, student, family or staff data. Before sign-up opens in production, Saurabh should decide on findings 1 and 2, which are new abuse paths the accepted risks don't cover. Finding 5 (guessing the 6-digit e-mail code) must be fixed before release, and the lead has decided to fix it. Finding 3 is a pre-existing breach of the house rule against secrets in argv, and it is cheap to fix.
 
-**Counts:** Blocking 0 · High 0 · Medium 4 · Low 6 · Info 7.
+**Counts:** Blocking 0 · High 0 · Medium 5 · Low 5 · Info 7. (Round 2, after `review-6b.md`: finding 5 moved from Low to Medium.)
 
 ## How I checked (local stack only, nothing left behind)
 
@@ -19,7 +19,7 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
 | Asset | Attacker | Main path | Control that holds | Residual |
 |---|---|---|---|---|
 | Child data (marks, timetable, assignments) | Anyone on the internet | Self sign-up, then escalate | Role fails closed to `user`. RLS and helper functions key on `my_active_role()`. No user-callable path changes `role`. | Getting **promoted by an admin** (finding 4) |
-| Staff and admin accounts | Anyone | Google auto-link, or pre-registering a staff address | Linking trigger, confirm-time wipe, invites confirmed at creation | OTP brute force (finding 5, Low) |
+| Staff and admin accounts | Anyone | Google auto-link, or pre-registering a staff address | Linking trigger, confirm-time wipe, invites confirmed at creation | Guessing the e-mailed code (finding 5, Medium, being fixed) |
 | A parent's future account | Stranger pre-registers the parent's address | Hold a password until the parent confirms | Throwaway password, wipe on confirm, `amr` allow-list, password set in the link session, invite-replace path | Name pre-filled with the stranger's text (finding 9) |
 | Resend quota and sender reputation | Anyone with Turnstile solves | Confirmations, resends, e-mail change | Cap of 15 new a day, Turnstile, 60 s per address, `email_sent = 30`/h | R2 (accepted). Cap-fill and bounces (finding 1) |
 | Who is a client or staff member | Anyone | Raw replies | Same card on the page | R1 (accepted). E-mail-change oracle (finding 2) |
@@ -32,11 +32,12 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
 - **Where:** `supabase/migrations/20261114100100_open_sign_up.sql:155-160` (the cap counts every allowed new e-mail sign-up), `:419-432` (`sign_up_status` shows "busy" to everyone).
 - **Exploit:** Each day, an attacker solves Turnstile 15 times and signs up 15 made-up addresses (no mailbox needed).
   - Every real parent then gets "Sign-up is busy" for 24 hours. Repeating this daily keeps sign-up shut, for about 15 human or solver-service captcha solves a day.
-  - The 15 confirmation e-mails, plus resends to the same accounts every 60 s (up to `email_sent = 30`/h), go to addresses that don't exist. Hard bounces from Resend Free on a new domain can get sending paused, which takes down invites, resets and portal e-mails too.
+  - The 15 confirmation e-mails, plus resends to the same accounts every 60 s, go to addresses that don't exist.
+  - **Bounce rate.** Resends to those 15 addresses can take the whole `email_sent = 30`/h. In about 3.5 hours they can spend most of the day's 100 Resend Free e-mails on hard bounces. A high bounce rate on a new sending domain can get Resend to pause sending. Then invites, password resets and portal e-mails stop too, not just sign-up mail.
   - The unconfirmed rows never expire (finding 8).
 - **Why it isn't R2:** R2 covers mail outside the cap using up the quota. Nothing in 02, 03 or 00 covers deliberately filling the cap (a denial of service), or bounce reputation.
 - **Fix (Saurabh to choose, smallest first):**
-  1. Record it as accepted risk R4, and add to `release-notes.md` §Watch: "Admin → Users shows many unconfirmed sign-ups with odd addresses: close sign-up, deactivate them, check Resend → Suppressions/Bounces."
+  1. Record it as accepted risk R4, with the bounce rate named in the R4 text, so Saurabh accepts that a Resend pause stops invites, resets and portal mail as well. Add to `release-notes.md` §Watch: "Admin → Users shows many unconfirmed sign-ups with odd addresses: close sign-up, deactivate them, check Resend → Suppressions/Bounces."
   2. Free the slot when an admin deactivates an unfinished, unconfirmed sign-up, so the admin can undo a fill. This needs a row id or user id on `sign_up_emails`, which the design deliberately avoided (APP 3), so it is a trade-off.
   3. Raise the cap and move to Resend Pro if it happens.
 
@@ -76,14 +77,20 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
   - Add one line to the promotion dialog (`03 §7.7`) and to `release-notes.md`: "Only link an e-mail that is already on this student's enrolment record, or that you confirmed with the parent you already know. Never link one supplied only in a message."
   - Optionally, show the student's existing guardian e-mails beside the confirm button.
 
-### 5. Low: the 6-digit e-mail OTP can confirm a pre-registered address by brute force
+### 5. Medium (was Low; lead decided to fix): the 6-digit e-mailed code can be guessed, which confirms a pre-registered address
 
-- **Where:** `supabase/config.toml:241-243` (`otp_length = 6`, `otp_expiry = 3600`).
+- **Where:** `supabase/config.toml:214` (`token_verifications = 30`) and `:241-243` (`otp_length = 6`, `otp_expiry = 3600`). Also `PortalField.tsx:217`, where the e-mail code field shares `AUTH_LIMITS.codeLength` with the TOTP field.
 - **Exploit:** GoTrue accepts `POST /verify {type: "signup", email, token}` with the 6-digit code that exists alongside the link. Our template doesn't show the code, but the API still accepts it.
-  - An attacker who pre-registered `parent@x` guesses codes for an hour. `token_verifications = 30` per 5 min per IP is about 360 per hour per IP, so 50% success needs about 1,400 IPs.
-  - On success they hold a confirmed session for `parent@x`, finish the sign-up, and wait for finding 4's promotion.
-  - The ADR's claim that "every finished account has proven the mailbox" rests on the code being unguessable.
-- **Fix:** set `otp_length = 8` (10^8 space) and `otp_expiry = 1800` in `[auth.email]`. The link is unaffected apart from the shorter life, so the template's "expires in 1 hour" text must change to match.
+  - An attacker pre-registers the real parent's address, `parent@x`, and guesses codes. `token_verifications = 30` per 5 min per IP gives about 360 guesses an hour per IP.
+  - A resend restarts the hour. It costs one Turnstile solve and sends one e-mail to the victim, so the attempts add up across hours. Each hour gives about 360 / 10^6 per IP, independently of the others.
+  - That is about **23% within a month from 1 IP**, and about **45% within a week from 10 IPs**. Round 1 said "about 1,400 IPs for 50%", which counted only a single code's one-hour life and understated the risk.
+  - On success, the attacker holds a confirmed session for `parent@x` and finishes the sign-up. Every later check sees an account that "proved" the mailbox.
+  - **It also defeats finding 4's safeguard.** The address *is* the one on the enrolment record, so the admin's "only link a known e-mail" check passes and promotion hands over the child's data.
+  - The ADR's claim that "every finished account has proven the mailbox" rests on this code being unguessable.
+- **Decision (lead, `00-decisions.md` stage 6b, after `review-6b.md`):** fix it, not defer it. E-mailed codes go to 8 digits (`otp_length = 8`), with their own length constant on the web instead of the shared `AUTH_LIMITS.codeLength`. The authenticator (TOTP) code stays at 6, and the mobile app, which has only a TOTP field, is unaffected.
+  - With 8 digits, the same attacks drop to about 0.26% (1 IP, a month) and about 0.6% (10 IPs, a week).
+  - Shortening `otp_expiry` on its own wouldn't help, because it doesn't change the guess rate.
+  - It is in fix batch 2 and not yet verified. I re-check at the next SHA.
 
 ### 6. Low: the `deploy.sh` post-check doesn't cover the other settings the safety argument relies on
 
@@ -148,6 +155,7 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
    - PKCE (`supabase.client.ts`): the callback uses only the query `code`, wipes the address on mount (`auth-callback.tsx:79`) and navigates to a fixed route (`:84`), so there is no open redirect.
    - Error text is mapped to fixed messages and never rendered raw.
    - A forged `?code=` fails without the verifier, so there is no login CSRF.
+   - The production redirect allow-list (`config.toml:511`, `:513`) includes `staging.ajclasses.com.au`, because staging and prod share one project. PKCE keeps that unexploitable: the code verifier stays on the origin that started the sign-in, so a code that lands on staging can't be exchanged anywhere else.
    - `Referrer-Policy: strict-origin-when-cross-origin`, and `/portal/:path*` is `no-store` with the portal CSP.
    - Google is a top-level navigation, so it is correct that the CSP wasn't widened (no Google script or image is loaded).
    - Names render through JSX on Admin → Users and in the dialog. `notifications/template.ts` escapes every field.
@@ -176,6 +184,7 @@ Security, 14 Nov 2026. Pinned to `8a33156` on `feature/open-sign-up` and reviewe
 
 ## For the lead
 
-1. Decide findings 1 and 2 with Saurabh: accept as R4, and as an R1/R2 extension, or fix. These are the only items that affect opening sign-up.
-2. Developer: findings 3, 5 and 6 are small. Findings 4 and 9's pre-fill are wording or UI. Findings 7, 8 and the Google half of 9 can wait for the Google release.
-3. Tester (optional): confirm finding 2 with one `user@local.test` session and `PUT /auth/v1/user {"email":"admin@local.test"}`, expecting `422 email_exists`. It writes nothing for an address that already exists.
+1. Decide findings 1 and 2 with Saurabh: accept as R4 (bounce rate included), and as an R1/R2 extension, or fix. These are the only items that still need his answer before sign-up opens.
+2. Finding 5 must be fixed before release. Fix batch 2 is doing that (8-digit e-mail codes with their own constant, TOTP left at 6). Security re-verifies it at the next SHA.
+3. Developer: findings 3 (already fixed after the pin in `19905ba`, to re-check) and 6 are small. Findings 4 and 9's pre-fill are wording or UI. Findings 7, 8 and the Google half of 9 can wait for the Google release. Finding 7 should go into `03 §14` so the reversal of the earlier hardening decision is on record.
+4. Tester (optional): confirm finding 2 with one `user@local.test` session and `PUT /auth/v1/user {"email":"admin@local.test"}`, expecting `422 email_exists`. It writes nothing for an address that already exists.
