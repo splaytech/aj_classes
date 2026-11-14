@@ -31,3 +31,9 @@ Asked after stage 2 (Architect). Answers verbatim in quotes; lead's reading in [
 - [ASSUMPTION] 06 finding 2 → **extends R1 and R2:** any signed-in account can test whether an e-mail exists through `PUT /auth/v1/user` (no captcha, about 30 per 5 min per IP) and can send e-mail-change mail within Auth's 30/h limit. No Supabase setting turns it off; the real fix (custom Auth domain + WAF rule) was declined in Decision 8.
 - [ASSUMPTION] 06 finding 10: `[auth.sms] enable_confirmations = true` is set (SMS sign-up stays off), so the raw sign-up API answers an existing confirmed e-mail with the same quiet reply. Reversible config tightening of R1.
 - [ASSUMPTION] Deferred, recorded as known Low: finding 5 (6-digit e-mail code; changing `otp_length` would also change the 6-digit re-authentication code the web portal asks for), finding 7 (`posts.author_id` readable by any signed-in account; staff UUIDs are useless under `profiles` RLS) and the Google half of finding 9 (fix before Google is switched on).
+
+## Lead rulings on stage 6a ambiguous ACs — 2026-11-14 (overrulable)
+- AC-12: "the same HTTP status and body" applies to what the page shows and does. Any difference in Supabase's raw reply (status, or `identities: []` in the quiet reply) is R1, accepted in Decision 6. 01 is reworded to say so.
+- AC-27: a permission rule, not a screen. A user may not change any profile column except `full_name` (and the password through Auth). v1 has no name-edit screen after the finish step, and none is needed.
+- AC-40: the shipped mobile app's response to `Unresolvable role` (back to the sign-in screen with "Something went wrong. Please try again.") is today's error state, so it meets AC-40. No mobile change.
+- D8 (clean-up of unfinished sign-ups) moves into v1 as unconfirmed sign-ups deleted after 7 days (security finding 8). 01 is updated.
