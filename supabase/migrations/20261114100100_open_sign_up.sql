@@ -394,3 +394,79 @@ revoke execute on function public.my_has_password() from public, anon, authentic
 grant execute on function public.my_sign_up() to authenticated;
 grant execute on function public.complete_sign_up(text, boolean) to authenticated;
 grant execute on function public.my_has_password() to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- §3.9 Audit actions: the sign-up switch (promotion reuses parent_linked, finishing reuses
+-- account_activated). The list is copied from 20261023110000_onboarding_consents.sql.
+-- ---------------------------------------------------------------------------
+
+alter table public.audit_log
+  drop constraint audit_log_action_check,
+  add constraint audit_log_action_check check (action in (
+    'invite_sent', 'invite_resent', 'invite_cancelled',
+    'role_changed', 'deactivated', 'reactivated',
+    'two_step_reset', 'profile_edited_by_admin',
+    'student_invited', 'parent_invited', 'parent_linked', 'parent_unlinked', 'consent_recorded',
+    'account_activated', 'consent_changed',
+    'sign_up_opened', 'sign_up_closed'));
+
+-- ---------------------------------------------------------------------------
+-- §3.7 Sign-up status and the admin switch
+-- ---------------------------------------------------------------------------
+
+-- What the sign-up page and the Sign in link need: 'closed' (switch off, or no settings row),
+-- 'busy' (the daily cap is reached), else 'open'.
+create function public.sign_up_status()
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select case
+           when coalesce((select s.open from private.sign_up_settings s), false) is not true then 'closed'
+           when (select count(*) from private.sign_up_emails e where e.created_at >= now() - interval '24 hours')
+                >= private.sign_up_daily_cap() then 'busy'
+           else 'open'
+         end
+$$;
+
+-- Admin → Users → Close / Open sign-up (AC-48). Admins at aal2 only.
+create function public.admin_set_sign_up_open(is_open boolean)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  current_open boolean;
+begin
+  if not private.is_admin() then
+    raise exception 'not_admin' using errcode = '42501';
+  end if;
+  if is_open is null then
+    raise exception 'invalid_input';
+  end if;
+
+  select s.open into current_open from private.sign_up_settings s for update;
+  if current_open is not distinct from is_open then
+    return;
+  end if;
+
+  if found then
+    update private.sign_up_settings
+    set open = is_open, updated_at = now(), updated_by = (select auth.uid())
+    where id; -- the one row (API sessions refuse an UPDATE with no WHERE: pg-safeupdate)
+  else
+    insert into private.sign_up_settings (open, updated_by) values (is_open, (select auth.uid()));
+  end if;
+
+  insert into public.audit_log (actor_id, action, target_id, details)
+  values ((select auth.uid()), case when is_open then 'sign_up_opened' else 'sign_up_closed' end, null, '{}');
+end;
+$$;
+
+revoke execute on function public.sign_up_status() from public, anon, authenticated;
+revoke execute on function public.admin_set_sign_up_open(boolean) from public, anon, authenticated;
+grant execute on function public.sign_up_status() to anon, authenticated;
+grant execute on function public.admin_set_sign_up_open(boolean) to authenticated;

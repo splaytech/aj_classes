@@ -887,6 +887,43 @@ async function pkceChecks() {
   pkceSeen.recoveryHashPrefix = recoveryHash.slice(0, 5);
 }
 
+async function switchChecks() {
+  console.log('\nThe admin switch (AC-48)');
+  plantCapRows(0);
+  const closedReply = await rpc('admin_set_sign_up_open', admin.aal2, { is_open: false });
+  check(
+    'The seeded admin at aal2 closes sign-up',
+    closedReply.status === 204,
+    JSON.stringify(closedReply.json),
+  );
+  check(
+    'sign_up_status says closed (signed out)',
+    (await api('/rest/v1/rpc/sign_up_status', { body: {} })).json === 'closed',
+  );
+  const email = address('switch-closed');
+  const reply = await rawSignUp(email, 'Closed Parent');
+  check(
+    'Closed: signUp gets 429 sign_up_closed, no account and no e-mail',
+    reply.status === 429 &&
+      reply.json?.msg === 'sign_up_closed' &&
+      userCount(email) === '0' &&
+      (await mailCount(email)) === 0,
+    JSON.stringify(reply.json),
+  );
+  check(
+    'Closed: existing users still sign in',
+    Boolean((await signIn('user@local.test'))?.access_token),
+  );
+  check('Closed: staff still sign in', Boolean((await signIn('tutor@local.test'))?.access_token));
+  const tutor = await signIn('tutor@local.test');
+  const tutorTry = await rpc('admin_set_sign_up_open', tutor.access_token, { is_open: true });
+  check("A tutor can't reopen it (not_admin)", tutorTry.json?.message === 'not_admin');
+  const reopened = await rpc('admin_set_sign_up_open', admin.aal2, { is_open: true });
+  check('Reopening works', reopened.status === 204);
+  const after = await rawSignUp(address('switch-open'), 'Open Again');
+  check('and sign-up works again', after.status === 200, after.status);
+}
+
 const pkceSeen = {};
 const amrSeen = {};
 let captchaShape = null;
@@ -912,6 +949,7 @@ async function main() {
     await captchaAndResendChecks();
     await finishChecks();
     await pkceChecks();
+    await switchChecks();
   } finally {
     cleanUp();
   }

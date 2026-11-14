@@ -161,3 +161,9 @@ pgTAP-OS (the `amr` matrix with crafted claims): `[otp]`, `[recovery]`, `[oauth]
 - E-mail-change links: the portal has no e-mail-change flow (no `updateUser({ email })` anywhere), so there's nothing to break. Not tested.
 - E2E smoke: 10 passed (the invite → recovery-`verifyOtp` journey and the staff 2FA login run in a real browser on the PKCE client). The explicit "reset still works" browser test lands in `open-sign-up.spec.ts` in slice 30, so the smoke count becomes 13 there.
 - **To the lead (stop list item 9, informational):** `e2e/tests/invite-onboarding.spec.ts` AC 25 inserted a bare `auth.users` row to stand for an old staff invite. Since slice 2 such a row is a signed-up `user`, so it no longer showed on the staff page. The fixture now carries `account_role: tutor`, as every real staff invite does. Same intent, fixture only. I should have run E2E in slice 2; it was caught here.
+
+## Slice 12 — sign-up status and the admin switch
+
+- `admin_set_sign_up_open`'s UPDATE needed `where id`: API sessions run with `pg-safeupdate`, which refuses an UPDATE without a WHERE (pgTAP, as `postgres`, didn't notice; INT through PostgREST did). Fixed in the migration.
+- pgTAP-OS: status open, busy (15 in 24 h), old rows ignored, closed (switch off or row missing); the switch is admin-at-aal2 only (tutor and aal1 admin → `not_admin`), null → `invalid_input`, no-ops write no audit, real changes audit `sign_up_closed` / `sign_up_opened` with no target.
+- INT: closed by the seeded admin at aal2 → `signUp` 429 `sign_up_closed`, no account, no mail; user and staff still sign in; a tutor can't reopen; reopening works.

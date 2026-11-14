@@ -326,7 +326,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
 
 ### Phase C: the rest of migration 2 (each with pgTAP)
 
-- [ ] **12. Sign-up status and the admin switch** (03 §3.7 `sign_up_status` and `admin_set_sign_up_open`; §3.9 audit actions).
+- [x] **12. Sign-up status and the admin switch** (03 §3.7 `sign_up_status` and `admin_set_sign_up_open`; §3.9 audit actions).
   - **ACs:** AC-48, AC-46 (busy status).
   - **pgTAP-OS:**
     - the status is `open`, `busy` (15 planted), `closed`, and `closed` when the row is missing;

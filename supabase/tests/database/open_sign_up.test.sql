@@ -408,5 +408,55 @@ select ok(not has_function_privilege('authenticated', 'private.session_can_finis
           and not has_function_privilege('authenticated', 'private.signed_up_with(uuid)', 'execute'),
   'The private helpers are not callable from the API');
 
+-- #7 Sign-up status and the admin switch (§3.7, §3.9; AC-46, AC-48)
+delete from private.sign_up_emails;
+select is(public.sign_up_status(), 'open', 'sign_up_status: open');
+insert into private.sign_up_emails (created_at) select now() from generate_series(1, 15);
+select is(public.sign_up_status(), 'busy', 'sign_up_status: busy with 15 in the last 24 hours');
+update private.sign_up_emails set created_at = now() - interval '25 hours';
+select is(public.sign_up_status(), 'open', 'sign_up_status: rows older than 24 hours don''t count');
+delete from private.sign_up_emails;
+update private.sign_up_settings set open = false;
+select is(public.sign_up_status(), 'closed', 'sign_up_status: closed when the switch is off');
+delete from private.sign_up_settings;
+select is(public.sign_up_status(), 'closed', 'sign_up_status: closed when the settings row is missing');
+insert into private.sign_up_settings default values;
+select ok(has_function_privilege('anon', 'public.sign_up_status()', 'execute'),
+  'sign_up_status: the signed-out sign-up page can read it');
+
+delete from public.audit_log;
+select tests.create_staff('00000000-0000-0000-0000-00000000ee01', 'switch-admin@test.local', 'admin');
+select tests.create_staff('00000000-0000-0000-0000-00000000ee02', 'switch-tutor@test.local');
+select tests.authenticate_as('00000000-0000-0000-0000-00000000ee02', 'aal2');
+select throws_ok($$ select public.admin_set_sign_up_open(false) $$, '42501', 'not_admin', 'A tutor can''t close sign-up');
+reset role;
+select tests.authenticate_as('00000000-0000-0000-0000-00000000ee01', 'aal1');
+select throws_ok($$ select public.admin_set_sign_up_open(false) $$, '42501', 'not_admin',
+  'An admin without two-step (aal1) can''t close sign-up');
+reset role;
+select tests.authenticate_as('00000000-0000-0000-0000-00000000ee01', 'aal2');
+select throws_ok($$ select public.admin_set_sign_up_open(null) $$, 'P0001', 'invalid_input', 'Null: invalid_input');
+select lives_ok($$ select public.admin_set_sign_up_open(true) $$, 'Opening when already open is a no-op');
+select lives_ok($$ select public.admin_set_sign_up_open(false) $$, 'An admin at aal2 closes sign-up');
+reset role;
+select is(public.sign_up_status(), 'closed', 'and the status is closed');
+select results_eq($$ select open, updated_by from private.sign_up_settings $$,
+  $$ values (false, '00000000-0000-0000-0000-00000000ee01'::uuid) $$, 'The switch records who changed it');
+select is(public.hook_before_user_created(tests.sign_up_event()), private.sign_up_refusal('sign_up_closed'),
+  'and the hook now refuses sign-ups');
+select tests.authenticate_as('00000000-0000-0000-0000-00000000ee01', 'aal2');
+select lives_ok($$ select public.admin_set_sign_up_open(false) $$, 'Closing again is a no-op');
+select lives_ok($$ select public.admin_set_sign_up_open(true) $$, 'and reopening works');
+reset role;
+select is(public.sign_up_status(), 'open', 'Open again');
+select results_eq(
+  $$ select action, actor_id, target_id, details from public.audit_log
+     where action in ('sign_up_opened', 'sign_up_closed') order by created_at, id $$,
+  $$ values ('sign_up_closed', '00000000-0000-0000-0000-00000000ee01'::uuid, null::uuid, '{}'::jsonb),
+            ('sign_up_opened', '00000000-0000-0000-0000-00000000ee01'::uuid, null::uuid, '{}'::jsonb) $$,
+  'One audit row per real change, none for a no-op');
+select ok(not has_function_privilege('anon', 'public.admin_set_sign_up_open(boolean)', 'execute'),
+  'Signed-out visitors can''t call the switch');
+
 select * from finish();
 rollback;
