@@ -470,7 +470,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Visible:** on the dev server, `/portal/login` shows "New to AJ Classes? Create an account", and a sign-up puts a mail in Mailpit. To see busy, plant 15 rows; to see closed, set the row with `psql`. Reset both afterwards.
   - **Commit:** `feat(portal): parent and guardian sign-up page`
 
-- [ ] **24. Confirm link and finish step** (03 §7.4 `FinishSignUpForm`; §7.6 `auth-confirm` and `join`).
+- [x] **24. Confirm link and finish step** (03 §7.4 `FinishSignUpForm`; §7.6 `auth-confirm` and `join`).
   - **ACs:** AC-6, AC-7, AC-16, AC-17, AC-18, AC-20 (the login notice).
   - **Files:** `auth-confirm.tsx` (`type=email`), `join.tsx` (the user variant), new `FinishSignUpForm.tsx`.
   - **Tests:**

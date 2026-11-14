@@ -3,6 +3,7 @@
 // from the address bar. Supabase uses the token up here (single use, 1 hour).
 // Invites land on /portal/invite now (ADR-0010). An old-format invite link (`type=invite`) still
 // shows the welcome card, but Continue refuses it here without any request (AC 38).
+// A sign-up confirmation (`type=email`, open sign-up) goes on to the finish step (/portal/join).
 
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
@@ -19,7 +20,7 @@ import {
   PORTAL_SEO,
 } from '@/constants';
 import { buildPortalMeta } from '@/lib/seo';
-import { confirmRecoveryLink } from '@/services';
+import { confirmRecoveryLink, confirmSignUpLink } from '@/services';
 import type { EmailLinkType } from '@/services';
 
 export function meta() {
@@ -27,7 +28,7 @@ export function meta() {
 }
 
 function readLinkType(value: string | null): EmailLinkType | null {
-  return value === 'invite' || value === 'recovery' ? value : null;
+  return value === 'invite' || value === 'recovery' || value === 'email' ? value : null;
 }
 
 export default function AuthConfirmPage() {
@@ -54,16 +55,33 @@ export default function AuthConfirmPage() {
 
     setChecking(true);
     setError('');
-    const result = await confirmRecoveryLink(tokenHash);
+    const isSignUp = type === 'email';
+    const result = isSignUp
+      ? await confirmSignUpLink(tokenHash)
+      : await confirmRecoveryLink(tokenHash);
     window.history.replaceState(null, '', PORTAL_ROUTES.authConfirm);
 
     if (result.ok) {
-      navigate(PORTAL_ROUTES.setPassword, { replace: true });
+      navigate(isSignUp ? PORTAL_ROUTES.join : PORTAL_ROUTES.setPassword, { replace: true });
       return;
     }
     setChecking(false);
-    // Supabase gives the same error for an expired link and a used one.
-    setError(`${PORTAL_ERRORS[result.error]} ${AUTH_LINK_ERRORS.recovery}`);
+    // Supabase gives the same error for an expired link and a used one (AC-18: one message).
+    setError(
+      isSignUp
+        ? PORTAL_ERRORS.linkExpired
+        : `${PORTAL_ERRORS[result.error]} ${AUTH_LINK_ERRORS.recovery}`,
+    );
+  }
+
+  function linkAfterError() {
+    if (type === 'recovery') {
+      return <Link to={PORTAL_ROUTES.forgotPassword}>{AUTH_CONFIRM_PAGE.requestNewLink}</Link>;
+    }
+    if (type === 'email') {
+      return <Link to={PORTAL_ROUTES.signUpResend}>{AUTH_CONFIRM_PAGE.sendAgain}</Link>;
+    }
+    return <Link to={PORTAL_ROUTES.login}>{AUTH_CONFIRM_PAGE.alreadySetUp}</Link>;
   }
 
   // Once the link has failed, "Continue to…" no longer applies, so the intro is dropped.
@@ -74,11 +92,7 @@ export default function AuthConfirmPage() {
     >
       <FormAlert message={error} />
       {error ? (
-        type === 'recovery' ? (
-          <Link to={PORTAL_ROUTES.forgotPassword}>{AUTH_CONFIRM_PAGE.requestNewLink}</Link>
-        ) : (
-          <Link to={PORTAL_ROUTES.login}>{AUTH_CONFIRM_PAGE.alreadySetUp}</Link>
-        )
+        linkAfterError()
       ) : (
         <div className={formStyles.actions}>
           <Button onClick={handleContinue} disabled={checking}>

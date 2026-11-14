@@ -77,6 +77,7 @@ export const FINISH_SIGN_UP = {
   },
   submit: 'Finish',
   submitting: 'Finishing…',
+  codeSent: "For your security, we've emailed you a code. Enter it below, then press Finish again.",
   signOut: 'Not you? Sign out',
 } as const;
 

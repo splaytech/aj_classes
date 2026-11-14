@@ -10,17 +10,18 @@ import {
   PORTAL_ROUTES,
   PORTAL_SEO,
 } from '@/constants';
-import { confirmRecoveryLink } from '@/services';
+import { confirmRecoveryLink, confirmSignUpLink } from '@/services';
 import { setupUser } from '@/test/user';
 
 import AuthConfirmPage from './auth-confirm';
 
-vi.mock('@/services', () => ({ confirmRecoveryLink: vi.fn() }));
+vi.mock('@/services', () => ({ confirmRecoveryLink: vi.fn(), confirmSignUpLink: vi.fn() }));
 
 function renderPage(search: string) {
   const Stub = createRoutesStub([
     { path: PORTAL_ROUTES.authConfirm, Component: AuthConfirmPage },
     { path: PORTAL_ROUTES.setPassword, Component: () => <h1>{PORTAL_SEO.setPassword}</h1> },
+    { path: PORTAL_ROUTES.join, Component: () => <h1>{PORTAL_SEO.join}</h1> },
   ]);
   render(<Stub initialEntries={[`${PORTAL_ROUTES.authConfirm}${search}`]} />);
 }
@@ -30,6 +31,7 @@ const continueButton = () => screen.getByRole('button', { name: AUTH_CONFIRM_PAG
 
 beforeEach(() => {
   vi.mocked(confirmRecoveryLink).mockReset();
+  vi.mocked(confirmSignUpLink).mockReset();
 });
 
 describe('email link page', () => {
@@ -84,6 +86,43 @@ describe('email link page', () => {
     expect(screen.getByRole('link', { name: AUTH_CONFIRM_PAGE.requestNewLink })).toHaveAttribute(
       'href',
       PORTAL_ROUTES.forgotPassword,
+    );
+  });
+});
+
+describe('sign-up confirmation link, type=email (open sign-up AC-16, AC-18)', () => {
+  it('uses nothing until Continue, then confirms, wipes the address and goes to the finish step', async () => {
+    const user = setupUser();
+    const replaceState = vi.spyOn(window.history, 'replaceState');
+    vi.mocked(confirmSignUpLink).mockResolvedValue({ ok: true, data: undefined });
+    renderPage(link('email'));
+
+    expect(
+      screen.getByRole('heading', { name: AUTH_CONFIRM_PAGE.heading.email }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(AUTH_CONFIRM_PAGE.intro.email)).toBeInTheDocument();
+    expect(confirmSignUpLink).not.toHaveBeenCalled();
+
+    await user.click(continueButton());
+
+    expect(confirmSignUpLink).toHaveBeenCalledWith('abc123');
+    expect(confirmRecoveryLink).not.toHaveBeenCalled();
+    expect(replaceState).toHaveBeenCalledWith(null, '', PORTAL_ROUTES.authConfirm);
+    expect(await screen.findByRole('heading', { name: PORTAL_SEO.join })).toBeInTheDocument();
+    replaceState.mockRestore();
+  });
+
+  it('shows one message and a "Send the link again" link when the link has expired', async () => {
+    const user = setupUser();
+    vi.mocked(confirmSignUpLink).mockResolvedValue({ ok: false, error: 'linkExpired' });
+    renderPage(link('email'));
+    await user.click(continueButton());
+
+    expect(await screen.findByText(PORTAL_ERRORS.linkExpired)).toBeInTheDocument();
+    expect(screen.queryByText(AUTH_LINK_ERRORS.recovery, { exact: false })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: AUTH_CONFIRM_PAGE.sendAgain })).toHaveAttribute(
+      'href',
+      PORTAL_ROUTES.signUpResend,
     );
   });
 });
