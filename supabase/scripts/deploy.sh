@@ -152,11 +152,15 @@ google_enabled() {
   ' "$CONFIG_FILE"
 }
 
-# Is the hosted before-user-created hook on, pointing at our function? (Management API.)
-auth_hook_is_on() {
+# After config push, are the hosted Auth settings the safe ones? The before-user-created hook on
+# and pointing at our function, e-mail confirmations on (with autoconfirm, a stranger's
+# password would sign in without the mailbox ever being proven: AC-14), and sign-up on as pushed.
+# (Management API; review-5 finding 5.)
+auth_settings_are_safe() {
   curl -fsS --max-time 20 -H @"$AUTH_HEADER_FILE" "$MANAGEMENT_API" |
     jq -e --arg uri "$HOOK_URI" \
-      '.hook_before_user_created_enabled == true and .hook_before_user_created_uri == $uri' >/dev/null
+      '.hook_before_user_created_enabled == true and .hook_before_user_created_uri == $uri
+       and .mailer_autoconfirm == false and .disable_signup == false' >/dev/null
 }
 
 # Turns public sign-up off on the hosted project. Never ends the script silently (set -e): if the
@@ -266,15 +270,19 @@ if google_enabled; then
 else
   say "7/7 Sign-in settings (sign-up open, hook, confirmations; Google off): supabase/config.toml"
 fi
-run supabase config push --project-ref "$PROJECT_REF"
-printf '  Checking the sign-up hook is on\n'
-if $DRY_RUN; then
-  printf '  (dry run) would check %s: hook_before_user_created_enabled and _uri = %s\n' "$MANAGEMENT_API" "$HOOK_URI"
-elif ! auth_hook_is_on; then
+# A push that fails part-way may already have opened sign-up, so close it again, loudly.
+if ! run supabase config push --project-ref "$PROJECT_REF"; then
   close_sign_up
-  fail "The sign-up hook isn't on, so sign-up was closed again. Check Dashboard → Authentication → Hooks → Before User Created, then run again."
+  fail "config push failed, so sign-up was closed again. Fix the error above, then run again."
+fi
+printf '  Checking the sign-up hook is on and confirmations are on\n'
+if $DRY_RUN; then
+  printf '  (dry run) would check %s: hook_before_user_created_enabled and _uri = %s, mailer_autoconfirm false, disable_signup false\n' "$MANAGEMENT_API" "$HOOK_URI"
+elif ! auth_settings_are_safe; then
+  close_sign_up
+  fail "The sign-up hook isn't on, or e-mail confirmations are off, so sign-up was closed again. Check Dashboard → Authentication → Hooks → Before User Created and Sign In / Providers → Confirm email, then run again."
 else
-  printf '  The sign-up hook is on.\n'
+  printf '  The sign-up hook is on and confirmations are on.\n'
 fi
 
 cat <<'NEXT'

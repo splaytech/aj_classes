@@ -28,6 +28,7 @@ function check(description, condition, detail = '') {
 const FAKE_SUPABASE = `#!/bin/bash
 echo "supabase $*" >> "$FAKE_LOG"
 [[ -n "$FAKE_SUPABASE_FAILS" ]] && exit 1
+[[ "$1 $2" == "config push" && -n "$FAKE_CONFIG_PUSH_FAILS" ]] && exit 1
 if [[ "$1 $2" == "secrets list" ]]; then
   digest() { printf %s "$1" | shasum -a 256 | cut -d' ' -f1; }
   printf '[{"name":"NOTIFY_WORKER_SECRET","value":"%s"},{"name":"EMAIL_TRANSPORT","value":"%s"},{"name":"SITE_URL","value":"%s"}]\\n' \\
@@ -52,7 +53,8 @@ case "$method $url" in
     answer=$(echo "$FAKE_GUARD" | cut -d, -f"$n"); [[ -z "$answer" ]] && answer=$(echo "$FAKE_GUARD" | awk -F, '{print $NF}')
     [[ "$answer" == "true" ]] && echo true || exit 22 ;;
   "GET "*/config/auth)
-    [[ "$FAKE_HOOK_ON" == "true" ]] && echo '{"hook_before_user_created_enabled":true,"hook_before_user_created_uri":"pg-functions://postgres/public/hook_before_user_created"}' \\
+    autoconfirm=false; [[ "$FAKE_AUTOCONFIRM" == "true" ]] && autoconfirm=true
+    [[ "$FAKE_HOOK_ON" == "true" ]] && printf '{"hook_before_user_created_enabled":true,"hook_before_user_created_uri":"pg-functions://postgres/public/hook_before_user_created","mailer_autoconfirm":%s,"disable_signup":false}\\n' "$autoconfirm" \\
       || echo '{"hook_before_user_created_enabled":false}' ;;
   "PATCH "*/config/auth)
     [[ "$FAKE_PATCH_FAILS" == "true" ]] && exit 22 || echo '{}' ;;
@@ -124,7 +126,7 @@ const STEPS = [
   ['functions', /5\/7 Edge functions/],
   ['secrets', /\(dry run\) supabase secrets set/],
   ['config push', /\(dry run\) supabase config push/],
-  ['hook post-check', /Checking the sign-up hook is on/],
+  ['hook post-check', /Checking the sign-up hook is on and confirmations are on/],
 ];
 
 function dryRunChecks() {
@@ -219,7 +221,35 @@ function failClosedChecks() {
   );
   check(
     'Hook off: it says sign-up was closed again',
-    hookOff.out.includes("The sign-up hook isn't on, so sign-up was closed again"),
+    hookOff.out.includes("The sign-up hook isn't on, or e-mail confirmations are off, so sign-up"),
+  );
+
+  // Review-5 finding 5: a failed config push closes sign-up and fails loudly.
+  const pushFails = realRun({
+    FAKE_SIGNUPS_OFF: 'true',
+    FAKE_GUARD: 'true',
+    FAKE_HOOK_ON: 'true',
+    FAKE_CONFIG_PUSH_FAILS: 'true',
+  });
+  check('config push fails: non-zero exit', pushFails.status !== 0);
+  check('config push fails: one PATCH closes sign-up', patches(pushFails.calls).length === 1);
+  check(
+    'config push fails: it says sign-up was closed again',
+    pushFails.out.includes('config push failed, so sign-up was closed again'),
+    pushFails.out.slice(-300),
+  );
+
+  // Review-5 finding 5: confirmations off (autoconfirm) after config push closes sign-up too.
+  const autoconfirm = realRun({
+    FAKE_SIGNUPS_OFF: 'true',
+    FAKE_GUARD: 'true',
+    FAKE_HOOK_ON: 'true',
+    FAKE_AUTOCONFIRM: 'true',
+  });
+  check(
+    'Hook on but e-mail confirmations off: non-zero exit and one PATCH',
+    autoconfirm.status !== 0 && patches(autoconfirm.calls).length === 1,
+    autoconfirm.out.slice(-300),
   );
 
   // (b): the PATCH itself fails.
