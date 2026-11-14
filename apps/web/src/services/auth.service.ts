@@ -98,7 +98,7 @@ export async function setNewPassword(password: string): Promise<Result> {
 }
 
 /**
- * Emails a 6-digit code that proves it's really the account owner changing the password.
+ * Emails an 8-digit code (AUTH_LIMITS.emailCodeLength) that proves it's really the account owner changing the password.
  * Supabase asks for it when the session is more than a day old (R2a review V19, V21).
  */
 export async function sendReauthCode(): Promise<Result> {

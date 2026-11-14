@@ -22,6 +22,15 @@ describe('code lengths (security 06 finding 5)', () => {
     expect(PORTAL_VALIDATION.emailCodeInvalid).toContain('8-digit');
   });
 
+  it('says "an 8-digit code", never "a 8-digit" (Tester note, review-5 round 3)', async () => {
+    const constants = await import('@/constants');
+    const text = JSON.stringify(constants, (_key, value) =>
+      typeof value === 'function' ? String(value) : value,
+    );
+    expect(text).not.toMatch(/\ba 8-digit/);
+    expect(constants.ACCOUNT_PAGE.password.codeSent).toContain('an 8-digit code');
+  });
+
   it('matches [auth.email] otp_length in supabase/config.toml', () => {
     const config = readFileSync(
       path.join(import.meta.dirname, '../../../../supabase/config.toml'),

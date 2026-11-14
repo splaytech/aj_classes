@@ -289,7 +289,7 @@ export const ACCOUNT_PAGE = {
   password: {
     heading: 'Change password',
     intro: `Use at least ${AUTH_LIMITS.passwordMin} characters. Other devices will be signed out.`,
-    codeSent: `You signed in more than a day ago, so we emailed you a ${AUTH_LIMITS.emailCodeLength}-digit code to confirm it’s you.`,
+    codeSent: `You signed in more than a day ago, so we emailed you an ${AUTH_LIMITS.emailCodeLength}-digit code to confirm it’s you.`,
     resendCode: 'Email me a new code',
     codeResent: 'We sent a new code.',
     labels: {
