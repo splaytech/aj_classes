@@ -111,7 +111,6 @@ export async function inviteStudentAccount(
   return result.ok ? succeed(String(result.data.userId)) : result;
 }
 
-/** Invites a new parent, or links one who already has an account (FA2). */
 /**
  * Invites a parent, links an existing one, or (with confirmUserId, after the admin confirmed)
  * links a signed-up user as a parent. A signed-up user first comes back as needsConfirmation.

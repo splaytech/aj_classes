@@ -122,7 +122,6 @@ export async function sendAccountInvite(account: InviteAccount): Promise<boolean
   });
 }
 
-/** Removes an account that was only just created (undo). Its links go with it. */
 /** A website sign-up (open sign-up, ADR-0011) that hasn't finished /portal/join and is active. */
 export function isUnfinishedSignUp(account: AccountRecord): boolean {
   return account.role === 'user' && account.status === 'invited' && account.is_active;
@@ -202,6 +201,7 @@ export async function signUpFacts(
   return { signedUpWith: google ? 'google' : 'email', signedUpAt: data.user.created_at };
 }
 
+/** Removes an account that was only just created (undo). Its links go with it. */
 export async function deleteAccount(userId: string): Promise<void> {
   await serviceClient().auth.admin.deleteUser(userId);
 }
