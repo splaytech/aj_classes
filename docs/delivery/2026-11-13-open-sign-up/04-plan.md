@@ -370,7 +370,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Check:** RESET, DB, DEPLOY, FULL.
   - **Commit:** `feat(db): sign_up_guard_ready checks behaviour, not migration history`
 
-- [ ] **16. Access sweep** (new `supabase/tests/database/open_sign_up_access.test.sql`, pgTAP-AX).
+- [x] **16. Access sweep** (new `supabase/tests/database/open_sign_up_access.test.sql`, pgTAP-AX).
   - **ACs:** AC-26, AC-27, AC-29 (DB), AC-30 (DB), AC-55.
   - **As a finished user:**
     - every table AC-26 lists, and other people's `profiles`, return 0 rows;
