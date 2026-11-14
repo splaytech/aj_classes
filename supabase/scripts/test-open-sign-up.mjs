@@ -3,6 +3,9 @@
 // Every set-up write (planted cap rows, the switch, back-dating) goes to the local database only.
 // Run: pnpm db:start && pnpm test:functions   (or: node supabase/scripts/test-open-sign-up.mjs)
 
+import { createRequire } from 'node:module';
+import path from 'node:path';
+
 import {
   API,
   SITE_ORIGIN,
@@ -13,6 +16,7 @@ import {
   finish,
   latestMailTo,
   mailpitText,
+  mailsTo,
   signIn,
   sql,
 } from './local-test-helpers.mjs';
@@ -29,6 +33,16 @@ const SEED_ACCOUNTS = [
   'student@local.test',
   'user@local.test',
 ];
+
+// supabase-js as the portal uses it (apps/web's copy), to see what the browser sees (S1(b)).
+const { createClient } = createRequire(
+  path.join(import.meta.dirname, '../../apps/web/package.json'),
+)('@supabase/supabase-js');
+const PUBLISHABLE_KEY = JSON.parse(
+  (await import('node:child_process')).execSync('supabase status -o json', { encoding: 'utf8' }),
+).PUBLISHABLE_KEY;
+const browserClient = () =>
+  createClient(API, PUBLISHABLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 
 let admin;
 const accountAdmin = (body) => api('/functions/v1/account-admin', { token: admin.aal2, body });
@@ -116,8 +130,115 @@ async function existingAccountChecks() {
   );
 }
 
+/** POST /auth/v1/signup as the sign-up page does (a throwaway password, the name in data). */
+const rawSignUp = (email, fullName = 'Test Parent', { captcha = true } = {}) =>
+  api('/auth/v1/signup', {
+    body: {
+      email,
+      password: `${PREFIX}-throwaway-Pw1!`,
+      data: { full_name: fullName },
+      ...(captcha ? { gotrue_meta_security: CAPTCHA } : {}),
+    },
+  });
+const mailCount = async (email) => (await mailsTo(email)).length;
+const userCount = (email) => sql(`select count(*) from auth.users where email = '${email}'`);
+const plantCapRows = (count) =>
+  sql(
+    `delete from private.sign_up_emails; insert into private.sign_up_emails (created_at) select now() from generate_series(1, ${count})`,
+  );
+const setSwitch = (open) => sql(`update private.sign_up_settings set open = ${open}`);
+
+async function hookChecks() {
+  console.log('\nS1: the before-user-created hook (AC-41, AC-46, AC-48)');
+  plantCapRows(0);
+  const allowed = address('allowed');
+  const reply = await rawSignUp(allowed, 'Allowed Parent');
+  check('A sign-up with room under the cap is accepted', reply.status === 200, reply.status);
+  check(
+    'AC-41: the new account has no account_role in app_metadata',
+    reply.json?.app_metadata && !('account_role' in reply.json.app_metadata),
+    JSON.stringify(reply.json?.app_metadata),
+  );
+  check(
+    'and it is a user, invited, with the name from the form',
+    sql(
+      `select role || '/' || status || '/' || full_name from public.profiles where email = '${allowed}'`,
+    ) === 'user/invited/Allowed Parent',
+  );
+  check('and it took one cap slot', sql('select count(*) from private.sign_up_emails') === '1');
+
+  plantCapRows(15);
+  const busy = address('busy');
+  const busyReply = await rawSignUp(busy);
+  check(
+    'With 15 planted, the 16th sign-up gets 429 sign_up_busy',
+    busyReply.status === 429 && busyReply.json?.msg === 'sign_up_busy',
+    JSON.stringify(busyReply),
+  );
+  check('and no account was made', userCount(busy) === '0');
+  check('and no e-mail was sent', (await mailCount(busy)) === 0);
+  check(
+    'and the cap row count is unchanged',
+    sql('select count(*) from private.sign_up_emails') === '15',
+  );
+
+  const viaJs = await browserClient().auth.signUp({
+    email: address('busy-js'),
+    password: `${PREFIX}-throwaway-Pw1!`,
+    options: { captchaToken: CAPTCHA.captcha_token, data: { full_name: 'Busy Parent' } },
+  });
+  check(
+    "S1(b): supabase-js sees status 429 and message 'sign_up_busy'",
+    viaJs.error?.status === 429 && viaJs.error?.message === 'sign_up_busy',
+    JSON.stringify({
+      status: viaJs.error?.status,
+      message: viaJs.error?.message,
+      code: viaJs.error?.code,
+    }),
+  );
+  s1bShape = {
+    status: viaJs.error?.status,
+    message: viaJs.error?.message,
+    code: viaJs.error?.code,
+  };
+
+  plantCapRows(0);
+  setSwitch(false);
+  const closed = address('closed');
+  const closedReply = await rawSignUp(closed);
+  check(
+    'Switch closed: sign-up gets 429 sign_up_closed',
+    closedReply.status === 429 && closedReply.json?.msg === 'sign_up_closed',
+    JSON.stringify(closedReply.json),
+  );
+  check('and no account or e-mail', userCount(closed) === '0' && (await mailCount(closed)) === 0);
+  setSwitch(true);
+
+  const badName = address('bad-name');
+  const badNameReply = await rawSignUp(badName, 'A');
+  check(
+    'AC-4/45: a 1-character name gets 429 invalid_name, no account, no e-mail',
+    badNameReply.status === 429 &&
+      badNameReply.json?.msg === 'invalid_name' &&
+      userCount(badName) === '0' &&
+      (await mailCount(badName)) === 0,
+    JSON.stringify(badNameReply.json),
+  );
+
+  const mixed = `${PREFIX}-Mixed.Case@Local.Test`;
+  await rawSignUp(mixed, 'Mixed Case');
+  check(
+    'AC-5: a mixed-case e-mail is stored lower-case in profiles',
+    sql(`select count(*) from public.profiles where email = '${mixed.toLowerCase()}'`) === '1',
+  );
+}
+
+let s1bShape = null;
+
 function cleanUp() {
-  sql(`delete from auth.users where email like '${PREFIX}-%'`);
+  sql(`delete from auth.users where lower(email) like '${PREFIX}-%'`);
+  sql('delete from private.sign_up_emails');
+  sql('update private.sign_up_settings set open = true');
   sql(`delete from public.students where full_name = 'Open Sign-up ${RUN}'`);
 }
 
@@ -126,6 +247,7 @@ async function main() {
   admin = await adminTwoStepToken();
   try {
     await existingAccountChecks();
+    await hookChecks();
   } finally {
     cleanUp();
   }

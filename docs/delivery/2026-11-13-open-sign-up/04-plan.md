@@ -200,7 +200,7 @@ The Developer runs them in slice 0 and records the counts. CI gates are document
 
 When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop outcomes are listed under "Stop conditions".
 
-- [ ] **5. S1: the `before-user-created` hook** (03 §3.3 `sign_up_daily_cap`, `is_valid_full_name`, `sign_up_refusal`; §3.4; §3.5).
+- [x] **5. S1: the `before-user-created` hook** (03 §3.3 `sign_up_daily_cap`, `is_valid_full_name`, `sign_up_refusal`; §3.4; §3.5).
   - **ACs:** AC-45 (name), AC-46 (server), AC-48 (server), AC-53 (DB), AC-28 (incoming `account_role` refused), AC-41 (no `account_role` after an e-mail `signUp`).
   - **Files:**
     - the migration gains the helpers, both tables (RLS on, no policies), the hook (`security definer`, `search_path = ''`), and **`grant usage on schema public to supabase_auth_admin`** (review-3 finding 3);

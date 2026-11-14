@@ -62,3 +62,31 @@ INT (`test-open-sign-up.mjs`, AC-42 section): all six signing-in seed accounts s
 - `test-deploy-order.mjs`: 35 checks (dry-run order, fail-closed paths against fakes, Google gate, static config). Runs in `pnpm test`. It uses `/bin/bash` (3.2 on macOS) and a PATH of only the fakes plus `/usr/bin:/bin`; the fake `jq` logs and hands over to the real `jq` (it has no network).
 - Two test-only overrides were added beside 03's `DEPLOY_ENV_FILE`/`DEPLOY_CONFIG`: `DEPLOY_GUARD_RETRY_SECONDS` (default 3; the test uses 0).
 - [ASSUMPTION] With `[remotes.production.auth.external.google] enabled = false`, `config push` needs no `GOOGLE_*`: CLI v2.120.0 `pkg/config/config.go:1481-1483` skips validation of a disabled provider, and `auth.go:1295-1303` pushes only `external_google_enabled = false` (no client id or secret). Read from the CLI source; not run against the hosted project.
+
+## Slice 5 — S1: the before-user-created hook
+
+**S1(a) captured `event`** (logged once to a scratch table, then the logging was removed; `grep hook_event_capture` on the migration finds nothing). E-mail `signUp` for a fake address, ids shortened:
+
+```json
+{
+  "user": {
+    "id": "30095486-…", "aud": "authenticated", "role": "", "email": "capture-s1@local.test",
+    "phone": "", "created_at": "0001-01-01T00:00:00Z", "updated_at": "0001-01-01T00:00:00Z",
+    "identities": [], "is_anonymous": false,
+    "app_metadata": { "provider": "email", "providers": ["email"] },
+    "user_metadata": { "full_name": "Capture Person" }
+  },
+  "metadata": { "name": "before-user-created", "time": "2026-11-14T01:48:32.01Z", "uuid": "1031d65b-…", "ip_address": "192.168.65.1" }
+}
+```
+
+- `user.app_metadata.provider`, `user.email` and `user.user_metadata.full_name` are where 03 §3.5 reads them. The user isn't saved yet (`created_at` is the zero time, `identities` empty), so the hook can't look the account up.
+- For Google, `user_metadata` is the provider's `structs.Map` (slice 0 S1(e)): `email_verified` is a JSON boolean. The pgTAP calls use this shape with `provider: google`.
+
+**S1(b) refusal shape, live.** Raw `/auth/v1/signup` reply: `429 {"code":429,"error_code":"unknown","msg":"sign_up_closed"}`. supabase-js (`apps/web`'s copy): `error.status === 429`, `error.message === 'sign_up_busy'` (or `sign_up_closed`, `invalid_name`), `error.code === 'unknown'`. So `auth-errors.ts` keys our refusals by **message** (03 §7.2 already does); `code` is useless here. No "if not" branch.
+
+**S1(c).** Live: Auth (as `supabase_auth_admin`) ran the hook, which read `private.sign_up_settings` and counted `private.sign_up_emails` (the 16th sign-up was refused busy; the closed switch refused). pgTAP can't `set role supabase_auth_admin` (`postgres` isn't a member), so pgTAP checks the grants instead: execute for `supabase_auth_admin` only, `usage on schema public`, security definer, empty `search_path`, and the owner's rights on both private tables. No stop.
+
+- INT: 26 checks (AC-42 section plus the hook: allowed sign-up has no `account_role` (AC-41), is `user/invited` with the form's name; 16th → 429 `sign_up_busy`, no account, no mail; closed → 429 `sign_up_closed`; 1-character name → 429 `invalid_name`; a mixed-case e-mail is stored lower-case (AC-5)).
+- pgTAP-OS: 49 checks in the file so far.
+- [ASSUMPTION] INT empties `private.sign_up_emails` before planting and again at clean-up, and reopens the switch. It's the local stack I own, and handover needs an empty cap anyway.
