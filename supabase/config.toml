@@ -293,7 +293,11 @@ enabled = true
 # Allow/disallow new user signups via SMS to your project.
 enable_signup = false
 # If enabled, users need to confirm their phone number before signing in.
-enable_confirmations = false
+# Open sign-up (security 06 finding 10): on, although SMS sign-up stays off and there is no SMS
+# provider. With it off, Auth treats sign-up as auto-confirmed and answers an e-mail that already
+# has a confirmed account with 422 user_already_exists; on, it gives the same quiet reply as a new
+# sign-up (narrows R1).
+enable_confirmations = true
 # Template for sending OTP to users
 template = "Your code is {{ .Code }}"
 # Controls the minimum amount of time that must pass before sending another sms otp.

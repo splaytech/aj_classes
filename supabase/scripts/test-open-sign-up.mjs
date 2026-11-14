@@ -1073,9 +1073,8 @@ async function inviteReplaceChecks() {
   await settle();
   check(
     'AC-13: a sign-up with an invited e-mail changes nothing and sends nothing',
-    // GoTrue answers a confirmed address with 422 user_already_exists (signup.go:293, because
-    // SMS confirmations are off); the page shows the same "sent" card for both (R1, 05-dev-notes).
-    (lateSignUp.status === 200 || lateSignUp.json?.error_code === 'user_already_exists') &&
+    // The quiet 200 since [auth.sms] enable_confirmations = true (security 06 finding 10).
+    lateSignUp.status === 200 &&
       profileState(invitedFirst) === 'parent/invited' &&
       (await mailCount(invitedFirst)) === mailsBefore,
     JSON.stringify({ status: lateSignUp.status }),
@@ -1296,7 +1295,10 @@ async function setActiveChecks() {
     ac12Replies[label] = reply.status === 200 ? 200 : `${reply.status} ${reply.json?.error_code}`;
     check(
       `AC-12 (${label}): sign-up changes nothing (name, role, status, password) and sends nothing`,
-      (reply.status === 200 || reply.json?.error_code === 'user_already_exists') &&
+      // The quiet reply since [auth.sms] enable_confirmations = true (security 06 finding 10).
+      reply.status === 200 &&
+        Array.isArray(reply.json?.identities) &&
+        reply.json.identities.length === 0 &&
         accountFingerprint(email) === before &&
         (await mailCount(email)) === mailsBefore,
       JSON.stringify({ status: reply.status, code: reply.json?.error_code }),
