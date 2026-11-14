@@ -454,7 +454,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Visible:** as `user@`, the page shows the e-mail, `User`, Appearance and Change password. It has no Notifications, Your choices or Two-step. The parent and staff accounts are unchanged.
   - **Commit:** `feat(portal): trim the account page for signed-up users`
 
-- [ ] **23. Sign-up page, the Sign in link and the resend page** (03 §7.6).
+- [x] **23. Sign-up page, the Sign in link and the resend page** (03 §7.6).
   - **ACs:** AC-1, AC-2, AC-4, AC-5, AC-8, AC-10, AC-11, AC-19, AC-39 (message), AC-46 (page), AC-48 (page).
   - **Files:**
     - new `routes/portal/sign-up.tsx`, `sign-up-resend.tsx`, `components/portal/FinishSignUpHint.tsx` and `lib/sign-up-validation.ts`;

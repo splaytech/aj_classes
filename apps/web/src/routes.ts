@@ -30,6 +30,8 @@ export default [
     route(PORTAL_ROUTES.loginVerify, 'routes/portal/login-verify.tsx'),
     route(PORTAL_ROUTES.forgotPassword, 'routes/portal/forgot-password.tsx'),
     route(PORTAL_ROUTES.authConfirm, 'routes/portal/auth-confirm.tsx'),
+    route(PORTAL_ROUTES.signUp, 'routes/portal/sign-up.tsx'),
+    route(PORTAL_ROUTES.signUpResend, 'routes/portal/sign-up-resend.tsx'),
     route(PORTAL_ROUTES.invite, 'routes/portal/invite.tsx'),
     route(PORTAL_ROUTES.setPassword, 'routes/portal/set-password.tsx'),
     route(PORTAL_ROUTES.join, 'routes/portal/join.tsx'),

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { GUIDE_PATHS, ROUTES, AREA_PATHS, CENTRE_PATHS } from '@/constants';
+import { AREA_PATHS, CENTRE_PATHS, GUIDE_PATHS, PORTAL_ROUTES, ROUTES } from '@/constants';
 
 import { publicSitemapPaths } from './sitemap';
 
@@ -35,5 +35,13 @@ describe('sitemap pages', () => {
     const paths = publicSitemapPaths(true);
     expect(paths).not.toContain(ROUTES.notFound);
     expect(paths.some((path) => path.startsWith('/portal'))).toBe(false);
+    // Open sign-up (AC-11): the sign-up pages are portal pages, never in the sitemap.
+    for (const path of [
+      PORTAL_ROUTES.signUp,
+      PORTAL_ROUTES.signUpResend,
+      PORTAL_ROUTES.authCallback,
+    ]) {
+      expect(paths).not.toContain(path);
+    }
   });
 });

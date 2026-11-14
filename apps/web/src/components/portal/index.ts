@@ -6,6 +6,7 @@ export { ConfirmDialog } from './ConfirmDialog';
 export { DueChip } from './DueChip';
 export { EnrolDialog } from './EnrolDialog';
 export { AnswersList, ProgressSummary, ResultsCard, scoreText } from './FamilyWork';
+export { FinishSignUpHint } from './FinishSignUpHint';
 export { FormDialog } from './FormDialog';
 export { HoldResultsSetting } from './HoldResultsSetting';
 export { InviteDialog } from './InviteDialog';

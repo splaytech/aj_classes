@@ -129,6 +129,8 @@ export const PORTAL_VALIDATION = {
   yearLevelRequired: 'Please choose your year level.',
   termsRequired: 'Please agree to the Terms & Conditions and Privacy Policy to continue.',
   captchaRequired: 'Please complete the "I am human" check.',
+  // Open sign-up: the same rule as the database (no line breaks or text-direction characters).
+  nameCharacters: 'Please type your name on one line, without special formatting characters.',
 } as const;
 
 export const AUTH_LINK_ERRORS = {
