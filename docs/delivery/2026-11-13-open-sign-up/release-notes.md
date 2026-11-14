@@ -36,6 +36,7 @@ For Saurabh. Branch `feature/open-sign-up`, built and tested on the local stack 
 9. **What wasn't verified** (local stack only):
    - The hosted plan offers "Before User Created" (step 2).
    - Hosted `postgres` can create the two triggers on `auth.identities` and `auth.users` (it can locally). If it can't, the migration fails at step 3/7 and sign-up stays closed.
+   - Hosted `postgres` DML on the Auth tables the guard writes to: DELETE on `auth.mfa_factors` and `auth.sessions`, UPDATE on `auth.users` (granted locally by `supabase_auth_admin`). `sign_up_guard_ready()` now checks these, so if they're missing `deploy.sh` stops at the guard check and sign-up stays closed (review-5 finding 4).
    - A real Google sign-in (no Google client exists). The callback page is tested against the error shapes read from GoTrue's source, and the button against a stubbed settings answer.
    - Auth's per-IP limit of 30 sign-ins and sign-ups per 5 minutes (AC-39): the local Auth doesn't enforce IP limits at all, so only the setting is checked.
    - Mobile with a signed-up account (AC-40): the Tester's manual check. No mobile code changed.

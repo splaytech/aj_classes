@@ -163,7 +163,7 @@ end;
 $$;
 
 grant usage on schema public to supabase_auth_admin; -- review-3 item 3 (harmless if already there)
-revoke execute on function public.hook_before_user_created(jsonb) from public, anon, authenticated;
+revoke execute on function public.hook_before_user_created(jsonb) from public, anon, authenticated, service_role;
 grant execute on function public.hook_before_user_created(jsonb) to supabase_auth_admin;
 
 -- ---------------------------------------------------------------------------
@@ -733,6 +733,23 @@ grant execute on function public.admin_promote_user(uuid, uuid) to authenticated
 -- §3.7 sign_up_guard_ready(): deploy.sh opens sign-up only when this is true (ADR-0011)
 -- ---------------------------------------------------------------------------
 
+-- The triggers and the finish step run as their owner (postgres) and write to tables Supabase
+-- Auth owns: the wipe deletes authenticators, the finish step deletes sessions, and the confirm
+-- update goes through auth.users. Locally postgres has these rights by grant; this proves it on
+-- any project before sign-up opens (review-5 finding 4).
+create function private.can_write_auth_tables(role_name text)
+returns boolean
+language sql
+stable
+set search_path = ''
+as $$
+  select has_table_privilege(role_name, 'auth.mfa_factors', 'DELETE')
+     and has_table_privilege(role_name, 'auth.sessions', 'DELETE')
+     and has_table_privilege(role_name, 'auth.users', 'UPDATE')
+$$;
+
+revoke execute on function private.can_write_auth_tables(text) from public, anon, authenticated;
+
 -- Checks the guard by behaviour, not by migration history: no marker maps to user, the profiles
 -- default is user, the hook exists and Auth can call it, both triggers are there and enabled,
 -- and the switch row exists. Returns only a boolean, so it tells a caller nothing else.
@@ -756,6 +773,7 @@ as $$
           else has_function_privilege('supabase_auth_admin', 'public.hook_before_user_created(jsonb)', 'execute')
         end
     and has_schema_privilege('supabase_auth_admin', 'public', 'usage')
+    and private.can_write_auth_tables('postgres')
     and exists (select 1 from pg_catalog.pg_trigger t
                 where t.tgrelid = 'auth.identities'::regclass
                   and t.tgname = 'on_auth_identity_link_check' and t.tgenabled <> 'D')

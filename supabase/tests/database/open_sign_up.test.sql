@@ -136,8 +136,9 @@ select ok(has_function_privilege('supabase_auth_admin', 'public.hook_before_user
 select ok(has_schema_privilege('supabase_auth_admin', 'public', 'usage'),
   'supabase_auth_admin has usage on schema public');
 select ok(not has_function_privilege('anon', 'public.hook_before_user_created(jsonb)', 'execute')
-          and not has_function_privilege('authenticated', 'public.hook_before_user_created(jsonb)', 'execute'),
-  'Nobody else can call the hook');
+          and not has_function_privilege('authenticated', 'public.hook_before_user_created(jsonb)', 'execute')
+          and not has_function_privilege('service_role', 'public.hook_before_user_created(jsonb)', 'execute'),
+  'Nobody else can call the hook, service_role included (review-5 finding 7)');
 select ok((select prosecdef from pg_proc where oid = 'public.hook_before_user_created(jsonb)'::regprocedure),
   'The hook is security definer');
 select is((select proconfig from pg_proc where oid = 'public.hook_before_user_created(jsonb)'::regprocedure),
@@ -606,6 +607,15 @@ select ok(not public.sign_up_guard_ready(), 'false without the settings row');
 rollback to savepoint guard;
 alter table public.profiles alter column role set default 'tutor';
 select ok(not public.sign_up_guard_ready(), 'false when the profiles default is tutor again');
+rollback to savepoint guard;
+-- Review-5 finding 4: postgres must be able to write the auth tables the guard writes to.
+select ok(private.can_write_auth_tables('postgres'),
+  'postgres can delete authenticators and sessions and update auth.users');
+select ok(not private.can_write_auth_tables('anon'),
+  'a role without those rights fails the check');
+create or replace function private.can_write_auth_tables(role_name text)
+returns boolean language sql stable set search_path = '' as $$ select false $$;
+select ok(not public.sign_up_guard_ready(), 'false when postgres can''t write the auth tables');
 rollback to savepoint guard;
 select ok(public.sign_up_guard_ready(), 'true again once everything is back');
 
