@@ -232,3 +232,24 @@ pgTAP-OS (the `amr` matrix with crafted claims): `[otp]`, `[recovery]`, `[oauth]
 - Slice 29: after "Link as parent", a refused or changed promotion goes back to the form with its message; pressing Invite or link again then goes down the healing parent path on the server (slice 18).
 - Slice 30: `open-sign-up.spec.ts` has 3 tests (e-mail journey with DB check; Google button with stubbed `/auth/v1/settings` and an intercepted `/authorize` carrying `redirect_to=<origin>/portal/auth/callback` and a `code_challenge`; the callback refusal showing message M; Forgot password with the PKCE client). Smoke: **13** passed; CSP **23**. Afterwards no `e2e-%` rows in posts, enquiries or profiles, `private.sign_up_emails` empty, nothing on 5173.
 - **AC-39 rate limit (opt-in `--rate-limit`): not enforceable locally.** GoTrue rate-limits only by a configured header (`GOTRUE_RATE_LIMIT_HEADER`, or `Sb-Forwarded-For` with `SB_FORWARDED_FOR_ENABLED`; `api/middleware.go:72-131`, `sbff/sbff.go:37`), and the local stack sets neither (`docker inspect`). A run of 31 wrong-password sign-ins got no `over_request_rate_limit`. The mode now says "NOT ENFORCED on this stack" instead of failing, and the static check `sign_in_sign_ups = 30` (slice 4) stays. Hosted, Supabase sets the header itself; that check is by hand, after release.
+
+## Slice 33 — final gate and handover
+
+| Check | Before (slice 0) | After |
+|---|---|---|
+| FULL (scoped Prettier, lint, typecheck, `pnpm test`, production build) | pass; 733 web (79 files) + 6 e2e-unit | pass; **827** web (92 files) + 6 e2e-unit + **35** `test-deploy-order.mjs` checks |
+| DB (`pnpm db:test` after RESET) | 834 (18 files) | **1204** (20 files: `open_sign_up` and `open_sign_up_access` new) |
+| FN (`pnpm test:functions`, edge runtime restarted) | 413 | **564** (`test-open-sign-up.mjs`: 150) |
+| DEPLOY (`test-deploy-order.mjs`) | did not exist | 35 pass |
+| E2E smoke | 10 | **13** |
+| CSP | 21 | **23** |
+| Lighthouse (`lighthouse` + `lighthouse:report`, gate build) | – | pass: 8 pages × 3 mobile runs, thresholds met, 0 `supabase.co` requests; `/terms` 189 KB JS |
+| Rate limit (`--rate-limit`, opt-in) | – | **not enforceable locally** (no rate-limit header in local GoTrue); reports "NOT ENFORCED", no account created |
+
+**Browser pass** (a temporary Playwright spec, run once and deleted, never committed): at 375 and 1280 px, light and dark — signed out (`/portal/login` with the Create-an-account link and no Google button, `/portal/sign-up`, `/portal/sign-up/resend`, `/terms`), a finished user (Latest news home, the trimmed Account page, "not allowed" on `/portal/admin` and `/portal/parent`), an unfinished user (confirm page → finish step; `/portal/user` sends them back to `/portal/join`), the admin (Users page lists `user@local.test`, the switch reads open, the dashboard has the Users shortcut), and tutor, student and parent (their homes; "not allowed" on `/portal/admin/users`). Each page: one `h1`, no sideways scroll, no console errors. Then all **23** `sitemap.xml` URLs (with `/terms`): 200, one `h1`, no console errors. 21 tests passed. The only console error seen was Vite's dev-only "504 Outdated Optimize Dep" on a first visit (the README's known reload); the pass ignores that one message. Screenshots were checked by eye for the sign-up page, the finish step, the user home and the Users page.
+
+**Handover state:** stack restarted from the main checkout (`/Users/sjain/dev/work/aj_classes/supabase/functions` mounted), RESET for a fresh seed, `private.sign_up_emails` empty, switch open, `sign_up_guard_ready()` true, nothing on 5173 or 4173.
+
+**Not verified (also in release-notes.md):** the hosted "Before User Created" hook (Saurabh's answer pending); hosted `postgres` rights on the `auth` triggers; a real Google sign-in; the per-IP rate limit; mobile with a user account (Tester); `config push` with Google off needing no Google values on the hosted project.
+
+**Untracked files left alone:** `actionItems.md`, `brand/email/`, `docs/contracts/`, and `docs/requirements/seo-audit-2026-11-14.md`, which appeared during the build and isn't mine.

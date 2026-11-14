@@ -146,7 +146,7 @@ pnpm --filter aj-classes-e2e test:csp
 - The build placeholders turn the enquiry form and the footer sign-up on, so the CSP sweep can
   use them. Web3Forms, Kit and `leads` are mocked; nothing is sent.
 - `lighthouse` (`lhci autorun`) starts the mirror (`scripts/serve-mirror.ts --stub-analytics`) on
-  `http://127.0.0.1:4173` and runs 3 mobile runs on each of seven pages (`/terms` since open sign-up). The thresholds are in
+  `http://127.0.0.1:4173` and runs 3 mobile runs on each of eight pages (the URL list in `apps/web/lighthouserc.json`; `/terms` since open sign-up). The thresholds are in
   `apps/web/lighthouserc.json` and only there: Performance, Accessibility and Best Practices
   0.9, SEO 1, as medians (AC-6.6, AC-6.7). **Never lower them to pass.** Fix a small miss, or
   write it up for the Product Owner.

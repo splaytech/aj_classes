@@ -578,7 +578,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Check:** `git show --stat HEAD` lists only this file, plus `05-dev-notes.md` if updated.
   - **Commit:** `docs(sign-up): release notes and decision drafts`
 
-- [ ] **33. Final gate and handover.**
+- [x] **33. Final gate and handover.**
   - **Check, in order:**
     1. FULL;
     2. RESET, then DB;
