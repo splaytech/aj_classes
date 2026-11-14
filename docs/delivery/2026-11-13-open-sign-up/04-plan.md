@@ -511,7 +511,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Visible:** `/terms` at 375 px and 1280 px has one `h1`, no sideways scroll, and links to Privacy.
   - **Commit:** `feat(terms): Terms & Conditions page (draft for Saurabh's approval)`
 
-- [ ] **27. Privacy Policy text** (03 §7.9 `PRIVACY` edits).
+- [x] **27. Privacy Policy text** (03 §7.9 `PRIVACY` edits).
   - **ACs:** AC-43.
   - **Files:** `content.constants.ts`, `routes/privacy.test.tsx` (fails if `only by invitation` comes back).
   - **Check:** ONE `src/routes/privacy.test.tsx`, then FULL.

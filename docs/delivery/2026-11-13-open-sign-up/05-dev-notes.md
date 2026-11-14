@@ -218,3 +218,10 @@ pgTAP-OS (the `amr` matrix with crafted claims): `[otp]`, `[recovery]`, `[oauth]
 - `/terms` from 03 §7.9's draft (`TERMS`, headed by the DRAFT comment), own `ErrorBoundary`, pre-rendered (`build/client/terms/index.html`, one `h1`), in the sitemap right after `/privacy`, in `hosting-csp.test.ts`, `public-csp.spec.ts` and `lighthouserc.json`. `LEGAL_LINKS.terms = ROUTES.terms`, so the invite setup form and the finish step now link it (new tab).
 - The "Your information" section renders its Privacy link from a `privacyLink` part rather than splitting the sentence.
 - CSP sweep: **23** passed (was 21). Each path runs at 375 px and 1280 px, so `/terms` adds 2, not 1 as 04/03 expected. `ci-gates.md` gets 23 in slice 31.
+
+## Slice 27 — Privacy Policy text (draft for Saurabh's approval)
+
+03 §7.9's three edits are in, with two corrections so the policy says only true things (team rule 6), both [ASSUMPTION] for Saurabh to approve with the rest:
+1. 03 said "If you sign in with Google, Google gives us only your name and e-mail address." GoTrue's Google provider also stores the profile picture link (`provider/google.go:120-131`: `Picture`/`AvatarURL` go into `user_metadata`). Now: "Google gives us your name, your e-mail address and a link to your Google profile picture; we use only your name and e-mail address."
+2. 03 said a signed-up account "gets only account e-mails (confirming your address and password resets)", a closed list. Users also get Auth's "Your password was changed" notice (slice 19). Now: "account e-mails, such as confirming your address, password resets and security notices".
+- "What we collect": "When you register interest, contact us, subscribe, or sign up for a portal account, …" (03's "after 'subscribe,'" didn't fit the sentence as written).
