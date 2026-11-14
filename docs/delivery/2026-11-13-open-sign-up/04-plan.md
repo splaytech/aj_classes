@@ -461,7 +461,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
     - `login.tsx` (loader and link);
     - `routes.ts`.
   - **Tests:**
-    - `sign-up.test.tsx`: no password field; Google only when enabled; the same card for a new e-mail, the fake reply and `over_email_send_rate_limit`; the busy and closed cards; captcha reset; `noindex`; the route sits under `portal-root`;
+    - `sign-up.test.tsx`: no password field; Google only when enabled; the same card for a new e-mail, an e-mail that already has an account (the quiet 200) and `over_email_send_rate_limit`; the busy and closed cards; captcha reset; `noindex`; the route sits under `portal-root`;
     - `sign-up-resend.test.tsx`;
     - `login.test.tsx`: the link shows for `open` and `busy`, and hides for `closed`, a failed read, and an unconfigured portal;
     - `sign-up-validation.test.ts`;
@@ -672,7 +672,7 @@ Stop, write it up in `05-dev-notes.md`, and report to the lead. Don't improvise 
 5. **D5:** optional marketing consent at sign-up, and sending sign-ups to Kit or Zoho.
 6. **D6:** admin delete, edit, search and export of users; self-service account deletion. In v1, deletion is by e-mail.
 7. **D7:** promoting a user to staff.
-8. **D8:** cleaning up sign-ups not finished after N days.
+8. **D8:** cleaning up sign-ups not finished after N days. *Moved into v1 at stage 6 as AC-56 for unconfirmed sign-ups (deleted after 7 days, built in fix batch 2); confirmed but unfinished ones stay deferred.*
 9. **D9:** a "you already have an account" e-mail.
 10. **D10:** showing admins when the daily cap is reached. Busy shows as open on the Users page.
 11. **D11:** student self sign-up, with whatever age rule applies then.

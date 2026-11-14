@@ -84,7 +84,7 @@ ADR: [ADR-0011](../../decisions/0011-open-sign-up-supabase-public-and-google.md)
 - **Name.** Only `full_name` is read from `user_metadata` (e-mail form or Google claims), and the finish step checks it again (AC-4).
 - **Invites are created confirmed** (`createInvitedAccount` passes `email_confirm: true`). The migration sets `email_confirmed_at = now()` where it is null, for every existing non-`user` account. This does three things:
   1. With confirmations on, no active or invited account is locked out (AC-42).
-  2. `signUp` with an invitee's e-mail gets the fake reply and sends nothing (fact 3; AC-12, AC-13).
+  2. `signUp` with an invitee's e-mail gets Auth's quiet reply (200, `identities: []`; since `[auth.sms] enable_confirmations = true`, built in fix batch 2) and sends nothing (fact 3; AC-12, AC-13).
   3. The Q4 trigger never touches invitees.
 - **`complete_onboarding` refuses `role = 'user'`.** `my_onboarding` excludes users, so mobile never shows "invited, unfinished" for one (AC-40). A new `my_sign_up()` serves the web.
 - **Mobile is unchanged.** `RoleResolver` gives null for a `user`, so the app shows its "Unresolvable role" state, with no data and no crash. Mobile has no Google button, and a Google-only user has no password until they use Forgot password.

@@ -81,7 +81,7 @@ This document says what must be true. It does not choose how; the Architect is r
 
 ### Existing e-mails and enumeration (US1, US4)
 
-12. E-mail sign-up with an e-mail that already has a **finished or invited** account (admin, tutor, student, parent, invited, finished user, deactivated) shows the same message as AC-10, with the same HTTP status and response body as a new e-mail. It creates nothing and changes nothing (name, role, status, password), and it sends no email. A **deactivated** sign-up, finished or not, always follows this AC, never AC-14: nothing is sent. This holds on the page. **Residual risk R1 (Decision 6, accepted):** Supabase's raw sign-up reply, seen by anyone calling the API directly (with a Turnstile token each time), shows whether **any** e-mail already has an account here. Saurabh accepted this (Decision 6).
+12. E-mail sign-up with an e-mail that already has a **finished or invited** account (admin, tutor, student, parent, invited, finished user, deactivated) shows the same message as AC-10: what the page shows and does is the same as for a new e-mail. It creates nothing and changes nothing (name, role, status, password), and it sends no email. A **deactivated** sign-up, finished or not, always follows this AC, never AC-14: nothing is sent. "The same" applies to the page; any difference in Supabase's raw reply (its status, or `identities: []` in its quiet reply) is R1 (lead ruling, stage 6). **Residual risk R1 (Decision 6, accepted):** Supabase's raw sign-up reply, seen by anyone calling the API directly (with a Turnstile token each time), shows whether **any** e-mail already has an account here. Saurabh accepted this (Decision 6).
 13. An invited account that hasn't finished setup keeps its invite link working after someone signs up with its e-mail.
 14. **No password before mailbox proof (outcome).** A password stored before the mailbox was proven is wiped the moment it is proven (by the confirmation link or a Forgot-password link). Before that, no password can sign in, because confirmations are on. So before the finish step, only the mailbox owner can hold a session. Saving the finish step deletes every other session. An access token already issued to another of the owner's own sessions keeps working until it expires (at most 1 hour), and reads only the user's own profile and posts. Tester checks these cases, with A as a stranger using B's e-mail and B as the mailbox owner:
     1. A signs up; B finishes from the link and types P2: only P2 signs in.
@@ -113,7 +113,7 @@ This document says what must be true. It does not choose how; the Architect is r
 
 25. Opening any staff, admin, student or parent URL as a user shows the existing "not allowed" page. This covers every route under `staff-layout`, `admin-layout`, `student-layout` and `parent-layout` in `routes.ts`.
 26. A user calling the database directly with their own session (PostgREST and RPC) gets no rows from `classes`, `class_sessions`, `enrolments`, `students`, `student_guardians`, `assignments`, `assignment_questions`, `assignment_answers`, `assignment_results`, `email_outbox`, `audit_log`, `enquiries`, `notification_settings`, or other people's `profiles`. Writes to any of them are refused. They can't list or write storage objects; public avatar URLs stay public, as today. Tester checks every table and every `public` function granted to `authenticated`.
-27. A user can read their own profile row and nobody else's. They can change only their full name (and their password, through Auth). They can't change their role, status, `is_active`, terms time, sign-up method, verified state or any other column.
+27. A user can read their own profile row and nobody else's. **This is a permission rule, not a screen** (lead ruling, stage 6): the only profile column a user may change is their full name (and their password, through Auth). They can't change their role, status, `is_active`, terms time, sign-up method, verified state or any other column. v1 has no screen for editing the name after the finish step, and none is needed.
 28. Nothing a user can do through e-mail sign-up, provider sign-in, the finish step, `/portal/join`, `complete_onboarding`, user metadata or provider metadata gives them a staff, student or parent role. In particular, no sign-up path ever creates a `tutor` profile (fact 2). A database test covers this.
 29. Users get no portal emails (new work, due tomorrow, returned work). The only emails they get are confirmation and password reset.
 30. Users don't appear on Staff, Students, class rosters, the parent picker, the admin dashboard's staff/student/invite counts, or the Emails list.
@@ -203,6 +203,10 @@ This document says what must be true. It does not choose how; the Architect is r
     - Matching **any** existing account that wasn't made with Google (including an unfinished sign-up and a deactivated account): no sign-in and no link. It shows one message, M: `This e-mail already has an AJ Classes account. Sign in with your e-mail and password, use Forgot password, or use the link we e-mailed you.` This is not enumeration: Google has just proven the person controls the e-mail. Two-step for admins can never be skipped this way. Linking Google to an existing account by hand is deferred (D13).
 55. **After a Google sign-in.** The session follows the same rules as an e-mail sign-in: AC-21 to AC-32 and AC-40 apply unchanged. Sign out works as today.
 
+### Added at stage 6 (lead ruling)
+
+56. **Unconfirmed sign-ups are deleted after 7 days** (security 06 finding 8; was D8). A signed-up account whose e-mail was never confirmed, still `invited`, is deleted 7 days after it was created, with its profile and identity, by a daily job. Staff, students, parents, invitees and every confirmed account are never touched. The person can simply sign up again.
+
 ## Scope
 
 **v1 (this branch):**
@@ -215,6 +219,7 @@ This document says what must be true. It does not choose how; the Architect is r
 6. Admin Users page with deactivate, reactivate and the open/closed control.
 7. Promotion to parent when staff link a finished user.
 8. Terms & Conditions page, Privacy Policy update, and a release order that never leaves production open.
+9. Unconfirmed sign-ups deleted after 7 days (AC-56; moved from D8).
 
 **Deferred (later release bucket):**
 
@@ -225,7 +230,7 @@ This document says what must be true. It does not choose how; the Architect is r
 5. D5 — Optional marketing consent at sign-up, and sending sign-ups to Kit or Zoho as leads.
 6. D6 — Admin delete, edit, search and export of users; self-service account deletion (in v1, by e-mail to hello@ajclasses.com.au). Reactivate moved into v1 (AC-32).
 7. D7 — Promoting a user to staff.
-8. D8 — Clean-up of sign-ups not finished after N days.
+8. D8 — Moved into v1 as AC-56 (unconfirmed sign-ups deleted after 7 days; lead ruling, stage 6). Clean-up of confirmed but unfinished sign-ups stays deferred.
 9. D9 — A "you already have an account" email when someone signs up with an existing e-mail.
 10. D10 — Showing admins when the daily sign-up email cap is reached.
 11. D11 — Student self sign-up (Decision 2 said parents only), with whatever age rule applies then (the Children's Online Privacy Code).
@@ -382,3 +387,12 @@ Saurabh's Round 2 answers are reflected:
 - A provider login never attaches to an existing account.
 
 Conflicts with Saurabh's words: none found. I didn't apply anything differently from 02's list.
+
+## Stage 6 rulings (lead, 14 Nov 2026) — changes
+
+Edited in place on the lead's rulings in `00-decisions.md` ("Lead rulings on stage 6a ambiguous ACs"):
+
+1. AC-12: "the same HTTP status and response body" now reads as what the page shows and does; raw-API differences are R1.
+2. AC-27: made explicit that it is a permission rule; no name-edit screen in v1.
+3. D8 moved into v1 as the new AC-56 (unconfirmed sign-ups deleted after 7 days, security finding 8), and Scope v1 item 9 added. Clean-up of confirmed but unfinished sign-ups stays deferred.
+4. AC-40 unchanged: the ruling records that the mobile app's "Something went wrong" sign-in screen is today's `Unresolvable role` state.
