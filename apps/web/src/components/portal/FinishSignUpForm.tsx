@@ -45,7 +45,10 @@ export function FinishSignUpForm({ signUp, onDone }: FinishSignUpFormProps) {
   const navigate = useNavigate();
   const asksForPassword = signUp.signedUpWith === 'email';
   const [values, setValues] = useState<FinishSignUpValues>({
-    fullName: signUp.fullName,
+    // An e-mail sign-up's name was typed by whoever signed up, who may not be the mailbox owner,
+    // so the owner types their own (security 06 finding 9). Google's name comes from the owner's
+    // own Google account.
+    fullName: asksForPassword ? '' : signUp.fullName,
     password: '',
     confirmation: '',
     acceptsTerms: false,

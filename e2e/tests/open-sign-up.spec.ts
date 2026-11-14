@@ -69,6 +69,8 @@ test.describe('Open sign-up', () => {
     // The finish step: password and the tick.
     await expect(page.getByRole('heading', { name: 'Finish creating your account' })).toBeVisible();
     expect(new URL(page.url()).search).toBe(''); // the token is gone from the address bar
+    await expect(page.getByLabel('Full name')).toHaveValue(''); // not pre-filled (security 06 finding 9)
+    await page.getByLabel('Full name').fill(fullName);
     await page.getByLabel('Create password').fill(PASSWORD);
     await page.getByLabel('Confirm password').fill(PASSWORD);
     await page.getByRole('checkbox').check();

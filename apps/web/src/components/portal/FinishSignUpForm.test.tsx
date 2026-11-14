@@ -41,6 +41,7 @@ function renderForm(signUp: SignUpInfo = EMAIL_SIGN_UP) {
 
 async function fill(password = PASSWORD, tick = true) {
   const user = setupUser();
+  await user.type(screen.getByLabelText(FINISH_SIGN_UP.labels.fullName), 'Priya Shah');
   await user.type(screen.getByLabelText(FINISH_SIGN_UP.labels.password), password);
   await user.type(screen.getByLabelText(FINISH_SIGN_UP.labels.confirm), password);
   if (tick) await user.click(screen.getByRole('checkbox'));
@@ -54,8 +55,13 @@ beforeEach(() => {
 });
 
 describe('FinishSignUpForm', () => {
-  it('starts with the name from the sign-up, which can be changed', () => {
+  it("doesn't pre-fill an e-mail sign-up's name, which a stranger may have typed (security 06 finding 9)", () => {
     renderForm();
+    expect(screen.getByLabelText(FINISH_SIGN_UP.labels.fullName)).toHaveValue('');
+  });
+
+  it("starts a Google sign-up with the name from the owner's Google account", () => {
+    renderForm({ ...EMAIL_SIGN_UP, signedUpWith: 'google' });
     expect(screen.getByLabelText(FINISH_SIGN_UP.labels.fullName)).toHaveValue('Priya Shah');
   });
 

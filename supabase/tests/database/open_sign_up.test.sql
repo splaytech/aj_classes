@@ -95,6 +95,8 @@ select is(public.hook_before_user_created(tests.sign_up_event('google', 'g@test.
   private.sign_up_refusal('google_email_unverified'), 'Google with no email_verified is refused');
 select is(public.hook_before_user_created(tests.sign_up_event('google', '', '{"email_verified":true}')),
   private.sign_up_refusal('google_email_unverified'), 'Google with an empty e-mail is refused');
+select is(public.hook_before_user_created(tests.sign_up_event('google', '   ', '{"email_verified":true}')),
+  private.sign_up_refusal('google_email_unverified'), 'Google with a blank (spaces only) e-mail is refused (security 06 finding 9)');
 
 select is(public.hook_before_user_created(tests.sign_up_event('apple')),
   private.sign_up_refusal('sign_up_refused'), 'Any other provider is refused (fail closed)');

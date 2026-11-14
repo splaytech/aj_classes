@@ -137,7 +137,7 @@ begin
 
   if provider = 'google' then
     -- Google's own check of the address (S1(e): a JSON boolean; "true" is accepted too).
-    if coalesce(new_user ->> 'email', '') = ''
+    if coalesce(btrim(new_user ->> 'email'), '') = ''
        or coalesce(new_user -> 'user_metadata' ->> 'email_verified', '') <> 'true' then
       return private.sign_up_refusal('google_email_unverified');
     end if;
