@@ -534,7 +534,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
 
 ### Phase F: end to end, docs, release
 
-- [ ] **30. E2E spec** (03 §10, "E2E").
+- [x] **30. E2E spec** (03 §10, "E2E").
   - **ACs:** AC-1, AC-16, AC-21, AC-51, AC-54 (end to end); AC-50 (CSP).
   - **Files:** new `e2e/tests/open-sign-up.spec.ts`, using `../src/fixtures/test-fixtures.js` (hosted guard) and checking both the UI and the database.
     - Test 1: e-mail sign-up through Mailpit and the finish step to "Latest news".
