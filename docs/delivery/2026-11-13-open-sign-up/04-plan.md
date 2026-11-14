@@ -553,7 +553,7 @@ When a spike fails, take 03 §2's "If not" column. Don't improvise. The stop out
   - **Check:** FULL. Docs are in `.prettierignore`.
   - **Commit:** `docs(sign-up): runbooks for sign-up, closing it, and the new deploy order`
 
-- [ ] **32. Release notes and decision drafts.**
+- [x] **32. Release notes and decision drafts.**
   - **Files:** new `docs/delivery/2026-11-13-open-sign-up/release-notes.md`, written for Saurabh in plain English with numbered steps. It covers:
     1. **Before merging:** approve the Terms draft (`/terms`) and the Privacy text. The release waits for this (Decision 4).
     2. **Hook check (read-only, yours):** Dashboard → Authentication → Hooks offers "Before User Created". Already asked in slice 0: restate the answer. If it isn't offered, don't deploy.
