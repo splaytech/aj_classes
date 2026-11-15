@@ -23,3 +23,50 @@ Traceability is fine: all 53 live ACs map to at least one case, and the plan say
 ## Lead note (round 1)
 
 All 11 go back to the Tester. Item 10: lead ruling, the `Staff` badge comes off `reauthentication.html` (users get this e-mail now); the Developer makes that change and the Tester pins to the SHA that includes it.
+
+## Round 2
+
+**CHANGES_REQUESTED**
+
+All 11 round-1 findings are fixed. Two expected values are still wrong, both from this revision, and each is a one-line fix.
+
+**Round-1 checks, re-run read-only:**
+- **S-0:** its query on the seed prints `…|active|true … inactive@local.test|tutor|active|false`, which matches :150.
+- **`db -q` id capture:** on a session temp table copying `private.sign_up_emails` (identity id, 15 rows aged 25 h), it gives `1,…,15` with no `INSERT 0` line. Without `-q` it still gives `CREATE TABLE,1,2,3,INSERT 0 3`.
+- **Pin:** `git diff 5e92ee6 HEAD -- apps/web/src supabase e2e package.json` is empty.
+- **`pnpm test`:** 93 files, 844 tests, `ℹ tests 6`, `ℹ fail 0`, 53 `ok`, `All checks passed.`
+- **1225 pgTAP:** the change in assertion calls is +6 for `84d2691..1562010` and +5 for `..5e92ee6`.
+- **564 functions:** no function or INT script changed since `84d2691`, and review-5 has 564.
+
+**Fresh values that matched the code at `5e92ee6` (over 12):**
+- **FB2-4:** steps 1, 2, 4 and 5 match. The step 3 script, run as written in `begin … rollback`, printed `qualifies|stale`, `removed|1`, `fixtures left|8`, `stale left|0`, `stale profile left|0`, `seed left|7`, `second run|0`, then `0` after the rollback. Each kept fixture fails exactly one condition; `f606` without its audit row and `f605` set active both qualify again.
+- **OTP-2:** `codeSent` reads "an 8-digit"; the `a 8-digit` unit test exists; `Code from the email`, `Email me a new code`, `We sent a new code.` and `Password changed…` match. `reauthentication.html` has no `Staff` and reads "on the AJ Classes portal".
+- **OTP-3:** the `FinishSignUpForm` and `join.tsx` code fields use `emailCodeLength`.
+- **CAP-3 and CAP-6:** staff invites go through `createUser` with `account_role: 'tutor'`, which skips the hook. Only the hook and `sign_up_status` read the switch or the cap. Subject, copy and the `sign_up_closed` audit row with a null target match.
+- **AMR-1:** all 14 rows match.
+- **G-3 4b:** `sign_up_refused` maps to `signUpClosed`.
+- **TST-1:** every grep matches, including `11` and `case 1` to `case 6`.
+- **Also matched:** FB2-1's gate and six names, FB2-2's nine post-check names, OTP-1, DEP-2, FB2-6's awk, and 115 cases (110 headed plus V-1 to V-5).
+
+**Findings**
+
+1. **Blocking, FB2-2 (`06-test-plan.md`:1061).** The expected `1` comes out as `0` in the run shell: there `grep` is a ugrep wrapper that treats the `$` in `'mailer_otp_length == $otp_length …'` as an anchor. The string is in `deploy.sh`:187 and `/usr/bin/grep` gives `1`. Fix: `grep -cF`.
+2. **Blocking, SU-11 (:413).** The expected `0` will be `3` after Sitting 2: `t6-<run>-capinvite` (CAP-3, :670), `t6-<run>-closedinvite` (CAP-6, :689) and EN-1's `t6-<run>-pending` (:490) are tutors with `account_role` set and none contains `-inv`. Fix: relabel them `-inv-cap`, `-inv-closed`, `-inv-pending`, or exclude them another way. Also, :156 schedules SU-11 in Sitting 1 but :413 says "after Sitting 2"; move it.
+3. **Non-blocking, AD-1 step 4 (:791-793).** "Staff … and the invite counts show no `t6` user" is false once the pending, capinvite, closedinvite and invstaff tutors exist. Say "no `t6` account with role `user`".
+4. **Non-blocking, §0.4 (:155-158).** No sitting lists TST-1. Add it to Sitting 1.
+
+## Round 3
+
+**APPROVED**
+
+All four round-2 findings are fixed, and no new error would give a case the wrong result. The pin holds: `git diff --quiet 5e92ee6 HEAD -- apps/web/src supabase e2e package.json` passes.
+
+**Every changed grep gives its expected value in this shell** (the Claude Code ugrep wrapper): FB2-2 (:1066) `1`; FB2-4 step 4 (:1139) `1`; OTP-1 mobile (:1210) `1`; OTP-3 `join.tsx` (:1242) `1`; TST-1 (:1002-1007) `11`, eight `=> 1` lines, `AC-14 case 1` to `case 6`, `1`, `2`, `1`. SU-8 (:487) couldn't run as written with no dev server; on the existing build's `sitemap.xml` it gives `0`.
+
+**No old label is left:** no `capinvite`, `closedinvite`, `-pending` without `-inv`, or `t6-<run>-staff@`. The only `t6` invite labels are `-inv-pending`, `-inv-cap`, `-inv-closed`, `-invstaff`, `-invstudent`, `-invparent` and `-inv-staff`, plus `-promote`.
+
+**SU-11's filter covers every case it needs to.** Of the 37 `t6` labels in the plan, each account that Sitting 1 or 2 makes a tutor, parent or student, or gives an `account_role`, is excluded by `%-inv%` or `%-promote%` (SQL `like` check passes for all seven). The rest stay `user`, including `-changed` (refused in AD-7), `-deact`, `-deactnew`, and the invites INV-4 to INV-6 refuse. G-4's positive control is rolled back. R-2 and R-3 run in Sitting 3, after SU-11. §0.4 lists TST-1 in Sitting 1 and SU-11 last in Sitting 2, matching :413. 115 cases (110 headed plus V-1 to V-5).
+
+1. **Non-blocking, AD-1 step 4 (`06-test-plan.md`:797).** EN-1's `-inv-pending` is redeemed in EN-2 (:509, `tutor|active`), so AD-1 shows it as an active staff member, not an invite. The result is unchanged, since the check only asserts that no `user` account appears.
+
+> **Lead:** finding 1 reworded in place at :797 (EN-1's tutor shows as active after EN-2; the CAP-3, CAP-6 and INV-1 ones as invites). Stage 6a gate passed.
