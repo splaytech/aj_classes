@@ -9,6 +9,7 @@ import {
   AREA_PAGE,
   AREA_PATHS,
   BUSINESS,
+  CENTRES,
   LEGACY_SUBURB_REDIRECTS,
   PROGRAMMES,
   areaPath,
@@ -107,7 +108,7 @@ describe('old suburb addresses', () => {
 
 describe('area pages', () => {
   it.each(AREAS.map((area) => [area.name, area] as const))(
-    '%s: one heading, every suburb as a map link, every programme, the guide and the enquiry link',
+    '%s: one heading, every suburb linked, every programme, the guide and the enquiry link',
     (_name, area) => {
       renderAt(<AreaPage area={area} />, areaPath(area.slug));
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
@@ -125,9 +126,16 @@ describe('area pages', () => {
       for (const suburb of area.suburbs) {
         const link = within(list).getByRole('link', { name: AREA_PAGE.hashtag(suburb.name) });
         expect(link).toBeVisible();
-        expect(link).toHaveAttribute('href', AREA_PAGE.mapsUrl(suburb.name));
-        expect(link).toHaveAttribute('target', '_blank');
-        expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+        const centre = CENTRES.find((item) => item.name === suburb.name);
+        if (centre) {
+          // A centre suburb opens its own page on this site, in the same tab.
+          expect(link).toHaveAttribute('href', areaPath(centre.slug));
+          expect(link).not.toHaveAttribute('target');
+        } else {
+          expect(link).toHaveAttribute('href', AREA_PAGE.mapsUrl(suburb.name));
+          expect(link).toHaveAttribute('target', '_blank');
+          expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+        }
       }
 
       for (const programme of PROGRAMMES.items) {

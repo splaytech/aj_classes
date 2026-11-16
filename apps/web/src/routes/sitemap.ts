@@ -1,6 +1,6 @@
 // Generates /sitemap.xml at build time from the list of public pages (PRP F6.5.2).
 
-import { GUIDE_PATHS, PROGRAMME_PATHS, ROUTES, AREA_PATHS } from '@/constants';
+import { GUIDE_PATHS, PROGRAMME_PATHS, ROUTES, AREA_PATHS, CENTRE_PATHS } from '@/constants';
 import { absoluteUrl } from '@/lib/seo';
 import { isPublicSupabaseConfigured } from '@/services';
 
@@ -10,6 +10,7 @@ const ALWAYS_LISTED = [
   ROUTES.resources,
   ...GUIDE_PATHS,
   ...AREA_PATHS,
+  ...CENTRE_PATHS,
   ROUTES.privacy,
   ROUTES.careers,
 ];

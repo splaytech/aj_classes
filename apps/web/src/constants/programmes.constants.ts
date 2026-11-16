@@ -351,7 +351,9 @@ export const PROGRAMME_PATHS = PROGRAMMES.items.map((programme) => programmePath
 // Labels shared by every programme page.
 export const PROGRAMME_PAGE = {
   helpHeading: 'How we help',
-  deliveryText: `Small groups, in person in ${BUSINESS.suburbsText}, or online anywhere in Australia.`,
+  // Shown around the linked centre names: "Small groups, in person in <Williams Landing, …>, or …".
+  deliveryBefore: 'Small groups, in person in ',
+  deliveryAfter: ', or online anywhere in Australia.',
   cta: 'Register interest',
   otherHeading: 'Other programmes',
   backHome: '← Back to home',
@@ -384,7 +386,9 @@ export const VCE_PAGE = {
   counsellingText:
     'Our VCE subject-selection counselling sessions help students and parents choose subjects together, with a clear view of pathways and prerequisites.',
   counsellingLink: 'About VCE subject-selection counselling',
-  deliveryText: `In person in ${BUSINESS.suburbsText}, or online anywhere in Australia.`,
+  // Shown around the linked centre names, like PROGRAMME_PAGE.
+  deliveryBefore: 'In person in ',
+  deliveryAfter: ', or online anywhere in Australia.',
   cta: 'Register interest',
   studyDesignsLink: 'Read the VCAA study designs',
   studyDesignsUrl:

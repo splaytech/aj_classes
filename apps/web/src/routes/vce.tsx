@@ -1,6 +1,7 @@
 // VCE tutoring page (Release 1, docs/requirements/release-1/vce-page.md). Wording lives in
 // programmes.constants.ts → VCE_PAGE and VCE_SUBJECTS.
 
+import { CentreLinks } from '@/components/layout/CentreLinks';
 import { SiteLayout } from '@/components/layout/SiteLayout';
 import { ButtonLink, Section } from '@/components/ui';
 import {
@@ -32,7 +33,11 @@ export default function VcePage() {
       <Section>
         <h1>{VCE_PAGE.heading}</h1>
         <p className={styles.intro}>{VCE_PAGE.intro}</p>
-        <p>{VCE_PAGE.deliveryText}</p>
+        <p>
+          {VCE_PAGE.deliveryBefore}
+          <CentreLinks />
+          {VCE_PAGE.deliveryAfter}
+        </p>
         <ButtonLink href={sectionLink(SECTION_IDS.contact)}>{VCE_PAGE.cta}</ButtonLink>
       </Section>
 

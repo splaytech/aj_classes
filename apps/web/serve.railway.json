@@ -58,17 +58,7 @@
   ],
   "redirects": [
     {
-      "source": "/tutoring/truganina",
-      "destination": "/tutoring/melbourne-west",
-      "type": 301
-    },
-    {
       "source": "/tutoring/tarneit",
-      "destination": "/tutoring/melbourne-west",
-      "type": 301
-    },
-    {
-      "source": "/tutoring/williams-landing",
       "destination": "/tutoring/melbourne-west",
       "type": 301
     },
@@ -100,11 +90,6 @@
     {
       "source": "/tutoring/aintree",
       "destination": "/tutoring/melbourne-west",
-      "type": 301
-    },
-    {
-      "source": "/tutoring/craigieburn",
-      "destination": "/tutoring/melbourne-north",
       "type": 301
     },
     {

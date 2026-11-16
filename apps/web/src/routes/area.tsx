@@ -1,6 +1,7 @@
-// One page per area at /tutoring/:slug (local-seo.md): Melbourne's west and Melbourne's north.
-// Wording lives in areas.constants.ts → AREAS. Unknown slugs get the 404; the old per-suburb
-// addresses redirect here (vercel.json, serve.railway.json).
+// Pages at /tutoring/:slug (local-seo.md): one per area (Melbourne's west and north, wording in
+// areas.constants.ts → AREAS) and one per in-person centre (CENTRES, rendered by centre.tsx).
+// Unknown slugs get the 404; the other old per-suburb addresses redirect to their area
+// (vercel.json, serve.railway.json).
 
 import { useParams } from 'react-router';
 
@@ -13,7 +14,9 @@ import {
   ROUTES,
   SECTION_IDS,
   areaPath,
+  centrePathFor,
   findArea,
+  findCentre,
   programmePath,
   sectionLink,
 } from '@/constants';
@@ -22,9 +25,12 @@ import { buildAreaJsonLd, buildPageMeta } from '@/lib/seo';
 
 import type { Route } from './+types/area';
 import styles from './area.module.css';
+import { CentrePage, centreMeta } from './centre';
 import NotFoundPage, { meta as notFoundMeta } from './not-found';
 
 export function meta({ params }: Route.MetaArgs) {
+  const centre = findCentre(params.slug);
+  if (centre) return centreMeta(centre);
   const area = findArea(params.slug);
   if (!area) return notFoundMeta();
   const path = areaPath(area.slug);
@@ -35,7 +41,10 @@ export function meta({ params }: Route.MetaArgs) {
 }
 
 export default function AreaRoute() {
-  const area = findArea(useParams().slug);
+  const { slug } = useParams();
+  const centre = findCentre(slug);
+  if (centre) return <CentrePage centre={centre} />;
+  const area = findArea(slug);
   if (!area) return <NotFoundPage />;
   return <AreaPage area={area} />;
 }
@@ -83,13 +92,25 @@ export function AreaPage({ area }: { area: Area }) {
 
       <Section heading={AREA_PAGE.suburbsHeading}>
         <ul className={styles.tags}>
-          {area.suburbs.map((suburb) => (
-            <li key={suburb.name}>
-              <a href={AREA_PAGE.mapsUrl(suburb.name)} target="_blank" rel="noopener noreferrer">
-                {AREA_PAGE.hashtag(suburb.name)}
-              </a>
-            </li>
-          ))}
+          {area.suburbs.map((suburb) => {
+            // A centre suburb opens its own page; the others open Google Maps (owner's choice).
+            const centrePath = centrePathFor(suburb.name);
+            return (
+              <li key={suburb.name}>
+                {centrePath ? (
+                  <a href={centrePath}>{AREA_PAGE.hashtag(suburb.name)}</a>
+                ) : (
+                  <a
+                    href={AREA_PAGE.mapsUrl(suburb.name)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {AREA_PAGE.hashtag(suburb.name)}
+                  </a>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </Section>
 

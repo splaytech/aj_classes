@@ -69,6 +69,7 @@ Also relevant: confirm key selective-entry/scholarship dates before the Week 2 "
 **13. Google review link** (the "Get more reviews" short link or QR code from the Google Business Profile, available once the profile is verified).
 Needed to complete the parent review-request message.
 *Blocks: launch-kit §3.4 (review request message).*
+**Resolved 13 Nov 2026:** `https://g.page/r/CfA_qxNx5R09EBM/review` (the character before `9` is a zero; it resolves to place `0x3d1de57113ab3ff0`, which is `BUSINESS.googleMapsUrl`'s CID).
 
 ---
 
