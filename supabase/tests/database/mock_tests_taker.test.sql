@@ -41,10 +41,10 @@ values ('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-0000000
 
 -- Tests: T1 released (3 questions, correct options 1, 0, 2), T3 released later (1 question),
 -- T2 a draft. Built as postgres; a released test is frozen, so release comes last.
-insert into public.mock_tests (id, title, instructions) values
-  ('00000000-0000-0000-0000-00000000f001', 'Maths mock', 'Read each question.'),
-  ('00000000-0000-0000-0000-00000000f002', 'Draft mock', ''),
-  ('00000000-0000-0000-0000-00000000f003', 'English mock', '');
+insert into public.mock_tests (id, title, instructions, subject, stream, any_year) values
+  ('00000000-0000-0000-0000-00000000f001', 'Maths mock', 'Read each question.', 'maths', 'naplan', true),
+  ('00000000-0000-0000-0000-00000000f002', 'Draft mock', '', 'maths', 'naplan', true),
+  ('00000000-0000-0000-0000-00000000f003', 'English mock', '', 'maths', 'naplan', true);
 insert into public.mock_test_questions (id, test_id, prompt, options, correct_option, explanation) values
   ('00000000-0000-0000-0000-0000000a0001', '00000000-0000-0000-0000-00000000f001', 'First?', array['a','b','c'], 1, 'Because b.'),
   ('00000000-0000-0000-0000-0000000a0002', '00000000-0000-0000-0000-00000000f001', 'Second?', array['a','b','c'], 0, ''),

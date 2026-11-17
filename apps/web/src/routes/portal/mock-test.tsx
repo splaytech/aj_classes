@@ -13,6 +13,7 @@ import type { ClientLoaderFunctionArgs } from 'react-router';
 
 import {
   LoadError,
+  MockTagLine,
   MockTakeStatusChip,
   MockTestResult,
   MockTestsErrorBoundary,
@@ -68,7 +69,12 @@ export default function MockTestPage() {
       <PageHeader
         title={test.title}
         back={{ to: mockTestsPath(area), label: MOCK_TAKE_PAGE.back }}
-        meta={<MockTakeStatusChip status={test.status} />}
+        meta={
+          <>
+            <MockTakeStatusChip status={test.status} />
+            <MockTagLine tags={test.tags} />
+          </>
+        }
       />
       {test.status === 'not_started' && <Intro test={test} onStarted={showNewView} />}
       {test.status === 'in_progress' && (

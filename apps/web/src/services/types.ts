@@ -537,6 +537,14 @@ export type Child = {
 export type MockTestStatus = (typeof MOCK_TEST_STATUSES)[number];
 export type MockTakeStatus = (typeof MOCK_TAKE_STATUSES)[number];
 
+/** A mock test's tags. Keys as stored, so a value later removed from a list is kept (AC 27). */
+export type MockTags = {
+  subject: string | null; // a SUBJECTS key
+  stream: string | null; // a programme slug
+  yearLevels: number[]; // ascending
+  anyYear: boolean;
+};
+
 /** One row of the admin list (mock_tests_admin_list): counts and the creator's name only. */
 export type MockTestSummary = {
   id: string;
@@ -548,10 +556,13 @@ export type MockTestSummary = {
   createdAt: string;
   updatedAt: string;
   releasedAt: string | null;
+  /** When a released test closes for takers; null never closes. */
+  closesAt: string | null;
+  tags: MockTags;
 };
 
-/** Trimmed by the service before it is saved. */
-export type MockTestInput = { title: string; instructions: string };
+/** Trimmed by the service before it is saved. A draft may have no tags (AC 13). */
+export type MockTestInput = { title: string; instructions: string; tags: MockTags };
 
 export type MockQuestionInput = {
   id?: string;
@@ -577,6 +588,8 @@ export type MockTestDraftView = {
   title: string;
   instructions: string;
   status: MockTestStatus;
+  closesAt: string | null;
+  tags: MockTags;
   questions: MockAdminQuestion[];
 };
 
@@ -589,6 +602,9 @@ export type MockTestListItem = {
   score: number | null;
   total: number | null;
   submittedAt: string | null;
+  /** Past means closed: the list keeps it only for someone who submitted (ruling S-1). */
+  closesAt: string | null;
+  tags: MockTags;
 };
 
 /** `correctOption` and `explanation` are only there once the person has submitted. */
@@ -610,6 +626,7 @@ export type MockTestView = {
   questionCount: number;
   score: number | null;
   total: number | null;
+  tags: MockTags;
   questions: MockTakeQuestion[];
 };
 

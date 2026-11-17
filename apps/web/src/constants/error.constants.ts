@@ -2,7 +2,7 @@
 
 import { BUSINESS } from './business.constants';
 import { AUTH_LIMITS, FORM_LIMITS, PHOTO_LIMITS, PROFILE_LIMITS } from './app.constants';
-import { MOCK_TEST_LIMITS } from './mock-tests.constants';
+import { MOCK_TEST_LIMITS, MOCK_VALIDATION } from './mock-tests.constants';
 import { SIGN_UP_PAGE } from './sign-up.constants';
 
 export const VALIDATION = {
@@ -90,6 +90,12 @@ export const PORTAL_ERRORS = {
   mockHasAttempts: 'Someone has already submitted this mock test, so it can’t go back to draft.',
   mockTooManyQuestions: `A mock test can have up to ${MOCK_TEST_LIMITS.questionsMax} questions.`,
   mockNotStarted: 'Start the mock test first.',
+  mockClosesInPast: MOCK_VALIDATION.closesInPast,
+  mockTagsMissing: 'Set the missing tags to release this mock test.',
+  mockTagKept: MOCK_VALIDATION.tagKeep,
+  mockTagSubject: 'That subject isn’t on the list. Please choose another.',
+  mockTagStream: 'That stream isn’t on the list. Please choose another.',
+  mockTagYears: MOCK_VALIDATION.tagYears,
   answerTooLong: 'That answer is too long. Please shorten it.',
   notOnline: 'This assignment is handed in on paper.',
   // Setup form (invite-onboarding design)

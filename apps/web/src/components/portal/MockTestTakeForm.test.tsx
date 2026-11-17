@@ -19,6 +19,7 @@ const TEST: MockTestView = {
   questionCount: 3,
   score: null,
   total: null,
+  tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
   questions: [
     { id: 'q1', position: 1, prompt: 'First?', options: ['Yes', 'No'], selectedOption: null },
     { id: 'q2', position: 3, prompt: 'Second?', options: ['Red', 'Blue'], selectedOption: 1 },

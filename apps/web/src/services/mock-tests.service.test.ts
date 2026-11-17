@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  closeMockTestNow,
   createMockTest,
   deleteMockQuestion,
   deleteMockTest,
@@ -12,9 +13,11 @@ import {
   releaseMockTest,
   saveMockAnswer,
   saveMockQuestion,
+  setMockTestClosing,
   startMockTest,
   submitMockTest,
   updateMockTest,
+  updateMockTestTags,
   withdrawMockTest,
 } from './mock-tests.service';
 
@@ -95,6 +98,11 @@ describe('listMockTestsAdmin', () => {
         created_at: 'c',
         updated_at: 'u',
         released_at: null,
+        closes_at: '2026-12-01T00:00:00Z',
+        subject: 'maths',
+        stream: 'vce',
+        year_levels: [7, 8],
+        any_year: false,
       },
     ]);
     expect(await listMockTestsAdmin()).toEqual({
@@ -110,6 +118,8 @@ describe('listMockTestsAdmin', () => {
           createdAt: 'c',
           updatedAt: 'u',
           releasedAt: null,
+          closesAt: '2026-12-01T00:00:00Z',
+          tags: { subject: 'maths', stream: 'vce', yearLevels: [7, 8], anyYear: false },
         },
       ],
     });
@@ -124,7 +134,17 @@ describe('listMockTestsAdmin', () => {
 
 describe('getMockTestForEdit', () => {
   it('reads the test, then its questions in order', async () => {
-    reply({ id: 't1', title: 'Maths', instructions: 'Go', status: 'draft' });
+    reply({
+      id: 't1',
+      title: 'Maths',
+      instructions: 'Go',
+      status: 'draft',
+      closes_at: null,
+      subject: null,
+      stream: null,
+      year_levels: [],
+      any_year: true,
+    });
     reply([
       {
         id: 'q1',
@@ -143,6 +163,8 @@ describe('getMockTestForEdit', () => {
         title: 'Maths',
         instructions: 'Go',
         status: 'draft',
+        closesAt: null,
+        tags: { subject: null, stream: null, yearLevels: [], anyYear: true },
         questions: [
           {
             id: 'q1',
@@ -164,19 +186,51 @@ describe('getMockTestForEdit', () => {
   });
 });
 
+const NO_TAGS = { subject: null, stream: null, yearLevels: [], anyYear: false };
+
 describe('createMockTest and updateMockTest', () => {
-  it('inserts only the trimmed title and instructions, never an id', async () => {
+  it('inserts the trimmed title and instructions and the tag columns, never an id', async () => {
     reply({ id: 'new' });
-    expect(await createMockTest({ title: '  Maths  ', instructions: ' Go ' })).toEqual({
+    expect(
+      await createMockTest({ title: '  Maths  ', instructions: ' Go ', tags: NO_TAGS }),
+    ).toEqual({
       ok: true,
       data: { id: 'new' },
     });
-    expect(called('insert', { title: 'Maths', instructions: 'Go' })).toBe(true);
+    expect(
+      called('insert', {
+        title: 'Maths',
+        instructions: 'Go',
+        subject: null,
+        stream: null,
+        year_levels: [],
+        any_year: false,
+      }),
+    ).toBe(true);
+  });
+
+  it('sends the tags of a draft edit, years ascending', async () => {
+    reply({ id: 't1' });
+    const tags = { subject: 'maths', stream: 'icas', yearLevels: [8, 5], anyYear: false };
+    expect(await updateMockTest('t1', { title: 'Maths', instructions: '', tags })).toEqual({
+      ok: true,
+      data: undefined,
+    });
+    expect(
+      called('update', {
+        title: 'Maths',
+        instructions: '',
+        subject: 'maths',
+        stream: 'icas',
+        year_levels: [5, 8],
+        any_year: false,
+      }),
+    ).toBe(true);
   });
 
   it('maps a check-constraint refusal to invalidInput', async () => {
     reply(null, { code: '23514', message: 'violates check constraint' });
-    expect(await createMockTest({ title: 'x', instructions: '' })).toEqual({
+    expect(await createMockTest({ title: 'x', instructions: '', tags: NO_TAGS })).toEqual({
       ok: false,
       error: 'invalidInput',
     });
@@ -184,18 +238,22 @@ describe('createMockTest and updateMockTest', () => {
 
   it('says mockReleased when a released test is edited', async () => {
     reply(null, { code: 'P0001', message: 'mock_released' });
-    expect(await updateMockTest('t1', { title: 'Maths', instructions: '' })).toEqual({
-      ok: false,
-      error: 'mockReleased',
-    });
+    expect(await updateMockTest('t1', { title: 'Maths', instructions: '', tags: NO_TAGS })).toEqual(
+      {
+        ok: false,
+        error: 'mockReleased',
+      },
+    );
   });
 
   it('says notAllowed when the update matched no row', async () => {
     reply(null);
-    expect(await updateMockTest('t1', { title: 'Maths', instructions: '' })).toEqual({
-      ok: false,
-      error: 'notAllowed',
-    });
+    expect(await updateMockTest('t1', { title: 'Maths', instructions: '', tags: NO_TAGS })).toEqual(
+      {
+        ok: false,
+        error: 'notAllowed',
+      },
+    );
   });
 });
 
@@ -223,11 +281,23 @@ describe('deleteMockTest and deleteMockQuestion', () => {
 describe('release and take back', () => {
   it('call the functions with the test id', async () => {
     reply(null);
-    expect(await releaseMockTest('t1')).toEqual({ ok: true, data: undefined });
+    expect(await releaseMockTest('t1', null)).toEqual({ ok: true, data: undefined });
     reply(null);
     expect(await withdrawMockTest('t1')).toEqual({ ok: true, data: undefined });
+    // No closing time: the argument is left out, so the database default (never closes) applies.
     expect(called('rpc', 'mock_release', { target: 't1' })).toBe(true);
     expect(called('rpc', 'mock_withdraw', { target: 't1' })).toBe(true);
+  });
+
+  it('release sends the closing time when there is one', async () => {
+    reply(null);
+    expect(await releaseMockTest('t1', '2026-12-01T09:00:00.000Z')).toEqual({
+      ok: true,
+      data: undefined,
+    });
+    expect(
+      called('rpc', 'mock_release', { target: 't1', closes: '2026-12-01T09:00:00.000Z' }),
+    ).toBe(true);
   });
 
   it.each([
@@ -238,7 +308,85 @@ describe('release and take back', () => {
     ['not_admin', 'notAllowed'],
   ])('maps %s to %s', async (raised, key) => {
     reply(null, { message: raised });
-    expect(await releaseMockTest('t1')).toEqual({ ok: false, error: key });
+    expect(await releaseMockTest('t1', null)).toEqual({ ok: false, error: key });
+  });
+});
+
+describe('updateMockTestTags', () => {
+  it('sends only the four tag columns, years ascending', async () => {
+    reply({ id: 't1' });
+    expect(
+      await updateMockTestTags('t1', {
+        subject: 'english',
+        stream: 'naplan',
+        yearLevels: [9, 7],
+        anyYear: false,
+      }),
+    ).toEqual({ ok: true, data: undefined });
+    expect(
+      called('update', {
+        subject: 'english',
+        stream: 'naplan',
+        year_levels: [7, 9],
+        any_year: false,
+      }),
+    ).toBe(true);
+    expect(called('eq', 'id', 't1')).toBe(true);
+  });
+
+  it('says notAllowed when no row came back', async () => {
+    reply(null);
+    expect(
+      await updateMockTestTags('t1', {
+        subject: null,
+        stream: null,
+        yearLevels: [],
+        anyYear: true,
+      }),
+    ).toEqual({ ok: false, error: 'notAllowed' });
+  });
+
+  it('names the field the database refused', async () => {
+    reply(null, { code: '23514', message: 'invalid_mock_tag', hint: 'stream' });
+    expect(
+      await updateMockTestTags('t1', { subject: null, stream: 'x', yearLevels: [], anyYear: true }),
+    ).toEqual({ ok: false, error: 'mockTagStream' });
+  });
+});
+
+describe('closing date and close now', () => {
+  it('sets, clears and closes through the functions', async () => {
+    reply(null);
+    expect(await setMockTestClosing('t1', '2026-12-01T09:00:00.000Z')).toEqual({
+      ok: true,
+      data: undefined,
+    });
+    reply(null);
+    expect(await setMockTestClosing('t1', null)).toEqual({ ok: true, data: undefined });
+    reply(null);
+    expect(await closeMockTestNow('t1')).toEqual({ ok: true, data: undefined });
+    expect(
+      called('rpc', 'mock_set_closing', { target: 't1', closes: '2026-12-01T09:00:00.000Z' }),
+    ).toBe(true);
+    // Null is sent, not left out: the function has no default, and null clears the date.
+    expect(called('rpc', 'mock_set_closing', { target: 't1', closes: null })).toBe(true);
+    expect(called('rpc', 'mock_close_now', { target: 't1' })).toBe(true);
+  });
+
+  it.each([
+    ['mock_closes_in_past', 'mockClosesInPast'],
+    ['invalid_status', 'invalidStatus'],
+    ['not_admin', 'notAllowed'],
+  ])('maps %s to %s', async (raised, key) => {
+    reply(null, { message: raised });
+    expect(await setMockTestClosing('t1', null)).toEqual({ ok: false, error: key });
+    reply(null, { message: raised });
+    expect(await closeMockTestNow('t1')).toEqual({ ok: false, error: key });
+  });
+
+  it('maps the 404 not_found body to notFound', async () => {
+    reply(null, { code: 'P0002', message: 'not_found' });
+    expect(await closeMockTestNow('t1')).toEqual({ ok: false, error: 'notFound' });
   });
 });
 
@@ -321,6 +469,11 @@ describe('listMyMockTests', () => {
         total: 3,
         submitted_at: 's',
         released_at: 'r',
+        closes_at: 'x',
+        subject: 'maths',
+        stream: 'vce',
+        year_levels: [7, 8],
+        any_year: false,
       },
     ]);
     expect(await listMyMockTests()).toEqual({
@@ -334,6 +487,8 @@ describe('listMyMockTests', () => {
           score: 2,
           total: 3,
           submittedAt: 's',
+          closesAt: 'x',
+          tags: { subject: 'maths', stream: 'vce', yearLevels: [7, 8], anyYear: false },
         },
       ],
     });
@@ -354,7 +509,19 @@ describe('getMyMockTest', () => {
     score: null,
     total: null,
     submitted_at: null,
+    tags: { subject: 'maths', stream: 'vce', year_levels: [7, 8], any_year: false },
   };
+
+  it('returns the tags with the test', async () => {
+    reply({ ...base, status: 'not_started', questions: [] });
+    const result = await getMyMockTest('t1');
+    expect(result.ok && result.data.tags).toEqual({
+      subject: 'maths',
+      stream: 'vce',
+      yearLevels: [7, 8],
+      anyYear: false,
+    });
+  });
 
   it('keeps the keys out while in progress', async () => {
     reply({

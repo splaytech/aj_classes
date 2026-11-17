@@ -3,12 +3,15 @@ import { createRoutesStub } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  MOCK_CLOSING,
+  MOCK_TAGS,
   MOCK_TEST_DIALOG,
   MOCK_TEST_STATUS_LABELS,
   MOCK_TESTS_ADMIN_PAGE,
   PORTAL_ROUTES,
   adminMockTestPath,
 } from '@/constants';
+import { formatDateTime } from '@/lib/format';
 import { createMockTest } from '@/services';
 import type { MockTestSummary } from '@/services';
 import { setupUser } from '@/test/user';
@@ -27,6 +30,8 @@ const DRAFT: MockTestSummary = {
   createdAt: '2026-11-17T01:00:00Z',
   updatedAt: '2026-11-18T01:00:00Z',
   releasedAt: null,
+  closesAt: null,
+  tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
 };
 const RELEASED: MockTestSummary = {
   ...DRAFT,
@@ -72,6 +77,50 @@ describe('admin mock tests list', () => {
     expect(releasedRow.getByText('4')).toBeInTheDocument();
   });
 
+  it('shows Closes <date> for an open test with a date, and a Closed chip with the date once closed (AC 6)', async () => {
+    const closesLater = { ...RELEASED, id: 't3', title: 'Later', closesAt: '2999-01-01T09:00:00Z' };
+    const closed = { ...RELEASED, id: 't4', title: 'Done', closesAt: '2020-01-01T09:00:00Z' };
+    renderPage([RELEASED, closesLater, closed]);
+    await screen.findByRole('heading', { level: 1, name: MOCK_TESTS_ADMIN_PAGE.heading });
+
+    const rows = screen
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) => within(row as HTMLElement));
+    expect(rows[0]?.queryByText(MOCK_CLOSING.closedChip)).not.toBeInTheDocument();
+    expect(rows[0]?.queryByText(/^Close/)).not.toBeInTheDocument();
+    expect(
+      rows[1]?.getByText(MOCK_CLOSING.closes(formatDateTime('2999-01-01T09:00:00Z'))),
+    ).toBeInTheDocument();
+    expect(rows[1]?.queryByText(MOCK_CLOSING.closedChip)).not.toBeInTheDocument();
+    expect(rows[2]?.getByText(MOCK_CLOSING.closedChip)).toBeInTheDocument();
+    expect(
+      rows[2]?.getByText(MOCK_CLOSING.closed(formatDateTime('2020-01-01T09:00:00Z'))),
+    ).toBeInTheDocument();
+  });
+
+  it('shows each test’s tags in a Tags column, with Not set for missing ones (AC 18, 28)', async () => {
+    const untagged = {
+      ...RELEASED,
+      id: 't5',
+      title: 'Old',
+      tags: { subject: null, stream: null, yearLevels: [], anyYear: false },
+    };
+    renderPage([DRAFT, untagged]);
+    await screen.findByRole('heading', { level: 1, name: MOCK_TESTS_ADMIN_PAGE.heading });
+
+    expect(
+      screen.getByRole('columnheader', { name: MOCK_TESTS_ADMIN_PAGE.columns.tags }),
+    ).toBeVisible();
+    const rows = screen
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) => within(row as HTMLElement));
+    expect(rows[0]?.getByText(MOCK_TAGS.line(MOCK_TAGS.streamLabel, 'NAPLAN'))).toBeInTheDocument();
+    expect(rows[1]?.getAllByText(new RegExp(`: ${MOCK_TAGS.notSet}$`))).toHaveLength(3);
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument(); // no filter (D-C3)
+  });
+
   it('shows the empty state', async () => {
     renderPage([]);
     expect(await screen.findByText(MOCK_TESTS_ADMIN_PAGE.empty)).toBeInTheDocument();
@@ -88,7 +137,11 @@ describe('admin mock tests list', () => {
     await user.click(screen.getByRole('button', { name: MOCK_TEST_DIALOG.create }));
 
     expect(await screen.findByText('edit page')).toBeInTheDocument();
-    expect(createMockTest).toHaveBeenCalledWith({ title: 'Fractions', instructions: '' });
+    expect(createMockTest).toHaveBeenCalledWith({
+      title: 'Fractions',
+      instructions: '',
+      tags: { subject: null, stream: null, yearLevels: [], anyYear: false },
+    });
   });
 
   it('refuses a one-character title inline and sends nothing', async () => {

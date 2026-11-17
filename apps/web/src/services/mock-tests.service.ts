@@ -6,6 +6,8 @@ import { toErrorKey } from './auth-errors';
 import {
   MOCK_QUESTION_COLUMNS,
   toMockAdminQuestion,
+  toMockTagColumns,
+  toMockTags,
   toMockTestListItem,
   toMockTestSummary,
   toMockTestView,
@@ -17,6 +19,7 @@ import { getSupabase } from './supabase.client';
 import type {
   MockQuestionInput,
   MockResult,
+  MockTags,
   MockTestDraftView,
   MockTestInput,
   MockTestListItem,
@@ -34,7 +37,7 @@ export async function listMockTestsAdmin(): Promise<Result<MockTestSummary[]>> {
     if (!supabase) return fail('notAllowed'); // the layout shows the refusal; no request goes out
     const { data, error } = await supabase.rpc('mock_tests_admin_list');
     if (error) return fail(toErrorKey(error));
-    return succeed((data as unknown as MockSummaryRow[]).map(toMockTestSummary));
+    return succeed((data as MockSummaryRow[]).map(toMockTestSummary));
   });
 }
 
@@ -45,7 +48,7 @@ export async function getMockTestForEdit(testId: string): Promise<Result<MockTes
     if (!supabase) return fail('notAllowed'); // the layout shows the refusal; no request goes out
     const test = await supabase
       .from('mock_tests')
-      .select('id, title, instructions, status')
+      .select('id, title, instructions, status, closes_at, subject, stream, year_levels, any_year')
       .eq('id', testId)
       .maybeSingle();
     if (test.error) return fail(toErrorKey(test.error));
@@ -64,6 +67,8 @@ export async function getMockTestForEdit(testId: string): Promise<Result<MockTes
       title: test.data.title,
       instructions: test.data.instructions,
       status: test.data.status as MockTestStatus,
+      closesAt: test.data.closes_at,
+      tags: toMockTags(test.data),
       questions: (questions.data as MockQuestionRow[]).map(toMockAdminQuestion),
     });
   });
@@ -74,7 +79,11 @@ export async function createMockTest(input: MockTestInput): Promise<Result<{ id:
     const supabase = await getSupabase();
     const { data, error } = await supabase
       .from('mock_tests')
-      .insert({ title: input.title.trim(), instructions: input.instructions.trim() })
+      .insert({
+        title: input.title.trim(),
+        instructions: input.instructions.trim(),
+        ...toMockTagColumns(input.tags),
+      })
       .select('id')
       .single();
     if (error) return fail(toErrorKey(error));
@@ -87,7 +96,30 @@ export async function updateMockTest(testId: string, input: MockTestInput): Prom
     const supabase = await getSupabase();
     const { data, error } = await supabase
       .from('mock_tests')
-      .update({ title: input.title.trim(), instructions: input.instructions.trim() })
+      .update({
+        title: input.title.trim(),
+        instructions: input.instructions.trim(),
+        ...toMockTagColumns(input.tags),
+      })
+      .eq('id', testId)
+      .select('id')
+      .maybeSingle();
+    if (error) return fail(toErrorKey(error));
+    return data ? succeed() : fail('notAllowed');
+  });
+}
+
+/**
+ * Saves only the four tag columns, so it works on a released or closed test too (AC 15): its title
+ * and instructions stay frozen. The database refuses a value off the lists and clearing a set tag
+ * on a released test.
+ */
+export async function updateMockTestTags(testId: string, tags: MockTags): Promise<Result> {
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { data, error } = await supabase
+      .from('mock_tests')
+      .update(toMockTagColumns(tags))
       .eq('id', testId)
       .select('id')
       .maybeSingle();
@@ -111,10 +143,36 @@ export async function deleteMockTest(testId: string): Promise<Result> {
   });
 }
 
-export async function releaseMockTest(testId: string): Promise<Result> {
+/** `closesAt` (ISO) is when it closes for takers; null never closes. It must be in the future. */
+export async function releaseMockTest(testId: string, closesAt: string | null): Promise<Result> {
   return attempt(async () => {
     const supabase = await getSupabase();
-    const { error } = await supabase.rpc('mock_release', { target: testId });
+    const { error } = await supabase.rpc('mock_release', {
+      target: testId,
+      closes: closesAt ?? undefined, // left out: the database default, never closes
+    });
+    return error ? fail(toErrorKey(error)) : succeed();
+  });
+}
+
+/** Sets, changes or (with null) clears the closing time of a released test, open or closed. */
+export async function setMockTestClosing(testId: string, closesAt: string | null): Promise<Result> {
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { error } = await supabase.rpc('mock_set_closing', {
+      target: testId,
+      // The generated types can't say that a timestamptz argument accepts null; null clears it.
+      closes: closesAt as string,
+    });
+    return error ? fail(toErrorKey(error)) : succeed();
+  });
+}
+
+/** Closes a released test for takers straight away, even when people have submitted it. */
+export async function closeMockTestNow(testId: string): Promise<Result> {
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { error } = await supabase.rpc('mock_close_now', { target: testId });
     return error ? fail(toErrorKey(error)) : succeed();
   });
 }
@@ -188,7 +246,7 @@ export async function listMyMockTests(): Promise<Result<MockTestListItem[]>> {
     if (!supabase) return fail('notAllowed'); // the layout shows the refusal; no request goes out
     const { data, error } = await supabase.rpc('mock_tests_for_me');
     if (error) return fail(toErrorKey(error));
-    return succeed((data as unknown as MockListRow[]).map(toMockTestListItem));
+    return succeed((data as MockListRow[]).map(toMockTestListItem));
   });
 }
 

@@ -58,6 +58,7 @@ export {
 } from './assignments.service';
 export { deleteQuestion, moveQuestion, saveQuestion } from './questions.service';
 export {
+  closeMockTestNow,
   createMockTest,
   deleteMockQuestion,
   deleteMockTest,
@@ -69,9 +70,11 @@ export {
   releaseMockTest,
   saveMockAnswer,
   saveMockQuestion,
+  setMockTestClosing,
   startMockTest,
   submitMockTest,
   updateMockTest,
+  updateMockTestTags,
   withdrawMockTest,
 } from './mock-tests.service';
 export { getSubmission, saveSubmission } from './submissions.service';
@@ -183,6 +186,7 @@ export type {
   MockAdminQuestion,
   MockQuestionInput,
   MockResult,
+  MockTags,
   MockTakeQuestion,
   MockTakeStatus,
   MockTestDraftView,

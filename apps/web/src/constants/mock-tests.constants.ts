@@ -7,6 +7,9 @@ import {
   QUESTION_VALIDATION,
   QUESTION_DIALOG,
 } from './online-assignments.constants';
+import { CLASS_DIALOG } from './portal.constants';
+import { PROGRAMMES, PROGRAMME_SLUGS } from './programmes.constants';
+import { SUBJECTS } from './subjects.constants';
 
 /**
  * Prompt, option and explanation limits are the assignment ones (QUESTION_LIMITS), so the two
@@ -20,6 +23,63 @@ export const MOCK_TEST_LIMITS = {
 } as const;
 
 export const MOCK_TEST_STATUSES = ['draft', 'released'] as const;
+
+// --- Tags: subject, stream, year level (docs/delivery/2026-11-18-mock-test-closing ACs 10 to 12).
+// The database holds a copy of the subject and stream keys (private.mock_test_options);
+// mock-test-options.parity.test.ts keeps the two equal.
+
+/** Subjects a mock test can't have: not a multiple-choice test (AC 10). */
+export const MOCK_TEST_EXCLUDED_SUBJECT_KEYS: readonly string[] = ['interview-preparation'];
+
+export const MOCK_TEST_SUBJECTS = SUBJECTS.filter(
+  (subject) => !MOCK_TEST_EXCLUDED_SUBJECT_KEYS.includes(subject.key),
+);
+
+/** The streams, in the order of AC 11. Interviews, VCE Subject Selection and UCAT/GAMSAT are not offered. */
+export const MOCK_TEST_STREAM_SLUGS = [
+  PROGRAMME_SLUGS.vce,
+  PROGRAMME_SLUGS.naplan,
+  PROGRAMME_SLUGS.selectiveEntry,
+  PROGRAMME_SLUGS.sealAndScholarships,
+  PROGRAMME_SLUGS.icas,
+  PROGRAMME_SLUGS.mathsScienceEnglish,
+] as const;
+
+// Looked up in PROGRAMMES.items, not with findProgramme: that one skips VCE (it has its own page),
+// and AC 11 labels the VCE stream "VCE Tutoring".
+export const MOCK_TEST_STREAMS = MOCK_TEST_STREAM_SLUGS.map((slug) => ({
+  key: slug,
+  label: PROGRAMMES.items.find((programme) => programme.slug === slug)?.menuLabel ?? slug,
+}));
+
+/** The value of the Any year item in the year select. Never stored: any_year is its own column. */
+export const MOCK_TAG_ANY = 'any';
+
+export const MOCK_TAGS = {
+  subjectLabel: CLASS_DIALOG.labels.subject, // AC 19: the class dialog's labels
+  yearLevelLabel: CLASS_DIALOG.labels.yearLevel,
+  streamLabel: 'Stream',
+  notSet: 'Not set',
+  noLongerOffered: (label: string) => `${label} (no longer offered)`,
+  yearHint: 'Choose one or more years, or Any year.',
+  line: (label: string, text: string) => `${label}: ${text}`,
+  tagsHeading: 'Tags',
+  editTags: 'Edit tags',
+  editTagsTitle: 'Edit tags',
+  tagsSaved: 'Tags saved.',
+  fieldNames: { subject: 'subject', stream: 'stream', yearLevels: 'year level' },
+  listSeparator: ', ',
+  listAnd: ' and ',
+  releaseNeedsTags: (names: string) => `Set the ${names} to release this mock test.`,
+  releaseTagsText: 'Takers filter mock tests by these, so set them before releasing.',
+} as const;
+
+export const MOCK_TEST_FILTERS = {
+  groupLabel: 'Filter mock tests',
+  all: 'All',
+  noMatch: 'No mock tests match these filters.',
+  clear: 'Clear filters',
+} as const;
 
 export const MOCK_TEST_STATUS_LABELS = {
   draft: 'Draft',
@@ -52,6 +112,7 @@ export const MOCK_TESTS_ADMIN_PAGE = {
     submitted: 'Submitted',
     createdBy: 'Created by',
     changed: 'Last changed',
+    tags: 'Tags',
   },
 } as const;
 
@@ -111,6 +172,9 @@ export const MOCK_TEST_EDIT_PAGE = {
   draftNote: 'Draft: only admins can see this mock test. Release it when it is ready.',
   releasedNote:
     'Released: students, parents and signed-up users can take it. It can only go back to draft until someone submits it.',
+  // Ruling S-1, in line with MOCK_CLOSING (TSR BUG-3).
+  closedNote:
+    'Closed: people who haven’t submitted it can’t see or take it. People who submitted it still see their result. Open it again with Set closing date.',
   release: 'Release',
   releasing: 'Releasing…',
   releaseNeedsQuestions: 'Add at least one question to release this mock test.',
@@ -127,6 +191,32 @@ export const MOCK_TEST_EDIT_PAGE = {
   deleteDraft: 'Delete draft',
   confirmDeleteTitle: 'Delete this draft?',
   confirmDeleteText: (title: string) => `“${title}” and its questions will be removed.`,
+} as const;
+
+// Closing date and Close now (docs/delivery/2026-11-18-mock-test-closing). Closed means hidden from
+// every taker, results included; times show in the viewer's local time.
+export const MOCK_CLOSING = {
+  fieldLabel: 'Closes (optional)',
+  fieldHint: 'Leave empty and it never closes. Times are in your local time.',
+  clear: 'Clear closing date',
+  closes: (when: string) => `Closes ${when}`,
+  closed: (when: string) => `Closed ${when}`,
+  closedChip: 'Closed',
+  setClosing: 'Set closing date',
+  setClosingTitle: 'Set closing date',
+  // Ruling S-1: people who submitted keep their result; everyone else loses access (Test Manager F-1).
+  setClosingText:
+    'From this time, people who haven’t submitted it can’t see or take this mock test, and anyone part-way through can’t finish. People who submitted it still see their result. Clear the date or pick a later one to open it again.',
+  save: 'Save',
+  saving: 'Saving…',
+  saved: 'Closing date saved.',
+  cleared: 'Closing date cleared. It never closes.',
+  closeNow: 'Close now',
+  closingNow: 'Closing…',
+  confirmCloseNowTitle: 'Close this mock test now?',
+  confirmCloseNowText:
+    'People who haven’t submitted it won’t see it any more, and anyone part-way through can’t finish. People who submitted it still see their result. You can open it again with Set closing date.',
+  closedNow: 'Closed. Only people who submitted it can still see their result.',
 } as const;
 
 export const MOCK_TESTS_LIST = {
@@ -198,4 +288,10 @@ export const MOCK_VALIDATION = {
   optionLength: QUESTION_VALIDATION.optionLength,
   correctOption: QUESTION_VALIDATION.correctOption,
   explanation: QUESTION_VALIDATION.explanationLength,
+  closesInvalid: 'Enter a full date and time, or leave it empty.',
+  closesInPast: 'The closing date and time must be in the future.',
+  tagSubject: 'Please choose a subject.',
+  tagStream: 'Please choose a stream.',
+  tagYears: 'Please choose one or more years, or Any year.',
+  tagKeep: 'A tag that is set can’t be cleared on a released mock test. Choose another value.',
 } as const;

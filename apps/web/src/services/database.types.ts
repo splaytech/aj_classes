@@ -665,6 +665,8 @@ export type Database = {
       };
       mock_tests: {
         Row: {
+          any_year: boolean;
+          closes_at: string | null;
           created_at: string;
           created_by: string | null;
           id: string;
@@ -672,11 +674,16 @@ export type Database = {
           released_at: string | null;
           released_by: string | null;
           status: string;
+          stream: string | null;
+          subject: string | null;
           title: string;
           updated_at: string;
+          year_levels: number[];
         };
         ComputedFields: never;
         Insert: {
+          any_year?: boolean;
+          closes_at?: string | null;
           created_at?: string;
           created_by?: string | null;
           id?: string;
@@ -684,10 +691,15 @@ export type Database = {
           released_at?: string | null;
           released_by?: string | null;
           status?: string;
+          stream?: string | null;
+          subject?: string | null;
           title: string;
           updated_at?: string;
+          year_levels?: number[];
         };
         Update: {
+          any_year?: boolean;
+          closes_at?: string | null;
           created_at?: string;
           created_by?: string | null;
           id?: string;
@@ -695,8 +707,11 @@ export type Database = {
           released_at?: string | null;
           released_by?: string | null;
           status?: string;
+          stream?: string | null;
+          subject?: string | null;
           title?: string;
           updated_at?: string;
+          year_levels?: number[];
         };
         Relationships: [
           {
@@ -1035,40 +1050,52 @@ export type Database = {
       invite_token_claim: { Args: { client_ip_hash: string; hash: string }; Returns: string };
       invite_token_release: { Args: { hash: string }; Returns: undefined };
       invite_token_store: { Args: { hash: string; target: string }; Returns: string };
+      mock_close_now: { Args: { target: string }; Returns: undefined };
       mock_move_question: { Args: { step: number; target: string }; Returns: undefined };
-      mock_release: { Args: { target: string }; Returns: undefined };
+      mock_release: { Args: { closes?: string; target: string }; Returns: undefined };
       mock_save_answer: {
         Args: { chosen_option: number; target_question: string; target_test: string };
         Returns: undefined;
       };
+      mock_set_closing: { Args: { closes: string; target: string }; Returns: undefined };
       mock_start: { Args: { target: string }; Returns: undefined };
       mock_submit: { Args: { target: string }; Returns: Json };
       mock_test_open: { Args: { target: string }; Returns: Json };
       mock_tests_admin_list: {
         Args: Record<PropertyKey, never>;
         Returns: {
+          any_year: boolean;
+          closes_at: string;
           created_at: string;
           created_by_name: string;
           id: string;
           question_count: number;
           released_at: string;
           status: string;
+          stream: string;
+          subject: string;
           submitted_count: number;
           title: string;
           updated_at: string;
+          year_levels: number[];
         }[];
       };
       mock_tests_for_me: {
         Args: Record<PropertyKey, never>;
         Returns: {
+          any_year: boolean;
+          closes_at: string;
           id: string;
           question_count: number;
           released_at: string;
           score: number;
           status: string;
+          stream: string;
+          subject: string;
           submitted_at: string;
           title: string;
           total: number;
+          year_levels: number[];
         }[];
       };
       mock_withdraw: { Args: { target: string }; Returns: undefined };
