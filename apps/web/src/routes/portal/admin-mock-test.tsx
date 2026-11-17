@@ -11,7 +11,7 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useEffect, useRef, useState } from 'react';
-import { useLoaderData, useNavigate, useRevalidator } from 'react-router';
+import { Link as RouterLink, useLoaderData, useNavigate, useRevalidator } from 'react-router';
 import type { ClientLoaderFunctionArgs } from 'react-router';
 
 import {
@@ -32,10 +32,13 @@ import {
 } from '@/components/portal';
 import {
   MOCK_CLOSING,
+  MOCK_RESULTS_PAGE,
+  MOCK_SCORING,
   MOCK_TAGS,
   MOCK_TEST_EDIT_PAGE,
   PORTAL_ROUTES,
   PORTAL_SEO,
+  adminMockTestResultsPath,
 } from '@/constants';
 import {
   missingMockTagFields,
@@ -43,6 +46,7 @@ import {
   mockClosingText,
   mockTagNamesText,
 } from '@/lib/mock-tests';
+import { totalMarks } from '@/lib/questions';
 import { buildPortalMeta } from '@/lib/seo';
 import { usePortalAction } from '@/lib/use-portal-action';
 import { closeMockTestNow, deleteMockTest, getMockTestForEdit, withdrawMockTest } from '@/services';
@@ -149,6 +153,12 @@ export default function AdminMockTestPage() {
     if (worked) void navigate(PORTAL_ROUTES.adminMockTests);
   }
 
+  const resultsButton = (
+    <Button variant="outlined" component={RouterLink} to={adminMockTestResultsPath(test.id)}>
+      {MOCK_RESULTS_PAGE.viewResults}
+    </Button>
+  );
+
   return (
     <>
       <PageHeader
@@ -164,6 +174,7 @@ export default function AdminMockTestPage() {
         actions={
           isDraft ? (
             <>
+              {resultsButton}
               <Button variant="outlined" onClick={() => setEditingDetails(true)}>
                 {MOCK_TEST_EDIT_PAGE.editDetails}
               </Button>
@@ -185,6 +196,7 @@ export default function AdminMockTestPage() {
             </>
           ) : (
             <>
+              {resultsButton}
               <Button
                 variant="outlined"
                 disabled={action.busy}
@@ -236,6 +248,17 @@ export default function AdminMockTestPage() {
 
         <SectionCard title={MOCK_TAGS.tagsHeading}>
           <MockTagLine tags={test.tags} />
+        </SectionCard>
+
+        <SectionCard title={MOCK_SCORING.scoringHeading}>
+          <Stack spacing={1}>
+            <Typography>{MOCK_SCORING.totalMarks(totalMarks(test.questions))}</Typography>
+            <Typography>
+              {test.passMark === null
+                ? MOCK_SCORING.noPassMark
+                : MOCK_SCORING.passMarkLine(test.passMark)}
+            </Typography>
+          </Stack>
         </SectionCard>
 
         <SectionCard title={MOCK_TEST_EDIT_PAGE.instructionsHeading}>

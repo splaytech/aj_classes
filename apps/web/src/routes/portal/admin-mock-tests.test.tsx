@@ -4,12 +4,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   MOCK_CLOSING,
+  MOCK_RESULTS_PAGE,
   MOCK_TAGS,
   MOCK_TEST_DIALOG,
   MOCK_TEST_STATUS_LABELS,
   MOCK_TESTS_ADMIN_PAGE,
   PORTAL_ROUTES,
   adminMockTestPath,
+  adminMockTestResultsPath,
 } from '@/constants';
 import { formatDateTime } from '@/lib/format';
 import { createMockTest } from '@/services';
@@ -77,6 +79,19 @@ describe('admin mock tests list', () => {
     expect(releasedRow.getByText('4')).toBeInTheDocument();
   });
 
+  it('links every row, draft or released, to its Results page, and names none or scores (AC 28, 39)', async () => {
+    renderPage([DRAFT, RELEASED]);
+    await screen.findByRole('heading', { level: 1, name: MOCK_TESTS_ADMIN_PAGE.heading });
+
+    expect(screen.getByRole('columnheader', { name: MOCK_RESULTS_PAGE.viewResults })).toBeVisible();
+    for (const test of [DRAFT, RELEASED]) {
+      expect(
+        screen.getByRole('link', { name: MOCK_RESULTS_PAGE.viewResultsFor(test.title) }),
+      ).toHaveAttribute('href', adminMockTestResultsPath(test.id));
+    }
+    expect(screen.getAllByRole('link', { name: /^Results for / })).toHaveLength(2);
+  });
+
   it('shows Closes <date> for an open test with a date, and a Closed chip with the date once closed (AC 6)', async () => {
     const closesLater = { ...RELEASED, id: 't3', title: 'Later', closesAt: '2999-01-01T09:00:00Z' };
     const closed = { ...RELEASED, id: 't4', title: 'Done', closesAt: '2020-01-01T09:00:00Z' };
@@ -141,6 +156,7 @@ describe('admin mock tests list', () => {
       title: 'Fractions',
       instructions: '',
       tags: { subject: null, stream: null, yearLevels: [], anyYear: false },
+      passMark: null,
     });
   });
 

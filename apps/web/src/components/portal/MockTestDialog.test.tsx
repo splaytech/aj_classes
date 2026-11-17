@@ -1,7 +1,13 @@
 import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { MOCK_TAGS, MOCK_TEST_DIALOG, YEAR_LEVEL_TEXT } from '@/constants';
+import {
+  MOCK_SCORING,
+  MOCK_TAGS,
+  MOCK_TEST_DIALOG,
+  MOCK_VALIDATION,
+  YEAR_LEVEL_TEXT,
+} from '@/constants';
 import { EMPTY_MOCK_TAGS } from '@/lib/mock-tests';
 import { createMockTest, updateMockTest } from '@/services';
 import { setupUser } from '@/test/user';
@@ -34,6 +40,7 @@ describe('MockTestDialog tags', () => {
       title: 'Fractions',
       instructions: '',
       tags: EMPTY_MOCK_TAGS,
+      passMark: null,
     });
   });
 
@@ -52,6 +59,7 @@ describe('MockTestDialog tags', () => {
       title: 'Fractions',
       instructions: '',
       tags: { subject: 'maths', stream: 'naplan', yearLevels: [5], anyYear: false },
+      passMark: null,
     });
   });
 
@@ -61,7 +69,7 @@ describe('MockTestDialog tags', () => {
     render(
       <MockTestDialog
         open
-        existing={{ id: 't1', title: 'Reading', instructions: '', tags }}
+        existing={{ id: 't1', title: 'Reading', instructions: '', tags, passMark: null }}
         onSaved={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -81,6 +89,62 @@ describe('MockTestDialog tags', () => {
       title: 'Reading',
       instructions: '',
       tags: { ...tags, subject: null },
+      passMark: null,
     });
+  });
+});
+
+describe('MockTestDialog pass mark (AC 6, 7)', () => {
+  async function submitWith(passMark: string) {
+    const user = setupUser();
+    render(<MockTestDialog open existing={null} onSaved={vi.fn()} onClose={vi.fn()} />);
+    await user.type(screen.getByLabelText(new RegExp(MOCK_TEST_DIALOG.titleLabel)), 'Fractions');
+    if (passMark) await user.type(screen.getByLabelText(MOCK_SCORING.passMarkLabel), passMark);
+    await user.click(screen.getByRole('button', { name: MOCK_TEST_DIALOG.create }));
+  }
+
+  it('shows the hint under the pass mark field', () => {
+    render(<MockTestDialog open existing={null} onSaved={vi.fn()} onClose={vi.fn()} />);
+    expect(screen.getByText(MOCK_SCORING.passMarkHint)).toBeInTheDocument();
+  });
+
+  it('sends the pass mark that was typed', async () => {
+    await submitWith('60');
+    expect(createMockTest).toHaveBeenCalledWith(expect.objectContaining({ passMark: 60 }));
+  });
+
+  it('sends null for a blank pass mark', async () => {
+    await submitWith('');
+    expect(createMockTest).toHaveBeenCalledWith(expect.objectContaining({ passMark: null }));
+  });
+
+  it.each(['0', '101', '60.5'])('refuses a pass mark of %s and saves nothing', async (text) => {
+    await submitWith(text);
+    expect(screen.getByText(MOCK_VALIDATION.passMark)).toBeInTheDocument();
+    expect(createMockTest).not.toHaveBeenCalled();
+  });
+
+  it('shows the saved pass mark when editing and sends a change', async () => {
+    const user = setupUser();
+    render(
+      <MockTestDialog
+        open
+        existing={{
+          id: 't1',
+          title: 'Reading',
+          instructions: '',
+          tags: EMPTY_MOCK_TAGS,
+          passMark: 50,
+        }}
+        onSaved={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    const field = screen.getByLabelText(MOCK_SCORING.passMarkLabel);
+    expect(field).toHaveValue(50);
+    await user.clear(field);
+    await user.type(field, '75');
+    await user.click(screen.getByRole('button', { name: MOCK_TEST_DIALOG.save }));
+    expect(updateMockTest).toHaveBeenCalledWith('t1', expect.objectContaining({ passMark: 75 }));
   });
 });

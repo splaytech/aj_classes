@@ -1,5 +1,6 @@
 // Add or edit one question of a draft mock test (design §4.4): a prompt, 2–6 options with one
-// marked correct, and an optional explanation. Adapted from QuestionDialog without kind or marks.
+// marked correct, whole marks, and an optional explanation. Adapted from QuestionDialog without
+// kind. Only drafts reach it: the list hides Add and Edit once a test is released (AC 3).
 
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
@@ -13,7 +14,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { useRef, useState } from 'react';
 
-import { MOCK_QUESTION_DIALOG, QUESTION_LIMITS } from '@/constants';
+import { MOCK_QUESTION_DIALOG, MOCK_SCORING, QUESTION_LIMITS } from '@/constants';
 import { hasMockErrors, validateMockQuestion } from '@/lib/mock-tests';
 import type { MockQuestionErrors } from '@/lib/mock-tests';
 import { optionLetter } from '@/lib/questions';
@@ -52,6 +53,7 @@ export function MockQuestionDialog({
   const [correctOption, setCorrectOption] = useState<number | null>(
     existing?.correctOption ?? null,
   );
+  const [marksText, setMarksText] = useState(String(existing?.marks ?? 1));
   const [explanation, setExplanation] = useState(existing?.explanation ?? '');
   const [errors, setErrors] = useState<MockQuestionErrors>({});
   const action = usePortalAction();
@@ -81,6 +83,7 @@ export function MockQuestionDialog({
       options: options.map((option) => option.text),
       correctOption,
       explanation,
+      marks: Number(marksText),
     };
     const found = validateMockQuestion(input);
     setErrors(found);
@@ -157,6 +160,18 @@ export function MockQuestionDialog({
         )}
       </FormControl>
 
+      <TextField
+        label={MOCK_SCORING.marksLabel}
+        type="number"
+        value={marksText}
+        onChange={(event) => setMarksText(event.target.value)}
+        error={Boolean(errors.marks)}
+        helperText={errors.marks}
+        slotProps={{
+          htmlInput: { min: QUESTION_LIMITS.marksMin, max: QUESTION_LIMITS.marksMax, step: 1 },
+        }}
+        sx={{ maxWidth: 160 }}
+      />
       <TextField
         label={MOCK_QUESTION_DIALOG.explanationLabel}
         value={explanation}
