@@ -448,7 +448,7 @@ select results_eq(
 select is(
   (select array_agg(k order by k) from jsonb_object_keys(
      (select to_jsonb(l) from public.mock_tests_admin_list() l limit 1)) k),
-  array['created_at','created_by_name','id','question_count','released_at','status','submitted_count','title','updated_at'],
+  array['closes_at','created_at','created_by_name','id','question_count','released_at','status','submitted_count','title','updated_at'],
   'The list has exactly the documented columns: no taker, answer or score column');
 select is((select count(*)::int from public.mock_tests_admin_list()), 2, 'The list holds every test, whoever made it');
 select is((select id from public.mock_tests_admin_list() limit 1), '00000000-0000-0000-0000-00000000f001'::uuid,

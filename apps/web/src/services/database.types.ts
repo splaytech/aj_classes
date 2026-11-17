@@ -665,6 +665,7 @@ export type Database = {
       };
       mock_tests: {
         Row: {
+          closes_at: string | null;
           created_at: string;
           created_by: string | null;
           id: string;
@@ -677,6 +678,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          closes_at?: string | null;
           created_at?: string;
           created_by?: string | null;
           id?: string;
@@ -688,6 +690,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          closes_at?: string | null;
           created_at?: string;
           created_by?: string | null;
           id?: string;
@@ -1035,18 +1038,21 @@ export type Database = {
       invite_token_claim: { Args: { client_ip_hash: string; hash: string }; Returns: string };
       invite_token_release: { Args: { hash: string }; Returns: undefined };
       invite_token_store: { Args: { hash: string; target: string }; Returns: string };
+      mock_close_now: { Args: { target: string }; Returns: undefined };
       mock_move_question: { Args: { step: number; target: string }; Returns: undefined };
-      mock_release: { Args: { target: string }; Returns: undefined };
+      mock_release: { Args: { closes?: string; target: string }; Returns: undefined };
       mock_save_answer: {
         Args: { chosen_option: number; target_question: string; target_test: string };
         Returns: undefined;
       };
+      mock_set_closing: { Args: { closes: string; target: string }; Returns: undefined };
       mock_start: { Args: { target: string }; Returns: undefined };
       mock_submit: { Args: { target: string }; Returns: Json };
       mock_test_open: { Args: { target: string }; Returns: Json };
       mock_tests_admin_list: {
         Args: Record<PropertyKey, never>;
         Returns: {
+          closes_at: string;
           created_at: string;
           created_by_name: string;
           id: string;
