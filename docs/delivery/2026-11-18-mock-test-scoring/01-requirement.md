@@ -160,7 +160,7 @@ Each one is written so Tester can check it in the browser or with a database tes
 
 28. An admin can open a Results view for any test from the admin list, including a draft (which shows the empty message in here AC 34) and a closed test (here AC 32). Access is the gate in here AC 36.
 29. The view shows only submitted attempts, one row per person (SC8). Columns, in this order: taker's full name, submitted (date and time, `formatDateTime`), score in marks, percentage, and Pass, Not yet or no label (here AC 20).
-30. If a person has no full name on their profile, the name cell shows a fallback from the constants, for example "Name not set". It never shows an e-mail address in its place.
+30. The name cell shows the profile's full name; if that is blank and the person is a student, the student roster name; otherwise a fallback from the constants, for example "Name not set". It never shows an e-mail address in its place. (Amended by L-8.)
 31. A legacy attempt (submitted before this feature) appears like any other row, with its stored score and total, and its percentage computed as in here AC 14. Its label is blank, because its test has no pass mark (here AC 20).
 32. A closed test's Results view still opens for admins, and its rows are the same as before closing. The closed label shows on the test in the admin list (closing Part A AC 6).
 33. The view lists no in-progress attempts. For each test, the submitted count in the admin list (2026-11-17 AC 23) equals the number of rows in the view.
