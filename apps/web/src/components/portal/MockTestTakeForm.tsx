@@ -41,21 +41,29 @@ export function MockTestTakeForm({ test, onSubmitted }: MockTestTakeFormProps) {
   const [answers, setAnswers] = useState<Record<string, number | null>>(() =>
     Object.fromEntries(test.questions.map((question) => [question.id, question.selectedOption])),
   );
+  // What the database holds: the counts use this, so a choice whose save failed stays on screen
+  // (AC 28) but counts as unanswered, and the confirmation never says "all answered" over a blank.
+  const [saved, setSaved] = useState<Record<string, number | null>>(() =>
+    Object.fromEntries(test.questions.map((question) => [question.id, question.selectedOption])),
+  );
   const [index, setIndex] = useState(0);
   const [confirming, setConfirming] = useState(false);
   const submitAction = usePortalAction();
 
   const save = useCallback(
-    (questionId: string, change: AnswerChange): Promise<Result> =>
-      'option' in change && change.option !== null
-        ? saveMockAnswer(test.id, questionId, change.option)
-        : Promise.resolve(NOT_AN_OPTION),
+    async (questionId: string, change: AnswerChange): Promise<Result> => {
+      if (!('option' in change) || change.option === null) return NOT_AN_OPTION;
+      const option = change.option;
+      const result = await saveMockAnswer(test.id, questionId, option);
+      if (result.ok) setSaved((current) => ({ ...current, [questionId]: option }));
+      return result;
+    },
     [test.id],
   );
   const autosave = useAnswerAutosave(save);
 
   const total = test.questions.length;
-  const unanswered = unansweredCount(test.questions, answers);
+  const unanswered = unansweredCount(test.questions, saved);
   const question = test.questions[index] as MockTakeQuestion;
 
   function chooseOption(option: number) {

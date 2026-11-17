@@ -101,6 +101,27 @@ describe('MockTestTakeForm', () => {
     expect(screen.getByRole('radio', { name: /Yes/ })).toBeChecked();
   });
 
+  it('counts a choice whose save failed as unanswered in the submit confirmation (L-8, F-6)', async () => {
+    vi.mocked(saveMockAnswer).mockResolvedValue({ ok: false, error: 'network' });
+    const user = setupUser();
+    renderForm({
+      ...TEST,
+      questions: [
+        { id: 'q1', position: 1, prompt: 'First?', options: ['Yes', 'No'], selectedOption: null },
+        { id: 'q2', position: 2, prompt: 'Second?', options: ['Red', 'Blue'], selectedOption: 1 },
+      ],
+    });
+
+    await user.click(screen.getByRole('radio', { name: /Yes/ }));
+    expect(await screen.findByText(MOCK_TAKE_PAGE.saveFailed)).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /Yes/ })).toBeChecked();
+    expect(screen.getByText(MOCK_TAKE_PAGE.answered(1, 2))).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: MOCK_TAKE_PAGE.submit }));
+    const dialog = await screen.findByRole('dialog', { name: MOCK_TAKE_PAGE.confirmSubmitTitle });
+    expect(dialog).toHaveTextContent(MOCK_TAKE_PAGE.confirmSubmitText(1));
+  });
+
   it('shows the database reason when a save is refused', async () => {
     vi.mocked(saveMockAnswer).mockResolvedValue({ ok: false, error: 'alreadySubmitted' });
     const user = setupUser();

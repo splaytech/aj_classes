@@ -98,6 +98,12 @@ Fix batch 1 checks (lead, separate commands): `format:check` only the two allowe
 
 Fix batch 2 checks (lead, separate commands): `format:check` only the two allowed files; `lint` 0; `typecheck` 0; `pnpm test` vitest 108 files / 998 tests, e2e unit 6/6, deploy-order green; `VITE_APP_ENV=production pnpm build` 0; `db:reset` (after the migration change) + `db:test` `Files=23, Tests=1697`, PASS (the last two cases are test-only, so they were run without a further reset); `test:functions` 0 NOT OK; `test:smoke` 17 passed; CI-style build + `test:csp` 23 passed.
 
+## Fix batch 3 (ruling L-8)
+
+- **F-6:** `MockTestTakeForm` keeps a second map of what the database holds: it starts from the loaded answers and is updated only when a save succeeds. "Answered x of N" and the submit confirmation count from that map. A choice whose save failed stays on screen (AC 28) but counts as unanswered. If an earlier choice for that question was saved, the question still counts as answered, because the database holds the earlier choice. New vitest case.
+- **F-7:** removed the unused `MOCK_TAKE_PAGE.optionsLabel`. The assignments `SOLVE_PAGE.optionsLabel` is a different constant and stays.
+- Checks: `lint` 0, `typecheck` 0, `pnpm test` vitest 108 files / 999 tests, e2e unit 6/6, deploy-order green, `VITE_APP_ENV=production pnpm build` 0, `format:check` only the two allowed files. No SQL touched, so pgTAP was not re-run.
+
 ## Known gaps (for S8 and later)
 
 1. Two-session concurrency for AC 13 (two adds at 99 questions) and AC 19 (an add during release) is not run: S8, Tester. Start, save and submit against withdraw were run by the lead (fix batches 1 and 2).

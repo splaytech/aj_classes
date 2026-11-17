@@ -149,7 +149,6 @@ export const MOCK_TAKE_PAGE = {
   start: 'Start',
   starting: 'Starting…',
   questionOf: (position: number, total: number) => `Question ${position} of ${total}`,
-  optionsLabel: (position: number) => `Answer for question ${position}`,
   previous: 'Previous',
   next: 'Next',
   answered: (answered: number, total: number) => `Answered ${answered} of ${total}`,
