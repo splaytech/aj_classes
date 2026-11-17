@@ -39,3 +39,4 @@ At `3e20c19` (verified at source):
 7. **Coverage note A: accepted.** No rate limit on `mock_start` / `mock_save_answer`; bounded by one attempt per test and 100 answers per attempt.
 8. **Coverage note B: accepted.** Release and take-back write no audit row; `released_by`/`released_at` are the only trace.
 9. **Note, new:** taker `for share` locks make an admin's `for update` wait for current takers' transactions; short, acceptable; watch with many concurrent takers.
+10. **Note, fix batch 4 (`2d84344`), checked by the team lead:** the new `private.raise_mock_not_found()` is invoker with `search_path=''` and no execute for public, anon or authenticated. Only the security-definer mock functions and the `check_mock_question` trigger call it. It changes only the HTTP status, to 404, and the body. No new exposure.

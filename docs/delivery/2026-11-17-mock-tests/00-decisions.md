@@ -17,3 +17,4 @@ No reply from Saurabh yet on D-1 to D-3; each ruling below is cheap to flip and 
 - **L-10 (TSR round 1):** the rulings are in `06-test-plan.md` §11. AZ-4, AD-10(b) and CL-1 were plan errors, and their fixtures are corrected. BUG-1 to BUG-5 are app bugs and are all fixed this round:
   - BUG-1: a 4xx for `not_found`, in mock functions and triggers only. The same pattern in older migrations is deferred.
   - BUG-3: the focus ring is fixed in the shared theme, so the change is app-wide. Recorded as [ASSUMPTION]: it is an accessibility gain and cheap to revert.
+- **L-11 (TSR round 2):** `06-test-plan.md` §11 items 8 and 9. The JSON `not_found` form and the 14th function are accepted results of L-10's fix.

@@ -1363,3 +1363,6 @@ Ruled by the team lead on 18 Nov 2026 (L-10 in `00-decisions.md`). Every check e
 5. **BR-2, reading confirmed.** An unbroken 300-character option is a valid case, and it is also run with spaces.
 6. **CL-1, plan gap.** Before `rm_t7`, delete BR-1's long title by its own pattern: `delete from public.mock_tests where title like 'w%-<RUN>'`, after removing that test's attempts the same way. Expected: 0 left.
 7. **AD-16:** printing `true` for `t` is the same value, so it is a PASS.
+
+8. **L-11 (TSR round 2), PE-1 and PE-2: plan expectations made stale by fix batch 4.** BUG-1's approved fix (L-10) raises `not_found` through `private.raise_mock_not_found()` with SQLSTATE `PGRST`. psql therefore prints `ERROR:  {"code":"P0002","message":"not_found","details":null,"hint":null}`, and that matches every expected `ERROR:  not_found`: same code, same message, and now HTTP 404. GR-3 expects 14 functions: the plan's 13 plus `private.raise_mock_not_found`, which is invoker, has `search_path=''`, and no execute for anon or authenticated. Every other check in AZ-9, AD-6, AD-9, AD-10, AD-14, TK-5, CC-5, CC-8 and GR-3 is unchanged and was met in round 2 (`run-2/`).
+9. **BA-9:** the console 403s come from the database refusing an inactive student, which is the refusal that row itself tests. §11.3 doesn't apply, so the row is a PASS.
