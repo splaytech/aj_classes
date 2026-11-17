@@ -89,6 +89,23 @@ describe('MockTagFields', () => {
     expect(within(list).queryByRole('option', { name: MOCK_TAGS.notSet })).toBeNull();
   });
 
+  it('on a released test never lets the years be emptied, but lets them change (review-5 #5)', async () => {
+    const user = setupUser();
+    render(<Harness initial={{ ...EMPTY_MOCK_TAGS, yearLevels: [5] }} canClear={false} />);
+
+    const list = await openSelect(user, MOCK_TAGS.yearLevelLabel);
+    await user.click(within(list).getByRole('option', { name: YEAR_LEVEL_TEXT.label(5) }));
+    expect(state()).toMatchObject({ yearLevels: [5], anyYear: false });
+
+    await user.click(within(list).getByRole('option', { name: YEAR_LEVEL_TEXT.any }));
+    expect(state()).toMatchObject({ yearLevels: [], anyYear: true });
+    await user.click(within(list).getByRole('option', { name: YEAR_LEVEL_TEXT.any }));
+    expect(state()).toMatchObject({ yearLevels: [], anyYear: true });
+
+    await user.click(within(list).getByRole('option', { name: YEAR_LEVEL_TEXT.label(9) }));
+    expect(state()).toMatchObject({ yearLevels: [9], anyYear: false });
+  });
+
   it('shows a held value that is no longer offered by its saved label, disabled (AC 27)', async () => {
     const user = setupUser();
     render(

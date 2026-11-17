@@ -10,7 +10,7 @@ import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link as RouterLink, useLoaderData, useLocation } from 'react-router';
 
 import {
@@ -51,14 +51,25 @@ export default function MockTestsPage() {
   const area = mockTestAreaFromPath(useLocation().pathname);
   // Above the early return: hooks must run on every render.
   const [filters, setFilters] = useState(NO_MOCK_FILTERS);
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const now = new Date();
+
+  // Clear filters disappears once the list is back, so focus goes to the heading (review-5 #3).
+  function clearFilters() {
+    setFilters(NO_MOCK_FILTERS);
+    headingRef.current?.focus();
+  }
 
   if (!loaded.ok) return <LoadError error={loaded.error} retry />;
   const visible = filterMockTests(loaded.data, filters);
 
   return (
     <>
-      <PageHeader title={MOCK_TESTS_LIST.heading} intro={MOCK_TESTS_LIST.intro} />
+      <PageHeader
+        title={MOCK_TESTS_LIST.heading}
+        intro={MOCK_TESTS_LIST.intro}
+        headingRef={headingRef}
+      />
       <Stack spacing={2}>
         {/* Nothing to see at all: the plain empty text and no filters (AC 22a). */}
         {loaded.data.length === 0 && (
@@ -69,7 +80,7 @@ export default function MockTestsPage() {
         {loaded.data.length > 0 && visible.length === 0 && (
           <Stack spacing={1} sx={{ alignItems: 'flex-start' }}>
             <Typography color="textSecondary">{MOCK_TEST_FILTERS.noMatch}</Typography>
-            <Button variant="outlined" onClick={() => setFilters(NO_MOCK_FILTERS)}>
+            <Button variant="outlined" onClick={clearFilters}>
               {MOCK_TEST_FILTERS.clear}
             </Button>
           </Stack>

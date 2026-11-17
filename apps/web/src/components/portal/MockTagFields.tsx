@@ -15,7 +15,13 @@ import {
   YEAR_LEVEL_TEXT,
   YEAR_LEVELS,
 } from '@/constants';
-import { applyYearPick, mockStreamText, mockSubjectText, mockYearText } from '@/lib/mock-tests';
+import {
+  applyYearPick,
+  mockStreamText,
+  mockSubjectText,
+  mockYearText,
+  mockYearsSet,
+} from '@/lib/mock-tests';
 import type { MockTagErrors } from '@/lib/mock-tests';
 import type { MockTags } from '@/services';
 
@@ -104,6 +110,14 @@ export function MockTagFields({
   disabled = false,
   onChange,
 }: MockTagFieldsProps) {
+  // Without Not set (a released test), a pick that would leave no year at all is ignored, so the
+  // years can change but never be emptied (design §5.1, review-5 #5).
+  function pickYears(picked: (number | typeof MOCK_TAG_ANY)[]) {
+    const next = applyYearPick(value, picked);
+    if (!canClear && !mockYearsSet(next)) return;
+    onChange(next);
+  }
+
   const yearValue: (number | typeof MOCK_TAG_ANY)[] = value.anyYear
     ? [MOCK_TAG_ANY]
     : value.yearLevels;
@@ -138,7 +152,7 @@ export function MockTagFields({
         disabled={disabled}
         error={Boolean(errors.yearLevels)}
         helperText={errors.yearLevels ?? MOCK_TAGS.yearHint}
-        onChange={(event) => onChange(applyYearPick(value, toPicked(event.target.value)))}
+        onChange={(event) => pickYears(toPicked(event.target.value))}
         slotProps={{
           select: {
             multiple: true,

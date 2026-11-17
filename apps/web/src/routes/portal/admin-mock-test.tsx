@@ -131,7 +131,10 @@ export default function AdminMockTestPage() {
   async function confirmTakeBack() {
     const worked = await action.run(() => withdrawMockTest(test.id), MOCK_TEST_EDIT_PAGE.takenBack);
     setConfirming(null);
-    if (worked) reload();
+    if (!worked) return;
+    // The take-back button is gone on the draft, so focus would fall to the page body (review-5 #4).
+    focusHeadingOnLoad.current = true;
+    reload();
   }
 
   async function confirmDelete() {

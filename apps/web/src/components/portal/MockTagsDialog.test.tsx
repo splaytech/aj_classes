@@ -45,7 +45,7 @@ describe('MockTagsDialog (released or closed test, AC 15)', () => {
     expect(onSaved).toHaveBeenCalled();
   });
 
-  it('refuses clearing the years that were set, and sends nothing', async () => {
+  it('can’t empty the years that were set: the last year stays picked (review-5 #5)', async () => {
     const user = setupUser();
     render(
       <MockTagsDialog
@@ -61,8 +61,13 @@ describe('MockTagsDialog (released or closed test, AC 15)', () => {
     await user.keyboard('{Escape}');
     await user.click(screen.getByRole('button', { name: MOCK_CLOSING.save }));
 
-    expect(screen.getByText(MOCK_VALIDATION.tagKeep)).toBeInTheDocument();
-    expect(updateMockTestTags).not.toHaveBeenCalled();
+    expect(screen.queryByText(MOCK_VALIDATION.tagKeep)).not.toBeInTheDocument();
+    expect(updateMockTestTags).toHaveBeenCalledWith('t1', {
+      subject: 'maths',
+      stream: 'naplan',
+      yearLevels: [5],
+      anyYear: false,
+    });
   });
 
   it('on an older untagged test shows a disabled Not set, and lets one tag be set alone', async () => {

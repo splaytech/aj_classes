@@ -236,6 +236,21 @@ describe('admin mock test, released', () => {
     expect(screen.getAllByText(MOCK_QUESTION_LIST.correct)).toHaveLength(2);
   });
 
+  it('moves focus to the heading after a take-back, not the page body (review-5 #4)', async () => {
+    vi.mocked(withdrawMockTest).mockResolvedValue({ ok: true, data: undefined });
+    const user = setupUser();
+    await renderPage(released(), testView());
+
+    await user.click(screen.getByRole('button', { name: MOCK_TEST_EDIT_PAGE.takeBack }));
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: MOCK_TEST_EDIT_PAGE.takeBack }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1, name: 'Year 7 Maths' })).toHaveFocus(),
+    );
+    expect(document.activeElement).not.toBe(document.body);
+  });
+
   it('shows the refusal when someone has already started (AC 21)', async () => {
     vi.mocked(withdrawMockTest).mockResolvedValue({ ok: false, error: 'mockHasAttempts' });
     const user = setupUser();

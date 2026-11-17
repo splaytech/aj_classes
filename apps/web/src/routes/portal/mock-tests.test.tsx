@@ -190,6 +190,10 @@ describe('mock tests list for takers', () => {
 
     expect(titles()).toEqual(['NAPLAN Maths', 'VCE English', 'Old untagged']);
     expect(screen.queryByText(MOCK_TEST_FILTERS.noMatch)).toBeNull();
+    // The Clear button is gone, so focus moves to the heading, not the page body (review-5 #3).
+    expect(document.activeElement).toBe(
+      screen.getByRole('heading', { level: 1, name: MOCK_TESTS_LIST.heading }),
+    );
     expect(screen.getByRole('combobox', { name: MOCK_TAGS.subjectLabel })).toHaveTextContent(
       MOCK_TEST_FILTERS.all,
     );

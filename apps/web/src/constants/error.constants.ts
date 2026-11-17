@@ -91,7 +91,7 @@ export const PORTAL_ERRORS = {
   mockTooManyQuestions: `A mock test can have up to ${MOCK_TEST_LIMITS.questionsMax} questions.`,
   mockNotStarted: 'Start the mock test first.',
   mockClosesInPast: MOCK_VALIDATION.closesInPast,
-  mockTagsMissing: 'Set the subject, stream and year level before releasing.',
+  mockTagsMissing: 'Set the missing tags to release this mock test.',
   mockTagKept: MOCK_VALIDATION.tagKeep,
   mockTagSubject: 'That subject isn’t on the list. Please choose another.',
   mockTagStream: 'That stream isn’t on the list. Please choose another.',
