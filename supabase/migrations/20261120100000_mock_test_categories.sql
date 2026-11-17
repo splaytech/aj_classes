@@ -147,8 +147,9 @@ create trigger mock_tests_check_tags
   before insert or update on public.mock_tests
   for each row execute function private.check_mock_test_tags();
 
--- Draft to released needs all three tags, for every writer (mock_release, a future function, the
--- service role). Judged on a locked read of the committed tags, never on NEW.
+-- Released needs all three tags, for every writer (mock_release, a future function, the service
+-- role). On UPDATE (draft to released) it judges a locked read of the committed tags, never NEW.
+-- On INSERT of a released row there is no committed row to lock, so it judges NEW (review-6a #3).
 create function private.check_mock_test_release_tags()
 returns trigger
 language plpgsql
@@ -158,6 +159,14 @@ as $$
 declare
   current_tags record;
 begin
+  if tg_op = 'INSERT' then
+    if not (new.subject is not null and new.stream is not null
+            and (new.any_year or cardinality(new.year_levels) > 0)) then
+      raise exception 'mock_tags_missing';
+    end if;
+    return new;
+  end if;
+
   select t.subject, t.stream, t.year_levels, t.any_year into current_tags
   from public.mock_tests t
   where t.id = old.id
@@ -175,6 +184,12 @@ create trigger mock_tests_release_needs_tags
   before update on public.mock_tests
   for each row
   when (old.status = 'draft' and new.status = 'released')
+  execute function private.check_mock_test_release_tags();
+
+create trigger mock_tests_insert_released_needs_tags
+  before insert on public.mock_tests
+  for each row
+  when (new.status = 'released')
   execute function private.check_mock_test_release_tags();
 
 revoke execute on function private.check_mock_test_tags() from public, anon, authenticated;

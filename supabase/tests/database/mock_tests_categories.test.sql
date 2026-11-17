@@ -105,8 +105,11 @@ insert into public.mock_tests (id, title, subject, stream, year_levels) values
 insert into public.mock_test_questions (id, test_id, prompt, options, correct_option) values
   ('00000000-0000-0000-0000-0000000a000e', '00000000-0000-0000-0000-00000000f00e', 'Q?', array['a','b'], 0);
 update public.mock_tests set status = 'released', released_at = now() where id = '00000000-0000-0000-0000-00000000f00e';
+-- L stands for a test released before this migration, so the insert check is off for its insert.
+alter table public.mock_tests disable trigger mock_tests_insert_released_needs_tags;
 insert into public.mock_tests (id, title, status, released_at) values
   ('00000000-0000-0000-0000-00000000f00f', 'Legacy L', 'released', now() - interval '1 day');
+alter table public.mock_tests enable trigger mock_tests_insert_released_needs_tags;
 insert into public.mock_test_attempts (id, test_id, profile_id, submitted_at, score, total) values
   ('00000000-0000-0000-0000-0000000b000e', '00000000-0000-0000-0000-00000000f00e', '00000000-0000-0000-0000-0000000000c1', now(), 1, 1);
 insert into public.mock_test_answers (attempt_id, question_id, selected_option) values
@@ -199,6 +202,17 @@ select is((select status from public.mock_tests where id = '00000000-0000-0000-0
 select throws_ok(
   $$ update public.mock_tests set status = 'released', released_at = now() where id = '00000000-0000-0000-0000-00000000f00d' $$,
   'P0001', 'mock_tags_missing', 'A direct draft-to-released write on an untagged draft is refused by the trigger');
+
+-- Every writer: an INSERT of a released row is checked too (review-6a #3), judged on NEW.
+select throws_ok(
+  $$ insert into public.mock_tests (title, status, released_at) values ('Inserted released', 'released', now()) $$,
+  'P0001', 'mock_tags_missing', 'An insert of a released row with no tags is refused (as the table owner)');
+select throws_ok(
+  $$ insert into public.mock_tests (title, status, released_at, subject, stream) values ('Inserted released', 'released', now(), 'maths', 'vce') $$,
+  'P0001', 'mock_tags_missing', 'and so is one missing only the year level');
+select lives_ok(
+  $$ insert into public.mock_tests (title, status, released_at, subject, stream, year_levels) values ('Inserted released', 'released', now(), 'maths', 'vce', '{7}') $$,
+  'An insert of a released row with all three tags succeeds');
 
 update public.mock_tests set any_year = true where id = '00000000-0000-0000-0000-00000000f00d';
 select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
