@@ -7,3 +7,5 @@
   3. The merge to `main` and the production deploy are Saurabh's.
 - **L-1 (Part A hand-back):** Close now on a test that is already closed does nothing and keeps the first closing time. Accepted.
 - **L-2:** after closing, `mock_submit` returns `not_found` even for someone who already submitted, and their result still opens through `mock_test_open`. Accepted: a repeat submit is not a user action in the UI.
+- **L-3 (stage 5):** stream labels come from `PROGRAMMES.items`, because `findProgramme` skips VCE and AC 11 needs "VCE Tutoring". Accepted as a design deviation.
+- **L-4 (stage 5):** the extra `kept` argument on `mockTagErrors` is accepted.
