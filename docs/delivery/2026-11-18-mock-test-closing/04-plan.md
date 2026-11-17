@@ -254,9 +254,9 @@ Read the failing file list. The `Files=` count is not a pass criterion.
 
 ## Slice 10: docs
 
-- [ ] **10.1** `05-dev-notes.md`: add a Part B section (what was built, commits, the review fixes, the two-session transcript location, and what was not run).
-- [ ] **10.2** Confirm `docs/decisions/0012-…md` Amendment 1 matches what was built. Change nothing else in the ADR.
-- [ ] **10.3** Do not touch `01-requirement.md`, `00-decisions.md` or `02-architecture.md`. Any change in them is a ruling.
+- [x] **10.1** `05-dev-notes.md`: add a Part B section (what was built, commits, the review fixes, the two-session transcript location, and what was not run).
+- [x] **10.2** Confirm `docs/decisions/0012-…md` Amendment 1 matches what was built. Change nothing else in the ADR.
+- [x] **10.3** Do not touch `01-requirement.md`, `00-decisions.md` or `02-architecture.md`. Any change in them is a ruling.
 
 **Test that proves it:** a reviewer reads the changed text against the code. `docs/` is in `.prettierignore`, so `format:check` does not check it.
 

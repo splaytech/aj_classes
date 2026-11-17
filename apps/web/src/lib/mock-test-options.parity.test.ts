@@ -85,7 +85,9 @@ describe('mock test options: database and web in step', () => {
 
   it('allows the same years as YEAR_LEVELS', () => {
     const all = migrationTexts().join('\n');
-    const literal = /mock_tests_year_levels_valid check \(\s*year_levels <@ '\{([\d,]+)\}'/.exec(all);
+    const literal = /mock_tests_year_levels_valid check \(\s*year_levels <@ '\{([\d,]+)\}'/.exec(
+      all,
+    );
     expect(literal?.[1]?.split(',').map(Number)).toEqual([...YEAR_LEVELS]);
   });
 

@@ -80,3 +80,118 @@ The migration drops `mock_release(uuid)`. Apply the migration before the web dep
 
 - No real-browser visual pass of the new dialogs (375 px, dark mode, picker popup). Vitest and the e2e smoke only.
 - Part B (categories) is still in design.
+
+---
+
+# Part B — categories (ACs 10 to 29)
+
+Dev Lead, 18 Nov 2026. Built by the lead without specialists, in the order of `04-plan.md` (every slice is ticked there). Design `03-design.md` was followed. The one deviation is listed under "Deviations".
+
+## Commits
+
+| Slices | Commit | What |
+|---|---|---|
+| 1, 2 | `45a7908` | Migration `20261120100000_mock_test_categories.sql`, plus the existing pgTAP and e2e fixtures tagged before release |
+| 3 | `b74cf68` | `mock_tests_categories.test.sql` |
+| 4, 5, 6a | `01234a1` | Option lists, parity test, service reads, `updateMockTestTags`, error mapping |
+| 6b, 7a | `b3a732c` | Tag helpers, `MockTagFields`, `MockTestDialog` sends tags |
+| 7b | `f50b26c` | Release dialog tags, `MockTagsDialog`, `MockTagLine`, admin edit and list pages, take page, the AC 29 scope test |
+| 8 | `f129e09` | `filterMockTests`, `MockTestFilters`, taker list states |
+| 9 | `ba21b20` | e2e: tag in the UI, release refused for a missing stream, edit the draft, release, Edit tags, taker filters and Clear |
+| 10 | (this commit) | These notes; the parity test formatting |
+
+## Database
+
+- **`private.mock_test_options`:** RLS on, no grant, no policy. It holds 7 subjects and 6 streams, inside the marked seed block.
+- **Columns on `mock_tests`:** `subject`, `stream`, `year_levels smallint[] default '{}'` and `any_year boolean default false`, with the checks `mock_tests_year_levels_valid` and `mock_tests_any_year_alone`. Grants are insert and update on these four columns only.
+- **`private.check_mock_test_tags()`** (trigger `mock_tests_check_tags`, before insert or update; security definer, `search_path=''`, execute revoked). On UPDATE only, it does the locked read `for no key update` by `old.id`. It checks:
+  - each new or changed subject or stream against the active options;
+  - the years, in the design's order;
+  - on a released row, that a set tag is not cleared, judged on the locked read (`mock_tag_kept`).
+
+  All refusals are 23514 with the field in `hint`.
+- **`private.check_mock_test_release_tags()`** (trigger `mock_tests_release_needs_tags`, `when (old.status = 'draft' and new.status = 'released')`): judges on its own locked read and raises `mock_tags_missing`.
+- **Functions:** `mock_release(target uuid, closes timestamptz default null)` keeps its signature. Its locked `for update` read gains the tags, and it raises `mock_tags_missing` after the questions and closing checks. `mock_tests_admin_list()` and `mock_tests_for_me()` are dropped and re-created, each with the four tag columns added; the S-1 clause is copied verbatim. `mock_test_open(uuid)` gains `tags` in its JSON.
+- **Implementation note on the guard:** the design's step 2 condition ("INSERT, or `new.subject is distinct from current_row.subject`") was first written as one boolean expression. PL/pgSQL still read `current_row` on INSERT and failed with `record "current_row" is not assigned yet` (the trap 03 §1.3.4 warns about). The fix is two flags, `subject_changed` and `stream_changed`, set inside the `if tg_op = 'UPDATE'` block. The design's rules are unchanged.
+
+## Web
+
+- **Constants:** `MOCK_TEST_SUBJECTS`, `MOCK_TEST_STREAMS`, `MOCK_TAG_ANY`, `MOCK_TAGS`, `MOCK_TEST_FILTERS`, the `MOCK_VALIDATION` tag texts and `columns.tags`. Five error keys.
+- **`lib/mock-tests.ts`:** `mockYearsSet`, `missingMockTagFields`, `setMockTagFields`, `mockTagErrors(tags, required, kept?)`, `applyYearPick`, `mockSubjectText`, `mockStreamText`, `mockYearText`, `mockTagNamesText`, `sameMockTags` and `filterMockTests`.
+- **Components:** `MockTagFields`, `MockTagsDialog`, `MockTagLine` and `MockTestFilters`. `MockTestDialog` and `MockReleaseDialog` are changed.
+- **Pages:**
+  - admin edit: a Tags card, a missing-tags hint on a draft, and Edit tags on released and closed tests;
+  - admin list: a Tags column;
+  - take page: the tag line;
+  - taker list: filters and the two empty states.
+
+## Deviations and readings
+
+1. **Stream labels (deviation, forced by AC 11):** the design says to take labels from `findProgramme(slug)?.menuLabel`. `findProgramme` searches `TEMPLATE_PROGRAMMES`, which leaves out VCE, so the VCE stream would have shown as `vce`. The design's own parity assertion (each label equals the programme's `menuLabel`) could not pass that way. `MOCK_TEST_STREAMS` and `mockStreamText` look the slug up in `PROGRAMMES.items` instead. The behaviour is as specified, and a unit test pins "VCE Tutoring".
+2. **`mockTagErrors` takes an optional third argument `kept`.** The design says the released-test dialog "gets `tagKeep`" while the release dialog gets the field message, but the two-argument signature can't tell the callers apart. `kept = true` selects `tagKeep`.
+3. **Release button stays enabled with a tag missing:** the [ASSUMPTION] in 04-plan 7b.1, as designed. The dialog names each missing field and won't submit until all three are set.
+4. **Filter selects use `displayEmpty`**, so "All" shows in the box. Without it an empty value renders blank.
+5. **`set local role authenticated`:** `tests.authenticate_as` already does this (`set_config('role', 'authenticated', true)`), so the pgTAP file doesn't repeat it.
+
+## Two-session checks (03 §7, 04-plan 3.7)
+
+- **Setup:** local stack, `docker exec supabase_db_aj_classes psql`. Script: `scratchpad/race.sh`, not committed.
+- **Sessions:** session 1 holds its transaction 4 s; session 2 starts 1 s later. "Admin" means the seeded admin with JWT claims at aal2 and `set local role authenticated`; "table owner" means `postgres`.
+- **Fixture:** each order used a fresh, fully tagged draft with one question. All race rows were removed afterwards.
+
+In every order session 2 blocked until session 1 committed (it returned within 3 ms of the commit), then failed as designed. No released test was left without a tag.
+
+```
+=== Order A: S1 mock_release, S2 clears subject
+  S2: S2 starts 18:42:45.495391
+  S2: ERROR:  mock_tag_kept
+  S2: HINT:  subject
+  S2: S2 returned (after its error or success) 18:42:48.455651
+  S1: S1 done, holding 4 s 18:42:44.449251
+  S1: S1 committed 18:42:48.454394
+  after: status=released subject=maths stream=naplan any_year=true
+=== Order B: S1 clears subject, S2 mock_release
+  S2: S2 starts 18:42:49.684895
+  S2: ERROR:  mock_tags_missing
+  S2: S2 returned (after its error or success) 18:42:52.64881
+  S1: S1 done, holding 4 s 18:42:48.639488
+  S1: S1 committed 18:42:52.64698
+  after: status=draft subject=NULL stream=naplan any_year=true
+=== Order C: S1 clears subject, S2 (table owner) direct status = released
+  S1: S1 done, holding 4 s 18:42:52.856408
+  S1: S1 committed 18:42:56.862869
+  S2: S2 starts 18:42:53.893126
+  S2: ERROR:  mock_tags_missing
+  S2: S2 returned (after its error or success) 18:42:56.865287
+  after: status=draft subject=NULL stream=naplan any_year=true
+=== Order C mirror: S1 (table owner) direct status = released, S2 clears subject
+  S2: S2 starts 18:42:58.102461
+  S2: ERROR:  mock_tag_kept
+  S2: HINT:  subject
+  S2: S2 returned (after its error or success) 18:43:01.082237
+  S1: S1 done, holding 4 s 18:42:57.066584
+  S1: S1 committed 18:43:01.075193
+  after: status=released subject=maths stream=naplan any_year=true
+=== Released tests with a missing tag after all four runs (must be 0):
+0
+cleanup: 0 race rows left
+```
+
+## Checks (lead, separate commands, 18 Nov 2026, on `ba21b20` plus this commit)
+
+| Command | Result |
+|---|---|
+| `pnpm format:check` | fails only on `actionItems.md` and `supabase/.temp/linked-project.json` |
+| `pnpm lint` | exit 0 |
+| `pnpm typecheck` | exit 0 |
+| `pnpm test` | vitest 117 files / 1138 tests passed; e2e unit 6/6; deploy-order exit 0 |
+| `VITE_APP_ENV=production pnpm build` | exit 0 |
+| `pnpm db:reset` + `pnpm db:test` | `Files=25, Tests=1947`, PASS. Includes `mock_tests_closing`, run after the categories migration |
+| `pnpm test:functions` | exit 0, 0 NOT OK |
+| `pnpm --filter aj-classes-e2e test:smoke` | 17 passed (the mock spec now covers tags, the release refusal, Edit tags and filters) |
+| CI-style build + `check:hosted-ref build/client` + `test:csp` | 0 of 186 files; 23 passed |
+
+## Not done
+
+- **The tester-ui real-browser rows (DoD 12):** 375 and 1280 px, light and dark, a keyboard walk, AC 18, 23, 26, 27 and 28 by eye. Only vitest and the e2e smoke ran; no one has looked at the pages yet.
+- **ADR-0012 Amendment 1:** read against the build and it matches. Not edited.
