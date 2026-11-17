@@ -66,6 +66,10 @@ export default [
           route(PORTAL_ROUTES.adminUsers, 'routes/portal/admin-users.tsx'),
           route(PORTAL_ROUTES.adminMockTests, 'routes/portal/admin-mock-tests.tsx'),
           route(PORTAL_ROUTE_PATTERNS.adminMockTest, 'routes/portal/admin-mock-test.tsx'),
+          route(
+            PORTAL_ROUTE_PATTERNS.adminMockTestResults,
+            'routes/portal/admin-mock-test-results.tsx',
+          ),
         ]),
       ]),
 

@@ -6,14 +6,16 @@ import { describe, expect, it } from 'vitest';
 import { LOAD_ERROR, PORTAL_ERRORS } from '@/constants';
 
 import AdminMockTestPage from './admin-mock-test';
+import AdminMockTestResultsPage from './admin-mock-test-results';
 import AdminMockTestsPage from './admin-mock-tests';
 import MockTestPage from './mock-test';
 import MockTestsPage from './mock-tests';
 
-// AC 39: a failed load on each of the four mock test pages shows plain text and a Try again.
+// AC 39: a failed load on each of the five mock test pages shows plain text and a Try again.
 const PAGES: [string, string, ComponentType][] = [
   ['admin list', '/portal/admin/mock-tests', AdminMockTestsPage],
   ['admin edit', '/portal/admin/mock-tests/t1', AdminMockTestPage],
+  ['admin results', '/portal/admin/mock-tests/t1/results', AdminMockTestResultsPage],
   ['taker list', '/portal/student/mock-tests', MockTestsPage],
   ['taker test', '/portal/student/mock-tests/t1', MockTestPage],
 ];
