@@ -19,7 +19,9 @@ import {
 import { formatDateTime } from './format';
 import {
   EMPTY_MOCK_TAGS,
+  NO_MOCK_FILTERS,
   applyYearPick,
+  filterMockTests,
   closesAtError,
   hasMockErrors,
   missingMockTagFields,
@@ -303,5 +305,50 @@ describe('tags (docs/delivery/2026-11-18-mock-test-closing)', () => {
     expect(MOCK_TAGS.releaseNeedsTags(mockTagNamesText(['subject', 'stream', 'yearLevels']))).toBe(
       'Set the subject, stream and year level to release this mock test.',
     );
+  });
+});
+
+describe('filterMockTests (ACs 18, 20, 21)', () => {
+  const item = (id: string, tags: Partial<typeof EMPTY_MOCK_TAGS>, closed = false) => ({
+    id,
+    closed,
+    tags: { ...EMPTY_MOCK_TAGS, ...tags },
+  });
+  const items = [
+    item('naplan-maths-5', { stream: 'naplan', subject: 'maths', yearLevels: [5] }),
+    item('naplan-english-any', { stream: 'naplan', subject: 'english', anyYear: true }),
+    item('vce-maths-11-12', { stream: 'vce', subject: 'maths', yearLevels: [11, 12] }),
+    item('closed-icas-maths-5', { stream: 'icas', subject: 'maths', yearLevels: [5] }, true),
+    item('untagged', {}),
+  ];
+  const ids = (filters: typeof NO_MOCK_FILTERS) => filterMockTests(items, filters).map((i) => i.id);
+
+  it.each([
+    [
+      {},
+      [
+        'naplan-maths-5',
+        'naplan-english-any',
+        'vce-maths-11-12',
+        'closed-icas-maths-5',
+        'untagged',
+      ],
+    ],
+    [{ stream: 'naplan' }, ['naplan-maths-5', 'naplan-english-any']],
+    [{ subject: 'maths' }, ['naplan-maths-5', 'vce-maths-11-12', 'closed-icas-maths-5']],
+    [{ year: 5 }, ['naplan-maths-5', 'naplan-english-any', 'closed-icas-maths-5']],
+    [{ year: 12 }, ['naplan-english-any', 'vce-maths-11-12']],
+    [{ stream: 'naplan', subject: 'maths' }, ['naplan-maths-5']],
+    [{ stream: 'naplan', year: 7 }, ['naplan-english-any']],
+    [{ stream: 'icas', subject: 'maths', year: 5 }, ['closed-icas-maths-5']],
+    [{ stream: 'vce', year: 5 }, []],
+  ])('filters %j', (set, expected) => {
+    expect(ids({ ...NO_MOCK_FILTERS, ...set })).toEqual(expected);
+  });
+
+  it('keeps the input untouched', () => {
+    const copy = structuredClone(items);
+    filterMockTests(items, { ...NO_MOCK_FILTERS, stream: 'vce' });
+    expect(items).toEqual(copy);
   });
 });

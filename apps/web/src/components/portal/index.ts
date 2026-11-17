@@ -19,6 +19,7 @@ export { MockTagFields } from './MockTagFields';
 export { MockTagLine } from './MockTagLine';
 export { MockTagsDialog } from './MockTagsDialog';
 export { MockTestDialog } from './MockTestDialog';
+export { MockTestFilters } from './MockTestFilters';
 export { MockClosedChip, MockTakeStatusChip, MockTestStatusChip } from './MockTestStatusChips';
 export { MockTestResult } from './MockTestResult';
 export { MockTestsErrorBoundary } from './MockTestsErrorBoundary';

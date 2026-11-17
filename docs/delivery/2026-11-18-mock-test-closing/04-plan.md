@@ -221,9 +221,9 @@ Read the failing file list. The `Files=` count is not a pass criterion.
 
 ## Slice 8: taker filters (AC 19 to 25, 27)
 
-- [ ] **8.1** `lib/mock-tests.ts`: `filterMockTests(items, filters)`. A set filter matches only tagged items. Year matches `anyYear` or an exact year. Untagged items pass only the all-All case. Closed-but-submitted items are filtered like the rest (AC 20, 21). Test table of combinations in `lib/mock-tests.test.ts`.
-- [ ] **8.2** `components/portal/MockTestFilters.tsx` (new): a `section` with `aria-label` `MOCK_TEST_FILTERS.groupLabel`; three `TextField select`s labelled Stream, Subject and Year level, All first. Year level offers `YEAR_LEVELS` only (no Any year). **Stream and Subject offer the current `MOCK_TEST_STREAMS` and `MOCK_TEST_SUBJECTS` only, so a removed value is absent from the filter (AC 27).** Export from `index.ts`.
-- [ ] **8.3** `routes/portal/mock-tests.tsx`: `useState(NO_MOCK_FILTERS)` placed above the early `LoadError` return. Three states: no tests at all shows `MOCK_TESTS_LIST.empty` and no bar (AC 22a); tests shown with the bar and the rows, each with `MockTagLine`; a filter that matches nothing shows `noMatch` and a Clear control (AC 22b). No search parameters are written (AC 24).
+- [x] **8.1** `lib/mock-tests.ts`: `filterMockTests(items, filters)`. A set filter matches only tagged items. Year matches `anyYear` or an exact year. Untagged items pass only the all-All case. Closed-but-submitted items are filtered like the rest (AC 20, 21). Test table of combinations in `lib/mock-tests.test.ts`.
+- [x] **8.2** `components/portal/MockTestFilters.tsx` (new): a `section` with `aria-label` `MOCK_TEST_FILTERS.groupLabel`; three `TextField select`s labelled Stream, Subject and Year level, All first. Year level offers `YEAR_LEVELS` only (no Any year). **Stream and Subject offer the current `MOCK_TEST_STREAMS` and `MOCK_TEST_SUBJECTS` only, so a removed value is absent from the filter (AC 27).** Export from `index.ts`.
+- [x] **8.3** `routes/portal/mock-tests.tsx`: `useState(NO_MOCK_FILTERS)` placed above the early `LoadError` return. Three states: no tests at all shows `MOCK_TESTS_LIST.empty` and no bar (AC 22a); tests shown with the bar and the rows, each with `MockTagLine`; a filter that matches nothing shows `noMatch` and a Clear control (AC 22b). No search parameters are written (AC 24).
 
 **Tests that prove it:**
 - `lib/mock-tests.test.ts`: AND of three; Any year match; untagged out with any filter set; closed-but-submitted filtered like the others.

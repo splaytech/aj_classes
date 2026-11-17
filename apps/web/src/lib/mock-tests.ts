@@ -222,3 +222,27 @@ export function sameMockTags(a: MockTags, b: MockTags): boolean {
     years(a) === years(b)
   );
 }
+
+// --- Taker filters (ACs 19 to 25) -------------------------------------------------------------
+
+/** '' and null mean All. Kept in page state only: a reload resets them (AC 24). */
+export type MockFilters = { stream: string; subject: string; year: number | null };
+
+export const NO_MOCK_FILTERS: MockFilters = { stream: '', subject: '', year: null };
+
+/**
+ * AND across the three filters (AC 20). A year matches a test with that year or Any year. An
+ * untagged test fails every filter that is set and shows only with all on All (AC 18, 21). Closed
+ * tests the person submitted are filtered like any other.
+ */
+export function filterMockTests<T extends { tags: MockTags }>(
+  items: readonly T[],
+  filters: MockFilters,
+): T[] {
+  return items.filter(
+    ({ tags }) =>
+      (filters.stream === '' || tags.stream === filters.stream) &&
+      (filters.subject === '' || tags.subject === filters.subject) &&
+      (filters.year === null || tags.anyYear || tags.yearLevels.includes(filters.year)),
+  );
+}
