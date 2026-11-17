@@ -182,3 +182,9 @@ No money, account, identity or production decision is needed for v1. Nothing goe
 - Tester gets the 44 ACs above; the test plan is written by the Test Manager and frozen before the first sitting.
 - Tests need accounts with role `user`, `student`, `parent`, `admin`, `tutor`, and an unfinished `user`. Those accounts are local-only.
 - No production or hosted-service change in this stage.
+
+## Team-lead rulings appended after approval (see 00-decisions.md)
+
+- **L-5 amends AC 21 and AC 35:** take-back is allowed while no attempt is submitted (in-progress attempts and answers are deleted); once any attempt is submitted, take-back is refused.
+- **L-6:** submitting with no answers reveals the key; accepted (practice only).
+- **L-7 reads AC 8** as the home link *card*; the top-bar item for student, parent and user (M15) and the admin dashboard tile stay.
