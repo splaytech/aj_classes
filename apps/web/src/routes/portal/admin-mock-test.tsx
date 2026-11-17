@@ -31,7 +31,7 @@ export function meta() {
   return buildPortalMeta(PORTAL_SEO.adminMockTest);
 }
 
-// Access (admin) is checked by the admin layout; the database shows rows to admins only.
+// The layout refuses non-admins; the service sends no request for them (BUG-2).
 export async function clientLoader({ params }: ClientLoaderFunctionArgs) {
   return getMockTestForEdit(params.testId ?? '');
 }

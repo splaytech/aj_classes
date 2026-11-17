@@ -57,6 +57,15 @@ vi.mock('./supabase.client', () => ({
   }),
 }));
 
+// staff-client decides who gets a client (staff-access.test.ts covers it); here the viewer is
+// whoever `viewer.allowed` says, so a refused viewer proves no request goes out.
+const viewer = { allowed: true };
+vi.mock('./staff-client', async () => {
+  const { getSupabase } = await import('./supabase.client');
+  const client = async () => (viewer.allowed ? getSupabase() : null);
+  return { getAdminClient: client, getTakerClient: client };
+});
+
 function reply(data: unknown, error: unknown = null) {
   replies.push({ data, error });
 }
@@ -68,6 +77,7 @@ function called(method: string, ...args: unknown[]) {
 }
 
 beforeEach(() => {
+  viewer.allowed = true;
   calls.length = 0;
   replies.length = 0;
 });
@@ -437,5 +447,19 @@ describe('start, save and submit', () => {
   it('reports a dropped connection as network', async () => {
     reply(null, { name: 'AuthRetryableFetchError', message: 'Failed to fetch' });
     expect(await submitMockTest('t1')).toEqual({ ok: false, error: 'network' });
+  });
+});
+
+describe('loaders for a viewer who may not use the page (BUG-2)', () => {
+  it.each([
+    ['listMockTestsAdmin', () => listMockTestsAdmin()],
+    ['getMockTestForEdit', () => getMockTestForEdit('t1')],
+    ['listMyMockTests', () => listMyMockTests()],
+    ['getMyMockTest', () => getMyMockTest('t1')],
+  ])('%s sends no request and says notAllowed', async (_name, load) => {
+    viewer.allowed = false;
+
+    expect(await load()).toEqual({ ok: false, error: 'notAllowed' });
+    expect(calls).toEqual([]);
   });
 });

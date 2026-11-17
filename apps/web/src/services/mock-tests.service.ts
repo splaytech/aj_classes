@@ -12,6 +12,7 @@ import {
 } from './mock-tests-data';
 import type { MockListRow, MockOpenJson, MockQuestionRow, MockSummaryRow } from './mock-tests-data';
 import { attempt, fail, succeed } from './result';
+import { getAdminClient, getTakerClient } from './staff-client';
 import { getSupabase } from './supabase.client';
 import type {
   MockQuestionInput,
@@ -29,7 +30,8 @@ import type {
 
 export async function listMockTestsAdmin(): Promise<Result<MockTestSummary[]>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getAdminClient();
+    if (!supabase) return fail('notAllowed'); // the layout shows the refusal; no request goes out
     const { data, error } = await supabase.rpc('mock_tests_admin_list');
     if (error) return fail(toErrorKey(error));
     return succeed((data as unknown as MockSummaryRow[]).map(toMockTestSummary));
@@ -39,7 +41,8 @@ export async function listMockTestsAdmin(): Promise<Result<MockTestSummary[]>> {
 /** The test and its questions, with the correct options. Only admins get rows (RLS). */
 export async function getMockTestForEdit(testId: string): Promise<Result<MockTestDraftView>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getAdminClient();
+    if (!supabase) return fail('notAllowed'); // the layout shows the refusal; no request goes out
     const test = await supabase
       .from('mock_tests')
       .select('id, title, instructions, status')
@@ -181,7 +184,8 @@ export async function moveMockQuestion(questionId: string, step: -1 | 1): Promis
 
 export async function listMyMockTests(): Promise<Result<MockTestListItem[]>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getTakerClient();
+    if (!supabase) return fail('notAllowed'); // the layout shows the refusal; no request goes out
     const { data, error } = await supabase.rpc('mock_tests_for_me');
     if (error) return fail(toErrorKey(error));
     return succeed((data as unknown as MockListRow[]).map(toMockTestListItem));
@@ -191,7 +195,8 @@ export async function listMyMockTests(): Promise<Result<MockTestListItem[]>> {
 /** The answer keys are in the reply only after the person has submitted. */
 export async function getMyMockTest(testId: string): Promise<Result<MockTestView>> {
   return attempt(async () => {
-    const supabase = await getSupabase();
+    const supabase = await getTakerClient();
+    if (!supabase) return fail('notAllowed'); // the layout shows the refusal; no request goes out
     const { data, error } = await supabase.rpc('mock_test_open', { target: testId });
     if (error) return fail(toErrorKey(error));
     return succeed(toMockTestView(data as unknown as MockOpenJson));

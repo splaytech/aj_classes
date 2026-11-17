@@ -31,7 +31,7 @@ export function meta() {
   return buildPortalMeta(PORTAL_SEO.mockTest);
 }
 
-// Access (student, parent or user) is checked by the area's layout; the database checks it again.
+// The layout refuses staff and signed-out visitors; the service sends no request for them (BUG-2).
 export async function clientLoader({ params }: ClientLoaderFunctionArgs) {
   return getMyMockTest(params.testId ?? '');
 }
