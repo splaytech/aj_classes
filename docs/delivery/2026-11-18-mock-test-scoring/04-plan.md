@@ -53,17 +53,17 @@ Inputs: `01-requirement.md` (50 ACs, plus the release gate), `00-decisions.md` (
 
 ## Slice 1: migration and the pinned pgTAP changes (one commit)
 
-- [ ] **1.1** Create `supabase/migrations/20261121100000_mock_test_scoring.sql` from `03-design.md` section 1.3, **after the review-3 fixes are in** (see Re-sync). Copy each replaced body from its source range (Verified item 7). Re-grep each range first. `private.check_mock_test()` is `create or replace` and keeps `security invoker` (not definer), with `search_path ''`, the locked re-read and the `pass_mark` line.
-- [ ] **1.2** Pinned pgTAP changes, as design section 2.1 lists them:
+- [x] **1.1** Create `supabase/migrations/20261121100000_mock_test_scoring.sql` from `03-design.md` section 1.3, **after the review-3 fixes are in** (see Re-sync). Copy each replaced body from its source range (Verified item 7). Re-grep each range first. `private.check_mock_test()` is `create or replace` and keeps `security invoker` (not definer), with `search_path ''`, the locked re-read and the `pass_mark` line.
+- [x] **1.2** Pinned pgTAP changes, as design section 2.1 lists them:
   - `mock_tests_categories.test.sql` lines 74 to 77: the UPDATE column pin gains `pass_mark`; the name gains "and the pass mark".
   - `mock_tests_taker.test.sql` line 116: question keys while in progress gain `marks`; the regex on line 113 gains `\|marks_earned` (reviewer's cites; the Developer re-greps).
   - `mock_tests_taker.test.sql` lines 153 to 157: the submit reply gains `percentage` and `passed` (T1 has no pass mark, so `passed` is null); the keys line becomes `array['passed','percentage','score','total']`.
   - `mock_tests_taker.test.sql` lines 175 to 177: submitted question keys gain `marks` and `marks_earned`.
   - `mock_tests_taker.test.sql` line 182: the case named "shows the score" is renamed "shows the marks"; no assertion change (reviewer's cite; the Developer re-greps the name).
   - `open_sign_up_access.test.sql`: `'mock_test_results(uuid)'` joins the pinned list inside the array at lines 84 to 98 (the mock entries at 91 to 94).
-- [ ] **1.3** Fixtures: none beyond the above. `mock_tests_admin.test.sql` and `mock_tests_closing.test.sql` need no edit (design 2.1); both re-run in full.
+- [x] **1.3** Fixtures: none beyond the above. `mock_tests_admin.test.sql` and `mock_tests_closing.test.sql` need no edit (design 2.1); both re-run in full.
 
-- [ ] **1.4** **Before-and-after capture for AC 41 and 42** (design 1.5.6), local database only, run by dev-ms, output saved under `docs/delivery/2026-11-18-mock-test-scoring/run-*/` (excluded via `.git/info/exclude`, added at setup; no `.gitignore` rule) and quoted in the TSR:
+- [x] **1.4** **Before-and-after capture for AC 41 and 42** (design 1.5.6), local database only, run by dev-ms, output saved under `docs/delivery/2026-11-18-mock-test-scoring/run-*/` (excluded via `.git/info/exclude`, added at setup; no `.gitignore` rule) and quoted in the TSR:
   1. Before-run: move `supabase/migrations/20261121100000_mock_test_scoring.sql` out of the tree to a scratchpad path (moved, not deleted), because `supabase db reset` applies every file in the tree. Run `pnpm db:reset` and confirm with `supabase migration list --local` that `20261121100000` is absent. Then seed a released test with two questions (superuser, tagged, one with answers) and two attempts, one submitted and one in progress.
   2. Save `select id, score, total, submitted_at from public.mock_test_attempts order by id` to `before.txt`, and `select count(*) filter (where marks = 1), count(*) from public.mock_test_questions` after the migration only.
   3. Restore the file to `supabase/migrations/` and run `supabase migration up` (local only, no `--linked`); confirm with `supabase migration list --local` that it is applied. Save the same attempts query to `after.txt`.
@@ -80,13 +80,13 @@ Inputs: `01-requirement.md` (50 ACs, plus the release gate), `00-decisions.md` (
 
 ## Slice 2: new pgTAP file and the two-session race (must-pass)
 
-- [ ] **2.1** Create `supabase/tests/database/mock_tests_scoring.test.sql` with cases 1 to 15 of `03-design.md` section 2.2. Covers: columns and grants; freeze of marks and pass mark (including the same-value write and the withdraw path); helpers, including `(0,0,n)` and the strict nulls; score as a sum of marks; boundaries (100 x 100 and 4 x 100 at pass mark 90); taker shapes; per-question sums; legacy rows; closed tests; the results RPC columns, order and row count; names; the role matrix; taker privacy; ACL pins; attempts and answers with no grant.
-- [ ] **2.2** **Two-session pass-mark race** (03 section 9, run by the Dev Lead on the local stack with two `psql` sessions as an admin at aal2, one fully tagged draft with `pass_mark` 50):
+- [x] **2.1** Create `supabase/tests/database/mock_tests_scoring.test.sql` with cases 1 to 15 of `03-design.md` section 2.2. Covers: columns and grants; freeze of marks and pass mark (including the same-value write and the withdraw path); helpers, including `(0,0,n)` and the strict nulls; score as a sum of marks; boundaries (100 x 100 and 4 x 100 at pass mark 90); taker shapes; per-question sums; legacy rows; closed tests; the results RPC columns, order and row count; names; the role matrix; taker privacy; ACL pins; attempts and answers with no grant.
+- [x] **2.2** **Two-session pass-mark race** (03 section 9, run by the Dev Lead on the local stack with two `psql` sessions as an admin at aal2, one fully tagged draft with `pass_mark` 50):
   - Order A: session 1 begins and calls `mock_release`; session 2 writes `pass_mark = 80` and blocks; session 1 commits. Session 2 **must** fail with `mock_released`, and `pass_mark` stays 50. A success is the failure.
   - Order B: session 1 writes `pass_mark = 80` on a draft and blocks session 2's `mock_release`. Session 2 then releases with 80. A later `pass_mark = 60` is refused.
   - Mirror with a submit: a submit holds the test `for share`; a `pass_mark = 10` write blocks until the submit commits, then is refused with `mock_released`, so the label stays stable across a submit.
   - Paste the raw `psql` output of all three into the test report.
-- [ ] **2.3** `check_mock_test` is already the locked re-read in the design (`select t.status … for no key update` on `old.id`, per review-3 round 2). It stays `security invoker` with `search_path ''`, not `security definer`: only an admin at aal2 can update `mock_tests`, and RLS lets that admin read and lock the row. If order A still succeeds (the write is not refused), re-check the locked re-read in the migration text first, re-run 2.2, and only then tick. The gate does not pass without the transcript.
+- [x] **2.3** `check_mock_test` is already the locked re-read in the design (`select t.status … for no key update` on `old.id`, per review-3 round 2). It stays `security invoker` with `search_path ''`, not `security definer`: only an admin at aal2 can update `mock_tests`, and RLS lets that admin read and lock the row. If order A still succeeds (the write is not refused), re-check the locked re-read in the migration text first, re-run 2.2, and only then tick. The gate does not pass without the transcript.
 
 **Test that proves it:** `pnpm db:test` green for the new file; the transcript pasted.
 
@@ -98,8 +98,8 @@ Inputs: `01-requirement.md` (50 ACs, plus the release gate), `00-decisions.md` (
 
 ## Slice 3: local types and migration parity
 
-- [ ] **3.1** Run `pnpm db:types` against the local database after slice 1 is applied. Check the diff: `marks` on questions, `pass_mark` on tests, `mock_test_results` and the new return columns of `mock_tests_for_me`, `mock_test_open` and `mock_submit` (no other changes).
-- [ ] **3.2** Confirm the local migration list ends at `20261121100000` with no file applied out of order.
+- [x] **3.1** Run `pnpm db:types` against the local database after slice 1 is applied. Check the diff: `marks` on questions, `pass_mark` on tests, `mock_test_results` and the new return columns of `mock_tests_for_me`, `mock_test_open` and `mock_submit` (no other changes).
+- [x] **3.2** Confirm the local migration list ends at `20261121100000` with no file applied out of order.
 
 **Owner:** dev-lead (shared file `database.types.ts`).
 
@@ -109,11 +109,11 @@ Inputs: `01-requirement.md` (50 ACs, plus the release gate), `00-decisions.md` (
 
 Rule for this slice and the next: a required field or a changed signature lands with **all** its producers and callers in the same slice. Where a caller lives in a later slice, the new parameter stays optional until that slice.
 
-- [ ] **4.1** `constants/mock-tests.constants.ts`: `MOCK_TEST_LIMITS.passMarkMin/Max` (1 and 100); `MOCK_SCORING` (with `passMarkLine`, the one pass-mark literal); `MOCK_PASS_LABELS`; `MOCK_RESULTS_PAGE` (03 section 4.1, with `viewResults` as the one `Results` literal); `MOCK_RESULT.questionMarks` and `MOCK_RESULT.scoreOnly` (`N of M marks`, used only while the percentage is optional, slice 5); `MOCK_TAKE_PAGE` additions (`marks`, `totalMarks`, `passMark` aliasing `MOCK_SCORING.passMarkLine`); `MOCK_VALIDATION.marks` and `MOCK_VALIDATION.passMark`.
+- [x] **4.1** `constants/mock-tests.constants.ts`: `MOCK_TEST_LIMITS.passMarkMin/Max` (1 and 100); `MOCK_SCORING` (with `passMarkLine`, the one pass-mark literal); `MOCK_PASS_LABELS`; `MOCK_RESULTS_PAGE` (03 section 4.1, with `viewResults` as the one `Results` literal); `MOCK_RESULT.questionMarks` and `MOCK_RESULT.scoreOnly` (`N of M marks`, used only while the percentage is optional, slice 5); `MOCK_TAKE_PAGE` additions (`marks`, `totalMarks`, `passMark` aliasing `MOCK_SCORING.passMarkLine`); `MOCK_VALIDATION.marks` and `MOCK_VALIDATION.passMark`.
   - `MOCK_RESULT.score` is **not** changed here (slice 5, with its pins).
-- [ ] **4.2** `constants/routes.constants.ts` and `portal.constants.ts`: `PORTAL_ROUTE_PATTERNS.adminMockTestResults`, `adminMockTestResultsPath(testId)`, `PORTAL_SEO.adminMockTestResults`.
-- [ ] **4.3** `services/types.ts`, additive only: `MockResultRow` and `MockTestResultsView` (design 3.1). New fields on existing types (`marks`, `passMark`, `percentage`, `passed`, `totalMarks`) are added **optional** (`?`) here, so nothing that builds those types breaks. `MockTestInput.passMark?` stays optional until slice 6. `services/index.ts` exports the new types.
-- [ ] **4.4** No fixture changes in this slice (optional fields need none).
+- [x] **4.2** `constants/routes.constants.ts` and `portal.constants.ts`: `PORTAL_ROUTE_PATTERNS.adminMockTestResults`, `adminMockTestResultsPath(testId)`, `PORTAL_SEO.adminMockTestResults`.
+- [x] **4.3** `services/types.ts`, additive only: `MockResultRow` and `MockTestResultsView` (design 3.1). New fields on existing types (`marks`, `passMark`, `percentage`, `passed`, `totalMarks`) are added **optional** (`?`) here, so nothing that builds those types breaks. `MockTestInput.passMark?` stays optional until slice 6. `services/index.ts` exports the new types.
+- [x] **4.4** No fixture changes in this slice (optional fields need none).
 
 **Command (not run here):** `pnpm exec prettier --check <touched files>`; `pnpm lint && pnpm typecheck` (must pass with optional fields only).
 
@@ -129,18 +129,18 @@ Optional-until-later list (each becomes required in the slice named):
 - `validateMockQuestion(input)`: `marks?` optional until slice 6 (caller `components/portal/MockQuestionDialog.tsx:85`), checked only when present. The lead makes it required in the slice 6 merge.
 - `MockTestInput.passMark?` and `MockQuestionInput.marks?` (`services/types.ts`, lead-owned): optional until slice 6. The lead makes both required in the slice 6 merge, when 6.1 and 6.3 send them. The service uses `input.passMark ?? null` until then.
 
-- [ ] **5.1** `services/mock-tests-data.ts`: `MOCK_QUESTION_COLUMNS` gains `marks`; `MockListRow` gains `percentage` and `passed`; `MockOpenJson` gains `total_marks`, `pass_mark`, `percentage`, `passed`, per-question `marks` and `marks_earned`; `MockResultRowJson` and `toMockResultRow`; mappers `toMockAdminQuestion`, `toMockTestListItem`, `toMockTakeQuestion` (`marksEarned` only when present) and `toMockTestView` copy the fields. The producers are changed here, so the fields become required here.
-- [ ] **5.2** `services/mock-tests.service.ts`: `getMockTestForEdit` selects `pass_mark` and `marks` and returns `passMark`; `createMockTest` and `updateMockTest` send `pass_mark: input.passMark ?? null`; `saveMockQuestion` sends `marks`; `submitMockTest` reads the two new keys (code unchanged).
-- [ ] **5.3** `getMockTestResults(testId)`: admin client check (no request when null, `notAllowed`); header select (`id, title, status, closes_at, pass_mark`, `maybeSingle`; no row is `notFound`); `rpc('mock_test_results', { target })`; `totalRows` from the first row (0 when none); errors through `toErrorKey`. Exported from `services/index.ts`.
-- [ ] **5.4** `lib/mock-tests.ts`: `mockScoreText(score, total, percentage?)`; `validatePassMarkText`; `passMarkFromText`; `validateMockTest` (`passMarkText?` until slice 6); `validateMockQuestion` (`marks?` until slice 6, same integer check as `lib/questions.ts` lines 34 to 40); `mockResultName`; `mockPassLabel` (null gives `''`); `mockResultsTruncated`.
-- [ ] **5.5** The wording change with its pins, in the same commit: `MOCK_RESULT.score` becomes `"${score} of ${total} marks (${percentage}%)"`. (a) `lib/mock-tests.test.ts:162-163` calls the three-argument form and expects `'3 of 5 marks (60%)'`. (b) The component and route pins call the two-argument form in slice 5 and expect the marks wording only, `'N of M marks'` with no percentage: `components/portal/MockTestResult.test.tsx:41-43`, `routes/portal/mock-tests.test.tsx:120,146` (re-grep for `:135`), `routes/portal/mock-test.test.tsx:195`. Their percentage versions move to 7.4 and 7.5.
-- [ ] **5.6** Fixtures for the now-required fields: grep `apps/web/src` for `MockTestView|MockTestListItem|MockAdminQuestion|MockTestDraftView|MockResult|MockQuestionInput|MockTakeQuestion|MockResultRow` and fix every fixture that builds those types (design R-D3). `MockTakeQuestion` was missing from the earlier list.
-- [ ] **5.7** `services/mock-tests.service.test.ts` (the service test named in design section 7, not covered before): payloads carry `pass_mark` (null clears) and `marks`; `getMockTestResults` cases: no admin client gives `notAllowed` with no request; no header row gives `notFound`; an RPC `not_admin` error maps to `notAllowed`; `totalRows` comes from the first row; zero rows give 0.
-- [ ] **5.8** New `lib/mock-test-scoring.parity.test.ts` (design section 8, guard):
+- [x] **5.1** `services/mock-tests-data.ts`: `MOCK_QUESTION_COLUMNS` gains `marks`; `MockListRow` gains `percentage` and `passed`; `MockOpenJson` gains `total_marks`, `pass_mark`, `percentage`, `passed`, per-question `marks` and `marks_earned`; `MockResultRowJson` and `toMockResultRow`; mappers `toMockAdminQuestion`, `toMockTestListItem`, `toMockTakeQuestion` (`marksEarned` only when present) and `toMockTestView` copy the fields. The producers are changed here, so the fields become required here.
+- [x] **5.2** `services/mock-tests.service.ts`: `getMockTestForEdit` selects `pass_mark` and `marks` and returns `passMark`; `createMockTest` and `updateMockTest` send `pass_mark: input.passMark ?? null`; `saveMockQuestion` sends `marks`; `submitMockTest` reads the two new keys (code unchanged).
+- [x] **5.3** `getMockTestResults(testId)`: admin client check (no request when null, `notAllowed`); header select (`id, title, status, closes_at, pass_mark`, `maybeSingle`; no row is `notFound`); `rpc('mock_test_results', { target })`; `totalRows` from the first row (0 when none); errors through `toErrorKey`. Exported from `services/index.ts`.
+- [x] **5.4** `lib/mock-tests.ts`: `mockScoreText(score, total, percentage?)`; `validatePassMarkText`; `passMarkFromText`; `validateMockTest` (`passMarkText?` until slice 6); `validateMockQuestion` (`marks?` until slice 6, same integer check as `lib/questions.ts` lines 34 to 40); `mockResultName`; `mockPassLabel` (null gives `''`); `mockResultsTruncated`.
+- [x] **5.5** The wording change with its pins, in the same commit: `MOCK_RESULT.score` becomes `"${score} of ${total} marks (${percentage}%)"`. (a) `lib/mock-tests.test.ts:162-163` calls the three-argument form and expects `'3 of 5 marks (60%)'`. (b) The component and route pins call the two-argument form in slice 5 and expect the marks wording only, `'N of M marks'` with no percentage: `components/portal/MockTestResult.test.tsx:41-43`, `routes/portal/mock-tests.test.tsx:120,146` (re-grep for `:135`), `routes/portal/mock-test.test.tsx:195`. Their percentage versions move to 7.4 and 7.5.
+- [x] **5.6** Fixtures for the now-required fields: grep `apps/web/src` for `MockTestView|MockTestListItem|MockAdminQuestion|MockTestDraftView|MockResult|MockQuestionInput|MockTakeQuestion|MockResultRow` and fix every fixture that builds those types (design R-D3). `MockTakeQuestion` was missing from the earlier list.
+- [x] **5.7** `services/mock-tests.service.test.ts` (the service test named in design section 7, not covered before): payloads carry `pass_mark` (null clears) and `marks`; `getMockTestResults` cases: no admin client gives `notAllowed` with no request; no header row gives `notFound`; an RPC `not_admin` error maps to `notAllowed`; `totalRows` comes from the first row; zero rows give 0.
+- [x] **5.8** New `lib/mock-test-scoring.parity.test.ts` (design section 8, guard):
   - (a) the migration's `marks between 1 and 100` and `pass_mark between 1 and 100` literals equal `QUESTION_LIMITS.marksMin/marksMax` and `MOCK_TEST_LIMITS.passMarkMin/passMarkMax`;
   - (b) exactly one `update public.mock_test_attempts` in the file, inside `mock_submit`; no `insert into`, `delete from`, or `alter table` statement names `public.mock_test_attempts` (AC 41). Other tables' `alter table` lines are allowed.
   - (c) the file does not `create or replace` `mock_release`, `mock_start` or `mock_save_answer`.
-- [ ] **5.9** Unit tests: `validatePassMarkText` (0, -1, 60.5, 101, "abc" refused; 1, 100, blank accepted); `validateMockQuestion` (blank, 0, -1, 2.5, 101 refused; 1, 100 accepted; an absent `marks` is skipped); `validatePassMarkText` with an absent value is skipped; `mockPassLabel` (null gives `''`); `mockResultName` (null gives the fallback key); `mockScoreText(2, 3, 66)` gives `'2 of 3 marks (66%)'`. The Pass wording is the chip's, tested in 7.6.
+- [x] **5.9** Unit tests: `validatePassMarkText` (0, -1, 60.5, 101, "abc" refused; 1, 100, blank accepted); `validateMockQuestion` (blank, 0, -1, 2.5, 101 refused; 1, 100 accepted; an absent `marks` is skipped); `validatePassMarkText` with an absent value is skipped; `mockPassLabel` (null gives `''`); `mockResultName` (null gives the fallback key); `mockScoreText(2, 3, 66)` gives `'2 of 3 marks (66%)'`. The Pass wording is the chip's, tested in 7.6.
 
 **Test that proves it:** the parity test, the service test and the unit tests green; the four pinned files green.
 
@@ -152,12 +152,12 @@ Optional-until-later list (each becomes required in the slice named):
 
 ## Slice 6: admin editing (worktree A)
 
-- [ ] **6.1** `MockQuestionDialog.tsx`: a Marks `TextField` (copied from `QuestionDialog.tsx` lines 185 to 197: `type="number"`, `min`/`max`/`step` from `QUESTION_LIMITS`, `sx={{ maxWidth: 160 }}`, error and helper from `errors.marks`). Sends `marks: Number(marksText)`. Hidden when the test is not a draft (the list already hides Edit and Add).
-- [ ] **6.2** `MockQuestionList.tsx`: each card shows its marks (`MOCK_SCORING.marks`); the section header shows the question count and `MOCK_SCORING.totalMarks(sum)` (AC 4).
-- [ ] **6.3** `MockTestDialog.tsx`: a pass mark `TextField` (`type="number"`, label `MOCK_SCORING.passMarkLabel`, helper `errors.passMark || MOCK_SCORING.passMarkHint`); blank saves null; hidden on a released or closed test, where the value is shown read-only elsewhere (AC 9).
-- [ ] **6.4** `routes/portal/admin-mock-test.tsx`: a "Scoring" `SectionCard` after Tags (total marks and the pass mark line or "No pass mark", read-only on every status); a Results `Button` (outlined, `component={RouterLink}`) first in the actions of both the draft and released groups.
-- [ ] **6.5** `routes/portal/admin-mock-tests.tsx`: a final `Results` column on every row (any status) with `aria-label={MOCK_RESULTS_PAGE.viewResultsFor(title)}`. Update the top comment (names and scores live on the Results page only, AC 39).
-- [ ] **6.6** Tests: `MockQuestionDialog.test.tsx`, `MockTestDialog.test.tsx`, `admin-mock-test.test.tsx`, `admin-mock-tests.test.tsx`. Cover AC 1, 2, 3 (no Marks control on released), 4, 6, 7, 9, 28.
+- [x] **6.1** `MockQuestionDialog.tsx`: a Marks `TextField` (copied from `QuestionDialog.tsx` lines 185 to 197: `type="number"`, `min`/`max`/`step` from `QUESTION_LIMITS`, `sx={{ maxWidth: 160 }}`, error and helper from `errors.marks`). Sends `marks: Number(marksText)`. Hidden when the test is not a draft (the list already hides Edit and Add).
+- [x] **6.2** `MockQuestionList.tsx`: each card shows its marks (`MOCK_SCORING.marks`); the section header shows the question count and `MOCK_SCORING.totalMarks(sum)` (AC 4).
+- [x] **6.3** `MockTestDialog.tsx`: a pass mark `TextField` (`type="number"`, label `MOCK_SCORING.passMarkLabel`, helper `errors.passMark || MOCK_SCORING.passMarkHint`); blank saves null; hidden on a released or closed test, where the value is shown read-only elsewhere (AC 9).
+- [x] **6.4** `routes/portal/admin-mock-test.tsx`: a "Scoring" `SectionCard` after Tags (total marks and the pass mark line or "No pass mark", read-only on every status); a Results `Button` (outlined, `component={RouterLink}`) first in the actions of both the draft and released groups.
+- [x] **6.5** `routes/portal/admin-mock-tests.tsx`: a final `Results` column on every row (any status) with `aria-label={MOCK_RESULTS_PAGE.viewResultsFor(title)}`. Update the top comment (names and scores live on the Results page only, AC 39).
+- [x] **6.6** Tests: `MockQuestionDialog.test.tsx`, `MockTestDialog.test.tsx`, `admin-mock-test.test.tsx`, `admin-mock-tests.test.tsx`. Cover AC 1, 2, 3 (no Marks control on released), 4, 6, 7, 9, 28.
 
 **Test that proves it:** the four test files green; the Results link target is registered in slice 8 (until then the link is a 404 in the browser, which the Tester does not check before slice 8 lands).
 
@@ -169,12 +169,12 @@ Optional-until-later list (each becomes required in the slice named):
 
 ## Slice 7: taker experience (worktree B)
 
-- [ ] **7.1** `MockTestTakeForm.tsx`: "1 mark" or "N marks" under the question heading (AC 10, SC13). No other change.
-- [ ] **7.2** `routes/portal/mock-test.tsx` (`Intro`): "Total N marks" under the question count; "Pass mark: N%" only when `passMark !== null` (AC 11). No score, answer or result on this page.
-- [ ] **7.3** `components/portal/MockTestStatusChips.tsx`: `MockPassChip({ passed })`, `Chip size="small" variant="outlined"`, no `color` prop, label from `mockPassLabel` (AC 16: neutral for both words).
-- [ ] **7.4** `components/portal/MockTestResult.tsx`: heading reads `mockScoreText(score, total, percentage)`; `MockPassChip` when `passed !== null`; each question shows `MOCK_RESULT.questionMarks(marksEarned, marks)` under its title when `marksEarned` is a number (AC 15, 19, 22). Update the comment at line 1 ("N of M correct").
-- [ ] **7.5** `routes/portal/mock-tests.tsx` (taker list): the submitted line reads `mockScoreText(...)` (guard for `percentage !== null`) plus `MockPassChip` when `passed !== null` (AC 15, 19, 25).
-- [ ] **7.6** Tests: `MockTestTakeForm.test.tsx`, `MockTestResult.test.tsx` (new cases for marks per question and the chip), `mock-test.test.tsx` (start page), `mock-tests.test.tsx` (list). Cover AC 10, 11, 12 (no score or label before submit), 15, 16, 19, 20 (no label without a pass mark), 22, 24.
+- [x] **7.1** `MockTestTakeForm.tsx`: "1 mark" or "N marks" under the question heading (AC 10, SC13). No other change.
+- [x] **7.2** `routes/portal/mock-test.tsx` (`Intro`): "Total N marks" under the question count; "Pass mark: N%" only when `passMark !== null` (AC 11). No score, answer or result on this page.
+- [x] **7.3** `components/portal/MockTestStatusChips.tsx`: `MockPassChip({ passed })`, `Chip size="small" variant="outlined"`, no `color` prop, label from `mockPassLabel` (AC 16: neutral for both words).
+- [x] **7.4** `components/portal/MockTestResult.tsx`: heading reads `mockScoreText(score, total, percentage)`; `MockPassChip` when `passed !== null`; each question shows `MOCK_RESULT.questionMarks(marksEarned, marks)` under its title when `marksEarned` is a number (AC 15, 19, 22). Update the comment at line 1 ("N of M correct").
+- [x] **7.5** `routes/portal/mock-tests.tsx` (taker list): the submitted line reads `mockScoreText(...)` (guard for `percentage !== null`) plus `MockPassChip` when `passed !== null` (AC 15, 19, 25).
+- [x] **7.6** Tests: `MockTestTakeForm.test.tsx`, `MockTestResult.test.tsx` (new cases for marks per question and the chip), `mock-test.test.tsx` (start page), `mock-tests.test.tsx` (list). Cover AC 10, 11, 12 (no score or label before submit), 15, 16, 19, 20 (no label without a pass mark), 22, 24.
 
 **Test that proves it:** the four files green. Real-browser checks (AC 49) are the Tester's, after slice 9.
 
@@ -186,11 +186,11 @@ Optional-until-later list (each becomes required in the slice named):
 
 ## Slice 8: admin Results page (worktree C)
 
-- [ ] **8.1** `components/portal/MockResultsTable.tsx` (+ `.test.tsx`): props `{ rows: MockResultRow[] }`; five header cells in order: Name (`mockResultName`), Submitted (`formatDateTime`), Score (`MOCK_RESULTS_PAGE.score`), Percentage (`MOCK_RESULTS_PAGE.percent`), Result (`mockPassLabel`, empty when null). `key={row.attemptId}`. `aria-label={MOCK_RESULTS_PAGE.tableLabel}`. No write control, no e-mail, no answer (AC 35).
-- [ ] **8.2** `routes/portal/admin-mock-test-results.tsx` (+ `.test.tsx`): `meta` from `PORTAL_SEO.adminMockTestResults`; `clientLoader` calls `getMockTestResults(params.testId ?? '')`; `ErrorBoundary` renders the existing `MockTestsErrorBoundary` (AC 46); the default export renders the page states of design 6.3 (loading, load failed, empty, rows, more than 1000). The header shows the closed chip and the pass mark line when set (extras, cost nothing).
-- [ ] **8.3** `routes.ts` (lead): one `route(PORTAL_ROUTE_PATTERNS.adminMockTestResults, 'routes/portal/admin-mock-test-results.tsx')` inside the admin layout, after `adminMockTest`.
-- [ ] **8.4** `routes/portal/mock-tests-load-error.test.tsx`: add the Results page to its table of pages (AC 46).
-- [ ] **8.5** Tests: empty state shows exactly "No one has submitted this test yet." with no table; rows show five headers in order; "Showing 2 of 1500 submissions. The oldest are not listed." when rows are fewer than `totalRows`, and no note when equal; `notFound` shows `NotFoundPanel`; a non-admin is stopped by the layout (E or M, slice 9).
+- [x] **8.1** `components/portal/MockResultsTable.tsx` (+ `.test.tsx`): props `{ rows: MockResultRow[] }`; five header cells in order: Name (`mockResultName`), Submitted (`formatDateTime`), Score (`MOCK_RESULTS_PAGE.score`), Percentage (`MOCK_RESULTS_PAGE.percent`), Result (`mockPassLabel`, empty when null). `key={row.attemptId}`. `aria-label={MOCK_RESULTS_PAGE.tableLabel}`. No write control, no e-mail, no answer (AC 35).
+- [x] **8.2** `routes/portal/admin-mock-test-results.tsx` (+ `.test.tsx`): `meta` from `PORTAL_SEO.adminMockTestResults`; `clientLoader` calls `getMockTestResults(params.testId ?? '')`; `ErrorBoundary` renders the existing `MockTestsErrorBoundary` (AC 46); the default export renders the page states of design 6.3 (loading, load failed, empty, rows, more than 1000). The header shows the closed chip and the pass mark line when set (extras, cost nothing).
+- [x] **8.3** `routes.ts` (lead): one `route(PORTAL_ROUTE_PATTERNS.adminMockTestResults, 'routes/portal/admin-mock-test-results.tsx')` inside the admin layout, after `adminMockTest`.
+- [x] **8.4** `routes/portal/mock-tests-load-error.test.tsx`: add the Results page to its table of pages (AC 46).
+- [x] **8.5** Tests: empty state shows exactly "No one has submitted this test yet." with no table; rows show five headers in order; "Showing 2 of 1500 submissions. The oldest are not listed." when rows are fewer than `totalRows`, and no note when equal; `notFound` shows `NotFoundPanel`; a non-admin is stopped by the layout (E or M, slice 9).
 
 **Test that proves it:** the new test files and `mock-tests-load-error.test.tsx` green.
 
@@ -202,10 +202,10 @@ Optional-until-later list (each becomes required in the slice named):
 
 ## Slice 9: the rest of the wording sweep, e2e, and the scope test
 
-- [ ] **9.1** `e2e/tests/mock-tests.selectors.ts:64`: the score text becomes `${score} of ${total} marks`. `e2e/tests/mock-tests.spec.ts:213` and `:246`: `'1 of 2 correct'` becomes `'1 of 2 marks (50%)'`.
-- [ ] **9.2** One new e2e case in `e2e/tests/mock-tests.spec.ts`, titled "scores marks and a pass mark end to end", run with `pnpm --filter aj-classes-e2e exec playwright test tests/mock-tests.spec.ts -g "scores marks and a pass mark end to end"` (the filter is the file plus the title; run from the e2e package). Scenario: an admin creates a test with a question worth 3 and a pass mark of 60, plus a second question worth 2, tags it and releases it; a student answers only the 3-mark question and submits; the card and result read "3 of 5 marks (60%)" with "Pass"; the admin opens Results from the list and sees the student's name and the row (AC 15, 19, 28, 29).
-- [ ] **9.3** `lib/mock-tests-scope.test.ts`: add `MOCK_SCORING`, `MOCK_RESULTS_PAGE`, `MOCK_PASS_LABELS`, `MockResultsTable` and `MockPassChip` to `TAG_NAMES`; confirm no new name appears in `routes.ts`'s sitemap source or the e-mail templates (AC 50).
-- [ ] **9.4** Final grep, as a proof row (not a fix): `grep -rn "of [^ ]* correct" apps/web/src e2e/tests`. The only allowed hits are "Option X is correct" (`online-assignments.constants.ts:95`, `mock-tests.selectors.ts:13`) and "aren’t answered yet and will count as incorrect" (`MockTestTakeForm.test.tsx:173`), which are not score wording.
+- [x] **9.1** `e2e/tests/mock-tests.selectors.ts:64`: the score text becomes `${score} of ${total} marks`. `e2e/tests/mock-tests.spec.ts:213` and `:246`: `'1 of 2 correct'` becomes `'1 of 2 marks (50%)'`.
+- [x] **9.2** One new e2e case in `e2e/tests/mock-tests.spec.ts`, titled "scores marks and a pass mark end to end", run with `pnpm --filter aj-classes-e2e exec playwright test tests/mock-tests.spec.ts -g "scores marks and a pass mark end to end"` (the filter is the file plus the title; run from the e2e package). Scenario: an admin creates a test with a question worth 3 and a pass mark of 60, plus a second question worth 2, tags it and releases it; a student answers only the 3-mark question and submits; the card and result read "3 of 5 marks (60%)" with "Pass"; the admin opens Results from the list and sees the student's name and the row (AC 15, 19, 28, 29).
+- [x] **9.3** `lib/mock-tests-scope.test.ts`: add `MOCK_SCORING`, `MOCK_RESULTS_PAGE`, `MOCK_PASS_LABELS`, `MockResultsTable` and `MockPassChip` to `TAG_NAMES`; confirm no new name appears in `routes.ts`'s sitemap source or the e-mail templates (AC 50).
+- [x] **9.4** Final grep, as a proof row (not a fix): `grep -rn "of [^ ]* correct" apps/web/src e2e/tests`. The only allowed hits are "Option X is correct" (`online-assignments.constants.ts:95`, `mock-tests.selectors.ts:13`) and "aren’t answered yet and will count as incorrect" (`MockTestTakeForm.test.tsx:173`), which are not score wording.
 
 **Test that proves it:** the e2e mock spec green on the local stack; the scope test green.
 
