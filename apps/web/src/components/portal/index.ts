@@ -15,6 +15,7 @@ export { HoldResultsSetting } from './HoldResultsSetting';
 export { InviteDialog } from './InviteDialog';
 export { MockClosingDialog, MockReleaseDialog } from './MockClosingDialogs';
 export { MockQuestionList } from './MockQuestionList';
+export { MockResultsTable } from './MockResultsTable';
 export { MockTagFields } from './MockTagFields';
 export { MockTagLine } from './MockTagLine';
 export { MockTagsDialog } from './MockTagsDialog';
