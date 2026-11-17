@@ -1827,3 +1827,11 @@ true|0
 
 Timestamps (`ccD after`, `ccE after`) and `elapsed=` values: compare shape, not value.
 
+
+## 11. Lead rulings after TSR round 1 (appended; frozen rows above unchanged)
+
+1. **R-3 (BUG-2): plan error.** The v1 gate froze "gap kept" on delete (2026-11-17 `06-test-plan.md` BM-7: positions `1` and `3`), and the UI numbers questions by order, not by stored position. R-3's expected value `1` copied "contiguous" in error. Corrected expected value: the surviving question's stored position (`2` with the frozen steps). Every other check in R-3 stays. Round 1 records R-3 as PASS on this ruling.
+2. **BR-1 (BUG-1): app bug, Minor, fixed in round 2.** A 375 px window with a fine pointer must not overflow when the closing date picker is open. Added row **BR-1b**: at 375 × 800 with `isMobile: false`, open the picker in both the Release dialog and Set closing date, in light and dark → `scrollWidth - clientWidth` = `0`; at 1280 the desktop picker still opens.
+3. **`1|true` vs `1|t` (TS-5, TS-7, BS-3):** the same boolean, printed by a different client. Accepted as matching.
+4. **Order changes (BR before BK) and recording the mobile repo state at Sitting 4:** accepted; neither changes a result.
+5. **V-3 (BUG-3): app bug, Minor, fixed in round 2.** A closed test's edit page shows the released notice ("… can take it"). Added row **BR-1c**: on the edit page of a closed test (`k-closed`) the notice no longer says people can take it and states S-1 (those who submitted still see their result); a released, not-closed test (`k-later`) still shows the released notice; a draft still shows the draft notice.
