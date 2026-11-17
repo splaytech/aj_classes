@@ -108,7 +108,6 @@ create trigger mock_test_questions_set_updated_at
 create function private.check_mock_test()
 returns trigger
 language plpgsql
-security definer
 set search_path = ''
 as $$
 begin
@@ -134,6 +133,7 @@ create trigger mock_tests_check
 -- Question changes need a draft test. The test row is locked for update (not share: share locks
 -- don't exclude each other, so two admins adding question 100 would both pass the count), which
 -- also serialises question writes against mock_release. Same pattern as check_assignment_question.
+-- Security definer because it bumps mock_tests.updated_at, a column admins have no update grant on.
 create function private.check_mock_question()
 returns trigger
 language plpgsql
@@ -149,15 +149,16 @@ begin
   where t.id = target_test
   for update;
 
-  -- The test itself is being deleted (cascade): nothing left to protect.
   if not found then
-    return old;
+    -- The test itself is being deleted (cascade): nothing left to protect.
+    if tg_op = 'DELETE' then
+      return old;
+    end if;
+    -- Without this, an insert for a missing test was silently dropped and the API said 201.
+    raise exception 'not_found' using errcode = 'P0002';
   end if;
   if test_status <> 'draft' then
     raise exception 'mock_released';
-  end if;
-  if tg_op = 'UPDATE' and new.test_id <> old.test_id then
-    raise exception 'invalid_input';
   end if;
 
   if tg_op = 'INSERT' then
@@ -314,10 +315,15 @@ begin
     raise exception 'invalid_status';
   end if;
   -- A separate statement after the lock: mock_start holds the test row for share, so a start
-  -- and a withdraw can't both win.
-  if exists (select 1 from public.mock_test_attempts a where a.test_id = target) then
+  -- and a withdraw can't both win. Only a submitted attempt blocks (ruling L-5): otherwise anyone
+  -- who signs up and presses Start could freeze a test with a wrong key for good.
+  if exists (select 1 from public.mock_test_attempts a
+             where a.test_id = target and a.submitted_at is not null) then
     raise exception 'mock_has_attempts';
   end if;
+
+  -- In-progress attempts go with the release; their answers cascade.
+  delete from public.mock_test_attempts a where a.test_id = target;
 
   update public.mock_tests
   set status = 'draft', released_at = null, released_by = null

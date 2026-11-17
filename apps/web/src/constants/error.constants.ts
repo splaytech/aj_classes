@@ -87,7 +87,7 @@ export const PORTAL_ERRORS = {
   mockReleased:
     'A released mock test can’t be changed. Take it back to draft first, if no one has started it.',
   mockNoQuestions: 'Add at least one question before releasing.',
-  mockHasAttempts: 'Someone has already started this mock test, so it can’t go back to draft.',
+  mockHasAttempts: 'Someone has already submitted this mock test, so it can’t go back to draft.',
   mockTooManyQuestions: `A mock test can have up to ${MOCK_TEST_LIMITS.questionsMax} questions.`,
   mockNotStarted: 'Start the mock test first.',
   answerTooLong: 'That answer is too long. Please shorten it.',

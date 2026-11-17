@@ -46,6 +46,7 @@ export async function getMockTestForEdit(testId: string): Promise<Result<MockTes
       .eq('id', testId)
       .maybeSingle();
     if (test.error) return fail(toErrorKey(test.error));
+    // No row is either no such test or not an admin (RLS): notFound's text covers both, neutrally.
     if (!test.data) return fail('notFound');
 
     const questions = await supabase

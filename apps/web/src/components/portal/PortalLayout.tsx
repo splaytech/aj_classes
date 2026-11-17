@@ -52,7 +52,7 @@ const NAV_BY_ROLE: Record<AppRole, NavItem[]> = {
     { to: PORTAL_ROUTES.parentMockTests, label: nav.mockTests },
     ACCOUNT_LINK,
   ],
-  // Latest news and mock tests (mock tests AC 8); this superseded the sign-up AC-22 "news only".
+  // Latest news and mock tests (mock tests M15, ruling L-7); this supersedes open sign-up AC-22.
   user: [
     { to: PORTAL_ROUTES.user, label: nav.userHome, notUnder: [PORTAL_ROUTES.userMockTests] },
     { to: PORTAL_ROUTES.userMockTests, label: nav.mockTests },

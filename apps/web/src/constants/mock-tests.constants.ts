@@ -110,7 +110,7 @@ export const MOCK_TEST_EDIT_PAGE = {
   detailsSaved: 'Details saved.',
   draftNote: 'Draft: only admins can see this mock test. Release it when it is ready.',
   releasedNote:
-    'Released: students, parents and signed-up users can take it. It can only go back to draft if nobody has started it.',
+    'Released: students, parents and signed-up users can take it. It can only go back to draft until someone submits it.',
   release: 'Release',
   releasing: 'Releasing…',
   releaseNeedsQuestions: 'Add at least one question to release this mock test.',
@@ -122,7 +122,7 @@ export const MOCK_TEST_EDIT_PAGE = {
   takingBack: 'Taking back…',
   confirmTakeBackTitle: 'Take this mock test back to draft?',
   confirmTakeBackText:
-    'People won’t see it until you release it again. This only works while nobody has started it.',
+    'People won’t see it until you release it again. Anyone part-way through loses their answers. This only works while nobody has submitted it.',
   takenBack: 'Back to draft.',
   deleteDraft: 'Delete draft',
   confirmDeleteTitle: 'Delete this draft?',

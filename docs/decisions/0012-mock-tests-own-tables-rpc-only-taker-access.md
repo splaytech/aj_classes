@@ -22,6 +22,8 @@ Admins build MCQ mock tests and release them. Every active student, parent and s
 - Answer keys cannot leak by an RLS mistake on a taker path, because there is no taker path to the tables.
 - Later paid tests, retakes, non-MCQ kinds or class links are additive columns and tables. No pricing column now.
 - Reversing to "assignments with a flag" after attempts exist means a data migration of attempts.
+- **Take-back (ruling L-5, 2026-11-18, amends decision 5):** take-back is allowed while no attempt is submitted, and deletes in-progress attempts and their answers in the same transaction, under the test-row lock. Known limit: once any attempt is submitted the test can't be taken back, so a wrong key is fixed by releasing a corrected new test.
+- **Accepted risk (ruling L-6, 2026-11-18):** submitting with no answers reveals every correct option and explanation, so the key is effectively public to any signed-up account. Mock tests are practice only and no credential attaches to a score. Requiring at least one answer before submit is deferred.
 
 ## Alternatives rejected
 

@@ -322,19 +322,53 @@ select lives_ok(
 select lives_ok($$ select public.mock_release('00000000-0000-0000-0000-00000000f001') $$, 'It can be released again');
 reset role;
 
--- One attempt of any state blocks take-back
-insert into public.mock_test_attempts (test_id, profile_id)
-values ('00000000-0000-0000-0000-00000000f001', '00000000-0000-0000-0000-0000000000f1');
+-- An in-progress attempt doesn't block take-back: it is deleted with its answers (ruling L-5)
+insert into public.mock_test_attempts (id, test_id, profile_id)
+values ('00000000-0000-0000-0000-0000000b0001', '00000000-0000-0000-0000-00000000f001',
+        '00000000-0000-0000-0000-0000000000e1');
+insert into public.mock_test_answers (attempt_id, question_id, selected_option)
+values ('00000000-0000-0000-0000-0000000b0001', '00000000-0000-0000-0000-0000000a0001', 0);
 select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
-select throws_ok($$ select public.mock_withdraw('00000000-0000-0000-0000-00000000f001') $$,
-  'P0001', 'mock_has_attempts', 'An in-progress attempt blocks take-back');
+select lives_ok($$ select public.mock_withdraw('00000000-0000-0000-0000-00000000f001') $$,
+  'An in-progress attempt doesn''t block take-back');
 reset role;
-update public.mock_test_attempts set submitted_at = now(), score = 1, total = 3;
+select is((select count(*)::int from public.mock_test_attempts
+           where test_id = '00000000-0000-0000-0000-00000000f001'), 0,
+  'and the in-progress attempt is deleted');
+select is((select count(*)::int from public.mock_test_answers
+           where attempt_id = '00000000-0000-0000-0000-0000000b0001'), 0,
+  'and so are its answers');
+
+-- A start that queued behind the withdraw's row lock re-checks the status and is refused, so the
+-- two can't both win. (True two-session timing is the S8 check; this is the outcome once serialised.)
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000e1');
+select throws_ok($$ select public.mock_start('00000000-0000-0000-0000-00000000f001') $$,
+  'P0002', 'not_found', 'A start after the take-back finds no released test');
+reset role;
+select is((select count(*)::int from public.mock_test_attempts
+           where test_id = '00000000-0000-0000-0000-00000000f001'), 0,
+  'and creates no attempt');
+
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select lives_ok($$ select public.mock_release('00000000-0000-0000-0000-00000000f001') $$, 'It is released again');
+reset role;
+
+-- A submitted attempt blocks take-back
+insert into public.mock_test_attempts (test_id, profile_id, submitted_at, score, total)
+values ('00000000-0000-0000-0000-00000000f001', '00000000-0000-0000-0000-0000000000f1', now(), 1, 3);
 select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
 select throws_ok($$ select public.mock_withdraw('00000000-0000-0000-0000-00000000f001') $$,
   'P0001', 'mock_has_attempts', 'A submitted attempt blocks take-back');
 select is((select status from public.mock_tests where id = '00000000-0000-0000-0000-00000000f001'), 'released',
   'and the test stays released');
+reset role;
+
+-- A question for a test that doesn't exist is refused, not silently dropped (06-security #3)
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
+select throws_ok(
+  $$ insert into public.mock_test_questions (test_id, prompt, options, correct_option)
+     values ('00000000-0000-0000-0000-00000000fbad', 'Orphan', array['a','b'], 0) $$,
+  'P0002', 'not_found', 'A question for a missing test raises not_found');
 reset role;
 
 -- ---------------------------------------------------------------------------

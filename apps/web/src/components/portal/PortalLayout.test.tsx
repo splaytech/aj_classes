@@ -27,7 +27,7 @@ function navLinks(nav: ReturnType<typeof renderLayout>) {
   return nav.getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href')]);
 }
 
-// Mock tests (AC 8) supersede the sign-up AC-22 wording "a signed-up user sees only Latest news,
+// Mock tests (M15, ruling L-7) supersede the open sign-up AC-22 wording "a signed-up user sees only Latest news,
 // Account and Sign out": a user now also has Mock tests.
 describe('PortalLayout for a signed-up user', () => {
   it('shows Latest news, Mock tests, Account and Sign out', () => {
@@ -43,7 +43,7 @@ describe('PortalLayout for a signed-up user', () => {
   });
 });
 
-describe('PortalLayout navigation for mock tests (AC 8)', () => {
+describe('PortalLayout navigation for mock tests (M15, ruling L-7)', () => {
   it('gives a student a Mock tests link after Timetable', () => {
     const nav = renderLayout('student', PORTAL_ROUTES.student);
 

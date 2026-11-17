@@ -1,6 +1,6 @@
 // Admin → one mock test (design §4.3). A draft: edit the details, add, change, delete and move
 // questions, release it, or delete it. A released test is read-only, and can go back to draft only
-// while nobody has started it. The database enforces every one of these rules; this page just
+// while nobody has submitted it (in-progress attempts are deleted). The database enforces every one of these rules; this page just
 // shows the controls that can work and the plain reason when one is refused.
 
 import Alert from '@mui/material/Alert';
