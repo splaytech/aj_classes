@@ -64,6 +64,7 @@ const SHORTCUTS = [
   { key: 'enquiries', to: PORTAL_ROUTES.adminEnquiries },
   { key: 'posts', to: PORTAL_ROUTES.adminPosts },
   { key: 'emails', to: PORTAL_ROUTES.adminEmails },
+  { key: 'mockTests', to: PORTAL_ROUTES.adminMockTests },
   { key: 'activity', to: PORTAL_ROUTES.adminActivity },
 ] as const;
 
