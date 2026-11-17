@@ -10,7 +10,13 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { Link as RouterLink, useLoaderData, useRevalidator } from 'react-router';
 
-import { ConfirmDialog, LoadError, PageHeader, SectionCard } from '@/components/portal';
+import {
+  ConfirmDialog,
+  LoadError,
+  MockTestsLinkCard,
+  PageHeader,
+  SectionCard,
+} from '@/components/portal';
 import {
   BUSINESS,
   CLOCK,
@@ -62,6 +68,9 @@ export default function ParentHomePage() {
         title={PARENT_HOME.greeting(firstName(access.profile?.fullName ?? ''))}
         intro={PARENT_HOME.intro}
       />
+      <Stack sx={{ mb: 4 }}>
+        <MockTestsLinkCard area="parent" />
+      </Stack>
       {loaded.data.length === 0 ? (
         <Alert severity="info">{PARENT_HOME.empty}</Alert>
       ) : (

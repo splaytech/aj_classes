@@ -175,6 +175,8 @@ export const MOCK_RESULT = {
   correctAnswer: 'Correct answer',
   noAnswer: 'No answer.',
   explanation: 'Explanation',
+  line: (label: string, text: string) => `${label}: ${text}`,
+  choice: (letter: string, text: string) => `${letter}. ${text}`,
 } as const;
 
 export const MOCK_TESTS_ERROR_BOUNDARY = {
