@@ -114,7 +114,11 @@ describe('admin mock tests list', () => {
     await user.click(screen.getByRole('button', { name: MOCK_TEST_DIALOG.create }));
 
     expect(await screen.findByText('edit page')).toBeInTheDocument();
-    expect(createMockTest).toHaveBeenCalledWith({ title: 'Fractions', instructions: '' });
+    expect(createMockTest).toHaveBeenCalledWith({
+      title: 'Fractions',
+      instructions: '',
+      tags: { subject: null, stream: null, yearLevels: [], anyYear: false },
+    });
   });
 
   it('refuses a one-character title inline and sends nothing', async () => {

@@ -186,19 +186,51 @@ describe('getMockTestForEdit', () => {
   });
 });
 
+const NO_TAGS = { subject: null, stream: null, yearLevels: [], anyYear: false };
+
 describe('createMockTest and updateMockTest', () => {
-  it('inserts only the trimmed title and instructions, never an id', async () => {
+  it('inserts the trimmed title and instructions and the tag columns, never an id', async () => {
     reply({ id: 'new' });
-    expect(await createMockTest({ title: '  Maths  ', instructions: ' Go ' })).toEqual({
+    expect(
+      await createMockTest({ title: '  Maths  ', instructions: ' Go ', tags: NO_TAGS }),
+    ).toEqual({
       ok: true,
       data: { id: 'new' },
     });
-    expect(called('insert', { title: 'Maths', instructions: 'Go' })).toBe(true);
+    expect(
+      called('insert', {
+        title: 'Maths',
+        instructions: 'Go',
+        subject: null,
+        stream: null,
+        year_levels: [],
+        any_year: false,
+      }),
+    ).toBe(true);
+  });
+
+  it('sends the tags of a draft edit, years ascending', async () => {
+    reply({ id: 't1' });
+    const tags = { subject: 'maths', stream: 'icas', yearLevels: [8, 5], anyYear: false };
+    expect(await updateMockTest('t1', { title: 'Maths', instructions: '', tags })).toEqual({
+      ok: true,
+      data: undefined,
+    });
+    expect(
+      called('update', {
+        title: 'Maths',
+        instructions: '',
+        subject: 'maths',
+        stream: 'icas',
+        year_levels: [5, 8],
+        any_year: false,
+      }),
+    ).toBe(true);
   });
 
   it('maps a check-constraint refusal to invalidInput', async () => {
     reply(null, { code: '23514', message: 'violates check constraint' });
-    expect(await createMockTest({ title: 'x', instructions: '' })).toEqual({
+    expect(await createMockTest({ title: 'x', instructions: '', tags: NO_TAGS })).toEqual({
       ok: false,
       error: 'invalidInput',
     });
@@ -206,18 +238,22 @@ describe('createMockTest and updateMockTest', () => {
 
   it('says mockReleased when a released test is edited', async () => {
     reply(null, { code: 'P0001', message: 'mock_released' });
-    expect(await updateMockTest('t1', { title: 'Maths', instructions: '' })).toEqual({
-      ok: false,
-      error: 'mockReleased',
-    });
+    expect(await updateMockTest('t1', { title: 'Maths', instructions: '', tags: NO_TAGS })).toEqual(
+      {
+        ok: false,
+        error: 'mockReleased',
+      },
+    );
   });
 
   it('says notAllowed when the update matched no row', async () => {
     reply(null);
-    expect(await updateMockTest('t1', { title: 'Maths', instructions: '' })).toEqual({
-      ok: false,
-      error: 'notAllowed',
-    });
+    expect(await updateMockTest('t1', { title: 'Maths', instructions: '', tags: NO_TAGS })).toEqual(
+      {
+        ok: false,
+        error: 'notAllowed',
+      },
+    );
   });
 });
 

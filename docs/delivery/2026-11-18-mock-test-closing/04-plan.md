@@ -162,7 +162,7 @@ Read the failing file list. The `Files=` count is not a pass criterion.
   - `MOCK_TEST_EXCLUDED_SUBJECT_KEYS = ['interview-preparation'] as const`, and `MOCK_TEST_SUBJECTS = SUBJECTS.filter(...)` (AC 10);
   - `MOCK_TEST_STREAM_SLUGS` in AC 11 order, and `MOCK_TEST_STREAMS` with each label from `findProgramme(slug)?.menuLabel` (review 8);
   - the five error keys and texts in `error.constants.ts` (slice 5.5).
-- [ ] **6b (lands with 7a and 8)** `MOCK_TAGS`, `MOCK_TEST_FILTERS`, `MOCK_TAG_ANY = 'any'`, the `MOCK_VALIDATION` additions (`tagSubject`, `tagStream`, `tagYears`, `tagKeep`), and `MOCK_TESTS_ADMIN_PAGE.columns.tags`. Copy in lower case with "and" (review 13). No new strings outside these files.
+- [x] **6b (lands with 7a and 8)** `MOCK_TAGS`, `MOCK_TEST_FILTERS`, `MOCK_TAG_ANY = 'any'`, the `MOCK_VALIDATION` additions (`tagSubject`, `tagStream`, `tagYears`, `tagKeep`), and `MOCK_TESTS_ADMIN_PAGE.columns.tags`. Copy in lower case with "and" (review 13). No new strings outside these files.
 
 **Test that proves it:** the parity test (slice 4) covers the 6a option lists and stream labels. The 6b strings are read by the component tests in 7a, 7b and 8.
 
@@ -174,16 +174,16 @@ Read the failing file list. The `Files=` count is not a pass criterion.
 
 ## Slice 7a: helpers, tag fields and create/edit dialog (AC 12, 13, 16 on the screen)
 
-- [ ] **7a.1** `lib/mock-tests.ts` (design §4, without `filterMockTests`): `mockYearsSet`, `missingMockTagFields`, `setMockTagFields`, `mockTagErrors`, `applyYearPick` (three branches), `mockSubjectText`, `mockStreamText` (uses `findProgramme`, so a removed stream keeps its label), `mockYearText`, and **`mockTagNamesText(fields)`** (the lower-case field names joined "a, b and c", from `MOCK_TAGS.fieldNames`, `listSeparator` and `listAnd`). Unit tests in `lib/mock-tests.test.ts`, including `mockTagNamesText` for the three-, two- and one-field cases.
-- [ ] **7a.2** `components/portal/MockTagFields.tsx` (new): Subject and Stream selects with:
+- [x] **7a.1** `lib/mock-tests.ts` (design §4, without `filterMockTests`): `mockYearsSet`, `missingMockTagFields`, `setMockTagFields`, `mockTagErrors`, `applyYearPick` (three branches), `mockSubjectText`, `mockStreamText` (uses `findProgramme`, so a removed stream keeps its label), `mockYearText`, and **`mockTagNamesText(fields)`** (the lower-case field names joined "a, b and c", from `MOCK_TAGS.fieldNames`, `listSeparator` and `listAnd`). Unit tests in `lib/mock-tests.test.ts`, including `mockTagNamesText` for the three-, two- and one-field cases.
+- [x] **7a.2** `components/portal/MockTagFields.tsx` (new): Subject and Stream selects with:
   - a `notSet` item first when `canClear`;
   - when `!canClear` and the value is null, a **disabled** `notSet` item, so the select shows "Not set" rather than a blank (a legacy untagged released test);
   - a disabled "(no longer offered)" item for a removed key;
   - `key={x.key}` on every `MenuItem`.
   
   The Year level multi-select has an Any year item, `renderValue: () => mockYearText(value)` (review 10), and `applyYearPick` on change.
-- [ ] **7a.3** `components/portal/MockTestDialog.tsx` (changed): tags state, `MockTagFields` below instructions. **`MockTestInput.tags` is added here**, and `createMockTest` and `updateMockTest` send `toMockTagColumns(input.tags)`. `validateMockTest` takes `Pick<MockTestInput, 'title' | 'instructions'>` (review 12). A draft saves with no tags (AC 13).
-- [ ] **7a.4** Export `MockTagFields` from `components/portal/index.ts`.
+- [x] **7a.3** `components/portal/MockTestDialog.tsx` (changed): tags state, `MockTagFields` below instructions. **`MockTestInput.tags` is added here**, and `createMockTest` and `updateMockTest` send `toMockTagColumns(input.tags)`. `validateMockTest` takes `Pick<MockTestInput, 'title' | 'instructions'>` (review 12). A draft saves with no tags (AC 13).
+- [x] **7a.4** Export `MockTagFields` from `components/portal/index.ts`.
 
 **Tests that prove it:**
 - `lib/mock-tests.test.ts`: the three `applyYearPick` branches; `mockTagErrors` with set and unset cases; `mockTagNamesText`.

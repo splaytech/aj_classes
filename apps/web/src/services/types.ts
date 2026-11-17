@@ -561,8 +561,8 @@ export type MockTestSummary = {
   tags: MockTags;
 };
 
-/** Trimmed by the service before it is saved. */
-export type MockTestInput = { title: string; instructions: string };
+/** Trimmed by the service before it is saved. A draft may have no tags (AC 13). */
+export type MockTestInput = { title: string; instructions: string; tags: MockTags };
 
 export type MockQuestionInput = {
   id?: string;

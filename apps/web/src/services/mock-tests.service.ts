@@ -79,7 +79,11 @@ export async function createMockTest(input: MockTestInput): Promise<Result<{ id:
     const supabase = await getSupabase();
     const { data, error } = await supabase
       .from('mock_tests')
-      .insert({ title: input.title.trim(), instructions: input.instructions.trim() })
+      .insert({
+        title: input.title.trim(),
+        instructions: input.instructions.trim(),
+        ...toMockTagColumns(input.tags),
+      })
       .select('id')
       .single();
     if (error) return fail(toErrorKey(error));
@@ -92,7 +96,11 @@ export async function updateMockTest(testId: string, input: MockTestInput): Prom
     const supabase = await getSupabase();
     const { data, error } = await supabase
       .from('mock_tests')
-      .update({ title: input.title.trim(), instructions: input.instructions.trim() })
+      .update({
+        title: input.title.trim(),
+        instructions: input.instructions.trim(),
+        ...toMockTagColumns(input.tags),
+      })
       .eq('id', testId)
       .select('id')
       .maybeSingle();

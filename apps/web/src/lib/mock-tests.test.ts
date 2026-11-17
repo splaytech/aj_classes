@@ -3,6 +3,10 @@ import { describe, expect, it } from 'vitest';
 import * as constants from '@/constants';
 import {
   MOCK_CLOSING,
+  MOCK_TAG_ANY,
+  MOCK_TAGS,
+  MOCK_TEST_STREAMS,
+  MOCK_TEST_SUBJECTS,
   MOCK_TEST_LIMITS,
   MOCK_VALIDATION,
   PORTAL_ROUTES,
@@ -14,8 +18,18 @@ import {
 
 import { formatDateTime } from './format';
 import {
+  EMPTY_MOCK_TAGS,
+  applyYearPick,
   closesAtError,
   hasMockErrors,
+  missingMockTagFields,
+  mockStreamText,
+  mockSubjectText,
+  mockTagErrors,
+  mockTagNamesText,
+  mockYearText,
+  mockYearsSet,
+  setMockTagFields,
   mockClosingState,
   mockClosingText,
   mockScoreText,
@@ -202,5 +216,92 @@ describe('closing (docs/delivery/2026-11-18-mock-test-closing)', () => {
       MOCK_VALIDATION.closesInPast,
     );
     expect(closesAtError(new Date('nonsense'), now)).toBe(MOCK_VALIDATION.closesInvalid);
+  });
+});
+
+describe('tags (docs/delivery/2026-11-18-mock-test-closing)', () => {
+  const tagged = { subject: 'maths', stream: 'naplan', yearLevels: [5, 6], anyYear: false };
+
+  it('offers seven subjects without interview preparation, and six streams with menu labels (AC 10, 11)', () => {
+    expect(MOCK_TEST_SUBJECTS.map((s) => s.key)).not.toContain('interview-preparation');
+    expect(MOCK_TEST_SUBJECTS).toHaveLength(7);
+    expect(MOCK_TEST_STREAMS.map((s) => s.label)).toEqual([
+      'VCE Tutoring',
+      'NAPLAN',
+      'Selective Entry Exam',
+      'SEAL and Scholarships',
+      'ICAS',
+      'Maths, Science and English',
+    ]);
+    for (const left of ['interviews', 'vce-subject-selection', 'ucat-and-gamsat']) {
+      expect(MOCK_TEST_STREAMS.map((s) => s.key)).not.toContain(left);
+    }
+  });
+
+  it('knows which tags are set, with Any year counting as set (AC 14)', () => {
+    expect(mockYearsSet(EMPTY_MOCK_TAGS)).toBe(false);
+    expect(mockYearsSet({ ...EMPTY_MOCK_TAGS, anyYear: true })).toBe(true);
+    expect(missingMockTagFields(EMPTY_MOCK_TAGS)).toEqual(['subject', 'stream', 'yearLevels']);
+    expect(missingMockTagFields({ ...EMPTY_MOCK_TAGS, stream: 'icas' })).toEqual([
+      'subject',
+      'yearLevels',
+    ]);
+    expect(missingMockTagFields(tagged)).toEqual([]);
+    expect(setMockTagFields({ ...EMPTY_MOCK_TAGS, subject: 'maths' })).toEqual(['subject']);
+  });
+
+  it('gives each required unset field its message, or the keep message', () => {
+    expect(mockTagErrors(EMPTY_MOCK_TAGS, ['subject', 'stream', 'yearLevels'])).toEqual({
+      subject: MOCK_VALIDATION.tagSubject,
+      stream: MOCK_VALIDATION.tagStream,
+      yearLevels: MOCK_VALIDATION.tagYears,
+    });
+    expect(mockTagErrors(tagged, ['subject', 'stream', 'yearLevels'])).toEqual({});
+    expect(mockTagErrors({ ...tagged, subject: null }, ['subject', 'stream'], true)).toEqual({
+      subject: MOCK_VALIDATION.tagKeep,
+    });
+    expect(mockTagErrors(EMPTY_MOCK_TAGS, [])).toEqual({});
+  });
+
+  it('applies a year pick: Any year clears years, a year clears Any year, Any off is nothing (AC 12)', () => {
+    const withYears = { ...EMPTY_MOCK_TAGS, yearLevels: [5] };
+    expect(applyYearPick(withYears, [5, MOCK_TAG_ANY])).toEqual({
+      ...EMPTY_MOCK_TAGS,
+      anyYear: true,
+      yearLevels: [],
+    });
+    const any = { ...EMPTY_MOCK_TAGS, anyYear: true };
+    expect(applyYearPick(any, [MOCK_TAG_ANY, 9, 7])).toEqual({
+      ...EMPTY_MOCK_TAGS,
+      anyYear: false,
+      yearLevels: [7, 9],
+    });
+    expect(applyYearPick(any, [])).toEqual({ ...EMPTY_MOCK_TAGS, anyYear: false });
+    expect(applyYearPick(withYears, [])).toEqual(EMPTY_MOCK_TAGS);
+  });
+
+  it('names tags by label, keeps removed or unknown ones, and says Not set (AC 23, 27)', () => {
+    expect(mockSubjectText('maths')).toBe('Maths');
+    expect(mockSubjectText('interview-preparation')).toBe('Interview preparation');
+    expect(mockSubjectText('chemistry')).toBe('chemistry');
+    expect(mockSubjectText(null)).toBe(MOCK_TAGS.notSet);
+    expect(mockStreamText('vce')).toBe('VCE Tutoring');
+    expect(mockStreamText('ucat-and-gamsat')).toBe('UCAT and GAMSAT');
+    expect(mockStreamText('old-stream')).toBe('old-stream');
+    expect(mockStreamText(null)).toBe(MOCK_TAGS.notSet);
+    expect(mockYearText({ ...EMPTY_MOCK_TAGS, anyYear: true })).toBe('Any year');
+    expect(mockYearText({ ...EMPTY_MOCK_TAGS, yearLevels: [7, 8, 9] })).toBe('Years 7–9');
+    expect(mockYearText(EMPTY_MOCK_TAGS)).toBe(MOCK_TAGS.notSet);
+  });
+
+  it('joins the missing field names in plain English', () => {
+    expect(mockTagNamesText(['subject', 'stream', 'yearLevels'])).toBe(
+      'subject, stream and year level',
+    );
+    expect(mockTagNamesText(['subject', 'yearLevels'])).toBe('subject and year level');
+    expect(mockTagNamesText(['stream'])).toBe('stream');
+    expect(MOCK_TAGS.releaseNeedsTags(mockTagNamesText(['subject', 'stream', 'yearLevels']))).toBe(
+      'Set the subject, stream and year level to release this mock test.',
+    );
   });
 });

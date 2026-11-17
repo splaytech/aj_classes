@@ -5,6 +5,10 @@
 import {
   MOCK_CLOSING,
   MOCK_RESULT,
+  MOCK_TAG_ANY,
+  MOCK_TAGS,
+  PROGRAMMES,
+  YEAR_LEVEL_TEXT,
   MOCK_TAKER_AREAS,
   MOCK_TEST_LIMITS,
   MOCK_VALIDATION,
@@ -12,7 +16,8 @@ import {
 } from '@/constants';
 import type { MockTakerArea } from '@/constants';
 import { formatDateTime } from '@/lib/format';
-import type { MockQuestionInput, MockTestInput } from '@/services';
+import { classYearLabel, subjectLabel } from '@/lib/labels';
+import type { MockQuestionInput, MockTags, MockTestInput } from '@/services';
 
 /** A released test with no closing time never closes; from its closing time on it is closed. */
 export type MockClosingState = 'never' | 'open' | 'closed';
@@ -23,7 +28,9 @@ export type MockQuestionErrors = Partial<
   Record<'prompt' | 'options' | 'correctOption' | 'explanation', string>
 >;
 
-export function validateMockTest(input: MockTestInput): MockTestErrors {
+export function validateMockTest(
+  input: Pick<MockTestInput, 'title' | 'instructions'>,
+): MockTestErrors {
   const errors: MockTestErrors = {};
   const title = input.title.trim();
   if (title.length < MOCK_TEST_LIMITS.titleMin || title.length > MOCK_TEST_LIMITS.titleMax) {
@@ -104,4 +111,101 @@ export function mockClosingText(closesAt: string | null, now: Date): string {
   if (state === 'never') return '';
   const when = formatDateTime(closesAt);
   return state === 'closed' ? MOCK_CLOSING.closed(when) : MOCK_CLOSING.closes(when);
+}
+
+// --- Tags (docs/delivery/2026-11-18-mock-test-closing ACs 10 to 28, design §4) ---------------
+
+export type MockTagField = 'subject' | 'stream' | 'yearLevels';
+export type MockTagErrors = Partial<Record<MockTagField, string>>;
+
+export const MOCK_TAG_FIELDS: readonly MockTagField[] = ['subject', 'stream', 'yearLevels'];
+
+export const EMPTY_MOCK_TAGS: MockTags = {
+  subject: null,
+  stream: null,
+  yearLevels: [],
+  anyYear: false,
+};
+
+/** The database's rule, written the same way: Any year, or at least one year. */
+export function mockYearsSet(tags: MockTags): boolean {
+  return tags.anyYear || tags.yearLevels.length > 0;
+}
+
+function isTagSet(tags: MockTags, field: MockTagField): boolean {
+  if (field === 'yearLevels') return mockYearsSet(tags);
+  return tags[field] !== null;
+}
+
+export function missingMockTagFields(tags: MockTags): MockTagField[] {
+  return MOCK_TAG_FIELDS.filter((field) => !isTagSet(tags, field));
+}
+
+export function setMockTagFields(tags: MockTags): MockTagField[] {
+  return MOCK_TAG_FIELDS.filter((field) => isTagSet(tags, field));
+}
+
+const TAG_REQUIRED_TEXT: Record<MockTagField, string> = {
+  subject: MOCK_VALIDATION.tagSubject,
+  stream: MOCK_VALIDATION.tagStream,
+  yearLevels: MOCK_VALIDATION.tagYears,
+};
+
+/**
+ * An error per required field that isn't set. The release dialog requires all three and gets
+ * the field's own message; the released-test dialog requires the fields that were already set,
+ * where an unset one means it was cleared, so `kept` gives the "can't be cleared" message.
+ */
+export function mockTagErrors(
+  tags: MockTags,
+  required: readonly MockTagField[],
+  kept = false,
+): MockTagErrors {
+  const errors: MockTagErrors = {};
+  for (const field of required) {
+    if (!isTagSet(tags, field))
+      errors[field] = kept ? MOCK_VALIDATION.tagKeep : TAG_REQUIRED_TEXT[field];
+  }
+  return errors;
+}
+
+/**
+ * The year select reports its whole new selection; the previous tags tell which item was clicked
+ * (AC 12): choosing Any year clears the years, choosing a year clears Any year.
+ */
+export function applyYearPick(
+  tags: MockTags,
+  picked: readonly (number | typeof MOCK_TAG_ANY)[],
+): MockTags {
+  const hasAny = picked.includes(MOCK_TAG_ANY);
+  if (hasAny && !tags.anyYear) return { ...tags, anyYear: true, yearLevels: [] };
+  const years = picked.filter((item): item is number => typeof item === 'number');
+  if (years.length > 0)
+    return { ...tags, anyYear: false, yearLevels: [...years].sort((a, b) => a - b) };
+  return { ...tags, anyYear: hasAny, yearLevels: [] };
+}
+
+/** The full SUBJECTS list, so a subject later removed from mock tests keeps its label (AC 27). */
+export function mockSubjectText(key: string | null): string {
+  return key === null ? MOCK_TAGS.notSet : subjectLabel(key);
+}
+
+// PROGRAMMES.items, not findProgramme, which leaves out VCE. Unknown slugs show as stored (AC 27).
+export function mockStreamText(slug: string | null): string {
+  if (slug === null) return MOCK_TAGS.notSet;
+  return PROGRAMMES.items.find((programme) => programme.slug === slug)?.menuLabel ?? slug;
+}
+
+export function mockYearText(tags: MockTags): string {
+  if (tags.anyYear) return YEAR_LEVEL_TEXT.any;
+  // classYearLabel([]) says "Any year", so the empty case is handled first.
+  if (tags.yearLevels.length === 0) return MOCK_TAGS.notSet;
+  return classYearLabel(tags.yearLevels);
+}
+
+/** "subject, stream and year level", "subject and year level", "stream". */
+export function mockTagNamesText(fields: readonly MockTagField[]): string {
+  const names = fields.map((field) => MOCK_TAGS.fieldNames[field]);
+  if (names.length <= 1) return names.join('');
+  return `${names.slice(0, -1).join(MOCK_TAGS.listSeparator)}${MOCK_TAGS.listAnd}${names.at(-1)}`;
 }
