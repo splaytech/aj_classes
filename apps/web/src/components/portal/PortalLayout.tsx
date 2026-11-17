@@ -20,8 +20,8 @@ type PortalLayoutProps = {
   children: ReactNode;
 };
 
-/** `notUnder`: a sub-path that has its own link (e.g. the student timetable under "My work"). */
-type NavItem = { to: string; label: string; notUnder?: string };
+/** `notUnder`: sub-paths that have their own link (e.g. the student timetable under "My work"). */
+type NavItem = { to: string; label: string; notUnder?: readonly string[] };
 
 const { nav } = PORTAL_COMMON;
 const STAFF_NAV: NavItem[] = [
@@ -38,12 +38,26 @@ const NAV_BY_ROLE: Record<AppRole, NavItem[]> = {
   tutor: [...STAFF_NAV, ACCOUNT_LINK],
   admin: [...STAFF_NAV, ADMIN_LINK, ACCOUNT_LINK],
   student: [
-    { to: PORTAL_ROUTES.student, label: nav.studentHome, notUnder: PORTAL_ROUTES.studentTimetable },
+    {
+      to: PORTAL_ROUTES.student,
+      label: nav.studentHome,
+      notUnder: [PORTAL_ROUTES.studentTimetable, PORTAL_ROUTES.studentMockTests],
+    },
     { to: PORTAL_ROUTES.studentTimetable, label: nav.studentTimetable },
+    { to: PORTAL_ROUTES.studentMockTests, label: nav.mockTests },
     ACCOUNT_LINK,
   ],
-  parent: [{ to: PORTAL_ROUTES.parent, label: nav.parentHome }, ACCOUNT_LINK],
-  user: [{ to: PORTAL_ROUTES.user, label: nav.userHome }, ACCOUNT_LINK], // AC-22
+  parent: [
+    { to: PORTAL_ROUTES.parent, label: nav.parentHome, notUnder: [PORTAL_ROUTES.parentMockTests] },
+    { to: PORTAL_ROUTES.parentMockTests, label: nav.mockTests },
+    ACCOUNT_LINK,
+  ],
+  // Latest news and mock tests (mock tests AC 8); this superseded the sign-up AC-22 "news only".
+  user: [
+    { to: PORTAL_ROUTES.user, label: nav.userHome, notUnder: [PORTAL_ROUTES.userMockTests] },
+    { to: PORTAL_ROUTES.userMockTests, label: nav.mockTests },
+    ACCOUNT_LINK,
+  ],
 };
 
 export function PortalLayout({ fullName, role, children }: PortalLayoutProps) {
@@ -101,7 +115,7 @@ export function PortalLayout({ fullName, role, children }: PortalLayoutProps) {
 /** Active on its own page and the pages under it, except a sub-path with its own link. */
 function isActiveLink(item: NavItem, pathname: string): boolean {
   const underItem = pathname === item.to || pathname.startsWith(`${item.to}/`);
-  const underOther = item.notUnder !== undefined && pathname.startsWith(item.notUnder);
+  const underOther = item.notUnder?.some((path) => pathname.startsWith(path)) ?? false;
   return underItem && !underOther;
 }
 
