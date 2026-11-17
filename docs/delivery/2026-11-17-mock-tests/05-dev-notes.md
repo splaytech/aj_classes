@@ -48,9 +48,36 @@ Notes on the runs:
 - `test:csp` refuses a build that contains the hosted project ref, so a build made from the local `.env` cannot be swept. Rebuild with the CI env (ci.yml Lighthouse job) first.
 - Lead browser pass (Playwright, local Chrome engine): student, parent and user; home, list and test page; 375 and 1280 px; light and dark. 36 screenshots, no horizontal overflow, no console errors. Test data was inserted locally and removed afterwards.
 
+## Files outside the plan's file list (review-5 #7)
+
+| File | Why |
+|---|---|
+| `supabase/tests/database/open_sign_up_access.test.sql` | Its AC-26 pin lists every function `authenticated` may execute; the nine mock functions had to be added or it fails. |
+| `e2e/src/auth/login.ts` | `loginAsSeededMember` for the S7 student sign-in; shared steps moved into `submitCredentials`. |
+| `e2e/tests/open-sign-up.spec.ts` | Pinned the user nav without "Mock tests" (open sign-up AC-22); updated as a deliberate supersede. |
+| `apps/web/src/routes/portal/student-home.test.tsx`, `parent-home.test.tsx` | New co-located tests for the link card on those homes (the plan named only `user-home.test.tsx`). |
+| `apps/web/src/components/portal/MockTestStatusChips.tsx` | The Draft/Released and Not started/In progress/Submitted chips, shared by the admin and taker pages (not named in 03 §4.4). |
+| `docs/decisions/0012-…md` | Fix batch 1: consequences for rulings L-5 and L-6, added on the team lead's instruction. |
+
+## For Saurabh's release notes (review-5 #2)
+
+- Two shared error messages were reworded, and the new wording also shows on **assignment** pages: `invalidStatus` is now "That status change isn’t allowed." (was "… for this work.") and `alreadySubmitted` is now "This has already been submitted, so answers can’t change." (was "This work has already been submitted …").
+
+## Fix batch 1 (06-security, review-5, rulings L-5 to L-7)
+
+- **A (security #1, L-5):** `mock_withdraw` now refuses only when an attempt is **submitted**; otherwise it deletes the in-progress attempts (answers cascade) in the same transaction, under the test-row lock. Admin copy says so (`releasedNote`, `confirmTakeBackText`, `mockHasAttempts`). pgTAP: in-progress only → take-back works and the attempt and its answers are gone; a start after the take-back gets `not_found` and creates nothing; submitted → `mock_has_attempts`. ADR-0012 consequences record the L-5 limit and the L-6 accepted risk. The lead also ran a real two-session race on the local DB, both orders: a start during a withdraw waited about 3 s for its commit, then got `not_found` with no attempt; a withdraw during a start waited for its commit, then deleted the in-progress attempt. Test rows were removed afterwards.
+- **B (security #3):** `check_mock_question` raises `not_found` (P0002) on insert or update when the test doesn't exist; a cascade delete still passes. pgTAP case added.
+- **C (review-5 #3):** `check_mock_test` is now security invoker (it only compares old and new); the freeze cases still pass. `check_mock_question` stays security definer, with a why-comment: it bumps `mock_tests.updated_at`, which admins have no update grant on.
+- **D (review-5 #4):** the unreachable `test_id`-change branch is removed (`test_id` has no update grant).
+- **E (review-5 #5):** no new text needed. "No row" maps to `notFound`, whose existing text ("We couldn't find that. It may have been removed, or you may not have access.") and the page's `NotFoundPanel` ("This page doesn't exist, or you don't have access to it.") are already neutral. A why-comment was added in `getMockTestForEdit`.
+- **F (review-5 #6):** comments now match the open sign-up `01-requirement.md`: AC-21 is the landing on Latest news, AC-22 is the nav. The nav comments cite mock tests M15 and ruling L-7 (not AC 8, which L-7 reads as the home link card).
+- No change for review-5 #1 (closed by L-7).
+
+Fix batch 1 checks (lead, separate commands): `format:check` only the two allowed files; `lint` 0; `typecheck` 0; `pnpm test` vitest 106 files / 992 tests, e2e unit 6/6, deploy-order green; `VITE_APP_ENV=production pnpm build` 0; `db:reset` + `db:test` `Files=23, Tests=1693`, PASS; `test:functions` 0 NOT OK; `test:smoke` 17 passed; CI-style build + `test:csp` 23 passed.
+
 ## Known gaps (for S8 and later)
 
-1. Two-session concurrency (AC 13, 19, 21) is not run: S8, Tester.
+1. Two-session concurrency for AC 13 (two adds at 99 questions) and AC 19 (an add during release) is not run: S8, Tester. Start against withdraw was run by the lead in fix batch 1.
 2. The e2e covers a seeded student only. The signed-up `user` and parent take flows are covered by pgTAP and vitest, and the lead's browser pass reached their list and intro pages, but not take and submit.
 3. The admin pages were not visually checked at 375 px or in dark mode by the lead (two-step sign-in). The admin flow is exercised by the smoke spec at the default size. S8, tester-ui.
 4. Keyboard walk (AC 43), forced failing load (AC 39), invited and deactivated accounts in the real browser (AC 5, 6): S8.
