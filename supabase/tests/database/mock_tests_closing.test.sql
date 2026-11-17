@@ -20,10 +20,10 @@ values ('00000000-0000-0000-0000-00000000d001', 'Kid One', 8, '00000000-0000-000
        ('00000000-0000-0000-0000-00000000d002', 'Kid Two', 8, '00000000-0000-0000-0000-0000000000e2', now(), 'admin', true);
 
 -- T1 and T2 are drafts with one question each; T9 is a draft with none.
-insert into public.mock_tests (id, title) values
-  ('00000000-0000-0000-0000-00000000f001', 'Maths mock'),
-  ('00000000-0000-0000-0000-00000000f002', 'English mock'),
-  ('00000000-0000-0000-0000-00000000f009', 'Empty mock');
+insert into public.mock_tests (id, title, subject, stream, any_year) values
+  ('00000000-0000-0000-0000-00000000f001', 'Maths mock', 'maths', 'naplan', true),
+  ('00000000-0000-0000-0000-00000000f002', 'English mock', 'maths', 'naplan', true),
+  ('00000000-0000-0000-0000-00000000f009', 'Empty mock', 'maths', 'naplan', true);
 insert into public.mock_test_questions (id, test_id, prompt, options, correct_option) values
   ('00000000-0000-0000-0000-0000000a0001', '00000000-0000-0000-0000-00000000f001', 'First?', array['a','b'], 1),
   ('00000000-0000-0000-0000-0000000a0002', '00000000-0000-0000-0000-00000000f002', 'Second?', array['a','b'], 0);

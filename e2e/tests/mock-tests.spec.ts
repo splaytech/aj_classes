@@ -78,6 +78,14 @@ test.describe('Mock tests', () => {
     );
     expect(draft?.status).toBe('draft');
 
+    // Release needs subject, stream and year level (categories AC 14). Tagged by SQL here, so the
+    // release dialog opens with saved tags.
+    await db.query(
+      'UPDATE public.mock_tests SET subject = $2, stream = $3, any_year = true WHERE id = $1',
+      [draft?.id, 'maths', 'naplan'],
+    );
+    await admin.reload();
+
     // --- The admin releases it. ---
     await adminMockTestSelectors.releaseButton(admin).click();
     await adminMockTestSelectors.confirmReleaseButton(admin).click();

@@ -22,8 +22,9 @@ values ('00000000-0000-0000-0000-00000000d001', 'Kid One', 8, '00000000-0000-000
 
 select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
 select lives_ok(
-  $$ insert into public.mock_tests (title, instructions) values ('Maths mock', 'Read each question.') $$,
-  'An admin can create a mock test with just a title and instructions');
+  $$ insert into public.mock_tests (title, instructions, subject, stream, any_year)
+     values ('Maths mock', 'Read each question.', 'maths', 'naplan', true) $$,
+  'An admin can create a mock test with a title, instructions and tags');
 reset role;
 -- Column grants don't include id, so an admin can't pick one: give the rows fixed ids as postgres.
 update public.mock_tests set id = '00000000-0000-0000-0000-00000000f001' where title = 'Maths mock';
@@ -427,6 +428,10 @@ select is(
   (select count(*)::int from information_schema.columns
    where table_schema = 'public' and table_name like 'mock\_test%' and column_name ~ 'schedul|archiv|publish_at|release_on'),
   0, 'There is no schedule or archive column');
+-- Tagged first, so this direct write reaches the release-time check, not the release-needs-tags
+-- trigger (categories migration).
+update public.mock_tests set subject = 'maths', stream = 'naplan', any_year = true
+  where id = '00000000-0000-0000-0000-00000000f004';
 select throws_ok(
   $$ update public.mock_tests set status = 'released', released_at = null where id = '00000000-0000-0000-0000-00000000f004' $$,
   '23514', null, 'Released without a release time is refused');
@@ -448,7 +453,7 @@ select results_eq(
 select is(
   (select array_agg(k order by k) from jsonb_object_keys(
      (select to_jsonb(l) from public.mock_tests_admin_list() l limit 1)) k),
-  array['closes_at','created_at','created_by_name','id','question_count','released_at','status','submitted_count','title','updated_at'],
+  array['any_year','closes_at','created_at','created_by_name','id','question_count','released_at','status','stream','subject','submitted_count','title','updated_at','year_levels'],
   'The list has exactly the documented columns: no taker, answer or score column');
 select is((select count(*)::int from public.mock_tests_admin_list()), 2, 'The list holds every test, whoever made it');
 select is((select id from public.mock_tests_admin_list() limit 1), '00000000-0000-0000-0000-00000000f001'::uuid,

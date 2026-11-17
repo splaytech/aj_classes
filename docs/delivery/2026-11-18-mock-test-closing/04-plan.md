@@ -22,7 +22,7 @@ Inputs: `01-requirement.md` (Part B), `00-decisions.md` (S-1, S-2), `02-architec
 
 ## Slice 1: migration, options seed, guard and release trigger
 
-- [ ] **1.1** Create `supabase/migrations/20261120100000_mock_test_categories.sql`.
+- [x] **1.1** Create `supabase/migrations/20261120100000_mock_test_categories.sql`.
 
 **Files:** `supabase/migrations/20261120100000_mock_test_categories.sql` (new). Nothing else.
 
@@ -53,17 +53,17 @@ Inputs: `01-requirement.md` (Part B), `00-decisions.md` (S-1, S-2), `02-architec
 
 Slices 1 and 2 are one commit. Fixture work and the migration are reviewed together.
 
-- [ ] **2.1** `mock_tests_admin.test.sql`:
+- [x] **2.1** `mock_tests_admin.test.sql`:
   - line 25: the admin's insert adds `subject, stream, any_year` (`'maths', 'naplan', true`). It runs as `authenticated` at aal2, so it also proves the new column grant;
   - line 29: the superuser `update … set id = …` rename stays (the guard reads by `old.id`);
   - line 45 stays. It is a direct `status = 'released'` write as `authenticated`, which fails with 42501 from the column grant before any trigger runs, so its expected error does not change;
   - line 431: the direct `status = 'released'` write on f004 runs as postgres, so it would reach the release trigger. **Tag f004 first** (a superuser update setting `subject, stream, any_year`), or it fails with `mock_tags_missing`;
   - the `mock_tests_admin_list` key pin (lines 449 to 452) gains four keys and becomes 14: `any_year, closes_at, created_at, created_by_name, id, question_count, released_at, status, stream, subject, submitted_count, title, updated_at, year_levels`.
   - No assertions are removed from this file. The new assertions go in slice 3.
-- [ ] **2.2** `mock_tests_taker.test.sql`: lines 44 to 54 insert T1, T2 and T3 with tags (`'maths', 'naplan', true`) before the direct `update … set status = 'released'` on T1 and T3 (lines 54 and 55), which the release trigger would otherwise refuse.
-- [ ] **2.3** `mock_tests_closing.test.sql`: the inserts at lines 22 and 23 (T1, T2, T9) get the same tags. The `mock_release` calls at lines 105 and 410 then succeed. Take-back keeps tags (AC 17), so the release at 410 needs nothing more.
-- [ ] **2.4** `open_sign_up_access.test.sql` (the AC-26 function allowlist): run it. The names do not change, so it should pass unedited. Edit it only if it fails on a real change.
-- [ ] **2.5** E2e, `e2e/tests/mock-tests.spec.ts`. The draft check is at line 79 (`expect(draft?.status).toBe('draft')`), the Release click at line 82. Between them, add: `await db.query('UPDATE public.mock_tests SET subject = $2, stream = $3, any_year = true WHERE id = $1', [draft.id, 'maths', 'naplan'])`, then `await admin.reload()`, then the Release click. The tags are written by SQL, so the UI release dialog starts with saved tags. The spec already uses `db.query` at line 44.
+- [x] **2.2** `mock_tests_taker.test.sql`: lines 44 to 54 insert T1, T2 and T3 with tags (`'maths', 'naplan', true`) before the direct `update … set status = 'released'` on T1 and T3 (lines 54 and 55), which the release trigger would otherwise refuse.
+- [x] **2.3** `mock_tests_closing.test.sql`: the inserts at lines 22 and 23 (T1, T2, T9) get the same tags. The `mock_release` calls at lines 105 and 410 then succeed. Take-back keeps tags (AC 17), so the release at 410 needs nothing more.
+- [x] **2.4** `open_sign_up_access.test.sql` (the AC-26 function allowlist): run it. The names do not change, so it should pass unedited. Edit it only if it fails on a real change.
+- [x] **2.5** E2e, `e2e/tests/mock-tests.spec.ts`. The draft check is at line 79 (`expect(draft?.status).toBe('draft')`), the Release click at line 82. Between them, add: `await db.query('UPDATE public.mock_tests SET subject = $2, stream = $3, any_year = true WHERE id = $1', [draft.id, 'maths', 'naplan'])`, then `await admin.reload()`, then the Release click. The tags are written by SQL, so the UI release dialog starts with saved tags. The spec already uses `db.query` at line 44.
 
 **Test that proves it:** `pnpm db:reset && pnpm db:test` (all mock files and `open_sign_up_access` pass), then the existing mock spec in e2e on the local stack.
 
