@@ -52,6 +52,7 @@ const ERROR_KEYS_BY_DATABASE_CODE: Record<string, ErrorKey> = {
   '42501': 'notAllowed', // permission denied / row-level security
   '23514': 'invalidInput', // check constraint
   '23505': 'duplicate', // unique / primary key
+  P0002: 'notFound', // no_data_found, raised as not_found by the mock test functions
   PGRST116: 'notFound', // .single() found no row
 };
 
@@ -59,6 +60,7 @@ const ERROR_KEYS_BY_DATABASE_CODE: Record<string, ErrorKey> = {
 // account-admin edge function ({ ok: false, code: 'already_exists' }).
 const ERROR_KEYS_BY_OWN_KEY: Record<string, ErrorKey> = {
   not_admin: 'notAllowed',
+  not_taker: 'notAllowed',
   not_allowed: 'notAllowed',
   not_found: 'notFound',
   last_admin: 'lastAdmin',
@@ -126,6 +128,12 @@ const ERROR_KEYS_BY_OWN_KEY: Record<string, ErrorKey> = {
   promotion_changed: 'promotionChanged',
   role_sync_failed: 'roleSyncFailed',
   not_a_signed_up_user: 'promotionChanged',
+  // Mock tests
+  mock_released: 'mockReleased',
+  mock_no_questions: 'mockNoQuestions',
+  mock_has_attempts: 'mockHasAttempts',
+  mock_too_many_questions: 'mockTooManyQuestions',
+  mock_not_started: 'mockNotStarted',
 };
 
 /** The portal error to show for anything a Supabase call returned or threw. */

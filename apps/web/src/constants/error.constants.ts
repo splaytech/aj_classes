@@ -2,6 +2,7 @@
 
 import { BUSINESS } from './business.constants';
 import { AUTH_LIMITS, FORM_LIMITS, PHOTO_LIMITS, PROFILE_LIMITS } from './app.constants';
+import { MOCK_TEST_LIMITS } from './mock-tests.constants';
 import { SIGN_UP_PAGE } from './sign-up.constants';
 
 export const VALIDATION = {
@@ -78,10 +79,17 @@ export const PORTAL_ERRORS = {
     'Students have already started this assignment, so it can’t go back to draft or move class.',
   assignmentPublished: 'Questions can’t change once the assignment is published.',
   tooManyQuestions: 'An assignment can have up to 50 questions.',
-  invalidStatus: 'That status change isn’t allowed for this work.',
+  invalidStatus: 'That status change isn’t allowed.',
   unmarkedAnswers: 'Give every answer a mark before returning the work.',
   notSubmitted: 'This work hasn’t been submitted yet.',
-  alreadySubmitted: 'This work has already been submitted, so answers can’t change.',
+  alreadySubmitted: 'This has already been submitted, so answers can’t change.',
+  // Mock tests
+  mockReleased:
+    'A released mock test can’t be changed. Take it back to draft first, if no one has started it.',
+  mockNoQuestions: 'Add at least one question before releasing.',
+  mockHasAttempts: 'Someone has already started this mock test, so it can’t go back to draft.',
+  mockTooManyQuestions: `A mock test can have up to ${MOCK_TEST_LIMITS.questionsMax} questions.`,
+  mockNotStarted: 'Start the mock test first.',
   answerTooLong: 'That answer is too long. Please shorten it.',
   notOnline: 'This assignment is handed in on paper.',
   // Setup form (invite-onboarding design)

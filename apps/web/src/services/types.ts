@@ -7,6 +7,8 @@ import type {
   CrmStatus,
   DELIVERIES,
   FamilyStatus,
+  MOCK_TAKE_STATUSES,
+  MOCK_TEST_STATUSES,
   PORTAL_ERRORS,
   QuestionKind,
   StaffRole,
@@ -529,3 +531,86 @@ export type Child = {
   accountStatus: ChildAccountStatus;
   classNames: string[];
 };
+
+// --- Mock tests ------------------------------------------------------------------
+
+export type MockTestStatus = (typeof MOCK_TEST_STATUSES)[number];
+export type MockTakeStatus = (typeof MOCK_TAKE_STATUSES)[number];
+
+/** One row of the admin list (mock_tests_admin_list): counts and the creator's name only. */
+export type MockTestSummary = {
+  id: string;
+  title: string;
+  status: MockTestStatus;
+  questionCount: number;
+  submittedCount: number;
+  createdByName: string | null;
+  createdAt: string;
+  updatedAt: string;
+  releasedAt: string | null;
+};
+
+/** Trimmed by the service before it is saved. */
+export type MockTestInput = { title: string; instructions: string };
+
+export type MockQuestionInput = {
+  id?: string;
+  testId: string;
+  prompt: string;
+  options: string[];
+  correctOption: number | null;
+  explanation: string;
+};
+
+export type MockAdminQuestion = {
+  id: string;
+  position: number;
+  prompt: string;
+  options: string[];
+  correctOption: number;
+  explanation: string;
+};
+
+/** The admin edit page: the test and every question, with the correct options. */
+export type MockTestDraftView = {
+  id: string;
+  title: string;
+  instructions: string;
+  status: MockTestStatus;
+  questions: MockAdminQuestion[];
+};
+
+/** One row of the taker list (mock_tests_for_me). */
+export type MockTestListItem = {
+  id: string;
+  title: string;
+  questionCount: number;
+  status: MockTakeStatus;
+  score: number | null;
+  total: number | null;
+  submittedAt: string | null;
+};
+
+/** `correctOption` and `explanation` are only there once the person has submitted. */
+export type MockTakeQuestion = {
+  id: string;
+  position: number;
+  prompt: string;
+  options: string[];
+  selectedOption: number | null;
+  correctOption?: number;
+  explanation?: string;
+};
+
+export type MockTestView = {
+  id: string;
+  title: string;
+  instructions: string;
+  status: MockTakeStatus;
+  questionCount: number;
+  score: number | null;
+  total: number | null;
+  questions: MockTakeQuestion[];
+};
+
+export type MockResult = { score: number; total: number };

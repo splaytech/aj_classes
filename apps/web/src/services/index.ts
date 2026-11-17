@@ -57,6 +57,23 @@ export {
   setHoldResults,
 } from './assignments.service';
 export { deleteQuestion, moveQuestion, saveQuestion } from './questions.service';
+export {
+  createMockTest,
+  deleteMockQuestion,
+  deleteMockTest,
+  getMockTestForEdit,
+  getMyMockTest,
+  listMockTestsAdmin,
+  listMyMockTests,
+  moveMockQuestion,
+  releaseMockTest,
+  saveMockAnswer,
+  saveMockQuestion,
+  startMockTest,
+  submitMockTest,
+  updateMockTest,
+  withdrawMockTest,
+} from './mock-tests.service';
 export { getSubmission, saveSubmission } from './submissions.service';
 export {
   getMyAssignment,
@@ -163,6 +180,17 @@ export type {
   ParentInviteOutcome,
   SignedUpUser,
   SignUpInfo,
+  MockAdminQuestion,
+  MockQuestionInput,
+  MockResult,
+  MockTakeQuestion,
+  MockTakeStatus,
+  MockTestDraftView,
+  MockTestInput,
+  MockTestListItem,
+  MockTestStatus,
+  MockTestSummary,
+  MockTestView,
   Post,
   PostInput,
   PublicPost,
