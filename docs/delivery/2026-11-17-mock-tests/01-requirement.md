@@ -103,7 +103,7 @@ Each one is written so Tester can check it in the browser or with a database tes
 ### Admin: list
 
 23. The admin list shows, per test: title, status (Draft or Released), number of questions, *added by the team, cut if not wanted:* number of submitted attempts, created by (name), and last changed.
-24. The admin list doesn't show people's names, answers or scores (M10).
+24. The admin list doesn't show taker names, answers or scores (M10). The creator's name (AC 23) is the only name shown.
 
 ### Student, parent and signed-up user: take
 
@@ -122,7 +122,7 @@ Each one is written so Tester can check it in the browser or with a database tes
 ### Data and safety
 
 36. Taking a test sends only the chosen option numbers. The correct answers for a test that is not yet submitted are never sent to the browser (checked in the network response).
-37. No student, parent, user or admin can see another person's answers or score except their own (AC-26, AC-33). Admins see counts only (AC-24).
+37. No student, parent, user or admin can see another person's answers or score except their own (AC-26, AC-33). Admins see counts and the creator name only (AC-24).
 38. Anyone who takes a test is recorded with their own account only, and never with another person's name or e-mail on the test pages.
 
 ### Quality bar

@@ -1,6 +1,6 @@
 # 02 — Architecture: mock tests (v1)
 
-Stage 2 (Architect). Date 2026-11-18. Input: approved `01-requirement.md` with lead rulings L-1 (parents, students, users take; tutors don't), L-2 (prompt limit 2000), L-3 (any admin edits and releases; D-3 open). Design only, no code.
+Stage 2 (Architect). Date 2026-11-18. Input: approved `01-requirement.md` with lead rulings L-1 (parents, students, users take; tutors don't), L-2 (prompt limit 2000), L-3 (any admin edits and releases; ruled, Saurabh may overrule). Design only, no code.
 
 ## Recommendation
 
@@ -30,7 +30,7 @@ Recommended: **new tables** (DEC-MT-1). Duplicated MCQ shape rules are the accep
 
 ## Data model (shape, not SQL)
 
-- `mock_tests`: id, title (2-150), instructions (<=4000), status `draft|released`, created_by, created_at, updated_at, released_at, released_by.
+- `mock_tests`: id, title (2-150), instructions (<=4000), status `draft|released`, created_by, created_at, updated_at, released_at, released_by. `updated_at` is also bumped by any question change (admin list "last changed").
 - `mock_test_questions`: id, test_id (cascade), position, prompt (1-2000), options `text[]` (2-6, 1-300 each), correct_option (0-based, in range), explanation (<=2000, nullable). Check constraint mirrors assignments. Max 100 per test by trigger. Marks are implicit 1 each.
 - `mock_test_attempts`: id, test_id, profile_id (cascade to profile), started_at, submitted_at (null = in progress), score, total. Unique (test_id, profile_id) = one attempt.
 - `mock_test_answers`: attempt_id, question_id, selected_option; unique (attempt_id, question_id).
@@ -46,12 +46,12 @@ Recommended: **new tables** (DEC-MT-1). Duplicated MCQ shape rules are the accep
 
 DEC-MT-2. Mechanics:
 1. All four tables have RLS on and `revoke all ... from anon, authenticated` (pattern `20261024120000_posts.sql:18`, and the revoke block in `20261007090320_student_parent_portal.sql`). Admin policies (`private.is_admin()`) exist only on `mock_tests` and `mock_test_questions`, with **column-scoped grants**: select; delete on both tables (drafts only, enforced by the freeze trigger, AC 16); insert and update on title, instructions, and question content columns (prompt, options, correct_option, explanation, position). `created_by` is not in the insert grant: it defaults to `auth.uid()`, and `status` defaults to `draft`. `status`, `created_by`, `released_at` and `released_by` have no grant, so an admin cannot set released with zero questions (AC 17), un-release with attempts (AC 21, 35) or forge the creator. The attempt and answer tables have no grant and no policy. Everything reaches them through functions.
-2. Taker functions (`security definer`, `set search_path = ''`, like the existing ones) first check `private.can_take_mock_tests()` = `my_active_role() in ('student','parent','user')`. Tutors fail. Execute is granted to `authenticated` only, revoked from `public` and `anon`.
+2. Taker functions (`security definer`, `set search_path = ''`, like the existing ones) first check `private.can_take_mock_tests()` as defined in 03 §2.5 (`my_active_role() in ('parent','user') or my_student_id() is not null`). Tutors fail. Execute is granted to `authenticated` only, revoked from `public` and `anon`.
 3. **Every function** (taker and admin): `revoke execute from public, anon`, `grant execute to authenticated` only. Admin functions (`mock_tests_admin_list`, `mock_release`, `mock_withdraw`) start with `if not private.is_admin() then raise` (aal2 included; pattern `20261007090321_family_functions.sql:683`), because security definer skips RLS. Functions (names indicative): `mock_tests_for_me()` (released tests, question count, my status and score), `mock_test_open(test)` (test text, questions with options only, my saved choices; for a submitted attempt it adds correct option and explanation), `mock_start(test)`, `mock_save_answer(test, question, option)`, `mock_submit(test)`, and for admins `mock_tests_admin_list()` (counts, creator name), `mock_release(test)`, `mock_withdraw(test)`.
 4. **Answer key rule:** a function returns `correct_option` and `explanation` only when the caller's own attempt has `submitted_at` set. `mock_tests_for_me` never returns them. This answers AC 33 and AC 36. The Tester can prove it by reading the raw RPC JSON before and after submit.
 5. Draft invisibility: taker functions filter `status = 'released'` inside the function, not in the client.
 6. Admin edit view shows keys by design (M10). Admins can't read attempts or answers (AC 24, 37).
-7. A deactivated or invited account is cut at `my_active_role()` on every call, with no cached grant.
+7. A deactivated or invited account, or a student whose `students.is_active` is false, is cut by `can_take_mock_tests()` on every call, with no cached grant.
 
 ## Marking: server side (DEC-MT-3)
 
@@ -60,26 +60,26 @@ DEC-MT-2. Mechanics:
 ## Lifecycle and concurrency (DEC-MT-4)
 
 - Draft edits are direct admin writes on the granted columns only. `status` changes **only inside `mock_release` and `mock_withdraw`** (no column grant, finding 1). The freeze triggers refuse insert, update or delete on a released test's questions and any title or instructions change on a released test; the two functions never touch those columns, so they pass the freeze naturally.
-- Question insert/update/delete triggers take `select ... for share` on the parent test row and check `status = 'draft'`; `mock_release` takes `for update` on the test row. A question committed during release therefore waits or is refused, and the 100-question count is checked under the same lock so concurrent adds cannot overshoot.
-- **Reorder (AC 13):** unique `(test_id, position)` is `deferrable initially deferred`, and reorder is one admin write of all positions in a transaction. Chosen over two-step renumbering.
+- Question insert/update/delete triggers take `select ... for update` on the parent test row (not `for share`: shared locks let two concurrent adds both pass the count) and check `status = 'draft'`; `mock_release` takes `for update` on the test row. A question committed during release therefore waits or is refused, and the 100-question count is checked under the same lock so concurrent adds cannot overshoot.
+- **Reorder (AC 13):** admin function `mock_move_question(target, step)` swaps two positions in one UPDATE, like `move_question`. Unique `(test_id, position)` is `deferrable initially immediate` (checked at statement end). `position` has no column grant; the trigger sets it on insert.
 - Taker edge rules: `mock_save_answer` refuses when no attempt exists; `mock_start` returns the existing attempt on a double tap; start and save return no keys; the service maps check-constraint errors to field messages (AC 14).
 - `mock_release` refuses zero questions (AC 17). `mock_withdraw` refuses when any attempt exists (AC 21, 35).
 - Race: `mock_start` takes `select ... for share` on the test row and re-checks `released`; `mock_withdraw` takes `for update` and checks attempts. A start and a withdraw cannot both win.
 - Deleting a draft cascades to its questions. Released tests can't be deleted (trigger).
 - Last save wins between admins (R-5, no lock). Cost of a version column is low if Saurabh wants it; not in v1.
-- D-3: if Saurabh answers "creator only", add `created_by = auth.uid()` to the admin write policy and release function. Nothing else changes. Cheap either way.
+- D-3 (ruled L-3, any admin; Saurabh may overrule): if he answers "creator only", add `created_by = auth.uid()` to the admin write policy and release function. Nothing else changes. Cheap either way.
 
 ## Web design
 
 - Service `apps/web/src/services/mock-tests.service.ts` is the only place calling Supabase (CLAUDE.md rule: no HTTP in components). It follows the `Result` pattern in `services/result.ts`. Regenerate `database.types.ts`.
 - Routes: `admin/mock-tests` (list) and `admin/mock-tests/:id` (edit) inside `admin-layout`; one shared take experience (list, test page) mounted under `student-layout`, `parent-layout`, `user-layout`. One taker component set, three route entries. Route guards are only UX; the real gate is the database.
-- Each route file exports its own `ErrorBoundary` (see `routes/posts.tsx:32`; the portal root also has one). Text lives in constants (house rule). Nav item "Mock tests" added to the four area navs.
+- Each route file exports its own `ErrorBoundary` (see `routes/posts.tsx:32`; the portal root also has one). Text lives in constants (house rule). Nav item "Mock tests" is added to the student, parent and user navs; for admins it is a tile on the Admin dashboard (the admin top bar has one Admin link).
 - Autosave on option choice calls `mock_save_answer`; the chosen option stays on screen on failure (AC 28).
 
 ## Risks
 
 1. **Key leak by an over-broad function** (e.g. a future `select *`). Mitigation: pgTAP tests that call each taker function as student, parent, user and assert no `correct_option` or `explanation` key before submit, and that a direct `select` on all four tables as those roles returns nothing or is denied.
-2. **Role edge cases.** Parents promoted from `user`, a student whose profile is deactivated, an unfinished user, a tutor. All hang off `my_active_role()`; test each.
+2. **Role edge cases.** Parents promoted from `user`, a student whose profile is deactivated, a student with `students.is_active = false` and an active profile, an unfinished user, a tutor. All hang off `can_take_mock_tests()` (03 §2.5); test each.
 3. **Duplicated MCQ rules drift** from assignments. Low; both are check constraints with tests.
 4. **Privacy (R-1).** Stored answers and scores for users and parents: Privacy Policy wording is Saurabh's to approve before release. Cascade delete of attempts when a profile is deleted keeps erasure simple.
 5. **Migration timing.** Additive, no existing function replaced, so it avoids the re-timestamp issue that hit ADR-0007. It must follow the `user` role migrations (M17), which are already earlier in `supabase/migrations/`.
@@ -93,7 +93,7 @@ None required. No assignment table, function, enum or policy changes, so the exi
 ## Decisions
 
 - **DEC-MT-1:** New tables `mock_tests`, `mock_test_questions`, `mock_test_attempts`, `mock_test_answers`; assignments untouched. Attempts key on `profiles.id`.
-- **DEC-MT-2:** Admins use RLS with `private.is_admin()`. Takers have no table access, only `security definer` functions gated by `my_active_role() in ('student','parent','user')`. Tutors excluded.
+- **DEC-MT-2:** Admins use RLS with `private.is_admin()`. Takers have no table access, only `security definer` functions gated by `private.can_take_mock_tests()` as defined in 03 §2.5 (`my_active_role() in ('parent','user') or my_student_id() is not null`). Tutors excluded.
 - **DEC-MT-3:** Marking is server-side in `mock_submit`; 1 mark per question; keys and explanations are returned only after the caller's own submit.
 - **DEC-MT-4:** Release and take-back are functions; a trigger freezes released tests; take-back refused once any attempt exists, serialised by row locks. Delete allowed for drafts only.
 - **DEC-MT-5:** One shared taker UI mounted in the three layouts; each route exports its own `ErrorBoundary`; all Supabase calls in `mock-tests.service.ts`.
@@ -101,7 +101,7 @@ None required. No assignment table, function, enum or policy changes, so the exi
 
 ## PAUSE FOR SAURABH
 
-None blocking. No new vendor, no cost, no auth change. For the record, DEC-MT-1 (own tables) is the one hard-to-reverse choice once real attempts exist; it is low-regret and recommended. D-1, D-2, D-3 from the requirement remain open and are cheap to flip. Saurabh must still approve Privacy Policy wording (R-1) before release.
+None blocking. No new vendor, no cost, no auth change. For the record, DEC-MT-1 (own tables) is the one hard-to-reverse choice once real attempts exist; it is low-regret and recommended. D-1 and D-3 are ruled (L-1, L-3) and D-2 is an assumption; Saurabh may overrule any of them, and each is cheap to flip. Saurabh must still approve Privacy Policy wording (R-1) before release.
 
 ## Open questions
 
