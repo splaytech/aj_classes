@@ -164,6 +164,7 @@ test.describe('Mock tests', () => {
     expect(inProgress.questions).toHaveLength(2);
     expect(Object.keys(inProgress.questions[0]).sort()).toEqual([
       'id',
+      'marks',
       'options',
       'position',
       'prompt',
@@ -210,7 +211,9 @@ test.describe('Mock tests', () => {
 
     // Back on the list the card reads as submitted, with the score.
     await student.goto('/portal/student/mock-tests');
-    await expect(takeMockTestSelectors.cardByTitle(student, title)).toContainText('1 of 2 correct');
+    await expect(takeMockTestSelectors.cardByTitle(student, title)).toContainText(
+      '1 of 2 marks (50%)',
+    );
 
     // --- The filters narrow the list; no match says so, and Clear filters restores it (AC 20, 22b).
     const card = takeMockTestSelectors.cardByTitle(student, title);
@@ -243,7 +246,120 @@ test.describe('Mock tests', () => {
 
     await student.goto('/portal/student/mock-tests');
     await expect(card).toContainText('Closed');
-    await expect(card).toContainText('1 of 2 correct');
+    await expect(card).toContainText('1 of 2 marks (50%)');
+  });
+
+  test('scores marks and a pass mark end to end', async ({
+    authedAdminPage,
+    browser,
+    db,
+    marker,
+    cleanup,
+  }) => {
+    // docs/delivery/2026-11-18-mock-test-scoring AC 15, 19, 28, 29.
+    test.setTimeout(90_000);
+    const title = marker('mock-score').value;
+
+    cleanup.register(async () => {
+      await db.query(
+        'DELETE FROM public.mock_test_attempts WHERE test_id IN (SELECT id FROM public.mock_tests WHERE title = $1)',
+        [title],
+      );
+      await db.query(
+        `UPDATE public.mock_tests SET status = 'draft', released_at = NULL, released_by = NULL, closes_at = NULL WHERE title = $1`,
+        [title],
+      );
+      await db.query('DELETE FROM public.mock_tests WHERE title = $1', [title]);
+    });
+
+    // --- The admin creates a tagged draft with a pass mark of 60, and questions worth 3 and 2. ---
+    const admin = authedAdminPage;
+    await admin.goto('/portal/admin/mock-tests');
+    await adminMockTestSelectors.newButton(admin).click();
+    await adminMockTestSelectors.titleField(admin).fill(title);
+    await adminMockTestSelectors.passMarkField(admin).fill('60');
+    await adminMockTestSelectors.tagSelect(admin, 'Subject').click();
+    await adminMockTestSelectors.tagOption(admin, 'Maths').click();
+    await adminMockTestSelectors.tagSelect(admin, 'Stream').click();
+    await adminMockTestSelectors.tagOption(admin, 'NAPLAN').click();
+    await adminMockTestSelectors.tagSelect(admin, 'Year level').click();
+    await adminMockTestSelectors.tagOption(admin, 'Any year').click();
+    await admin.keyboard.press('Escape'); // closes the multi-select menu, not the dialog
+    await adminMockTestSelectors.createButton(admin).click();
+    await expect(admin).toHaveURL(/\/portal\/admin\/mock-tests\/[0-9a-f-]{36}$/);
+
+    const questions = [
+      { prompt: 'What is 5 + 5?', options: ['10', '11'], correct: 'A', marks: '3' },
+      { prompt: 'What is 6 + 6?', options: ['13', '12'], correct: 'B', marks: '2' },
+    ];
+    for (const question of questions) {
+      await adminMockTestSelectors.addQuestionButton(admin).click();
+      await adminMockTestSelectors.promptField(admin).fill(question.prompt);
+      await adminMockTestSelectors.optionField(admin, 'A').fill(question.options[0] as string);
+      await adminMockTestSelectors.optionField(admin, 'B').fill(question.options[1] as string);
+      await adminMockTestSelectors.correctRadio(admin, question.correct).check();
+      await adminMockTestSelectors.marksField(admin).fill(question.marks);
+      await adminMockTestSelectors.saveQuestionButton(admin).click();
+      await expect(admin.getByRole('dialog')).toBeHidden();
+    }
+    await expect(admin.getByText('Total 5 marks').first()).toBeVisible();
+    await expect(admin.getByText('Pass mark: 60%')).toBeVisible();
+
+    await adminMockTestSelectors.releaseButton(admin).click();
+    await adminMockTestSelectors.confirmReleaseButton(admin).click();
+    await expect(adminMockTestSelectors.releasedNotice(admin)).toBeVisible();
+
+    const [saved] = await db.query<{ pass_mark: number; marks: number[] }>(
+      `SELECT t.pass_mark, array_agg(q.marks ORDER BY q.position) AS marks
+         FROM public.mock_tests t JOIN public.mock_test_questions q ON q.test_id = t.id
+        WHERE t.title = $1 GROUP BY t.pass_mark`,
+      [title],
+    );
+    expect(saved?.pass_mark).toBe(60);
+    expect(saved?.marks).toEqual([3, 2]);
+
+    // --- A student answers only the 3-mark question and submits: 3 of 5 marks, 60%, Pass. ---
+    const studentContext = await browser.newContext();
+    cleanup.register(() => studentContext.close());
+    const student = await studentContext.newPage();
+    await loginAsSeededMember(student, STUDENT_EMAIL, '/portal/student');
+    await student.goto('/portal/student/mock-tests');
+    await takeMockTestSelectors.startLink(student, title).click();
+    await expect(student.getByText('Total 5 marks')).toBeVisible();
+    await expect(student.getByText('Pass mark: 60%')).toBeVisible();
+    await takeMockTestSelectors.startButton(student).click();
+    await expect(takeMockTestSelectors.questionHeading(student, 1, 2)).toBeVisible();
+    await expect(student.getByText('3 marks', { exact: true })).toBeVisible();
+    await takeMockTestSelectors.option(student, /10/).check();
+    await expect(student.getByText('Saved')).toBeVisible();
+    await takeMockTestSelectors.submitButton(student).click();
+    await takeMockTestSelectors.confirmSubmitButton(student).click();
+    await expect(student.getByText('3 of 5 marks (60%)')).toBeVisible();
+    await expect(student.getByText('Pass', { exact: true })).toBeVisible();
+
+    await student.goto('/portal/student/mock-tests');
+    const card = takeMockTestSelectors.cardByTitle(student, title);
+    await expect(card).toContainText('3 of 5 marks (60%)');
+    await expect(card.getByText('Pass', { exact: true })).toBeVisible();
+
+    // --- The admin opens Results from the list and sees the student's row. ---
+    await admin.goto('/portal/admin/mock-tests');
+    await adminMockTestSelectors.resultsLink(admin, title).click();
+    await expect(admin).toHaveURL(/\/portal\/admin\/mock-tests\/[0-9a-f-]{36}\/results$/);
+    const table = adminMockTestSelectors.resultsTable(admin);
+    await expect(table.getByRole('columnheader')).toHaveText([
+      'Name',
+      'Submitted',
+      'Score',
+      'Percentage',
+      'Result',
+    ]);
+    const row = table.getByRole('row').nth(1);
+    await expect(row).toContainText('Aarav Demo');
+    await expect(row).toContainText('3 of 5 marks');
+    await expect(row).toContainText('60%');
+    await expect(row).toContainText('Pass');
+    await expect(table).not.toContainText('@');
   });
 
   test('a tutor is refused on the admin mock tests page (AC 1)', async ({ browser, cleanup }) => {

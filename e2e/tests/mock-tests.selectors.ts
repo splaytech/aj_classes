@@ -15,6 +15,13 @@ export const adminMockTestSelectors = {
   saveQuestionButton: (page: Page) => page.getByRole('button', { name: 'Save question' }),
   questionHeading: (page: Page, position: number) =>
     page.getByRole('heading', { level: 3, name: `Question ${position}` }),
+  // Scoring: number fields are spinbuttons.
+  marksField: (page: Page) => page.getByRole('dialog').getByRole('spinbutton', { name: 'Marks' }),
+  passMarkField: (page: Page) =>
+    page.getByRole('dialog').getByRole('spinbutton', { name: /^Pass mark/ }),
+  resultsLink: (page: Page, title: string) =>
+    page.getByRole('link', { name: `Results for ${title}`, exact: true }),
+  resultsTable: (page: Page) => page.getByRole('table', { name: 'Mock test results' }),
 
   releaseButton: (page: Page) => page.getByRole('button', { name: 'Release', exact: true }),
   confirmReleaseButton: (page: Page) =>
@@ -60,8 +67,7 @@ export const takeMockTestSelectors = {
   submitButton: (page: Page) => page.getByRole('button', { name: 'Submit', exact: true }),
   confirmSubmitButton: (page: Page) =>
     page.getByRole('dialog').getByRole('button', { name: 'Submit', exact: true }),
-  score: (page: Page, score: number, total: number) =>
-    page.getByText(`${score} of ${total} correct`),
+  score: (page: Page, score: number, total: number) => page.getByText(`${score} of ${total} marks`),
   filter: (page: Page, label: 'Stream' | 'Subject' | 'Year level') =>
     page.getByRole('region', { name: 'Filter mock tests' }).getByRole('combobox', { name: label }),
   filterOption: (page: Page, name: string) =>
