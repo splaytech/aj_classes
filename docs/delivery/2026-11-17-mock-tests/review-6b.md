@@ -20,3 +20,9 @@ CHANGES_REQUESTED
 3. ADR-0012 decision 3 at 3e20c19 states the real grant and RLS-only key protection; matches pgTAP mock_tests_admin.test.sql:379-388.
 4. Nit: ADR-0012 decision 5 (line 16) still said "refused if any attempt exists". — *Lead: amended in place to the L-5 rule and the lock order.*
 5. Process: review-6b.md was written by the team lead from the reviewer's returned text (the reviewer is read-only), as for every review file in this folder.
+
+## Round 3
+
+APPROVED
+
+Both files checked at e709d76: 06-security.md committed, citations (:150, :280, :310, :327, :360, :500, :526, :574) match the migration; stale "all 11" and "No table grant" text gone. ADR-0012 decision 5 states the L-5 rule and the share/update lock order. Round-2 items closed.
