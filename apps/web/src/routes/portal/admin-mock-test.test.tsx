@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   MOCK_CLOSING,
   MOCK_QUESTION_LIST,
+  MOCK_TAGS,
   MOCK_TEST_EDIT_PAGE,
   MOCK_TEST_LIMITS,
   MOCK_VALIDATION,
@@ -19,6 +20,7 @@ import {
   deleteMockQuestion,
   releaseMockTest,
   setMockTestClosing,
+  updateMockTestTags,
   withdrawMockTest,
 } from '@/services';
 import type { MockAdminQuestion, MockTestDraftView } from '@/services';
@@ -35,6 +37,7 @@ vi.mock('@/services', () => ({
   saveMockQuestion: vi.fn(),
   setMockTestClosing: vi.fn(),
   updateMockTest: vi.fn(),
+  updateMockTestTags: vi.fn(),
   withdrawMockTest: vi.fn(),
 }));
 
@@ -377,6 +380,58 @@ describe('admin mock test, closing date and close now', () => {
     });
     expect(within(dialog).getByText(MOCK_CLOSING.fieldHint)).toBeInTheDocument();
     expect(within(dialog).getAllByText(MOCK_CLOSING.fieldLabel).length).toBeGreaterThan(0);
+  });
+});
+
+describe('admin mock test, tags (categories)', () => {
+  const NO_TAGS = { subject: null, stream: null, yearLevels: [], anyYear: false };
+
+  it('shows the tags in their own card (AC 28)', async () => {
+    await renderPage(testView());
+    expect(screen.getByRole('heading', { name: MOCK_TAGS.tagsHeading })).toBeInTheDocument();
+    expect(screen.getByText(MOCK_TAGS.line(MOCK_TAGS.subjectLabel, 'Maths'))).toBeInTheDocument();
+  });
+
+  it('on a draft names the missing tags and keeps Release enabled (AC 14, [ASSUMPTION] 7b.1)', async () => {
+    await renderPage(testView({ tags: { ...NO_TAGS, stream: 'icas' } }));
+    expect(
+      screen.getByText(MOCK_TAGS.releaseNeedsTags('subject and year level')),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: MOCK_TAGS.editTags })).not.toBeInTheDocument();
+  });
+
+  it('says nothing about tags on a fully tagged draft', async () => {
+    await renderPage(testView());
+    expect(screen.queryByText(/^Set the /)).not.toBeInTheDocument();
+  });
+
+  it('edits the tags of a released test and says so; focus goes back to Edit tags', async () => {
+    vi.mocked(updateMockTestTags).mockResolvedValue({ ok: true, data: undefined });
+    const user = setupUser();
+    const released = testView({ status: 'released' });
+    await renderPage(released, { ...released, tags: { ...released.tags, subject: 'english' } });
+
+    const editTags = screen.getByRole('button', { name: MOCK_TAGS.editTags });
+    await user.click(editTags);
+    const dialog = await screen.findByRole('dialog', { name: MOCK_TAGS.editTagsTitle });
+    await user.click(within(dialog).getByRole('combobox', { name: MOCK_TAGS.subjectLabel }));
+    await user.click(screen.getByRole('option', { name: 'English' }));
+    await user.click(within(dialog).getByRole('button', { name: MOCK_CLOSING.save }));
+
+    expect(updateMockTestTags).toHaveBeenCalledWith('t1', {
+      subject: 'english',
+      stream: 'naplan',
+      yearLevels: [],
+      anyYear: true,
+    });
+    expect(await screen.findByText(MOCK_TAGS.tagsSaved)).toBeInTheDocument();
+    expect(
+      await screen.findByText(MOCK_TAGS.line(MOCK_TAGS.subjectLabel, 'English')),
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: MOCK_TAGS.editTags })).toHaveFocus(),
+    );
   });
 });
 

@@ -69,7 +69,9 @@ export function validateMockQuestion(
   return errors;
 }
 
-export function hasMockErrors(errors: MockTestErrors | MockQuestionErrors): boolean {
+export function hasMockErrors(
+  errors: MockTestErrors | MockQuestionErrors | MockTagErrors,
+): boolean {
   return Object.keys(errors).length > 0;
 }
 
@@ -208,4 +210,15 @@ export function mockTagNamesText(fields: readonly MockTagField[]): string {
   const names = fields.map((field) => MOCK_TAGS.fieldNames[field]);
   if (names.length <= 1) return names.join('');
   return `${names.slice(0, -1).join(MOCK_TAGS.listSeparator)}${MOCK_TAGS.listAnd}${names.at(-1)}`;
+}
+
+/** Whether two sets of tags would save the same columns (years in any order). */
+export function sameMockTags(a: MockTags, b: MockTags): boolean {
+  const years = (tags: MockTags) => [...tags.yearLevels].sort((x, y) => x - y).join(',');
+  return (
+    a.subject === b.subject &&
+    a.stream === b.stream &&
+    a.anyYear === b.anyYear &&
+    years(a) === years(b)
+  );
 }

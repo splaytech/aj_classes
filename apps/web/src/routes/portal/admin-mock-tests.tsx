@@ -1,6 +1,7 @@
 // Admin → Mock tests (design §4.3): every mock test, draft or released, with its counts, and a
 // button to start a new one. Counts and the creator's name only: no taker names or scores (AC 24).
 // A released test with a closing time shows "Closes …", or a Closed chip and when it closed.
+// Each row shows its tags, with "Not set" for a missing one; no filter in v1 (categories AC 28).
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -20,6 +21,7 @@ import { Link as RouterLink, useLoaderData, useNavigate } from 'react-router';
 import {
   LoadError,
   MockClosedChip,
+  MockTagLine,
   MockTestDialog,
   MockTestStatusChip,
   MockTestsErrorBoundary,
@@ -74,6 +76,7 @@ export default function AdminMockTestsPage() {
               <TableRow>
                 <TableCell>{columns.title}</TableCell>
                 <TableCell>{columns.status}</TableCell>
+                <TableCell>{columns.tags}</TableCell>
                 <TableCell align="right">{columns.questions}</TableCell>
                 <TableCell align="right">{columns.submitted}</TableCell>
                 <TableCell>{columns.createdBy}</TableCell>
@@ -98,6 +101,9 @@ export default function AdminMockTestsPage() {
                         {mockClosingText(test.closesAt, now)}
                       </Typography>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <MockTagLine tags={test.tags} stacked />
                   </TableCell>
                   <TableCell align="right">{test.questionCount}</TableCell>
                   <TableCell align="right">{test.submittedCount}</TableCell>

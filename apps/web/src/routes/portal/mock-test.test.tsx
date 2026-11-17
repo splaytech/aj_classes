@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   MOCK_RESULT,
+  MOCK_TAGS,
   MOCK_TAKE_PAGE,
   NOT_FOUND_PANEL,
   PORTAL_ERRORS,
@@ -95,6 +96,15 @@ describe('mock test page, not started', () => {
     expect(screen.getByText(MOCK_TAKE_PAGE.questions(2))).toBeInTheDocument();
     expect(screen.getByRole('button', { name: MOCK_TAKE_PAGE.start })).toBeEnabled();
     expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
+  });
+
+  it('shows the tags under the title (categories design §5.1)', async () => {
+    renderTest([{ ok: true, data: BASE }]);
+    await screen.findByRole('heading', { level: 1, name: BASE.title });
+    expect(screen.getByText(MOCK_TAGS.line(MOCK_TAGS.streamLabel, 'NAPLAN'))).toBeInTheDocument();
+    expect(
+      screen.getByText(MOCK_TAGS.line(MOCK_TAGS.yearLevelLabel, 'Any year')),
+    ).toBeInTheDocument();
   });
 
   it('starts, then reloads into the first question', async () => {

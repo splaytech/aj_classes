@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   MOCK_CLOSING,
+  MOCK_TAGS,
   MOCK_TEST_DIALOG,
   MOCK_TEST_STATUS_LABELS,
   MOCK_TESTS_ADMIN_PAGE,
@@ -96,6 +97,28 @@ describe('admin mock tests list', () => {
     expect(
       rows[2]?.getByText(MOCK_CLOSING.closed(formatDateTime('2020-01-01T09:00:00Z'))),
     ).toBeInTheDocument();
+  });
+
+  it('shows each test’s tags in a Tags column, with Not set for missing ones (AC 18, 28)', async () => {
+    const untagged = {
+      ...RELEASED,
+      id: 't5',
+      title: 'Old',
+      tags: { subject: null, stream: null, yearLevels: [], anyYear: false },
+    };
+    renderPage([DRAFT, untagged]);
+    await screen.findByRole('heading', { level: 1, name: MOCK_TESTS_ADMIN_PAGE.heading });
+
+    expect(
+      screen.getByRole('columnheader', { name: MOCK_TESTS_ADMIN_PAGE.columns.tags }),
+    ).toBeVisible();
+    const rows = screen
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) => within(row as HTMLElement));
+    expect(rows[0]?.getByText(MOCK_TAGS.line(MOCK_TAGS.streamLabel, 'NAPLAN'))).toBeInTheDocument();
+    expect(rows[1]?.getAllByText(new RegExp(`: ${MOCK_TAGS.notSet}$`))).toHaveLength(3);
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument(); // no filter (D-C3)
   });
 
   it('shows the empty state', async () => {

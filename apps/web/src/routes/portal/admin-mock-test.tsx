@@ -1,9 +1,10 @@
-// Admin → one mock test (design §4.3). A draft: edit the details, add, change, delete and move
-// questions, release it (optionally with a closing time), or delete it. A released test is
-// read-only: its closing time can be set, changed or cleared, it can be closed now, and it can go
-// back to draft only while nobody has submitted it (in-progress attempts are deleted;
-// docs/delivery/2026-11-18-mock-test-closing). The database enforces every one of these rules;
-// this page just shows the controls that can work and the plain reason when one is refused.
+// Admin → one mock test (design §4.3). A draft: edit the details and tags, add, change, delete
+// and move questions, release it (with its tags and an optional closing time), or delete it. A
+// released test is read-only apart from its tags (Edit tags; categories AC 15): its closing time
+// can be set, changed or cleared, it can be closed now, and it can go back to draft only while
+// nobody has submitted it (in-progress attempts are deleted; docs/delivery/2026-11-18-mock-test-
+// closing). The database enforces every one of these rules; this page just shows the controls
+// that can work and the plain reason when one is refused.
 
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -20,6 +21,8 @@ import {
   MockClosingDialog,
   MockQuestionList,
   MockReleaseDialog,
+  MockTagLine,
+  MockTagsDialog,
   MockTestDialog,
   MockTestStatusChip,
   MockTestsErrorBoundary,
@@ -27,8 +30,19 @@ import {
   PageHeader,
   SectionCard,
 } from '@/components/portal';
-import { MOCK_CLOSING, MOCK_TEST_EDIT_PAGE, PORTAL_ROUTES, PORTAL_SEO } from '@/constants';
-import { mockClosingState, mockClosingText } from '@/lib/mock-tests';
+import {
+  MOCK_CLOSING,
+  MOCK_TAGS,
+  MOCK_TEST_EDIT_PAGE,
+  PORTAL_ROUTES,
+  PORTAL_SEO,
+} from '@/constants';
+import {
+  missingMockTagFields,
+  mockClosingState,
+  mockClosingText,
+  mockTagNamesText,
+} from '@/lib/mock-tests';
 import { buildPortalMeta } from '@/lib/seo';
 import { usePortalAction } from '@/lib/use-portal-action';
 import { closeMockTestNow, deleteMockTest, getMockTestForEdit, withdrawMockTest } from '@/services';
@@ -46,7 +60,7 @@ export function ErrorBoundary() {
   return <MockTestsErrorBoundary />;
 }
 
-type Confirming = 'release' | 'closing' | 'closeNow' | 'takeBack' | 'delete' | null;
+type Confirming = 'release' | 'closing' | 'closeNow' | 'tags' | 'takeBack' | 'delete' | null;
 
 export default function AdminMockTestPage() {
   const loaded = useLoaderData<typeof clientLoader>();
@@ -79,6 +93,7 @@ export default function AdminMockTestPage() {
   const now = new Date();
   const isClosed = mockClosingState(test.closesAt, now) === 'closed';
   const closingText = isDraft ? '' : mockClosingText(test.closesAt, now);
+  const missingTags = missingMockTagFields(test.tags);
 
   function reload() {
     void revalidator.revalidate();
@@ -88,6 +103,13 @@ export default function AdminMockTestPage() {
     setConfirming(null);
     action.announce(MOCK_TEST_EDIT_PAGE.released);
     focusHeadingOnLoad.current = true;
+    reload();
+  }
+
+  // The dialog hands focus back to Edit tags, which stays on the page.
+  function tagsSaved() {
+    setConfirming(null);
+    action.announce(MOCK_TAGS.tagsSaved);
     reload();
   }
 
@@ -157,6 +179,13 @@ export default function AdminMockTestPage() {
               <Button
                 variant="outlined"
                 disabled={action.busy}
+                onClick={() => setConfirming('tags')}
+              >
+                {MOCK_TAGS.editTags}
+              </Button>
+              <Button
+                variant="outlined"
+                disabled={action.busy}
                 onClick={() => setConfirming('closing')}
               >
                 {MOCK_CLOSING.setClosing}
@@ -192,6 +221,15 @@ export default function AdminMockTestPage() {
         {isDraft && !canRelease && (
           <Typography color="textSecondary">{MOCK_TEST_EDIT_PAGE.releaseNeedsQuestions}</Typography>
         )}
+        {isDraft && missingTags.length > 0 && (
+          <Typography color="textSecondary">
+            {MOCK_TAGS.releaseNeedsTags(mockTagNamesText(missingTags))}
+          </Typography>
+        )}
+
+        <SectionCard title={MOCK_TAGS.tagsHeading}>
+          <MockTagLine tags={test.tags} />
+        </SectionCard>
 
         <SectionCard title={MOCK_TEST_EDIT_PAGE.instructionsHeading}>
           {/* Plain text only: React escapes it; line breaks are kept. */}
@@ -223,7 +261,16 @@ export default function AdminMockTestPage() {
       {confirming === 'release' && (
         <MockReleaseDialog
           testId={test.id}
+          tags={test.tags}
           onReleased={released}
+          onClose={() => setConfirming(null)}
+        />
+      )}
+      {confirming === 'tags' && (
+        <MockTagsDialog
+          testId={test.id}
+          tags={test.tags}
+          onSaved={tagsSaved}
           onClose={() => setConfirming(null)}
         />
       )}

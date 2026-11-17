@@ -11,12 +11,21 @@ import type { Dayjs } from 'dayjs';
 import { useRef, useState } from 'react';
 import type { RefObject } from 'react';
 
-import { MOCK_CLOSING, MOCK_TEST_EDIT_PAGE, MOCK_VALIDATION } from '@/constants';
-import { closesAtError } from '@/lib/mock-tests';
+import { MOCK_CLOSING, MOCK_TAGS, MOCK_TEST_EDIT_PAGE, MOCK_VALIDATION } from '@/constants';
+import {
+  MOCK_TAG_FIELDS,
+  closesAtError,
+  hasMockErrors,
+  mockTagErrors,
+  sameMockTags,
+} from '@/lib/mock-tests';
+import type { MockTagErrors } from '@/lib/mock-tests';
 import { usePortalAction } from '@/lib/use-portal-action';
-import { releaseMockTest, setMockTestClosing } from '@/services';
+import { releaseMockTest, setMockTestClosing, updateMockTestTags } from '@/services';
+import type { MockTags } from '@/services';
 
 import { FormDialog } from './FormDialog';
+import { MockTagFields } from './MockTagFields';
 
 type ClosesFieldProps = {
   value: Dayjs | null;
@@ -64,21 +73,37 @@ function readCloses(
 
 type MockReleaseDialogProps = {
   testId: string;
+  /** The tags saved on the draft; any the admin sets here are saved before the release. */
+  tags: MockTags;
   onReleased: () => void;
   onClose: () => void;
 };
 
-export function MockReleaseDialog({ testId, onReleased, onClose }: MockReleaseDialogProps) {
+export function MockReleaseDialog({ testId, tags, onReleased, onClose }: MockReleaseDialogProps) {
   const [closes, setCloses] = useState<Dayjs | null>(null);
+  const [newTags, setNewTags] = useState<MockTags>(tags);
   const [error, setError] = useState<string>();
+  const [tagErrors, setTagErrors] = useState<MockTagErrors>({});
   const fieldRef = useRef<HTMLInputElement>(null);
   const action = usePortalAction();
 
   async function handleSubmit() {
+    const foundTagErrors = mockTagErrors(newTags, MOCK_TAG_FIELDS);
     const read = readCloses(closes, fieldRef.current?.value ?? '');
+    setTagErrors(foundTagErrors);
     setError(read.error);
-    if (read.error) return;
-    if (await action.run(() => releaseMockTest(testId, read.closesAt))) onReleased();
+    if (hasMockErrors(foundTagErrors) || read.error) return;
+
+    // One action, so the busy state and any refusal cover both steps. If the release fails after
+    // the tags saved, the tags stay saved and the alert says why.
+    const released = await action.run(async () => {
+      if (!sameMockTags(newTags, tags)) {
+        const saved = await updateMockTestTags(testId, newTags);
+        if (!saved.ok) return saved;
+      }
+      return releaseMockTest(testId, read.closesAt);
+    });
+    if (released) onReleased();
   }
 
   return (
@@ -95,6 +120,14 @@ export function MockReleaseDialog({ testId, onReleased, onClose }: MockReleaseDi
       <DialogContentText sx={{ overflowWrap: 'anywhere' }}>
         {MOCK_TEST_EDIT_PAGE.confirmReleaseText}
       </DialogContentText>
+      <DialogContentText>{MOCK_TAGS.releaseTagsText}</DialogContentText>
+      <MockTagFields
+        value={newTags}
+        errors={tagErrors}
+        canClear={false}
+        disabled={action.busy}
+        onChange={setNewTags}
+      />
       <ClosesField value={closes} error={error} onChange={setCloses} inputRef={fieldRef} />
     </FormDialog>
   );

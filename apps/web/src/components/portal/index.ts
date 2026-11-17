@@ -16,6 +16,8 @@ export { InviteDialog } from './InviteDialog';
 export { MockClosingDialog, MockReleaseDialog } from './MockClosingDialogs';
 export { MockQuestionList } from './MockQuestionList';
 export { MockTagFields } from './MockTagFields';
+export { MockTagLine } from './MockTagLine';
+export { MockTagsDialog } from './MockTagsDialog';
 export { MockTestDialog } from './MockTestDialog';
 export { MockClosedChip, MockTakeStatusChip, MockTestStatusChip } from './MockTestStatusChips';
 export { MockTestResult } from './MockTestResult';

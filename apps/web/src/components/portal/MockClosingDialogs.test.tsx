@@ -4,13 +4,25 @@ import { render, screen } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { MOCK_CLOSING, MOCK_TEST_EDIT_PAGE, MOCK_VALIDATION, PORTAL_ERRORS } from '@/constants';
-import { releaseMockTest, setMockTestClosing } from '@/services';
+import {
+  MOCK_CLOSING,
+  MOCK_TAGS,
+  MOCK_TEST_EDIT_PAGE,
+  MOCK_VALIDATION,
+  PORTAL_ERRORS,
+} from '@/constants';
+import { releaseMockTest, setMockTestClosing, updateMockTestTags } from '@/services';
 import { setupUser } from '@/test/user';
 
 import { MockClosingDialog, MockReleaseDialog } from './MockClosingDialogs';
 
-vi.mock('@/services', () => ({ releaseMockTest: vi.fn(), setMockTestClosing: vi.fn() }));
+vi.mock('@/services', () => ({
+  releaseMockTest: vi.fn(),
+  setMockTestClosing: vi.fn(),
+  updateMockTestTags: vi.fn(),
+}));
+
+const TAGGED = { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true };
 
 // The default (US) field order: month, day, year, hours, minutes, am/pm.
 function renderDialog(ui: ReactElement) {
@@ -25,6 +37,7 @@ async function typeCloses(user: ReturnType<typeof setupUser>, keys: string) {
 beforeEach(() => {
   vi.mocked(releaseMockTest).mockReset();
   vi.mocked(setMockTestClosing).mockReset();
+  vi.mocked(updateMockTestTags).mockReset();
 });
 
 describe('MockReleaseDialog', () => {
@@ -32,7 +45,9 @@ describe('MockReleaseDialog', () => {
     vi.mocked(releaseMockTest).mockResolvedValue({ ok: true, data: undefined });
     const onReleased = vi.fn();
     const user = setupUser();
-    renderDialog(<MockReleaseDialog testId="t1" onReleased={onReleased} onClose={vi.fn()} />);
+    renderDialog(
+      <MockReleaseDialog testId="t1" tags={TAGGED} onReleased={onReleased} onClose={vi.fn()} />,
+    );
 
     await user.click(screen.getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
 
@@ -43,7 +58,9 @@ describe('MockReleaseDialog', () => {
   it('sends a typed future time as ISO, read in the viewer’s local time (AC 1, 9)', async () => {
     vi.mocked(releaseMockTest).mockResolvedValue({ ok: true, data: undefined });
     const user = setupUser();
-    renderDialog(<MockReleaseDialog testId="t1" onReleased={vi.fn()} onClose={vi.fn()} />);
+    renderDialog(
+      <MockReleaseDialog testId="t1" tags={TAGGED} onReleased={vi.fn()} onClose={vi.fn()} />,
+    );
 
     await typeCloses(user, '010129990930P');
     await user.click(screen.getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
@@ -53,7 +70,9 @@ describe('MockReleaseDialog', () => {
 
   it('refuses a past time inline and sends nothing', async () => {
     const user = setupUser();
-    renderDialog(<MockReleaseDialog testId="t1" onReleased={vi.fn()} onClose={vi.fn()} />);
+    renderDialog(
+      <MockReleaseDialog testId="t1" tags={TAGGED} onReleased={vi.fn()} onClose={vi.fn()} />,
+    );
 
     await typeCloses(user, '010120200930A');
     await user.click(screen.getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
@@ -64,7 +83,9 @@ describe('MockReleaseDialog', () => {
 
   it('refuses a half-typed time inline and sends nothing', async () => {
     const user = setupUser();
-    renderDialog(<MockReleaseDialog testId="t1" onReleased={vi.fn()} onClose={vi.fn()} />);
+    renderDialog(
+      <MockReleaseDialog testId="t1" tags={TAGGED} onReleased={vi.fn()} onClose={vi.fn()} />,
+    );
 
     await typeCloses(user, '0101');
     await user.click(screen.getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
@@ -77,12 +98,108 @@ describe('MockReleaseDialog', () => {
     vi.mocked(releaseMockTest).mockResolvedValue({ ok: false, error: 'mockNoQuestions' });
     const onReleased = vi.fn();
     const user = setupUser();
-    renderDialog(<MockReleaseDialog testId="t1" onReleased={onReleased} onClose={vi.fn()} />);
+    renderDialog(
+      <MockReleaseDialog testId="t1" tags={TAGGED} onReleased={onReleased} onClose={vi.fn()} />,
+    );
 
     await user.click(screen.getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
 
     expect(await screen.findByText(PORTAL_ERRORS.mockNoQuestions)).toBeInTheDocument();
     expect(onReleased).not.toHaveBeenCalled();
+  });
+});
+
+describe('MockReleaseDialog tags (categories AC 14)', () => {
+  const pickOption = async (user: ReturnType<typeof setupUser>, label: string, name: string) => {
+    await user.click(screen.getByRole('combobox', { name: label }));
+    await user.click(screen.getByRole('option', { name }));
+  };
+
+  it('names each missing tag and sends nothing', async () => {
+    const user = setupUser();
+    renderDialog(
+      <MockReleaseDialog
+        testId="t1"
+        tags={{ subject: null, stream: null, yearLevels: [], anyYear: false }}
+        onReleased={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText(MOCK_TAGS.releaseTagsText)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
+
+    expect(screen.getByText(MOCK_VALIDATION.tagSubject)).toBeInTheDocument();
+    expect(screen.getByText(MOCK_VALIDATION.tagStream)).toBeInTheDocument();
+    expect(screen.getByText(MOCK_VALIDATION.tagYears)).toBeInTheDocument();
+    expect(updateMockTestTags).not.toHaveBeenCalled();
+    expect(releaseMockTest).not.toHaveBeenCalled();
+  });
+
+  it('saves tags set in the dialog first, then releases', async () => {
+    const order: string[] = [];
+    vi.mocked(updateMockTestTags).mockImplementation(async () => {
+      order.push('tags');
+      return { ok: true, data: undefined };
+    });
+    vi.mocked(releaseMockTest).mockImplementation(async () => {
+      order.push('release');
+      return { ok: true, data: undefined };
+    });
+    const onReleased = vi.fn();
+    const user = setupUser();
+    renderDialog(
+      <MockReleaseDialog
+        testId="t1"
+        tags={{ subject: 'maths', stream: null, yearLevels: [], anyYear: true }}
+        onReleased={onReleased}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await pickOption(user, MOCK_TAGS.streamLabel, 'ICAS');
+    await user.click(screen.getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
+
+    expect(updateMockTestTags).toHaveBeenCalledWith('t1', {
+      subject: 'maths',
+      stream: 'icas',
+      yearLevels: [],
+      anyYear: true,
+    });
+    expect(order).toEqual(['tags', 'release']);
+    expect(onReleased).toHaveBeenCalled();
+  });
+
+  it('does not write tags that did not change', async () => {
+    vi.mocked(releaseMockTest).mockResolvedValue({ ok: true, data: undefined });
+    const user = setupUser();
+    renderDialog(
+      <MockReleaseDialog testId="t1" tags={TAGGED} onReleased={vi.fn()} onClose={vi.fn()} />,
+    );
+
+    await user.click(screen.getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
+
+    expect(updateMockTestTags).not.toHaveBeenCalled();
+    expect(releaseMockTest).toHaveBeenCalledWith('t1', null);
+  });
+
+  it('stops, with the reason, when the tag save is refused', async () => {
+    vi.mocked(updateMockTestTags).mockResolvedValue({ ok: false, error: 'mockTagStream' });
+    const user = setupUser();
+    renderDialog(
+      <MockReleaseDialog
+        testId="t1"
+        tags={{ subject: 'maths', stream: null, yearLevels: [], anyYear: true }}
+        onReleased={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await pickOption(user, MOCK_TAGS.streamLabel, 'ICAS');
+    await user.click(screen.getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
+
+    expect(await screen.findByText(PORTAL_ERRORS.mockTagStream)).toBeInTheDocument();
+    expect(releaseMockTest).not.toHaveBeenCalled();
   });
 });
 
