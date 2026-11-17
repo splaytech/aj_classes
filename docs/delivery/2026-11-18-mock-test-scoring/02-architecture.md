@@ -144,7 +144,7 @@ Confirmed: stored `score` and `total` fit smallint with a 3x margin, so **no col
 ## 8. Decisions (for `_knowledge/decisions.md`)
 
 1. **DEC-MS-1 (ADR-0012 Am. 3):** Marks live on `mock_test_questions.marks smallint not null default 1 check (1..100)`; the pass mark on `mock_tests.pass_mark smallint check (1..100)`, null = none.
-2. **DEC-MS-2:** `mock_test_attempts.score` and `.total` are unchanged in name and type and now mean marks. The migration never writes to the attempts table; legacy rows are true because every old question is 1 mark.
+2. **DEC-MS-2:** `mock_test_attempts.score` and `.total` are unchanged in name and type and now mean marks. The migration writes no existing attempt row (only `mock_submit`'s one write at submit); legacy rows are true because every old question is 1 mark.
 3. **DEC-MS-3:** Percentage (floor) and Pass / Not yet are derived on read by two shared private helpers, never stored and never computed in the web. Safe because a test with a submitted attempt can never be withdrawn.
 4. **DEC-MS-4:** Admin results are `public.mock_test_results(target)`, security definer, `private.is_admin()` (aal2), submitted attempts only, name and scores only, no grant or policy on attempts, no view.
 5. **DEC-MS-5:** Marks freeze through the existing `check_mock_question`; the pass mark freezes by extending `check_mock_test`; no new trigger.
