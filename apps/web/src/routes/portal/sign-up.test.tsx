@@ -46,13 +46,15 @@ async function fillAndSubmit(name = 'Priya Shah', email = 'priya@example.com', p
 beforeEach(() => {
   vi.mocked(signUpWithEmail).mockReset();
   // What the page reads again just before sending (review-5 finding 2): still open by default.
-  vi.mocked(getSignUpOptions).mockReset().mockResolvedValue({ status: 'open', google: false });
+  vi.mocked(getSignUpOptions)
+    .mockReset()
+    .mockResolvedValue({ status: 'open', email: true, google: false });
   turnstileResets.count = 0;
 });
 
 describe('/portal/sign-up', () => {
   it('AC-2: asks for a name and an e-mail, never a password, with the Privacy notice and Sign in', async () => {
-    renderWith({ status: 'open', google: false });
+    renderWith({ status: 'open', email: true, google: false });
 
     expect(
       await screen.findByRole('heading', { level: 1, name: SIGN_UP_PAGE.heading }),
@@ -72,19 +74,45 @@ describe('/portal/sign-up', () => {
   });
 
   it('AC-51: shows Continue with Google only when Google is on', async () => {
-    renderWith({ status: 'open', google: true });
+    renderWith({ status: 'open', email: true, google: true });
     expect(await screen.findByRole('button', { name: SIGN_UP_PAGE.google })).toBeInTheDocument();
   });
 
   it('AC-51: hides Continue with Google when it is off (or the settings read failed)', async () => {
-    renderWith({ status: 'open', google: false });
+    renderWith({ status: 'open', email: true, google: false });
     await screen.findByRole('heading', { level: 1, name: SIGN_UP_PAGE.heading });
     expect(screen.queryByRole('button', { name: SIGN_UP_PAGE.google })).not.toBeInTheDocument();
   });
 
+  it('Google-only: with the e-mail form off, offers only Continue with Google, the Privacy notice and Sign in', async () => {
+    renderWith({ status: 'open', email: false, google: true });
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: SIGN_UP_PAGE.heading }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: SIGN_UP_PAGE.google })).toBeInTheDocument();
+    expect(screen.queryByLabelText(SIGN_UP_PAGE.labels.fullName)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(SIGN_UP_PAGE.labels.email)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: SIGN_UP_PAGE.submit })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: SIGN_UP_PAGE.notice.link })).toHaveAttribute(
+      'href',
+      '/privacy',
+    );
+    expect(screen.getByRole('link', { name: SIGN_UP_PAGE.signIn })).toHaveAttribute(
+      'href',
+      PORTAL_ROUTES.login,
+    );
+  });
+
+  it('Google-only: the daily e-mail cap does not apply, so busy still offers Google', async () => {
+    renderWith({ status: 'busy', email: false, google: true });
+    expect(await screen.findByRole('button', { name: SIGN_UP_PAGE.google })).toBeInTheDocument();
+    expect(screen.queryByText(SIGN_UP_PAGE.busy)).not.toBeInTheDocument();
+  });
+
   it('AC-10: shows the same "check your e-mail" card for any accepted sign-up', async () => {
     vi.mocked(signUpWithEmail).mockResolvedValue({ ok: true, data: undefined });
-    renderWith({ status: 'open', google: false });
+    renderWith({ status: 'open', email: true, google: false });
     await fillAndSubmit();
 
     expect(
@@ -104,21 +132,21 @@ describe('/portal/sign-up', () => {
   });
 
   it('AC-4/5: checks the name and e-mail before sending anything', async () => {
-    renderWith({ status: 'open', google: false });
+    renderWith({ status: 'open', email: true, google: false });
     await fillAndSubmit('P', 'nope');
     expect(await screen.findByText(PORTAL_VALIDATION.emailInvalid)).toBeInTheDocument();
     expect(signUpWithEmail).not.toHaveBeenCalled();
   });
 
   it('AC-8: asks for the "I am human" check first', async () => {
-    renderWith({ status: 'open', google: false });
+    renderWith({ status: 'open', email: true, google: false });
     await fillAndSubmit('Priya Shah', 'priya@example.com', false);
     expect(await screen.findByText(PORTAL_VALIDATION.captchaRequired)).toBeInTheDocument();
     expect(signUpWithEmail).not.toHaveBeenCalled();
   });
 
   it('AC-46: when busy, says so for any e-mail and never calls sign-up', async () => {
-    renderWith({ status: 'busy', google: false });
+    renderWith({ status: 'busy', email: true, google: false });
     await fillAndSubmit();
     expect(await screen.findByText(SIGN_UP_PAGE.busy)).toBeInTheDocument();
     expect(signUpWithEmail).not.toHaveBeenCalled();
@@ -130,8 +158,8 @@ describe('/portal/sign-up', () => {
   ])(
     'AC-46: open when the page loaded but busy at submit: %s gets the busy message, and nothing is sent',
     async (_kind, email) => {
-      renderWith({ status: 'open', google: false });
-      vi.mocked(getSignUpOptions).mockResolvedValue({ status: 'busy', google: false });
+      renderWith({ status: 'open', email: true, google: false });
+      vi.mocked(getSignUpOptions).mockResolvedValue({ status: 'busy', email: true, google: false });
       await fillAndSubmit('Priya Shah', email);
       expect(await screen.findByText(SIGN_UP_PAGE.busy)).toBeInTheDocument();
       expect(signUpWithEmail).not.toHaveBeenCalled();
@@ -144,8 +172,12 @@ describe('/portal/sign-up', () => {
   ])(
     'AC-48: open when the page loaded but closed at submit: %s gets the closed card',
     async (_kind, email) => {
-      renderWith({ status: 'open', google: false });
-      vi.mocked(getSignUpOptions).mockResolvedValue({ status: 'closed', google: false });
+      renderWith({ status: 'open', email: true, google: false });
+      vi.mocked(getSignUpOptions).mockResolvedValue({
+        status: 'closed',
+        email: true,
+        google: false,
+      });
       await fillAndSubmit('Priya Shah', email);
       expect(
         await screen.findByRole('heading', { name: SIGN_UP_PAGE.closed.heading }),
@@ -156,14 +188,14 @@ describe('/portal/sign-up', () => {
 
   it("shows a server-side name refusal in the page's own words (Tester 6a bug 3)", async () => {
     vi.mocked(signUpWithEmail).mockResolvedValueOnce({ ok: false, error: 'invalidName' });
-    renderWith({ status: 'open', google: false });
+    renderWith({ status: 'open', email: true, google: false });
     await fillAndSubmit();
     expect(await screen.findByText(PROFILE_VALIDATION.nameLength)).toBeInTheDocument();
     expect(screen.queryByText(PORTAL_ERRORS.invalidName)).not.toBeInTheDocument();
   });
 
   it('AC-48: shows the closed card, with a Sign in link, when sign-up is closed', async () => {
-    renderWith({ status: 'closed', google: false });
+    renderWith({ status: 'closed', email: true, google: false });
     expect(
       await screen.findByRole('heading', { name: SIGN_UP_PAGE.closed.heading }),
     ).toBeInTheDocument();
@@ -173,7 +205,7 @@ describe('/portal/sign-up', () => {
 
   it('switches to the closed card when the server says closed, and to busy when it says busy', async () => {
     vi.mocked(signUpWithEmail).mockResolvedValueOnce({ ok: false, error: 'signUpBusy' });
-    renderWith({ status: 'open', google: false });
+    renderWith({ status: 'open', email: true, google: false });
     await fillAndSubmit();
     expect(await screen.findByText(PORTAL_ERRORS.signUpBusy)).toBeInTheDocument();
     expect(turnstileResets.count).toBe(1);
@@ -188,7 +220,7 @@ describe('/portal/sign-up', () => {
   });
 
   it('shows captcha, rate-limit and network problems, and resets the check after each', async () => {
-    renderWith({ status: 'open', google: false });
+    renderWith({ status: 'open', email: true, google: false });
     const user = setupUser();
     await user.type(await screen.findByLabelText(SIGN_UP_PAGE.labels.fullName), 'Priya Shah');
     await user.type(screen.getByLabelText(SIGN_UP_PAGE.labels.email), 'priya@example.com');

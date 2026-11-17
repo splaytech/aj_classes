@@ -11,20 +11,22 @@ import { attempt, fail, succeed } from './result';
 import { getSupabase, isPortalConfigured } from './supabase.client';
 import type { ErrorKey, Result } from './types';
 
-export type SignUpOptions = { status: SignUpStatus; google: boolean };
+export type SignUpOptions = { status: SignUpStatus; email: boolean; google: boolean };
 
-const HIDDEN: SignUpOptions = { status: 'closed', google: false };
+const HIDDEN: SignUpOptions = { status: 'closed', email: false, google: false };
 
 /**
- * Whether sign-up is open and whether Google is switched on. Any failure reads as closed and no
- * Google: the link and the button are hidden, never broken (AC-1, AC-51).
+ * Whether sign-up is open, and which ways in are switched on: the e-mail form (off at release,
+ * Google-only) and Google. Any failure reads as off; with no way in, sign-up reads as closed, so
+ * the link and the page are hidden, never broken (AC-1, AC-51).
  */
 export async function getSignUpOptions(): Promise<SignUpOptions> {
   if (!isPortalConfigured()) return HIDDEN;
   try {
     const supabase = await getSupabase();
-    const [statusReply, settings] = await Promise.all([
+    const [statusReply, emailReply, settings] = await Promise.all([
       supabase.rpc('sign_up_status'),
+      supabase.rpc('sign_up_email_open'),
       fetch(`${APP_CONFIG.supabase.url}/auth/v1/settings`, {
         headers: { apikey: APP_CONFIG.supabase.publishableKey },
       }),
@@ -34,7 +36,10 @@ export async function getSignUpOptions(): Promise<SignUpOptions> {
     const body = settings.ok
       ? ((await settings.json()) as { external?: { google?: boolean } })
       : {};
-    return { status: status as SignUpStatus, google: body.external?.google === true };
+    const email = !emailReply.error && emailReply.data === true;
+    const google = body.external?.google === true;
+    if (!email && !google) return HIDDEN;
+    return { status: status as SignUpStatus, email, google };
   } catch {
     return HIDDEN;
   }

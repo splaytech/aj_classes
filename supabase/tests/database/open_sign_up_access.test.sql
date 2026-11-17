@@ -91,7 +91,7 @@ select unnest(array[
   'move_question(uuid,integer)', 'my_has_password()', 'my_onboarding()', 'my_sign_up()',
   'parent_child_assignment(uuid,uuid)', 'parent_child_assignments(uuid)', 'parent_child_timetable(uuid)',
   'parent_children()', 'parent_give_consent(uuid)', 'set_my_consents(boolean,boolean,boolean)',
-  'sign_up_guard_ready()', 'sign_up_status()', 'student_assignment(uuid)', 'student_assignments()',
+  'sign_up_email_open()', 'sign_up_guard_ready()', 'sign_up_status()', 'student_assignment(uuid)', 'student_assignments()',
   'student_save_answer(uuid,uuid,integer,text)', 'student_submit(uuid)', 'student_timetable()'
 ]) as signature;
 
@@ -196,11 +196,12 @@ begin
   foreach call in array calls loop
     return next ok(tests.yields_nothing(call), format('AC-26: %s gives a user nothing%s', call, label));
   end loop;
-  -- The four that answer: only public facts or the caller's own.
+  -- The five that answer: only public facts or the caller's own.
   return next is(public.am_i_admin(), false, 'am_i_admin says no' || label);
   return next is(public.my_has_password(), true, 'my_has_password reports their own password' || label);
   return next is(public.sign_up_status(), 'open', 'sign_up_status is public' || label);
   return next is(public.sign_up_guard_ready(), true, 'sign_up_guard_ready is a public yes/no' || label);
+  return next ok(public.sign_up_email_open() is not null, 'sign_up_email_open is a public yes/no' || label);
   return next is((select role::text || '/' || status::text from public.profiles where id = p_user), 'user/active',
     'After all that, they are still an active user' || label);
 

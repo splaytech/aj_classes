@@ -315,3 +315,7 @@ $$;
 -- local Mailpit within 5 minutes of `db reset`.
 select vault.create_secret('http://supabase_kong_aj_classes:8000/functions/v1/notifications', 'notify_worker_url');
 select vault.create_secret('local-notify-secret', 'notify_worker_secret');
+
+-- Google-only sign-up (20261117100000): hosted ships with the e-mail form off. Locally it stays on
+-- so the e-mail path (built and tested, ADR-0011) keeps its e2e coverage. LOCAL ONLY.
+update private.sign_up_settings set email_open = true;

@@ -4,8 +4,8 @@ For Saurabh. Branch `feature/open-sign-up`, built and tested on the local stack 
 
 ## What changes for people
 
-- On the Sign in page, "New to AJ Classes? Create an account" opens a sign-up page for parents and guardians: name and e-mail only. A confirmation link arrives by e-mail; it leads to a short finish step (a password and the Terms tick). They then see **Latest news** and their Account page, nothing else.
-- "Continue with Google" is built but **stays off** in this release. The button only appears once Google is switched on (step 4).
+- **Google-only at release (2026-11-17, `00-decisions.md`).** On the Sign in page, "New to AJ Classes? Create an account" opens a sign-up page for parents and guardians with one button: **Continue with Google**. After Google, a short finish step (their name and the Terms tick). They then see **Latest news** and their Account page, nothing else.
+- E-mail sign-up (name and e-mail, a confirmation link, then a password) is built and tested but **switched off** in the database (`private.sign_up_settings.email_open = false`), so the public form can't send mail to made-up addresses. To turn it on later: `update private.sign_up_settings set email_open = true;` in the SQL editor (then watch R2/R4 below).
 - Admin → **Users** lists everyone who signed up (how, when, finished or not), with Close / Open sign-up and Deactivate / Reactivate.
 - On a student's page, **Invite or link a parent** with a signed-up user's e-mail asks you to confirm, then makes them a parent of that child. No e-mail is sent. **Only link an e-mail that is already on this student's enrolment record, or that you confirmed with the parent you already know. Never link one supplied only in a message.** The account proves who owns the mailbox, not that they are the parent (security 06 finding 4); the dialog says the same.
 - Sign-ups nobody confirmed are deleted after 7 days by a daily job (`delete-stale-sign-ups`, 17:45 UTC), so made-up addresses don't pile up in Admin → Users (security 06 finding 8). Staff, students, parents and every confirmed account are never touched, and neither is a sign-up an admin deactivated or any account an audit entry points at. One account that can't be deleted never stops the rest.
@@ -18,16 +18,17 @@ For Saurabh. Branch `feature/open-sign-up`, built and tested on the local stack 
    - The Terms draft: `/terms` (`TERMS` in `apps/web/src/constants/content.constants.ts`).
    - The Privacy changes (`PRIVACY`, same file): "What we collect", the start of "Portal accounts", and "Optional permissions". Two sentences differ from the design's draft so they stay true; please check them: Google also gives us a link to your profile picture (we use only the name and e-mail), and a signed-up account's e-mails include security notices such as "Your password was changed".
 2. **Hook check (read-only, yours).** Supabase Dashboard → Authentication → **Hooks**: confirm that "Before User Created" is offered on this plan. I asked for this at the start of the build; **no answer yet**. If it isn't offered, **don't run `deploy.sh`**: sign-up can't open safely, and the Architect re-plans the switch and the daily cap.
-3. **Order on release day.** No staff, student or parent invites while you do this.
+3. **Google Cloud OAuth client — needed before step 4 (was optional, now required).**
+   1. Google Cloud console (sign in as the AJ Classes Google account you want to own it): create a project, e.g. "AJ Classes Portal".
+   2. APIs & Services → OAuth consent screen (Google Auth Platform → Branding / Audience): User type **External**; app name "AJ Classes"; support e-mail hello@ajclasses.com.au; authorised domain `ajclasses.com.au` (and `supabase.co`); privacy policy `https://ajclasses.com.au/privacy`, terms `https://ajclasses.com.au/terms`. Scopes: `openid`, `email`, `profile` only (non-sensitive, no Google verification). **Publish app → In production** (in "Testing" only listed test users can sign in).
+   3. Credentials → Create credentials → OAuth client ID → **Web application**. Authorised JavaScript origins: `https://ajclasses.com.au`, `https://staging.ajclasses.com.au`. Authorised redirect URI: `https://unzjnxctkyahtmrkinyr.supabase.co/auth/v1/callback`. The consent screen will show the Supabase domain (no custom domain, Decision 8).
+   4. Put `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `supabase/.env.deploy` and save them under a password-manager item name. Never in chat or git.
+   5. Optional but recommended today: add `http://127.0.0.1:55321/auth/v1/callback` as a second redirect URI on a separate **dev** client, so the team can run one real Google sign-in on the local stack before release.
+4. **Order on release day.** No staff, student or parent invites while you do this.
    1. Merge to `develop`, check staging, then merge to `main`. Production web goes live; the "Create an account" link stays hidden until `deploy.sh` has run, because the hosted database has no sign-up status check yet (the page reads that as "closed").
-   2. Run `supabase/scripts/deploy.sh` as usual (it reads `supabase/.env.deploy`; Google is off, so no Google values are needed). The order is new: it checks the sign-up guard, runs the migrations, checks the guard again, deploys functions and secrets, and pushes the Auth settings that open sign-up **last**, then checks the hook is on. If anything fails after sign-up was opened, it closes sign-up again and says so.
-   3. Do one real e-mail sign-up on `https://ajclasses.com.au/portal/sign-up` with an address of your own, through to Latest news. Then deactivate it in Admin → Users (or keep it as a test user).
-4. **Google, when you're ready** (e-mail can go live first; lead assumption Q3).
-   1. Google Cloud: create a project. OAuth consent screen: External, In production, scopes `openid email profile` (non-sensitive, so no app verification).
-   2. Create a **Web client**. Authorised redirect URI: `https://unzjnxctkyahtmrkinyr.supabase.co/auth/v1/callback`. Authorised JavaScript origin: `https://ajclasses.com.au`. The consent screen will show the Supabase domain (no custom domain, Decision 8).
-   3. Put `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `supabase/.env.deploy` and save them under a password-manager item name. Never in chat or git.
-   4. On a new branch, change `[remotes.production.auth.external.google] enabled` to `true` in `supabase/config.toml`. That one line is the whole change.
-   5. Merge it, run `deploy.sh` (it now asks for the two Google values), and do one real Google sign-up.
+   2. Run `supabase/scripts/deploy.sh` as usual (it reads `supabase/.env.deploy`; Google is on, so it stops early if `GOOGLE_CLIENT_ID` or `GOOGLE_CLIENT_SECRET` is missing). The order is new: it checks the sign-up guard, runs the migrations, checks the guard again, deploys functions and secrets, and pushes the Auth settings that open sign-up **last**, then checks the hook is on. If anything fails after sign-up was opened, it closes sign-up again and says so.
+   3. Do one real Google sign-up on `https://ajclasses.com.au/portal/sign-up` with a Google account of your own (not one already invited to the portal: those are refused by design), through the finish step to Latest news. Then deactivate it in Admin → Users (or keep it as a test user).
+   4. Check e-mail sign-up is really off: the page shows no Name/Email fields.
 5. **Closing sign-up.** Admin → Users → **Close sign-up**. Emergency fallback if the portal is down: Dashboard → Authentication → Sign In / Providers → "Allow new users to sign up" off. The next `deploy.sh` turns that back on, so close the admin switch too. Details: `supabase/README.md` → "Close sign-up".
 6. **Watch.**
    - If "Sign-up is busy right now" shows on real days (15 e-mail sign-ups a day), or Auth e-mails stop because Resend Free's 100 a day ran out (R2), move to Resend Pro (about A$31 a month).
@@ -38,8 +39,9 @@ For Saurabh. Branch `feature/open-sign-up`, built and tested on the local stack 
    - **R1 and R2 extended (security 06 finding 2):** anyone signed in, including a self sign-up, can test whether an e-mail exists through `PUT /auth/v1/user` (no captcha, about 30 per 5 minutes per IP) and can send e-mail-change mail within Auth's 30 an hour. No Supabase setting turns this off; the real fix (custom Auth domain and a WAF rule) was declined in Decision 8.
    - **R2:** resends and Forgot password aren't counted by the 15-a-day cap and could use up Resend Free's daily allowance.
    - **R3:** promoting a Google-only account rests on Google's past check of that address. The confirm message says "Signed up with Google".
+   - **R2 and R4 while e-mail is off (Google-only):** sign-up sends no e-mail, so neither applies; they come back if `email_open` is turned on.
    - **R4 (proposed, security 06 finding 1):** about 15 captcha solves a day can fill the cap (everyone sees "busy" for 24 hours), and resends to made-up addresses can spend most of a day's Resend Free quota on hard bounces; a high bounce rate can get Resend sending paused, which also stops invites, resets and portal e-mails. See Watch.
-   - **Known Lows, deferred:** `posts.author_id` is readable by any signed-in account (security finding 7; no data impact under `profiles` RLS; recorded in 03 §14), and Google sign-ups skip the name rule (the Google half of finding 9; fix before Google is switched on). Finding 5 (6-digit e-mailed codes) is **fixed**: e-mailed codes are now 8 digits.
+   - **Known Lows, deferred:** `posts.author_id` is readable by any signed-in account (security finding 7; no data impact under `profiles` RLS; recorded in 03 §14), and the Google half of finding 9 is **fixed** (a Google name that fails the rule is stored empty and typed on the finish step). Finding 5 (6-digit e-mailed codes) is **fixed**: e-mailed codes are now 8 digits.
 9. **What wasn't verified** (local stack only):
    - The hosted plan offers "Before User Created" (step 2).
    - Hosted `postgres` can create the two triggers on `auth.identities` and `auth.users` (it can locally). If it can't, the migration fails at step 3/7 and sign-up stays closed.
@@ -47,7 +49,7 @@ For Saurabh. Branch `feature/open-sign-up`, built and tested on the local stack 
    - A real Google sign-in (no Google client exists). The callback page is tested against the error shapes read from GoTrue's source, and the button against a stubbed settings answer.
    - Auth's per-IP limit of 30 sign-ins and sign-ups per 5 minutes (AC-39): the local Auth doesn't enforce IP limits at all, so only the setting is checked.
    - Mobile with a signed-up account (AC-40): the Tester's manual check. No mobile code changed.
-   - Whether `config push` with Google `enabled = false` really needs no Google values on the hosted project (read from the CLI source; `deploy.sh` doesn't ask for them).
+   - The Google-only page in a real browser was checked with the settings and `sign_up_email_open` answers stubbed (e2e `open-sign-up.spec.ts`), because the local stack has no Google client.
 
 ## For `_knowledge/decisions.md`
 

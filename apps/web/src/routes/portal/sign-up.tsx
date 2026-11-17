@@ -1,6 +1,7 @@
 // Create an account (open sign-up, ADR-0011; 03 §7.6). Parents and guardians give their name and
 // e-mail; the confirmation link proves the mailbox, and the password is chosen on the finish step.
-// Whatever the e-mail, a sent sign-up always shows the same card (AC-10, AC-12).
+// Whatever the e-mail, a sent sign-up always shows the same card (AC-10, AC-12). While the e-mail
+// form is switched off (Google-only release), the page offers only "Continue with Google".
 
 import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
@@ -47,6 +48,9 @@ export default function SignUpPage() {
 
   if (view === 'closed') return <ClosedCard />;
   if (view === 'sent') return <SentCard />;
+  // Google-only (e-mail form switched off at release): Google sign-ups aren't capped, so busy
+  // doesn't apply. getSignUpOptions reads "no way in" as closed, so Google is on here.
+  if (!options.email) return <GoogleOnlyCard />;
   return (
     <SignUpForm
       busy={options.status === 'busy'}
@@ -169,6 +173,23 @@ function SignUpForm({
           <GoogleButton onStart={startGoogleSignIn} />
         </>
       )}
+      <p>
+        {SIGN_UP_PAGE.haveAccount}
+        <Link to={PORTAL_ROUTES.login}>{SIGN_UP_PAGE.signIn}</Link>
+      </p>
+    </AuthCard>
+  );
+}
+
+function GoogleOnlyCard() {
+  return (
+    <AuthCard heading={SIGN_UP_PAGE.heading} intro={SIGN_UP_PAGE.intro}>
+      <GoogleButton onStart={startGoogleSignIn} />
+      <p className={formStyles.hint}>
+        {SIGN_UP_PAGE.notice.before}
+        <Link to={LEGAL_LINKS.privacy}>{SIGN_UP_PAGE.notice.link}</Link>
+        {SIGN_UP_PAGE.notice.after}
+      </p>
       <p>
         {SIGN_UP_PAGE.haveAccount}
         <Link to={PORTAL_ROUTES.login}>{SIGN_UP_PAGE.signIn}</Link>

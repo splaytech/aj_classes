@@ -962,6 +962,7 @@ export type Database = {
         Returns: undefined;
       };
       sign_up_guard_ready: { Args: Record<PropertyKey, never>; Returns: boolean };
+      sign_up_email_open: { Args: Record<PropertyKey, never>; Returns: boolean };
       sign_up_status: { Args: Record<PropertyKey, never>; Returns: string };
       student_assignment: { Args: { target: string }; Returns: Json };
       student_assignments: {

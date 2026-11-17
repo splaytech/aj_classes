@@ -5,6 +5,9 @@
 begin;
 select no_plan();
 select tests.remove_all_accounts();
+-- These cases cover the e-mail path, which ships switched off (20261117100000, Google-only);
+-- google_only_sign_up.test.sql covers the switch itself.
+update private.sign_up_settings set email_open = true;
 
 -- #1 The user role exists
 select ok('user' = any (enum_range(null::public.app_role)::text[]), 'public.app_role has the user value');
@@ -129,7 +132,7 @@ select is(public.hook_before_user_created(tests.sign_up_event('google', 'g@test.
 delete from private.sign_up_settings;
 select is(public.hook_before_user_created(tests.sign_up_event()), private.sign_up_refusal('sign_up_closed'),
   'A missing settings row counts as closed');
-insert into private.sign_up_settings default values;
+insert into private.sign_up_settings (email_open) values (true);
 delete from private.sign_up_emails;
 
 -- S1(c): Auth's role can run the hook, and the hook (security definer) can read private.*
@@ -423,7 +426,7 @@ update private.sign_up_settings set open = false;
 select is(public.sign_up_status(), 'closed', 'sign_up_status: closed when the switch is off');
 delete from private.sign_up_settings;
 select is(public.sign_up_status(), 'closed', 'sign_up_status: closed when the settings row is missing');
-insert into private.sign_up_settings default values;
+insert into private.sign_up_settings (email_open) values (true);
 select ok(has_function_privilege('anon', 'public.sign_up_status()', 'execute'),
   'sign_up_status: the signed-out sign-up page can read it');
 

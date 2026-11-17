@@ -98,6 +98,45 @@ test.describe('Open sign-up', () => {
     expect(row).toEqual({ role: 'user', status: 'active', terms: true, audited: true });
   });
 
+  test('Google-only (the hosted release): with the e-mail form off, Sign in links to a page that offers only Google', async ({
+    page,
+  }) => {
+    // Locally e-mail is on and Google off (seed.sql), so both answers are stubbed as hosted ships.
+    await page.route('**/auth/v1/settings', async (route) => {
+      const response = await route.fetch();
+      const body = (await response.json()) as { external?: Record<string, boolean> };
+      await route.fulfill({
+        response,
+        json: { ...body, external: { ...body.external, google: true } },
+      });
+    });
+    await page.route('**/rest/v1/rpc/sign_up_email_open', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: 'false' }),
+    );
+
+    await page.goto('/portal/login');
+    await page.getByRole('link', { name: 'Create an account' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Create an account' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeVisible();
+    await expect(page.getByLabel('Full name')).toHaveCount(0);
+    await expect(page.getByLabel('Email')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Create account' })).toHaveCount(0);
+  });
+
+  test('Google-only with Google off: no way in, so sign-up reads as closed and Sign in has no link', async ({
+    page,
+  }) => {
+    await page.route('**/rest/v1/rpc/sign_up_email_open', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: 'false' }),
+    );
+
+    await page.goto('/portal/sign-up');
+    await expect(page.getByRole('heading', { level: 1, name: 'Sign-up is closed' })).toBeVisible();
+    await page.goto('/portal/login');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Create an account' })).toHaveCount(0);
+  });
+
   test('Continue with Google is offered when Supabase says Google is on, and a refusal shows message M (AC-51, AC-54)', async ({
     page,
   }) => {

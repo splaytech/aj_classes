@@ -155,45 +155,73 @@ describe('resendSignUpLink', () => {
 });
 
 describe('getSignUpOptions', () => {
-  it('reads the status and whether Google is on', async () => {
-    rpc.mockResolvedValue({ data: 'busy', error: null });
+  // The page reads two RPCs: the status and whether the e-mail form is on.
+  function replies(status: unknown, emailOpen: unknown) {
+    rpc.mockImplementation(async (name: string) =>
+      name === 'sign_up_email_open' ? emailOpen : status,
+    );
+  }
+  const googleOn = () =>
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => new Response(JSON.stringify({ external: { google: true } }))),
     );
 
-    expect(await getSignUpOptions()).toEqual({ status: 'busy', google: true });
+  it('reads the status, whether the e-mail form is on and whether Google is on', async () => {
+    replies({ data: 'busy', error: null }, { data: true, error: null });
+    googleOn();
+
+    expect(await getSignUpOptions()).toEqual({ status: 'busy', email: true, google: true });
     expect(rpc).toHaveBeenCalledWith('sign_up_status');
+    expect(rpc).toHaveBeenCalledWith('sign_up_email_open');
+  });
+
+  it('Google-only: e-mail off (or its read failed) and Google on', async () => {
+    replies({ data: 'open', error: null }, { data: false, error: null });
+    googleOn();
+    expect(await getSignUpOptions()).toEqual({ status: 'open', email: false, google: true });
+
+    replies({ data: 'open', error: null }, { data: null, error: { code: 'PGRST202' } });
+    expect(await getSignUpOptions()).toEqual({ status: 'open', email: false, google: true });
+  });
+
+  it('reads no way in (e-mail and Google both off) as closed', async () => {
+    replies({ data: 'open', error: null }, { data: false, error: null });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ external: { google: false } }))),
+    );
+    expect(await getSignUpOptions()).toEqual({ status: 'closed', email: false, google: false });
   });
 
   it('reads a failed status or settings read as closed, with no Google (hidden, never broken)', async () => {
-    rpc.mockResolvedValue({ data: null, error: { code: '500' } });
+    replies({ data: null, error: { code: '500' } }, { data: true, error: null });
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => new Response('{}')),
     );
-    expect(await getSignUpOptions()).toEqual({ status: 'closed', google: false });
+    expect(await getSignUpOptions()).toEqual({ status: 'closed', email: false, google: false });
 
-    rpc.mockResolvedValue({ data: 'open', error: null });
+    replies({ data: 'open', error: null }, { data: true, error: null });
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => {
         throw new TypeError('Failed to fetch');
       }),
     );
-    expect(await getSignUpOptions()).toEqual({ status: 'closed', google: false });
+    expect(await getSignUpOptions()).toEqual({ status: 'closed', email: false, google: false });
 
-    rpc.mockResolvedValue({ data: 'open', error: null });
+    replies({ data: 'open', error: null }, { data: true, error: null });
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => new Response('nope', { status: 500 })),
     );
-    expect(await getSignUpOptions()).toEqual({ status: 'open', google: false });
+    expect(await getSignUpOptions()).toEqual({ status: 'open', email: true, google: false });
   });
 
   it('is closed when the portal is not configured', async () => {
     configured = false;
-    expect(await getSignUpOptions()).toEqual({ status: 'closed', google: false });
+    expect(await getSignUpOptions()).toEqual({ status: 'closed', email: false, google: false });
   });
 });
 

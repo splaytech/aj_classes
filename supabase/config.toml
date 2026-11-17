@@ -534,11 +534,11 @@ pass = "env(RESEND_API_KEY)"
 admin_email = "hello@ajclasses.com.au"
 sender_name = "AJ Classes"
 
-# Google sign-in on the hosted project. OFF for the first release (e-mail sign-up goes live first).
-# To switch it on: create the Google Cloud OAuth client (release-notes.md), put GOOGLE_CLIENT_ID
-# and GOOGLE_CLIENT_SECRET in supabase/.env.deploy, change this one line to true, and run
-# deploy.sh. deploy.sh asks for the two values only while this says true.
+# Google sign-in on the hosted project. ON for the first release: sign-up is Google-only (the
+# e-mail form is off in the database, 20261117100000). Needs the Google Cloud OAuth client
+# (release-notes.md): GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in supabase/.env.deploy.
+# deploy.sh asks for the two values only while this says true.
 [remotes.production.auth.external.google]
-enabled = false
+enabled = true
 client_id = "env(GOOGLE_CLIENT_ID)"
 secret = "env(GOOGLE_CLIENT_SECRET)"

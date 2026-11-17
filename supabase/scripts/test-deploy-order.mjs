@@ -4,7 +4,7 @@
 // and DEPLOY_ENV_FILE=/dev/null, so supabase/.env.deploy is never read.
 //   1. --dry-run: the step order, config push last, nothing run, the token never printed.
 //   2. The real script against the fakes: the fail-closed paths (review-3 finding 2).
-//   3. Static config checks (AC-15, AC-39, linking and Apple off).
+//   3. Static config checks (AC-15, AC-39, linking and Apple off, Google on in production).
 // Run: node supabase/scripts/test-deploy-order.mjs   (part of root `pnpm test`)
 
 import { spawnSync } from 'node:child_process';
@@ -25,6 +25,11 @@ const FAKE_SECRETS = {
   ZOHO_CLIENT_SECRET: 'fake-zoho-secret-2d6',
   ZOHO_REFRESH_TOKEN: 'fake-zoho-refresh-1f0',
 };
+// The shipped config has Google on (Google-only release). The order and fail-closed cases run on a
+// copy with Google off, so they need no Google values; googleGateChecks covers Google on.
+const SCRATCH = mkdtempSync(path.join(tmpdir(), 'deploy-order-config-'));
+process.on('exit', () => rmSync(SCRATCH, { recursive: true, force: true }));
+const GOOGLE_OFF_CONFIG = configWithGoogle(SCRATCH, false);
 
 let failures = 0;
 function check(description, condition, detail = '') {
@@ -112,7 +117,7 @@ function configWithGoogle(dir, enabled) {
   return copy;
 }
 
-function runDeploy({ dryRun = true, env = {}, config = CONFIG } = {}) {
+function runDeploy({ dryRun = true, env = {}, config = GOOGLE_OFF_CONFIG } = {}) {
   const dir = makeFakes();
   const log = path.join(dir, 'calls.log');
   writeFileSync(log, '');
@@ -188,7 +193,7 @@ function dryRunChecks() {
   );
   check('The token is never printed', !out.includes(TOKEN));
   check(
-    'Google is off in the shipped config: no GOOGLE_* asked for',
+    'Google off in this config copy: no GOOGLE_* asked for',
     !out.includes('GOOGLE_CLIENT_ID') && out.includes('Google off'),
   );
 }
@@ -431,6 +436,14 @@ function googleGateChecks() {
       onWith.status === 0,
       onWith.out.slice(-300),
     );
+    const shipped = realRun({ FAKE_SIGNUPS_OFF: 'true' }, CONFIG);
+    check(
+      'The shipped config (Google on) asks for GOOGLE_* before anything runs',
+      shipped.status !== 0 &&
+        shipped.out.includes('GOOGLE_CLIENT_ID is not set') &&
+        shipped.calls.length === 0,
+      shipped.out.slice(-300),
+    );
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -465,8 +478,8 @@ function staticConfigChecks() {
   check('Apple stays off', tomlValue('auth.external.apple', 'enabled') === 'false');
   check('Google is off locally', tomlValue('auth.external.google', 'enabled') === 'false');
   check(
-    'Google is off in production (first release)',
-    tomlValue('remotes.production.auth.external.google', 'enabled') === 'false',
+    'Google is on in production (Google-only release)',
+    tomlValue('remotes.production.auth.external.google', 'enabled') === 'true',
   );
   check(
     'Production Google credentials come from env(), never the file',
