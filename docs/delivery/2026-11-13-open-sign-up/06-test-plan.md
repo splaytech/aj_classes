@@ -1362,3 +1362,11 @@ Still open, for the lead:
 
 Coverage: 53 live ACs (56 less AC-3, AC-9, AC-49), all traced to at least one case. Not fully testable locally:
 AC-39 (hosted per-IP limit), and the real-provider and real-mail parts of AC-15 and AC-51 to AC-55 (FS-1, FS-2).
+
+---
+
+## 10. Lead rulings during the run (appended 2026-11-16; the frozen rows above are unchanged)
+
+- **L-1, CF-9 (BUG-1): plan error, ruled by the lead.** The second fixture, a `verified` factor inserted by SQL next to an `aal1` link session, is a state neither the UI nor a stranger can create. After Continue only the mailbox owner holds a session, the user Account page has no authenticator set-up, and a real enrolment that the owner verifies raises that session to `aal2`. The check stays as strong: after Continue, enrol a TOTP factor **through Auth** on the link session (`POST /auth/v1/factors`, then `/challenge` and `/verify` with a code computed from the returned secret), confirm the session is now `aal2`, then Finish. Expected: active, lands on `/portal/user`, factor count `0`. The round-1 unverified-factor control stays as a second check, with the same expected values. The before-confirmation half is unchanged. The dead end the SQL fixture exposed (Finish offers no code field on `insufficient_aal`) is a deferred Low in `00-decisions.md`, reachable only by the owner through the raw API from a second session.
+- **L-2, U-9 (BUG-2): plan error, ruled by the lead.** U-9 predates OTP-2 and OTP-3, which deliberately ask Auth for a re-authentication code. The allowed list gains `Your AJ Classes code` (only where a case asked for one). It is an account e-mail the user triggers, like the reset e-mail, not a portal e-mail. Outbox rows for users must still be `0`, and no "New work", "due" or "marked" subject may appear anywhere.
+- **L-3, V-1 to V-5: PASS (lead), 2026-11-16,** on the 53 screenshots in `run-1/shots/`. Observations, none failing the case, all deferred to a follow-up: (a) at 1280 px with deactivated rows, Admin → Users wraps `E-mail` in the How column as `E-` / `mail`; (b) the signed-up user's empty news state shows `Register interest`, the public enquiry link, to someone who already has an account; (c) the confirmation e-mail says `e-mail` but the recovery, code, invite and magic-link e-mails (before this change) say `email`.

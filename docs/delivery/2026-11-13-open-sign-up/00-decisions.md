@@ -38,3 +38,8 @@ Asked after stage 2 (Architect). Answers verbatim in quotes; lead's reading in [
 - AC-27: a permission rule, not a screen. A user may not change any profile column except `full_name` (and the password through Auth). v1 has no name-edit screen after the finish step, and none is needed.
 - AC-40: the shipped mobile app's response to `Unresolvable role` (back to the sign-in screen with "Something went wrong. Please try again.") is today's error state, so it meets AC-40. No mobile change.
 - D8 (clean-up of unfinished sign-ups) moves into v1 as unconfirmed sign-ups deleted after 7 days (security finding 8). 01 is updated.
+
+## Lead rulings during /test-and-ship round 1 — 2026-11-16 (overrulable)
+- BUG-1 (CF-9) is a plan error (06-test-plan §10 L-1). **Deferred Low:** if the owner enrols *and verifies* an authenticator through the raw Auth API and then opens the finish step from a second, `aal1` session, Finish gets `insufficient_aal` and offers no code field. Not reachable from the UI or by anyone but the mailbox owner; the fix is for the finish form to ask for the authenticator code on `needsTwoStep`.
+- BUG-2 (U-9) is a plan error (L-2). AC-29 ("the only e-mails they get are confirmation and password reset") also allows the account e-mails the user triggers: `Your password was changed` (earlier ruling) and `Your AJ Classes code` (re-authentication). For the PO to reword AC-29 once.
+- V-1 to V-5 pass (L-3). Three cosmetic observations are deferred to a follow-up: the `E-mail` wrap on Admin → Users, `Register interest` on the user's empty news, and `e-mail`/`email` spelling across the auth e-mails.
