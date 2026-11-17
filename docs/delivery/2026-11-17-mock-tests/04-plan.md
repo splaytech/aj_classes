@@ -78,7 +78,7 @@ Each slice is visible or testable on its own. Do them in order. Items with the s
 
 ### S3. Web services, pure helpers, constants, error mapping (owner: dev-web)
 
-- [ ] S3 done
+- [x] S3 done
 - Files:
   - `apps/web/src/services/mock-tests.service.ts`, `mock-tests-data.ts`, `mock-tests.service.test.ts` (new)
   - `apps/web/src/services/types.ts`, `index.ts`, `auth-errors.ts`, `auth-errors.test.ts` (changed)
@@ -92,7 +92,7 @@ Each slice is visible or testable on its own. Do them in order. Items with the s
 
 ### S4. Admin pages: list, create, edit, release, take back, delete (owner: dev-web)
 
-- [ ] S4 done
+- [x] S4 done
 - Files:
   - `apps/web/src/routes/portal/admin-mock-tests.tsx`, `admin-mock-test.tsx`, and a co-located `*.test.tsx` each (new)
   - `apps/web/src/components/portal/MockTestDialog.tsx`, `MockQuestionDialog.tsx`, `MockQuestionList.tsx`, `MockTestsErrorBoundary.tsx` and their co-located tests (new); `components/portal/index.ts` (changed)
@@ -106,7 +106,7 @@ Each slice is visible or testable on its own. Do them in order. Items with the s
 
 ### S5. Taker pages: list, take, result, link cards, six route entries (owner: dev-web)
 
-- [ ] S5 done
+- [x] S5 done
 - Files:
   - `apps/web/src/routes/portal/mock-tests.tsx`, `mock-test.tsx` and a co-located `*.test.tsx` each (new; each mounted three times with a unique route `id`)
   - `apps/web/src/components/portal/MockTestTakeForm.tsx`, `MockTestResult.tsx`, `MockTestsLinkCard.tsx` and co-located tests (new); `components/portal/index.ts` (changed)
@@ -120,7 +120,7 @@ Each slice is visible or testable on its own. Do them in order. Items with the s
 
 ### S6. Navigation (owner: dev-web)
 
-- [ ] S6 done
+- [x] S6 done
 - Files:
   - `apps/web/src/components/portal/PortalLayout.tsx`, `PortalLayout.test.tsx` (changed: `notUnder` becomes an array; the user nav test is rewritten, and the comment says it supersedes the sign-up AC-22 wording)
 - Scope: top-bar "Mock tests" item for student, parent and user; tutor and admin top bars unchanged; home item not active on the mock-test pages.
@@ -131,7 +131,7 @@ Each slice is visible or testable on its own. Do them in order. Items with the s
 
 ### S7. End-to-end spec (owner: dev-web writes; tester-ui runs)
 
-- [ ] S7 done
+- [x] S7 done
 - Files:
   - `e2e/tests/mock-tests.spec.ts`, `e2e/tests/mock-tests.selectors.ts` (new)
 - Scope: admin creates, adds two questions, releases; a student opens the list, takes and submits; the response for the in-progress payload contains no `correct_option` and no `explanation` (AC 36); a tutor is refused on the admin route.

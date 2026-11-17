@@ -1,0 +1,57 @@
+# 05 — Dev notes: mock tests (v1)
+
+Stage 5 (Dev Lead) of `/deliver`. Branch `feature/mock-tests`. Date 2026-11-18. Built from `03-design.md` and `04-plan.md` with lead rulings L-1 to L-4 and D-2 (answers revealed after submit). S1 and S2 were built by dev-ms, S3 to S7 by dev-web; the lead verified each slice from the repo and re-ran every check below. S8 (manual gate) belongs to the Test Manager and is not ticked.
+
+## What was built, per slice
+
+| Slice | Commit | What |
+|---|---|---|
+| S1 | `84d519f` | Migration `20261118100000_mock_tests.sql`: four tables, freeze and lock triggers, column-scoped grants, admin-only RLS on tests and questions, `private.can_take_mock_tests()` and `private.require_mock_taker()`, the nine public functions (the taker ones too: one file). `mock_tests_admin.test.sql`. `.prettierignore` gains `.worktrees/` (L-4). |
+| S2 | `9065509` | `mock_tests_taker.test.sql`: role gate per role (incl. inactive student row, invited user, deactivated accounts, tutor, admin-as-taker, anon), key withheld before own submit, scoring, idempotent start and submit, AC 34, 37, 38. |
+| types | `536c88c` | `database.types.ts` regenerated from the local database; diff is the mock tables and functions only (plus one line moved for `sign_up_guard_ready`). |
+| S3 | `83cf64a` | `mock-tests.service.ts` (only Supabase caller), `mock-tests-data.ts` mappers, types, error mapping, `lib/mock-tests.ts` validation and path helpers, `mock-tests.constants.ts` (incl. a price-word scan test). |
+| S4 | `fb2a420` | Admin list and edit pages, dialogs, question list with move up and down, release, take back, delete; admin dashboard tile; each route exports its own ErrorBoundary. |
+| S5 | `cf1a961` | Taker list and take page mounted under student, parent and user (unique route ids), one-question-per-screen take form with autosave, submit confirmation with unanswered count, result with correct option and explanation, link card on the three homes. |
+| S6 | `b7b145e` | "Mock tests" top-bar item for student, parent and user; `notUnder` is an array; `PortalLayout.test.tsx` rewritten (supersedes sign-up AC-22 user nav). |
+| S7 | `7f788a4` | `e2e/tests/mock-tests.spec.ts` and selectors: admin creates, adds two questions, releases; a seeded student takes and submits; in-progress `mock_test_open` payload has no `correct_option` or `explanation`; tutor refused on the admin route. |
+
+## Deviations from 03, with reasons
+
+1. **Prompt check trims tabs and line breaks** (`btrim(prompt, E' \t\r\n')`, raw length at most 2000). `trim()` strips spaces only, so a prompt of only newlines passed. The client validation matches. The title still trims spaces only, as designed.
+2. **`open_sign_up_access.test.sql` AC-26 pin** gains the nine mock functions. It is an allowlist of functions `authenticated` may execute and failed without them. Outside dev-ms's owned list; the lead accepted it.
+3. **`e2e/tests/open-sign-up.spec.ts`** pinned the user nav as `['Latest news', 'Account']`; now includes "Mock tests". Same deliberate supersede as `PortalLayout.test.tsx` (03 §4.5).
+4. **`e2e/src/auth/login.ts`** gains `loginAsSeededMember` (student and tutor sign-in with the shared local seed password); the common steps moved into `submitCredentials`. Needed for S7.
+5. **Link card** uses a router button rather than `ButtonLink`, so it navigates inside the app.
+6. **`invalidStatus` and `alreadySubmitted`** (03 §3.1 choice): no test pinned the assignment wording, so both texts are now neutral ("That status change isn’t allowed.", "This has already been submitted, so answers can’t change."). No mock-specific keys were added. This also changes the wording assignment pages show.
+7. Non-admin direct selects on `mock_tests` and `mock_test_questions` return 0 rows (RLS), not `42501`. Matches 03 §2.4; noted because 03 §8 AC 1 says "42501/no rows".
+
+## Checks run by the lead (2026-11-18, on `7f788a4` plus this docs commit)
+
+Run as separate commands (04-plan §6):
+
+| # | Command | Result |
+|---|---|---|
+| 1 | `pnpm format:check` | Fails on `actionItems.md` and `supabase/.temp/linked-project.json` only (the two allowed exceptions) |
+| 2 | `pnpm lint` | exit 0 |
+| 3 | `pnpm typecheck` | exit 0 (web and e2e) |
+| 4 | `pnpm test` | exit 0: vitest `Test Files 106 passed (106)`, `Tests 992 passed (992)` (baseline 93 / 849); e2e unit `pass 6, fail 0`; deploy-order script green |
+| 5 | `VITE_APP_ENV=production pnpm build` | exit 0 |
+| 6 | `pnpm db:reset` then `pnpm db:test` | `Files=23, Tests=1687`, `Result: PASS` |
+| 7 | `pnpm test:functions` | exit 0, 0 `NOT OK` |
+| 8 | `pnpm --filter aj-classes-e2e test:smoke` | `17 passed` (incl. the 2 mock-test specs) |
+| 9 | `pnpm --filter aj-classes-e2e test:csp` | `23 passed`, on a build made as CI makes it (empty Supabase URL and key, placeholder form keys); `check:hosted-ref build/client`: 0 files of 186 |
+| 10 | Deploy order (`node supabase/scripts/test-deploy-order.mjs`, inside `pnpm test`) | green |
+| — | `pnpm db:types` | regenerated in `536c88c` |
+
+Notes on the runs:
+- `test:functions` first failed 17 checks in `test-open-sign-up.mjs` (confirm and resend e-mails). dev-ms showed the same 17 failed without the mock migration. The cause was a stale local auth container: after `pnpm db:stop && pnpm db:start` from this checkout the script printed "All checks passed". Not a code issue.
+- `test:csp` refuses a build that contains the hosted project ref, so a build made from the local `.env` cannot be swept. Rebuild with the CI env (ci.yml Lighthouse job) first.
+- Lead browser pass (Playwright, local Chrome engine): student, parent and user; home, list and test page; 375 and 1280 px; light and dark. 36 screenshots, no horizontal overflow, no console errors. Test data was inserted locally and removed afterwards.
+
+## Known gaps (for S8 and later)
+
+1. Two-session concurrency (AC 13, 19, 21) is not run: S8, Tester.
+2. The e2e covers a seeded student only. The signed-up `user` and parent take flows are covered by pgTAP and vitest, and the lead's browser pass reached their list and intro pages, but not take and submit.
+3. The admin pages were not visually checked at 375 px or in dark mode by the lead (two-step sign-in). The admin flow is exercised by the smoke spec at the default size. S8, tester-ui.
+4. Keyboard walk (AC 43), forced failing load (AC 39), invited and deactivated accounts in the real browser (AC 5, 6): S8.
+5. Privacy Policy wording for stored answers and scores (R-1) and the `user` role live check (M17): Saurabh, before release.
