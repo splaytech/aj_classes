@@ -538,6 +538,183 @@ export type Database = {
           },
         ];
       };
+      mock_test_answers: {
+        Row: {
+          attempt_id: string;
+          question_id: string;
+          selected_option: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          attempt_id: string;
+          question_id: string;
+          selected_option: number;
+        };
+        Update: {
+          attempt_id?: string;
+          question_id?: string;
+          selected_option?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'mock_test_answers_attempt_id_fkey';
+            columns: ['attempt_id'];
+            isOneToOne: false;
+            referencedRelation: 'mock_test_attempts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'mock_test_answers_question_id_fkey';
+            columns: ['question_id'];
+            isOneToOne: false;
+            referencedRelation: 'mock_test_questions';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      mock_test_attempts: {
+        Row: {
+          id: string;
+          profile_id: string;
+          score: number | null;
+          started_at: string;
+          submitted_at: string | null;
+          test_id: string;
+          total: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          id?: string;
+          profile_id: string;
+          score?: number | null;
+          started_at?: string;
+          submitted_at?: string | null;
+          test_id: string;
+          total?: number | null;
+        };
+        Update: {
+          id?: string;
+          profile_id?: string;
+          score?: number | null;
+          started_at?: string;
+          submitted_at?: string | null;
+          test_id?: string;
+          total?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'mock_test_attempts_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'mock_test_attempts_test_id_fkey';
+            columns: ['test_id'];
+            isOneToOne: false;
+            referencedRelation: 'mock_tests';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      mock_test_questions: {
+        Row: {
+          correct_option: number;
+          created_at: string;
+          explanation: string;
+          id: string;
+          options: string[];
+          position: number;
+          prompt: string;
+          test_id: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          correct_option: number;
+          created_at?: string;
+          explanation?: string;
+          id?: string;
+          options: string[];
+          position?: number;
+          prompt: string;
+          test_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          correct_option?: number;
+          created_at?: string;
+          explanation?: string;
+          id?: string;
+          options?: string[];
+          position?: number;
+          prompt?: string;
+          test_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'mock_test_questions_test_id_fkey';
+            columns: ['test_id'];
+            isOneToOne: false;
+            referencedRelation: 'mock_tests';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      mock_tests: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          instructions: string;
+          released_at: string | null;
+          released_by: string | null;
+          status: string;
+          title: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          instructions?: string;
+          released_at?: string | null;
+          released_by?: string | null;
+          status?: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          instructions?: string;
+          released_at?: string | null;
+          released_by?: string | null;
+          status?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'mock_tests_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'mock_tests_released_by_fkey';
+            columns: ['released_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       notification_settings: {
         Row: {
           due_tomorrow: boolean;
@@ -858,6 +1035,43 @@ export type Database = {
       invite_token_claim: { Args: { client_ip_hash: string; hash: string }; Returns: string };
       invite_token_release: { Args: { hash: string }; Returns: undefined };
       invite_token_store: { Args: { hash: string; target: string }; Returns: string };
+      mock_move_question: { Args: { step: number; target: string }; Returns: undefined };
+      mock_release: { Args: { target: string }; Returns: undefined };
+      mock_save_answer: {
+        Args: { chosen_option: number; target_question: string; target_test: string };
+        Returns: undefined;
+      };
+      mock_start: { Args: { target: string }; Returns: undefined };
+      mock_submit: { Args: { target: string }; Returns: Json };
+      mock_test_open: { Args: { target: string }; Returns: Json };
+      mock_tests_admin_list: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          created_at: string;
+          created_by_name: string;
+          id: string;
+          question_count: number;
+          released_at: string;
+          status: string;
+          submitted_count: number;
+          title: string;
+          updated_at: string;
+        }[];
+      };
+      mock_tests_for_me: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          id: string;
+          question_count: number;
+          released_at: string;
+          score: number;
+          status: string;
+          submitted_at: string;
+          title: string;
+          total: number;
+        }[];
+      };
+      mock_withdraw: { Args: { target: string }; Returns: undefined };
       move_question: { Args: { step: number; target: string }; Returns: undefined };
       my_has_password: { Args: Record<PropertyKey, never>; Returns: boolean };
       my_onboarding: {
@@ -961,8 +1175,8 @@ export type Database = {
         };
         Returns: undefined;
       };
-      sign_up_guard_ready: { Args: Record<PropertyKey, never>; Returns: boolean };
       sign_up_email_open: { Args: Record<PropertyKey, never>; Returns: boolean };
+      sign_up_guard_ready: { Args: Record<PropertyKey, never>; Returns: boolean };
       sign_up_status: { Args: Record<PropertyKey, never>; Returns: string };
       student_assignment: { Args: { target: string }; Returns: Json };
       student_assignments: {

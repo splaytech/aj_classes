@@ -34,3 +34,11 @@ export async function getStaffClient() {
   if (!role || !isStaffRole(role)) return null;
   return getSupabase();
 }
+
+/** Pages for students, parents and signed-up users (mock tests): any active non-staff account.
+ * Tutors, admins and signed-out visitors send no request; the layout shows their page. */
+export async function getTakerClient() {
+  const role = (await getAccessState()).profile?.role;
+  if (!role || isStaffRole(role)) return null;
+  return getSupabase();
+}

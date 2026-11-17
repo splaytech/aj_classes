@@ -52,6 +52,10 @@ export const PORTAL_SEO = {
   authCallback: 'Signing in',
   user: 'Latest news',
   adminUsers: 'Users',
+  adminMockTests: 'Mock tests',
+  adminMockTest: 'Mock test',
+  mockTests: 'Mock tests',
+  mockTest: 'Mock test',
 } as const;
 
 export const ROLE_LABELS: Record<AppRole, string> = {
@@ -105,6 +109,7 @@ export const PORTAL_COMMON = {
     studentTimetable: 'Timetable',
     parentHome: 'My children',
     userHome: 'Latest news',
+    mockTests: 'Mock tests',
   },
   themeToggle: {
     toDark: 'Switch to dark mode',
@@ -404,6 +409,7 @@ export const ADMIN_DASHBOARD = {
     emails: 'Emails',
     activity: 'Activity',
     users: 'Users',
+    mockTests: 'Mock tests',
   },
   recent: {
     heading: 'Recent activity',
@@ -529,6 +535,11 @@ export const PROFILE_PAGE = {
     saved: 'Photo updated.',
     removed: 'Photo removed.',
   },
+} as const;
+
+// The optional Try again on a failed page load (mock test pages, AC 39).
+export const LOAD_ERROR = {
+  tryAgain: 'Try again',
 } as const;
 
 export const NOT_FOUND_PANEL = {

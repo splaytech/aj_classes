@@ -76,11 +76,13 @@ test.describe('Open sign-up', () => {
     await page.getByRole('checkbox').check();
     await page.getByRole('button', { name: 'Finish' }).click();
 
-    // AC-21: Latest news, with only the user's links.
+    // AC-21: lands on Latest news. AC-22: only the user's links.
     await expect(page).toHaveURL(/\/portal\/user$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Latest news' })).toBeVisible();
     const nav = page.getByRole('navigation', { name: 'Portal' });
-    await expect(nav.getByRole('link')).toHaveText(['Latest news', 'Account']);
+    // Mock tests (docs/delivery/2026-11-17-mock-tests M15, ruling L-7) added a link for users;
+    // this supersedes AC-22 "only that home page, Account and Sign out".
+    await expect(nav.getByRole('link')).toHaveText(['Latest news', 'Mock tests', 'Account']);
 
     // And the database agrees.
     const [row] = await db.query<{

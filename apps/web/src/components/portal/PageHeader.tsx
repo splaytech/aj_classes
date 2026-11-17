@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 import { Link as RouterLink } from 'react-router';
 
 type PageHeaderProps = {
@@ -14,9 +14,11 @@ type PageHeaderProps = {
   /** Chips or other small facts shown under the title. */
   meta?: ReactNode;
   actions?: ReactNode;
+  /** Lets a page move focus to the heading after an action that removes the button used. */
+  headingRef?: Ref<HTMLHeadingElement>;
 };
 
-export function PageHeader({ title, intro, back, meta, actions }: PageHeaderProps) {
+export function PageHeader({ title, intro, back, meta, actions, headingRef }: PageHeaderProps) {
   return (
     <Box component="header" sx={{ mb: 6 }}>
       {back && (
@@ -29,8 +31,14 @@ export function PageHeader({ title, intro, back, meta, actions }: PageHeaderProp
         spacing={3}
         sx={{ justifyContent: 'space-between', alignItems: { sm: 'flex-start' }, mt: back ? 2 : 0 }}
       >
-        <Box>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+        <Box sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+          <Typography
+            ref={headingRef}
+            tabIndex={headingRef ? -1 : undefined}
+            variant="h4"
+            component="h1"
+            sx={{ fontWeight: 700 }}
+          >
             {title}
           </Typography>
           {intro && (

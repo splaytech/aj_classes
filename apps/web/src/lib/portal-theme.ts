@@ -10,6 +10,8 @@ import type { ResolvedTheme } from '@/constants';
 
 const SPACING_PX = 4; // the --space-* scale is 4 px based: spacing(2) = 8 px
 const THEME_ATTRIBUTE = 'data-portal-theme';
+const FOCUS_RING_WIDTH_PX = 3; // the links' ring, styles/theme.css
+const FOCUS_RING_OFFSET_PX = 2;
 
 /** Reads one CSS variable, e.g. read('--color-primary'). Empty when it isn't defined. */
 export type ReadVariable = (name: string) => string;
@@ -28,6 +30,7 @@ const VARIABLES = [
   '--color-bg',
   '--color-surface',
   '--color-border',
+  '--color-focus',
   '--font-body',
   '--radius-md',
 ] as const;
@@ -57,6 +60,7 @@ export function applyThemeToPage(mode: ResolvedTheme | null): void {
 
 export function createPortalTheme(mode: ResolvedTheme, read: ReadVariable): Theme {
   const primary = read('--color-primary');
+  const focus = read('--color-focus') || primary;
 
   // theme.css not loaded (e.g. some tests): fall back to MUI's defaults rather than crash.
   if (!primary) return createTheme({ spacing: SPACING_PX, palette: { mode } });
@@ -93,5 +97,19 @@ export function createPortalTheme(mode: ResolvedTheme, read: ReadVariable): Them
       button: { textTransform: 'none', fontWeight: 700 },
     },
     shape: { borderRadius: parseInt(read('--radius-md'), 10) },
+    components: {
+      // MUI only paints a ripple tint on a keyboard-focused button (WCAG 2.4.7 wants an outline).
+      // ButtonBase is the base of Button, IconButton and the rest, so this covers them all.
+      MuiButtonBase: {
+        styleOverrides: {
+          root: {
+            '&.Mui-focusVisible': {
+              outline: `${FOCUS_RING_WIDTH_PX}px solid ${focus}`,
+              outlineOffset: FOCUS_RING_OFFSET_PX,
+            },
+          },
+        },
+      },
+    },
   });
 }

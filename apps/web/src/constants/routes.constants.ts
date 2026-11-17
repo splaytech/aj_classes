@@ -51,6 +51,11 @@ export const PORTAL_ROUTES = {
   authCallback: '/portal/auth/callback', // where Google sends people back (Supabase redirect URL)
   user: '/portal/user', // a signed-up user's home: the latest news
   adminUsers: '/portal/admin/users',
+  // Mock tests: admins write them, students, parents and signed-up users take them.
+  adminMockTests: '/portal/admin/mock-tests',
+  studentMockTests: '/portal/student/mock-tests',
+  parentMockTests: '/portal/parent/mock-tests',
+  userMockTests: '/portal/user/mock-tests',
 } as const;
 
 // Portal pages with an id in the address (React Router patterns).
@@ -63,7 +68,28 @@ export const PORTAL_ROUTE_PATTERNS = {
   studentAssignment: '/portal/student/assignments/:assignmentId',
   parentChild: '/portal/parent/children/:studentId',
   parentChildAssignment: '/portal/parent/children/:studentId/assignments/:assignmentId',
+  adminMockTest: '/portal/admin/mock-tests/:testId',
+  studentMockTest: '/portal/student/mock-tests/:testId',
+  parentMockTest: '/portal/parent/mock-tests/:testId',
+  userMockTest: '/portal/user/mock-tests/:testId',
 } as const;
+
+/** The portal areas whose people can take mock tests (tutors and admins cannot). */
+export const MOCK_TAKER_AREAS = ['student', 'parent', 'user'] as const;
+export type MockTakerArea = (typeof MOCK_TAKER_AREAS)[number];
+
+export function adminMockTestPath(testId: string): string {
+  return `${PORTAL_ROUTES.adminMockTests}/${testId}`;
+}
+
+/** The mock test list of one area, such as "/portal/parent/mock-tests". */
+export function mockTestsPath(area: MockTakerArea): string {
+  return PORTAL_ROUTES[`${area}MockTests`];
+}
+
+export function mockTestPath(area: MockTakerArea, testId: string): string {
+  return `${mockTestsPath(area)}/${testId}`;
+}
 
 export function staffMemberPath(userId: string): string {
   return `${PORTAL_ROUTES.adminStaff}/${userId}`;
