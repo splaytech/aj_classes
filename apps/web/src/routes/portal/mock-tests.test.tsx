@@ -26,6 +26,7 @@ const ITEMS: MockTestListItem[] = [
     total: null,
     submittedAt: null,
     closesAt: null,
+    tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
   },
   {
     id: 't2',
@@ -36,6 +37,7 @@ const ITEMS: MockTestListItem[] = [
     total: null,
     submittedAt: null,
     closesAt: null,
+    tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
   },
   {
     id: 't3',
@@ -46,6 +48,7 @@ const ITEMS: MockTestListItem[] = [
     total: 5,
     submittedAt: '2026-11-18T01:00:00Z',
     closesAt: null,
+    tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
   },
 ];
 

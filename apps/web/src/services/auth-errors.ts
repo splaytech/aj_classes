@@ -11,6 +11,15 @@ type SupabaseLikeError = {
   status?: number;
   message?: string;
   name?: string;
+  hint?: string;
+};
+
+// A mock test tag refusal names its field in the hint (categories design §2.4), so the page can
+// say which tag is wrong. Any other check violation (23514) stays invalidInput.
+const MOCK_TAG_ERROR_KEYS: Record<string, ErrorKey> = {
+  subject: 'mockTagSubject',
+  stream: 'mockTagStream',
+  year_levels: 'mockTagYears',
 };
 
 const ERROR_KEYS_BY_CODE: Record<string, ErrorKey> = {
@@ -135,11 +144,17 @@ const ERROR_KEYS_BY_OWN_KEY: Record<string, ErrorKey> = {
   mock_too_many_questions: 'mockTooManyQuestions',
   mock_not_started: 'mockNotStarted',
   mock_closes_in_past: 'mockClosesInPast',
+  mock_tags_missing: 'mockTagsMissing',
+  mock_tag_kept: 'mockTagKept',
 };
 
 /** The portal error to show for anything a Supabase call returned or threw. */
 export function toErrorKey(error: unknown): ErrorKey {
   const details = (error ?? {}) as SupabaseLikeError;
+
+  if (details.message === 'invalid_mock_tag') {
+    return MOCK_TAG_ERROR_KEYS[details.hint ?? ''] ?? 'invalidInput';
+  }
 
   const ownKey =
     ERROR_KEYS_BY_OWN_KEY[details.message ?? ''] ?? ERROR_KEYS_BY_OWN_KEY[details.code ?? ''];

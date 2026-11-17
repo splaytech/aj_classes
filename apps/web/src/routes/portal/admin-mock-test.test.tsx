@@ -56,6 +56,7 @@ function testView(overrides: Partial<MockTestDraftView> = {}): MockTestDraftView
     instructions: 'Read carefully.',
     status: 'draft',
     closesAt: null,
+    tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
     questions: [question('q1', 1), question('q2', 3)],
     ...overrides,
   };

@@ -17,6 +17,7 @@ import {
   startMockTest,
   submitMockTest,
   updateMockTest,
+  updateMockTestTags,
   withdrawMockTest,
 } from './mock-tests.service';
 
@@ -98,6 +99,10 @@ describe('listMockTestsAdmin', () => {
         updated_at: 'u',
         released_at: null,
         closes_at: '2026-12-01T00:00:00Z',
+        subject: 'maths',
+        stream: 'vce',
+        year_levels: [7, 8],
+        any_year: false,
       },
     ]);
     expect(await listMockTestsAdmin()).toEqual({
@@ -114,6 +119,7 @@ describe('listMockTestsAdmin', () => {
           updatedAt: 'u',
           releasedAt: null,
           closesAt: '2026-12-01T00:00:00Z',
+          tags: { subject: 'maths', stream: 'vce', yearLevels: [7, 8], anyYear: false },
         },
       ],
     });
@@ -128,7 +134,17 @@ describe('listMockTestsAdmin', () => {
 
 describe('getMockTestForEdit', () => {
   it('reads the test, then its questions in order', async () => {
-    reply({ id: 't1', title: 'Maths', instructions: 'Go', status: 'draft', closes_at: null });
+    reply({
+      id: 't1',
+      title: 'Maths',
+      instructions: 'Go',
+      status: 'draft',
+      closes_at: null,
+      subject: null,
+      stream: null,
+      year_levels: [],
+      any_year: true,
+    });
     reply([
       {
         id: 'q1',
@@ -148,6 +164,7 @@ describe('getMockTestForEdit', () => {
         instructions: 'Go',
         status: 'draft',
         closesAt: null,
+        tags: { subject: null, stream: null, yearLevels: [], anyYear: true },
         questions: [
           {
             id: 'q1',
@@ -256,6 +273,48 @@ describe('release and take back', () => {
   ])('maps %s to %s', async (raised, key) => {
     reply(null, { message: raised });
     expect(await releaseMockTest('t1', null)).toEqual({ ok: false, error: key });
+  });
+});
+
+describe('updateMockTestTags', () => {
+  it('sends only the four tag columns, years ascending', async () => {
+    reply({ id: 't1' });
+    expect(
+      await updateMockTestTags('t1', {
+        subject: 'english',
+        stream: 'naplan',
+        yearLevels: [9, 7],
+        anyYear: false,
+      }),
+    ).toEqual({ ok: true, data: undefined });
+    expect(
+      called('update', {
+        subject: 'english',
+        stream: 'naplan',
+        year_levels: [7, 9],
+        any_year: false,
+      }),
+    ).toBe(true);
+    expect(called('eq', 'id', 't1')).toBe(true);
+  });
+
+  it('says notAllowed when no row came back', async () => {
+    reply(null);
+    expect(
+      await updateMockTestTags('t1', {
+        subject: null,
+        stream: null,
+        yearLevels: [],
+        anyYear: true,
+      }),
+    ).toEqual({ ok: false, error: 'notAllowed' });
+  });
+
+  it('names the field the database refused', async () => {
+    reply(null, { code: '23514', message: 'invalid_mock_tag', hint: 'stream' });
+    expect(
+      await updateMockTestTags('t1', { subject: null, stream: 'x', yearLevels: [], anyYear: true }),
+    ).toEqual({ ok: false, error: 'mockTagStream' });
   });
 });
 
@@ -375,6 +434,10 @@ describe('listMyMockTests', () => {
         submitted_at: 's',
         released_at: 'r',
         closes_at: 'x',
+        subject: 'maths',
+        stream: 'vce',
+        year_levels: [7, 8],
+        any_year: false,
       },
     ]);
     expect(await listMyMockTests()).toEqual({
@@ -389,6 +452,7 @@ describe('listMyMockTests', () => {
           total: 3,
           submittedAt: 's',
           closesAt: 'x',
+          tags: { subject: 'maths', stream: 'vce', yearLevels: [7, 8], anyYear: false },
         },
       ],
     });
@@ -409,7 +473,19 @@ describe('getMyMockTest', () => {
     score: null,
     total: null,
     submitted_at: null,
+    tags: { subject: 'maths', stream: 'vce', year_levels: [7, 8], any_year: false },
   };
+
+  it('returns the tags with the test', async () => {
+    reply({ ...base, status: 'not_started', questions: [] });
+    const result = await getMyMockTest('t1');
+    expect(result.ok && result.data.tags).toEqual({
+      subject: 'maths',
+      stream: 'vce',
+      yearLevels: [7, 8],
+      anyYear: false,
+    });
+  });
 
   it('keeps the keys out while in progress', async () => {
     reply({

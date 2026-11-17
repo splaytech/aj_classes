@@ -31,6 +31,7 @@ const BASE: MockTestView = {
   questionCount: 2,
   score: null,
   total: null,
+  tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
   questions: [],
 };
 

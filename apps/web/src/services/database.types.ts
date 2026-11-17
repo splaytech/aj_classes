@@ -665,6 +665,7 @@ export type Database = {
       };
       mock_tests: {
         Row: {
+          any_year: boolean;
           closes_at: string | null;
           created_at: string;
           created_by: string | null;
@@ -673,11 +674,15 @@ export type Database = {
           released_at: string | null;
           released_by: string | null;
           status: string;
+          stream: string | null;
+          subject: string | null;
           title: string;
           updated_at: string;
+          year_levels: number[];
         };
         ComputedFields: never;
         Insert: {
+          any_year?: boolean;
           closes_at?: string | null;
           created_at?: string;
           created_by?: string | null;
@@ -686,10 +691,14 @@ export type Database = {
           released_at?: string | null;
           released_by?: string | null;
           status?: string;
+          stream?: string | null;
+          subject?: string | null;
           title: string;
           updated_at?: string;
+          year_levels?: number[];
         };
         Update: {
+          any_year?: boolean;
           closes_at?: string | null;
           created_at?: string;
           created_by?: string | null;
@@ -698,8 +707,11 @@ export type Database = {
           released_at?: string | null;
           released_by?: string | null;
           status?: string;
+          stream?: string | null;
+          subject?: string | null;
           title?: string;
           updated_at?: string;
+          year_levels?: number[];
         };
         Relationships: [
           {
@@ -1052,6 +1064,7 @@ export type Database = {
       mock_tests_admin_list: {
         Args: Record<PropertyKey, never>;
         Returns: {
+          any_year: boolean;
           closes_at: string;
           created_at: string;
           created_by_name: string;
@@ -1059,23 +1072,30 @@ export type Database = {
           question_count: number;
           released_at: string;
           status: string;
+          stream: string;
+          subject: string;
           submitted_count: number;
           title: string;
           updated_at: string;
+          year_levels: number[];
         }[];
       };
       mock_tests_for_me: {
         Args: Record<PropertyKey, never>;
         Returns: {
+          any_year: boolean;
           closes_at: string;
           id: string;
           question_count: number;
           released_at: string;
           score: number;
           status: string;
+          stream: string;
+          subject: string;
           submitted_at: string;
           title: string;
           total: number;
+          year_levels: number[];
         }[];
       };
       mock_withdraw: { Args: { target: string }; Returns: undefined };

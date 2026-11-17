@@ -107,8 +107,8 @@ Read the failing file list. The `Files=` count is not a pass criterion.
 
 ## Slice 4: parity vitest
 
-- [ ] **4.1** Create `apps/web/src/lib/mock-test-options.parity.test.ts`.
-- [ ] **4.2** The parser reads every migration in filename order, and each `-- mock-test-options:begin` to `-- mock-test-options:end` block in each. Within a block it reads tuples of two elements (`('kind','key')`, active) and of three (`('kind','key', false)`, a removal). Last write wins per `(kind, key)`.
+- [x] **4.1** Create `apps/web/src/lib/mock-test-options.parity.test.ts`.
+- [x] **4.2** The parser reads every migration in filename order, and each `-- mock-test-options:begin` to `-- mock-test-options:end` block in each. Within a block it reads tuples of two elements (`('kind','key')`, active) and of three (`('kind','key', false)`, a removal). Last write wins per `(kind, key)`.
   - **Removal form:** its own marked block, as in design §1.3.2, never an edit to the seed block:
     ```
     -- mock-test-options:begin
@@ -117,7 +117,7 @@ Read the failing file list. The `Files=` count is not a pass criterion.
     -- mock-test-options:end
     ```
   - The file header records this form.
-- [ ] **4.3** Assertions: active subject keys equal `MOCK_TEST_SUBJECTS` keys; active stream keys equal `MOCK_TEST_STREAMS` keys (order-insensitive); every stream key is a `PROGRAMME_SLUGS` value; every subject key is in `SUBJECTS`; the migration's year range (the `mock_tests_year_levels_valid` literal) equals `YEAR_LEVELS`; each `MOCK_TEST_STREAMS` label equals the programme's `menuLabel`. Add one parser case on an inline sample with a removal block, to show a removed key switches off.
+- [x] **4.3** Assertions: active subject keys equal `MOCK_TEST_SUBJECTS` keys; active stream keys equal `MOCK_TEST_STREAMS` keys (order-insensitive); every stream key is a `PROGRAMME_SLUGS` value; every subject key is in `SUBJECTS`; the migration's year range (the `mock_tests_year_levels_valid` literal) equals `YEAR_LEVELS`; each `MOCK_TEST_STREAMS` label equals the programme's `menuLabel`. Add one parser case on an inline sample with a removal block, to show a removed key switches off.
 
 **Test that proves it:** the parity test itself, plus one red run on a deliberate drift (a local, uncommitted edit, reverted before the commit).
 
@@ -131,7 +131,7 @@ Read the failing file list. The `Files=` count is not a pass criterion.
 
 ## Slice 5: service, types, error mapping (reads and errors only)
 
-- [ ] **5.1** `services/types.ts`: `MockTags` (design §2.1). `tags: MockTags` on `MockTestSummary`, `MockTestDraftView`, `MockTestListItem` and `MockTestView`. **`MockTestInput.tags` is not added here** (it moves to 7a). The same slice adds tag values to every typed fixture, so `pnpm typecheck` passes at slice 5:
+- [x] **5.1** `services/types.ts`: `MockTags` (design §2.1). `tags: MockTags` on `MockTestSummary`, `MockTestDraftView`, `MockTestListItem` and `MockTestView`. **`MockTestInput.tags` is not added here** (it moves to 7a). The same slice adds tag values to every typed fixture, so `pnpm typecheck` passes at slice 5:
   - `components/portal/MockTestTakeForm.test.tsx:14`;
   - `components/portal/MockTestResult.test.tsx:9`;
   - `routes/portal/mock-tests.test.tsx:19`;
@@ -140,11 +140,11 @@ Read the failing file list. The `Files=` count is not a pass criterion.
   - `routes/portal/admin-mock-tests.test.tsx:22, 34`.
 
   Record the slice 5 command output.
-- [ ] **5.2** `services/mock-tests-data.ts`: the four row fields on `MockSummaryRow`, `MockListRow` and `MockOpenJson`; `toMockTags`, used by the four mappers and by `getMockTestForEdit`; `toMockTagColumns`, which sorts years ascending (used from 7a).
-- [ ] **5.3** `services/mock-tests.service.ts`: `getMockTestForEdit` selects the four columns and returns `tags`. New `updateMockTestTags(testId, tags)` sends only the four columns and returns `notAllowed` when no row comes back. Export `updateMockTestTags` and `MockTags` from `services/index.ts`. `createMockTest` and `updateMockTest` are unchanged here.
-- [ ] **5.4** `services/auth-errors.ts`: `SupabaseLikeError.hint`. `mock_tags_missing` maps to `mockTagsMissing`. `mock_tag_kept` maps to `mockTagKept`. `invalid_mock_tag` maps by hint (`subject` to `mockTagSubject`, `stream` to `mockTagStream`, `year_levels` to `mockTagYears`, anything else to `invalidInput`). Any other 23514 stays `invalidInput`.
-- [ ] **5.5** `constants/error.constants.ts`: the five new keys, with their texts (part of 6a): `mockTagsMissing`, `mockTagKept` (text from `MOCK_VALIDATION.tagKeep`), `mockTagSubject`, `mockTagStream`, `mockTagYears` (text from `MOCK_VALIDATION.tagYears`).
-- [ ] **5.6** Regenerate `apps/web/src/services/database.types.ts` with `pnpm db:types`, after slice 1 applies locally. The script runs against the local database only.
+- [x] **5.2** `services/mock-tests-data.ts`: the four row fields on `MockSummaryRow`, `MockListRow` and `MockOpenJson`; `toMockTags`, used by the four mappers and by `getMockTestForEdit`; `toMockTagColumns`, which sorts years ascending (used from 7a).
+- [x] **5.3** `services/mock-tests.service.ts`: `getMockTestForEdit` selects the four columns and returns `tags`. New `updateMockTestTags(testId, tags)` sends only the four columns and returns `notAllowed` when no row comes back. Export `updateMockTestTags` and `MockTags` from `services/index.ts`. `createMockTest` and `updateMockTest` are unchanged here.
+- [x] **5.4** `services/auth-errors.ts`: `SupabaseLikeError.hint`. `mock_tags_missing` maps to `mockTagsMissing`. `mock_tag_kept` maps to `mockTagKept`. `invalid_mock_tag` maps by hint (`subject` to `mockTagSubject`, `stream` to `mockTagStream`, `year_levels` to `mockTagYears`, anything else to `invalidInput`). Any other 23514 stays `invalidInput`.
+- [x] **5.5** `constants/error.constants.ts`: the five new keys, with their texts (part of 6a): `mockTagsMissing`, `mockTagKept` (text from `MOCK_VALIDATION.tagKeep`), `mockTagSubject`, `mockTagStream`, `mockTagYears` (text from `MOCK_VALIDATION.tagYears`).
+- [x] **5.6** Regenerate `apps/web/src/services/database.types.ts` with `pnpm db:types`, after slice 1 applies locally. The script runs against the local database only.
 
 **Files:** `types.ts`, `mock-tests-data.ts`, `mock-tests.service.ts`, `index.ts`, `auth-errors.ts`, `error.constants.ts`, `database.types.ts`.
 
@@ -158,7 +158,7 @@ Read the failing file list. The `Files=` count is not a pass criterion.
 
 ## Slice 6: constants
 
-- [ ] **6a (lands with slices 4 and 5)** In `constants/mock-tests.constants.ts`:
+- [x] **6a (lands with slices 4 and 5)** In `constants/mock-tests.constants.ts`:
   - `MOCK_TEST_EXCLUDED_SUBJECT_KEYS = ['interview-preparation'] as const`, and `MOCK_TEST_SUBJECTS = SUBJECTS.filter(...)` (AC 10);
   - `MOCK_TEST_STREAM_SLUGS` in AC 11 order, and `MOCK_TEST_STREAMS` with each label from `findProgramme(slug)?.menuLabel` (review 8);
   - the five error keys and texts in `error.constants.ts` (slice 5.5).

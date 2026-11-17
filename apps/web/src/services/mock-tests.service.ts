@@ -6,6 +6,8 @@ import { toErrorKey } from './auth-errors';
 import {
   MOCK_QUESTION_COLUMNS,
   toMockAdminQuestion,
+  toMockTagColumns,
+  toMockTags,
   toMockTestListItem,
   toMockTestSummary,
   toMockTestView,
@@ -17,6 +19,7 @@ import { getSupabase } from './supabase.client';
 import type {
   MockQuestionInput,
   MockResult,
+  MockTags,
   MockTestDraftView,
   MockTestInput,
   MockTestListItem,
@@ -45,7 +48,7 @@ export async function getMockTestForEdit(testId: string): Promise<Result<MockTes
     if (!supabase) return fail('notAllowed'); // the layout shows the refusal; no request goes out
     const test = await supabase
       .from('mock_tests')
-      .select('id, title, instructions, status, closes_at')
+      .select('id, title, instructions, status, closes_at, subject, stream, year_levels, any_year')
       .eq('id', testId)
       .maybeSingle();
     if (test.error) return fail(toErrorKey(test.error));
@@ -65,6 +68,7 @@ export async function getMockTestForEdit(testId: string): Promise<Result<MockTes
       instructions: test.data.instructions,
       status: test.data.status as MockTestStatus,
       closesAt: test.data.closes_at,
+      tags: toMockTags(test.data),
       questions: (questions.data as MockQuestionRow[]).map(toMockAdminQuestion),
     });
   });
@@ -89,6 +93,25 @@ export async function updateMockTest(testId: string, input: MockTestInput): Prom
     const { data, error } = await supabase
       .from('mock_tests')
       .update({ title: input.title.trim(), instructions: input.instructions.trim() })
+      .eq('id', testId)
+      .select('id')
+      .maybeSingle();
+    if (error) return fail(toErrorKey(error));
+    return data ? succeed() : fail('notAllowed');
+  });
+}
+
+/**
+ * Saves only the four tag columns, so it works on a released or closed test too (AC 15): its title
+ * and instructions stay frozen. The database refuses a value off the lists and clearing a set tag
+ * on a released test.
+ */
+export async function updateMockTestTags(testId: string, tags: MockTags): Promise<Result> {
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { data, error } = await supabase
+      .from('mock_tests')
+      .update(toMockTagColumns(tags))
       .eq('id', testId)
       .select('id')
       .maybeSingle();

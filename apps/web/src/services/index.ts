@@ -74,6 +74,7 @@ export {
   startMockTest,
   submitMockTest,
   updateMockTest,
+  updateMockTestTags,
   withdrawMockTest,
 } from './mock-tests.service';
 export { getSubmission, saveSubmission } from './submissions.service';
@@ -185,6 +186,7 @@ export type {
   MockAdminQuestion,
   MockQuestionInput,
   MockResult,
+  MockTags,
   MockTakeQuestion,
   MockTakeStatus,
   MockTestDraftView,

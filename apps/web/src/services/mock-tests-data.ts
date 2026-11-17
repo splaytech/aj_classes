@@ -4,6 +4,7 @@
 
 import type {
   MockAdminQuestion,
+  MockTags,
   MockTakeQuestion,
   MockTakeStatus,
   MockTestListItem,
@@ -12,7 +13,15 @@ import type {
   MockTestView,
 } from './types';
 
-export type MockSummaryRow = {
+/** The four tag columns, as every mock test function and table read returns them. */
+export type MockTagRow = {
+  subject: string | null;
+  stream: string | null;
+  year_levels: number[];
+  any_year: boolean;
+};
+
+export type MockSummaryRow = MockTagRow & {
   id: string;
   title: string;
   status: MockTestStatus;
@@ -25,7 +34,7 @@ export type MockSummaryRow = {
   closes_at: string | null;
 };
 
-export type MockListRow = {
+export type MockListRow = MockTagRow & {
   id: string;
   title: string;
   question_count: number;
@@ -54,6 +63,7 @@ export type MockOpenJson = {
   question_count: number;
   score: number | null;
   total: number | null;
+  tags: MockTagRow;
   questions: {
     id: string;
     position: number;
@@ -67,6 +77,25 @@ export type MockOpenJson = {
 
 export const MOCK_QUESTION_COLUMNS = 'id, position, prompt, options, correct_option, explanation';
 
+export function toMockTags(row: MockTagRow): MockTags {
+  return {
+    subject: row.subject,
+    stream: row.stream,
+    yearLevels: row.year_levels,
+    anyYear: row.any_year,
+  };
+}
+
+/** The columns to write. Years go ascending: the database refuses any other order. */
+export function toMockTagColumns(tags: MockTags): MockTagRow {
+  return {
+    subject: tags.subject,
+    stream: tags.stream,
+    year_levels: [...tags.yearLevels].sort((a, b) => a - b),
+    any_year: tags.anyYear,
+  };
+}
+
 export function toMockTestSummary(row: MockSummaryRow): MockTestSummary {
   return {
     id: row.id,
@@ -79,6 +108,7 @@ export function toMockTestSummary(row: MockSummaryRow): MockTestSummary {
     updatedAt: row.updated_at,
     releasedAt: row.released_at,
     closesAt: row.closes_at,
+    tags: toMockTags(row),
   };
 }
 
@@ -92,6 +122,7 @@ export function toMockTestListItem(row: MockListRow): MockTestListItem {
     total: row.total,
     submittedAt: row.submitted_at,
     closesAt: row.closes_at,
+    tags: toMockTags(row),
   };
 }
 
@@ -128,6 +159,7 @@ export function toMockTestView(json: MockOpenJson): MockTestView {
     questionCount: json.question_count,
     score: json.score,
     total: json.total,
+    tags: toMockTags(json.tags),
     questions: json.questions.map(toMockTakeQuestion),
   };
 }

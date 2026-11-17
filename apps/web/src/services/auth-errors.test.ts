@@ -116,4 +116,20 @@ describe('mock test refusals', () => {
     expect(toErrorKey({ code: '23514' })).toBe('invalidInput');
     expect(toErrorKey({ code: '23505' })).toBe('duplicate');
   });
+
+  it('maps mock test tag refusals by their field (categories design §2.4)', () => {
+    const tag = (hint?: string) => toErrorKey({ code: '23514', message: 'invalid_mock_tag', hint });
+    expect(tag('subject')).toBe('mockTagSubject');
+    expect(tag('stream')).toBe('mockTagStream');
+    expect(tag('year_levels')).toBe('mockTagYears');
+    expect(tag('something_else')).toBe('invalidInput');
+    expect(tag()).toBe('invalidInput');
+    expect(toErrorKey({ code: '23514', message: 'mock_tag_kept', hint: 'subject' })).toBe(
+      'mockTagKept',
+    );
+    expect(toErrorKey({ code: 'P0001', message: 'mock_tags_missing' })).toBe('mockTagsMissing');
+    expect(toErrorKey({ code: '23514', message: 'new row violates check constraint' })).toBe(
+      'invalidInput',
+    );
+  });
 });

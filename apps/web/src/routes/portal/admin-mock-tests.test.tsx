@@ -30,6 +30,7 @@ const DRAFT: MockTestSummary = {
   updatedAt: '2026-11-18T01:00:00Z',
   releasedAt: null,
   closesAt: null,
+  tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
 };
 const RELEASED: MockTestSummary = {
   ...DRAFT,

@@ -14,6 +14,7 @@ const TEST: MockTestView = {
   questionCount: 2,
   score: 1,
   total: 2,
+  tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
   questions: [
     {
       id: 'q1',

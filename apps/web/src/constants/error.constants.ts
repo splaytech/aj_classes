@@ -91,6 +91,11 @@ export const PORTAL_ERRORS = {
   mockTooManyQuestions: `A mock test can have up to ${MOCK_TEST_LIMITS.questionsMax} questions.`,
   mockNotStarted: 'Start the mock test first.',
   mockClosesInPast: MOCK_VALIDATION.closesInPast,
+  mockTagsMissing: 'Set the subject, stream and year level before releasing.',
+  mockTagKept: MOCK_VALIDATION.tagKeep,
+  mockTagSubject: 'That subject isn’t on the list. Please choose another.',
+  mockTagStream: 'That stream isn’t on the list. Please choose another.',
+  mockTagYears: MOCK_VALIDATION.tagYears,
   answerTooLong: 'That answer is too long. Please shorten it.',
   notOnline: 'This assignment is handed in on paper.',
   // Setup form (invite-onboarding design)
