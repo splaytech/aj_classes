@@ -20,6 +20,11 @@ export const adminMockTestSelectors = {
   confirmReleaseButton: (page: Page) =>
     page.getByRole('dialog').getByRole('button', { name: 'Release', exact: true }),
   releasedNotice: (page: Page) => page.getByText('Released. People can take it now.'),
+
+  closeNowButton: (page: Page) => page.getByRole('button', { name: 'Close now', exact: true }),
+  confirmCloseNowButton: (page: Page) =>
+    page.getByRole('dialog').getByRole('button', { name: 'Close now', exact: true }),
+  closedNotice: (page: Page) => page.getByText('Closed. People can no longer see it.'),
 };
 
 export const takeMockTestSelectors = {
