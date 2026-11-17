@@ -380,3 +380,10 @@ pgTAP file split: `mock_tests_admin.test.sql` (ACs 1, 2, 11–24 and the freeze/
 - D-1 (ruled L-1) and D-3 (ruled L-3) are decided; D-2 (reveal after submit) is the team's kept default; Saurabh may overrule any of them. Cheap to flip: D-1 changes `can_take_mock_tests()` and the parent routes; D-2 changes one branch in `mock_test_open`; D-3 adds `created_by = auth.uid()` to the update/delete policies and to `mock_release`/`mock_withdraw`.
 - `[TBC: Privacy Policy wording for mock test data – Saurabh]` before release.
 - Developer decides, in the service test, whether the two assignment-worded messages (`invalidStatus`, `alreadySubmitted`) are reused or get mock-specific keys (3.1).
+
+## Amendments after build (team lead, 2026-11-18)
+
+Superseded by rulings and fix batches; the text above is kept as approved.
+- §2.6 row 8 and the concurrency paragraph: superseded by L-5 and fix batch 2 (`3e20c19`). `mock_withdraw` refuses only when an attempt is submitted and deletes in-progress attempts; start, save and submit take the test row `for share`, withdraw and release take it `for update`, then the attempt row.
+- §4.4: Previous is disabled on the first question and Next on the last (as built); AC 29 is still met.
+- §8 AC 1: a tutor's direct select returns 0 rows (RLS), not 42501.
