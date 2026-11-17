@@ -172,6 +172,9 @@ export const MOCK_TEST_EDIT_PAGE = {
   draftNote: 'Draft: only admins can see this mock test. Release it when it is ready.',
   releasedNote:
     'Released: students, parents and signed-up users can take it. It can only go back to draft until someone submits it.',
+  // Ruling S-1, in line with MOCK_CLOSING (TSR BUG-3).
+  closedNote:
+    'Closed: people who haven’t submitted it can’t see or take it. People who submitted it still see their result. Open it again with Set closing date.',
   release: 'Release',
   releasing: 'Releasing…',
   releaseNeedsQuestions: 'Add at least one question to release this mock test.',

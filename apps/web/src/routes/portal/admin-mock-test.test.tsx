@@ -450,6 +450,33 @@ describe('admin mock test, tags (categories)', () => {
   });
 });
 
+describe('admin mock test, status note (TSR BUG-3)', () => {
+  it.each([
+    ['a draft', testView(), MOCK_TEST_EDIT_PAGE.draftNote],
+    ['an open released test', testView({ status: 'released' }), MOCK_TEST_EDIT_PAGE.releasedNote],
+    [
+      'an open released test with a future date',
+      testView({ status: 'released', closesAt: '2999-01-01T09:00:00.000Z' }),
+      MOCK_TEST_EDIT_PAGE.releasedNote,
+    ],
+    [
+      'a closed test',
+      testView({ status: 'released', closesAt: '2020-01-01T09:00:00.000Z' }),
+      MOCK_TEST_EDIT_PAGE.closedNote,
+    ],
+  ])('shows the right note for %s', async (_name, view, note) => {
+    await renderPage(view);
+    expect(screen.getByText(note)).toBeInTheDocument();
+    for (const other of [
+      MOCK_TEST_EDIT_PAGE.draftNote,
+      MOCK_TEST_EDIT_PAGE.releasedNote,
+      MOCK_TEST_EDIT_PAGE.closedNote,
+    ].filter((text) => text !== note)) {
+      expect(screen.queryByText(other)).not.toBeInTheDocument();
+    }
+  });
+});
+
 describe('admin mock test route', () => {
   it('exports its own ErrorBoundary (AC 39)', () => {
     expect(adminMockTestRoute.ErrorBoundary).toBeTypeOf('function');

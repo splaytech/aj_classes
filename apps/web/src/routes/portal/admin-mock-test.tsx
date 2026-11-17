@@ -92,6 +92,12 @@ export default function AdminMockTestPage() {
   const canRelease = test.questions.length > 0;
   const now = new Date();
   const isClosed = mockClosingState(test.closesAt, now) === 'closed';
+  // Closed uses the same rule as the Closed chip (TSR BUG-3).
+  const statusNote = isDraft
+    ? MOCK_TEST_EDIT_PAGE.draftNote
+    : isClosed
+      ? MOCK_TEST_EDIT_PAGE.closedNote
+      : MOCK_TEST_EDIT_PAGE.releasedNote;
   const closingText = isDraft ? '' : mockClosingText(test.closesAt, now);
   const missingTags = missingMockTagFields(test.tags);
 
@@ -217,9 +223,7 @@ export default function AdminMockTestPage() {
       <Stack spacing={4}>
         {action.notice && <Alert severity="success">{action.notice}</Alert>}
         {action.error && <Alert severity="error">{action.error}</Alert>}
-        <Alert severity="info">
-          {isDraft ? MOCK_TEST_EDIT_PAGE.draftNote : MOCK_TEST_EDIT_PAGE.releasedNote}
-        </Alert>
+        <Alert severity="info">{statusNote}</Alert>
         {closingText && <Typography sx={{ fontWeight: 700 }}>{closingText}</Typography>}
         {isDraft && !canRelease && (
           <Typography color="textSecondary">{MOCK_TEST_EDIT_PAGE.releaseNeedsQuestions}</Typography>

@@ -5,6 +5,9 @@
 
 import Button from '@mui/material/Button';
 import DialogContentText from '@mui/material/DialogContentText';
+import { useTheme } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
+import { DEFAULT_DESKTOP_MODE_MEDIA_QUERY } from '@mui/x-date-pickers';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
@@ -34,9 +37,21 @@ type ClosesFieldProps = {
   inputRef: RefObject<HTMLInputElement | null>;
 };
 
+/**
+ * The desktop picker's popper is about 490 px wide, so a narrow window with a mouse overflowed
+ * (TSR BUG-1). The desktop picker now needs a fine pointer (MUI's default rule) and a window at
+ * least the theme's `sm` width; anything narrower gets the mobile dialog picker.
+ */
+export function closesPickerDesktopQuery(theme: Theme): string {
+  const wideEnough = theme.breakpoints.up('sm').replace(/^@media\s*/, '');
+  return `${DEFAULT_DESKTOP_MODE_MEDIA_QUERY} and ${wideEnough}`;
+}
+
 function ClosesField({ value, error, onChange, inputRef }: ClosesFieldProps) {
+  const theme = useTheme();
   return (
     <DateTimePicker
+      desktopModeMediaQuery={closesPickerDesktopQuery(theme)}
       label={MOCK_CLOSING.fieldLabel}
       value={value}
       onChange={onChange}

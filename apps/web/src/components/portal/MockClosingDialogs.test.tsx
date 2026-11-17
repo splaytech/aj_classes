@@ -1,5 +1,6 @@
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { createTheme } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -14,7 +15,11 @@ import {
 import { releaseMockTest, setMockTestClosing, updateMockTestTags } from '@/services';
 import { setupUser } from '@/test/user';
 
-import { MockClosingDialog, MockReleaseDialog } from './MockClosingDialogs';
+import {
+  MockClosingDialog,
+  MockReleaseDialog,
+  closesPickerDesktopQuery,
+} from './MockClosingDialogs';
 
 vi.mock('@/services', () => ({
   releaseMockTest: vi.fn(),
@@ -246,5 +251,47 @@ describe('MockClosingDialog', () => {
 
     expect(setMockTestClosing).toHaveBeenCalledWith('t1', null);
     expect(onSaved).toHaveBeenCalledWith(true);
+  });
+});
+
+describe('closing picker on narrow windows (TSR BUG-1)', () => {
+  it('uses the desktop picker only with a fine pointer and a window at least the sm width', () => {
+    const theme = createTheme();
+    expect(closesPickerDesktopQuery(theme)).toBe(
+      `@media (pointer: fine) and (min-width:${theme.breakpoints.values.sm}px)`,
+    );
+  });
+
+  it.each([
+    [
+      'Release',
+      () => <MockReleaseDialog testId="t1" tags={TAGGED} onReleased={vi.fn()} onClose={vi.fn()} />,
+    ],
+    [
+      'Set closing date',
+      () => <MockClosingDialog testId="t1" closesAt={null} onSaved={vi.fn()} onClose={vi.fn()} />,
+    ],
+  ])('the %s dialog asks for that query', (_name, dialog) => {
+    const asked: string[] = [];
+    const original = window.matchMedia;
+    window.matchMedia = vi.fn((query: string) => {
+      asked.push(query);
+      return {
+        matches: false,
+        media: query,
+        onchange: null,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      } as MediaQueryList;
+    });
+    try {
+      renderDialog(dialog());
+      expect(asked).toContain(closesPickerDesktopQuery(createTheme()).replace(/^@media\s*/, ''));
+    } finally {
+      window.matchMedia = original;
+    }
   });
 });
