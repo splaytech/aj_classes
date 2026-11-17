@@ -27,7 +27,7 @@ Each slice is visible or testable on its own. Do them in order. Items with the s
 
 ### S1. Migration: tables, triggers, grants, RLS, admin functions, admin pgTAP (owner: dev-ms)
 
-- [ ] S1 done
+- [x] S1 done
 - Files:
   - `supabase/migrations/20261118100000_mock_tests.sql` (new)
   - `supabase/tests/database/mock_tests_admin.test.sql` (new)
@@ -51,7 +51,7 @@ Each slice is visible or testable on its own. Do them in order. Items with the s
 
 ### S2. Migration: taker functions and taker pgTAP (owner: dev-ms)
 
-- [ ] S2 done
+- [x] S2 done
 - Files:
   - `supabase/migrations/20261118100000_mock_tests.sql` (same file, appended)
   - `supabase/tests/database/mock_tests_taker.test.sql` (new)
