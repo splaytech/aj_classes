@@ -10,6 +10,7 @@ import type { InviteAccount } from '../issue-invite.ts';
 export type AccountRecord = {
   id: string;
   email: string;
+  full_name: string;
   role: string;
   status: 'invited' | 'active';
   is_active: boolean;
@@ -27,7 +28,7 @@ export type StudentRecord = {
   consent_recorded_at: string | null;
 };
 
-const ACCOUNT_COLUMNS = 'id, email, role, status, is_active, joined_at, last_sign_in_at';
+const ACCOUNT_COLUMNS = 'id, email, full_name, role, status, is_active, joined_at, last_sign_in_at';
 
 /** Anyone's profile (read with the secret key), or null if there isn't one. */
 export async function findAccount(userId: string): Promise<AccountRecord | null> {
@@ -61,10 +62,10 @@ export async function findStudent(studentId: string): Promise<StudentRecord | nu
 
 /**
  * Creates an invited account without sending anything yet (ADR-0010: the invite email is ours, so
- * Auth's inviteUserByEmail is no longer used). Student and parent roles go in app_metadata, which
- * only the server can set (R3b D2) and the mobile app reads; the database turns it into the
- * profile role (F30), and we check that it did before going on. Staff join as tutors, with no
- * account_role.
+ * Auth's inviteUserByEmail is no longer used). The role always goes in app_metadata, which only
+ * the server can set (R3b D2) and the mobile app reads; the database turns it into the profile
+ * role (F30), and we check that it did before going on. Staff join as tutors with
+ * account_role 'tutor': an account with no marker becomes a signed-up user (ADR-0011).
  */
 export async function createInvitedAccount(
   email: string,
@@ -74,8 +75,11 @@ export async function createInvitedAccount(
   const service = serviceClient();
   const { data, error } = await service.auth.admin.createUser({
     email,
+    // We e-mail the invite link to this address, so it counts as confirmed (ADR-0011: Auth now
+    // requires confirmation, and an invitee must not need a separate confirmation e-mail).
+    email_confirm: true,
     user_metadata: { full_name: fullName }, // the profile trigger reads only full_name (R2a G2)
-    ...(role === 'tutor' ? {} : { app_metadata: { account_role: role } }),
+    app_metadata: { account_role: role },
   });
   if (error || !data.user) {
     return { code: error?.code === 'email_exists' ? 'already_exists' : 'server_error' };
@@ -116,6 +120,85 @@ export async function sendAccountInvite(account: InviteAccount): Promise<boolean
       return !error && data !== null;
     },
   });
+}
+
+/** A website sign-up (open sign-up, ADR-0011) that hasn't finished /portal/join and is active. */
+export function isUnfinishedSignUp(account: AccountRecord): boolean {
+  return account.role === 'user' && account.status === 'invited' && account.is_active;
+}
+
+/**
+ * Removes an unfinished website sign-up so an invite can use its e-mail (03 §6.1): whoever
+ * signed up hadn't finished, so nothing is lost, and the old confirmation link dies with it.
+ * Race-safe like cancel-invite: one statement switches off a row that is still an unfinished
+ * user, and complete_sign_up locks the same row and needs it switched on, so exactly one wins.
+ */
+export async function replaceUnfinishedSignUp(
+  account: AccountRecord,
+): Promise<'replaced' | 'not_unfinished' | 'server_error'> {
+  if (!isUnfinishedSignUp(account)) return 'not_unfinished';
+
+  const service = serviceClient();
+  const { data: claimed, error: claimError } = await service
+    .from('profiles')
+    .update({ is_active: false })
+    .eq('id', account.id)
+    .eq('role', 'user')
+    .eq('status', 'invited')
+    .eq('is_active', true)
+    .select('id');
+  if (claimError) return 'server_error';
+  if (!claimed?.length) return 'not_unfinished';
+
+  const { error } = await service.auth.admin.deleteUser(account.id);
+  if (error) {
+    await service.from('profiles').update({ is_active: true }).eq('id', account.id);
+    return 'server_error';
+  }
+  return 'replaced';
+}
+
+/**
+ * Makes way for a new invite to this e-mail: nothing there, or an unfinished sign-up that is now
+ * removed. Anything else is refused with the given code.
+ */
+export async function clearForInvite(
+  existing: AccountRecord | null,
+  refusal: string,
+): Promise<{ replaced: boolean } | { code: string }> {
+  if (!existing) return { replaced: false };
+  if (!isUnfinishedSignUp(existing)) return { code: refusal };
+  const outcome = await replaceUnfinishedSignUp(existing);
+  if (outcome === 'server_error') return { code: 'server_error' };
+  if (outcome === 'not_unfinished') return { code: refusal };
+  return { replaced: true };
+}
+
+/**
+ * Makes app_metadata.account_role match the profile role, which the mobile app reads (R3b D2).
+ * Used after a signed-up user is promoted, and again on any later parent link, so a promotion
+ * whose second step failed heals on retry (03 §6.3). True when it matches afterwards.
+ */
+export async function syncAccountRole(userId: string, role: 'parent'): Promise<boolean> {
+  const auth = serviceClient().auth.admin;
+  const { data, error } = await auth.getUserById(userId);
+  if (error || !data.user) return false;
+  const current = data.user.app_metadata ?? {};
+  if (current.account_role === role) return true;
+  const { error: updateError } = await auth.updateUserById(userId, {
+    app_metadata: { ...current, account_role: role },
+  });
+  return !updateError;
+}
+
+/** How and when a signed-up user signed up, for the admin's confirm message (AC-33). */
+export async function signUpFacts(
+  userId: string,
+): Promise<{ signedUpWith: 'email' | 'google'; signedUpAt: string } | null> {
+  const { data, error } = await serviceClient().auth.admin.getUserById(userId);
+  if (error || !data.user) return null;
+  const google = (data.user.identities ?? []).some((identity) => identity.provider === 'google');
+  return { signedUpWith: google ? 'google' : 'email', signedUpAt: data.user.created_at };
 }
 
 /** Removes an account that was only just created (undo). Its links go with it. */

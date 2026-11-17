@@ -379,13 +379,13 @@ export const FOOTER = {
 
 export const PRIVACY = {
   heading: 'Privacy Policy',
-  lastUpdated: 'Last updated: October 2026',
+  lastUpdated: 'Last updated: November 2026',
   intro:
     'AJ Classes ("we", "us") respects your privacy. This notice explains what personal information we collect through ajclasses.com.au and how we use it.',
   sections: [
     {
       heading: 'What we collect',
-      text: "When you register interest, contact us or subscribe, we collect the details you give us: your name, email address, and, if you choose to give them, your phone number and message. We don't ask for sensitive information, except for the Working with Children Check or VIT registration details we ask job applicants for (see Job applications).",
+      text: "When you register interest, contact us, subscribe, or sign up for a portal account, we collect the details you give us: your name, email address, and, if you choose to give them, your phone number and message. We don't ask for sensitive information, except for the Working with Children Check or VIT registration details we ask job applicants for (see Job applications).",
     },
     {
       heading: 'Why we collect it',
@@ -403,15 +403,18 @@ export const PRIVACY = {
     },
     {
       // R3b review F19: family accounts. Wording for the owner to review.
+      // Open sign-up (AC-43): the first two sentences are a draft for Saurabh's approval. What
+      // Google sends is from GoTrue's provider code (name, e-mail, picture link); "security
+      // notices" because Auth e-mails "Your password was changed" (05-dev-notes, slice 19).
       // The portal-emails sentence (ADR-0004, ADR-0008) and the Resend mention (Security item 3,
       // finding 3) are drafts for the owner to approve with B17.
       heading: 'Portal accounts',
-      text: "Portal accounts are created only by invitation from AJ Classes. For each account we keep your name, email address and sign-in times. For tutors and other staff we also keep a phone number, given at account setup or added later on My profile, and kept up to date by them or an admin. We use it to contact them about classes; only they and AJ Classes admins can see it, and it is never published. For students we also keep their classes and timetable, their assignment answers, marks, and tutor feedback and comments. A student's account is only created after a parent or guardian agrees, in the portal or on our enrolment form. Parents linked to a student can see that student's assignments, answers once handed in, marks, progress and tutor comments; they never see other students. Portal data is stored with Supabase (database and sign-in), our sign-in pages use Cloudflare Turnstile to check that you are a person, and Resend (United States) sends our sign-in and portal emails; all of these may process data outside Australia. We never use portal information for marketing. We email you and your child (if they have their own account) when new work is set, the day before online work is due if it hasn't been handed in yet, and when work is marked and returned. These are service emails; you can turn each one off in Account → Notifications.",
+      text: "Portal accounts are created by invitation from AJ Classes, or by parents and guardians signing up themselves when sign-up is open. When you sign up, we collect your name and e-mail address, when you agreed to our Terms & Conditions and this policy, and whether you signed up with your e-mail or with Google. If you sign in with Google, Google gives us your name, your e-mail address and a link to your Google profile picture; we use only your name and e-mail address. A signed-up account that isn't linked to a student sees only our latest news, and gets only account e-mails, such as confirming your address, password resets and security notices. For each account we keep your name, email address and sign-in times. For tutors and other staff we also keep a phone number, given at account setup or added later on My profile, and kept up to date by them or an admin. We use it to contact them about classes; only they and AJ Classes admins can see it, and it is never published. For students we also keep their classes and timetable, their assignment answers, marks, and tutor feedback and comments. A student's account is only created after a parent or guardian agrees, in the portal or on our enrolment form. Parents linked to a student can see that student's assignments, answers once handed in, marks, progress and tutor comments; they never see other students. Portal data is stored with Supabase (database and sign-in), our sign-in pages use Cloudflare Turnstile to check that you are a person, and Resend (United States) sends our sign-in and portal emails; all of these may process data outside Australia. We never use portal information for marketing. We email you and your child (if they have their own account) when new work is set, the day before online work is due if it hasn't been handed in yet, and when work is marked and returned. These are service emails; you can turn each one off in Account → Notifications.",
     },
     {
       // invite-onboarding.md, "Consents". Wording for the owner to review.
       heading: 'Optional permissions',
-      text: 'When parents set up their portal account, they can choose, separately and only if they want to: to receive news, offers and enrolment updates by email and SMS; to let us share their child’s name and selective school or scholarship result on our website and social media; and to let us publish a testimonial video they provide. None of these is needed to use the portal. Parents can change or withdraw any of them at any time in Account → Your choices, or by emailing hello@ajclasses.com.au; withdrawing stops future use, though we can’t always remove something already shared. Emails, SMS and calls about classes, accounts and invoices are part of our service and are covered by our Terms.',
+      text: 'Parents linked to a student can choose, when they set up their account or later in Account → Your choices, separately and only if they want to: to receive news, offers and enrolment updates by email and SMS; to let us share their child’s name and selective school or scholarship result on our website and social media; and to let us publish a testimonial video they provide. None of these is needed to use the portal. Parents can change or withdraw any of them at any time in Account → Your choices, or by emailing hello@ajclasses.com.au; withdrawing stops future use, though we can’t always remove something already shared. Emails, SMS and calls about classes, accounts and invoices are part of our service and are covered by our Terms.',
     },
     {
       // We're hiring page (06-security findings 7 and 8). Retention set by the owner, 27 Oct 2026.
@@ -435,6 +438,72 @@ export const PRIVACY = {
       text: "If you have a privacy concern, email us first. If you're not satisfied with our response, you can contact the Office of the Australian Information Commissioner (oaic.gov.au).",
     },
   ],
+  backHome: '← Back to home',
+};
+
+// DRAFT for Saurabh's approval before release (AC-50, A14). Covers every portal account.
+// Kept consistent with PRIVACY above; claims nothing that isn't built (no mock tests yet).
+export const TERMS = {
+  heading: 'Terms & Conditions',
+  lastUpdated: 'Last updated: November 2026',
+  intro:
+    'These terms cover every AJ Classes portal account: staff, students, parents and guardians, and people who sign up on our website. By creating or using an account, you agree to them.',
+  sections: [
+    {
+      heading: 'Who we are',
+      text: `AJ Classes is a tutoring business in Melbourne. You can contact us at ${BUSINESS.email}.`,
+    },
+    {
+      heading: 'Who can have an account',
+      text: "Staff, students and parents get their accounts by invitation from AJ Classes. A student's account is only created after a parent or guardian agrees. Parents and guardians can also sign up on our website when sign-up is open. Students can't sign up themselves.",
+    },
+    {
+      heading: 'What a signed-up account is for',
+      text: "An account you create yourself shows our latest news. It doesn't give access to classes, students or anyone else's information. If you enrol with us, we can link your account to your child, and you then see what a parent sees.",
+    },
+    {
+      heading: 'Keeping your account safe',
+      text: 'Use your own e-mail address and keep your password to yourself. Don’t share your account with anyone, including your child. Tell us straight away if you think someone else has used it.',
+    },
+    {
+      heading: 'Using the portal',
+      text: "Don't use the portal to break the law, to harass anyone, to try to see information that isn't yours, to upload anything harmful, or to get around its security.",
+    },
+    {
+      heading: 'E-mails from us',
+      text: 'We send account e-mails, such as confirming your address and resetting your password. Families who enrol also get e-mails, SMS and calls about classes, their account and invoices, which are part of our service. We only send news and offers if you agree to them separately.',
+    },
+    {
+      heading: 'Closing accounts',
+      text: `We may deactivate an account that breaks these terms, that is no longer needed, or to protect students and families. You can ask us to close your account at any time by e-mailing ${BUSINESS.email}.`,
+    },
+    {
+      heading: 'Your information',
+      text: '',
+      privacyLink: {
+        before: 'Our ',
+        label: 'Privacy Policy',
+        after: ' explains what we collect and how we use it.',
+      },
+    },
+    {
+      heading: 'The portal itself',
+      text: 'We try to keep the portal available and accurate, but it may sometimes be unavailable or change. Nothing in these terms limits your rights under the Australian Consumer Law.',
+    },
+    {
+      heading: 'Changes to these terms',
+      text: 'We may update these terms. The date at the top shows when they last changed.',
+    },
+  ] as {
+    heading: string;
+    text: string;
+    privacyLink?: { before: string; label: string; after: string };
+  }[],
+  errorBoundary: {
+    heading: 'Something went wrong',
+    text: "This page couldn't be shown. Please try again later.",
+    backHome: 'Back to the home page',
+  },
   backHome: '← Back to home',
 };
 

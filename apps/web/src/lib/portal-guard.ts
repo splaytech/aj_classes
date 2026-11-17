@@ -4,7 +4,7 @@
 import { redirect } from 'react-router';
 
 import { APP_CONFIG } from '@/constants';
-import { forgetDeactivatedSession, getAccessState } from '@/services';
+import { forgetDeactivatedSession, getAccessState, signOut } from '@/services';
 import type { AccessState } from '@/services';
 
 import { decidePortalAccess } from './portal-access';
@@ -30,8 +30,11 @@ export async function guardPortalPage(
     case 'redirect':
       throw redirect(decision.to);
     case 'signOut':
-      // Only an account with no readable active profile (deactivated) gets here (BUG-15).
-      forgetDeactivatedSession();
+      // A working session that must end (an unfinished sign-up signed in by password) is revoked
+      // on the server. A deactivated one (BUG-15) is already refused there, so only this
+      // device's copy is cleared.
+      if (decision.revoke) await signOut();
+      else forgetDeactivatedSession();
       throw redirect(decision.to);
     case 'forbidden':
       return { access, forbidden: true };

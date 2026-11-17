@@ -12,6 +12,7 @@ const AREA_ROUTE = `${ROUTES.areas}/:slug`;
 export default [
   index('routes/home.tsx'),
   route(ROUTES.privacy, 'routes/privacy.tsx'),
+  route(ROUTES.terms, 'routes/terms.tsx'),
   route(ROUTES.vce, 'routes/vce.tsx'), // a fixed path wins over the :slug pattern below
   route(PROGRAMME_PAGE, 'routes/programme.tsx'),
   route(ROUTES.resources, 'routes/resources.tsx'),
@@ -30,6 +31,9 @@ export default [
     route(PORTAL_ROUTES.loginVerify, 'routes/portal/login-verify.tsx'),
     route(PORTAL_ROUTES.forgotPassword, 'routes/portal/forgot-password.tsx'),
     route(PORTAL_ROUTES.authConfirm, 'routes/portal/auth-confirm.tsx'),
+    route(PORTAL_ROUTES.signUp, 'routes/portal/sign-up.tsx'),
+    route(PORTAL_ROUTES.signUpResend, 'routes/portal/sign-up-resend.tsx'),
+    route(PORTAL_ROUTES.authCallback, 'routes/portal/auth-callback.tsx'),
     route(PORTAL_ROUTES.invite, 'routes/portal/invite.tsx'),
     route(PORTAL_ROUTES.setPassword, 'routes/portal/set-password.tsx'),
     route(PORTAL_ROUTES.join, 'routes/portal/join.tsx'),
@@ -59,6 +63,7 @@ export default [
           route(PORTAL_ROUTES.adminEmails, 'routes/portal/admin-emails.tsx'),
           route(PORTAL_ROUTES.adminStudents, 'routes/portal/admin-students.tsx'),
           route(PORTAL_ROUTE_PATTERNS.adminStudent, 'routes/portal/admin-student.tsx'),
+          route(PORTAL_ROUTES.adminUsers, 'routes/portal/admin-users.tsx'),
         ]),
       ]),
 
@@ -66,6 +71,9 @@ export default [
         route(PORTAL_ROUTES.student, 'routes/portal/student-home.tsx'),
         route(PORTAL_ROUTE_PATTERNS.studentAssignment, 'routes/portal/student-assignment.tsx'),
         route(PORTAL_ROUTES.studentTimetable, 'routes/portal/student-timetable.tsx'),
+      ]),
+      layout('routes/portal/user-layout.tsx', [
+        route(PORTAL_ROUTES.user, 'routes/portal/user-home.tsx'),
       ]),
       layout('routes/portal/parent-layout.tsx', [
         route(PORTAL_ROUTES.parent, 'routes/portal/parent-home.tsx'),

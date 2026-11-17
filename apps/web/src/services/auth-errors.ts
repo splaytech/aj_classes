@@ -18,6 +18,9 @@ const ERROR_KEYS_BY_CODE: Record<string, ErrorKey> = {
   // Supabase reports the ban before it checks the password (R2a review V18).
   invalid_credentials: 'invalidCredentials',
   user_banned: 'invalidCredentials',
+  // An unconfirmed sign-up reads as a wrong password too, so sign-in never reveals that an
+  // e-mail has an unfinished sign-up (open sign-up S4, ADR-0011).
+  email_not_confirmed: 'invalidCredentials',
 
   // Limits
   over_request_rate_limit: 'tooManyAttempts',
@@ -112,6 +115,17 @@ const ERROR_KEYS_BY_OWN_KEY: Record<string, ErrorKey> = {
   hold_needs_questions: 'holdNeedsQuestions',
   // invite-redeem (ADR-0010): every refused invite link looks the same (AC 11)
   invite_invalid: 'inviteExpired',
+  // Open sign-up (ADR-0011): the sign-up hook's refusals arrive as the message of a 429.
+  sign_up_busy: 'signUpBusy',
+  sign_up_closed: 'signUpClosed',
+  sign_up_refused: 'signUpClosed',
+  google_email_unverified: 'googleEmailUnverified',
+  identity_link_refused: 'googleAccountExists',
+  sign_up_link_needed: 'signUpLinkNeeded',
+  already_exists_user: 'alreadyExistsUser',
+  promotion_changed: 'promotionChanged',
+  role_sync_failed: 'roleSyncFailed',
+  not_a_signed_up_user: 'promotionChanged',
 };
 
 /** The portal error to show for anything a Supabase call returned or threw. */

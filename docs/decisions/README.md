@@ -17,3 +17,4 @@ Status is Proposed, Accepted or Superseded (link the replacement). Same format a
 | [0008](0008-scheduled-and-multi-kind-email.md) | "New assignment" and "due tomorrow" emails reuse the outbox (extends 0004) | Accepted |
 | [0009](0009-class-year-levels-array-with-compat-column.md) | Class year levels are an array; `year_level` is a generated compat column; delivery gains `hybrid` | Accepted |
 | [0010](0010-own-invite-token-with-supabase-sign-in-hop.md) | Invites use our own 14-day token, then a one-time Supabase sign-in hop | Accepted |
+| [0011](0011-open-sign-up-supabase-public-and-google.md) | Open sign-up uses Supabase public sign-up with Google; new accounts are a `user` role, guarded by a hook and two triggers | Proposed |

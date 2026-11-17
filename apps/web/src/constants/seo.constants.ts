@@ -11,6 +11,10 @@ export const SEO = {
     title: 'Privacy Policy | AJ Classes',
     description: 'How AJ Classes collects, uses and protects your personal information.',
   },
+  terms: {
+    title: 'Terms & Conditions | AJ Classes',
+    description: 'The terms for using an AJ Classes portal account.',
+  },
   subscribed: {
     title: 'Subscribed | AJ Classes',
     description: 'Thanks for subscribing to the AJ Classes weekly update.',

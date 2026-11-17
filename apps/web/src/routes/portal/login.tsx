@@ -1,11 +1,20 @@
-// Staff sign in (story US3): email, password and the "I am human" check.
+// Sign in (story US3): email, password and the "I am human" check. Below the form, the way to
+// create an account while sign-up is open (open sign-up AC-1, AC-48).
 
 import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router';
+import { Link, useLoaderData, useNavigate, useSearchParams } from 'react-router';
 import type { ClientLoaderFunctionArgs } from 'react-router';
 
-import { AuthCard, FormAlert, FormStatus, PasswordInput, TextInput } from '@/components/portal';
+import {
+  AuthCard,
+  FinishSignUpHint,
+  FormAlert,
+  GoogleButton,
+  FormStatus,
+  PasswordInput,
+  TextInput,
+} from '@/components/portal';
 import formStyles from '@/components/portal/PortalForm.module.css';
 import { Button, TurnstileField } from '@/components/ui';
 import type { TurnstileInstance } from '@/components/ui';
@@ -23,7 +32,7 @@ import { guardPortalPage } from '@/lib/portal-guard';
 import { checkEmail, checkPasswordEntered } from '@/lib/portal-validation';
 import { useAppearance } from '@/lib/appearance-context';
 import { buildPortalMeta } from '@/lib/seo';
-import { signIn } from '@/services';
+import { getSignUpOptions, signIn, startGoogleSignIn } from '@/services';
 
 const FIELD_IDS = { email: 'login-email', password: 'login-password' } as const;
 
@@ -33,19 +42,29 @@ export function meta() {
 
 export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
   await guardPortalPage(request, 'signedOutOnly');
-  return null;
+  return { signUp: await getSignUpOptions() };
 }
 
 /** A note at the top of the page, e.g. after being signed out because of deactivation. */
-function noticeFor(reason: string | null): { error: string; status: string } {
-  if (reason === SIGN_IN_REASONS.inactive) return { error: PORTAL_ERRORS.notActive, status: '' };
-  if (reason === SIGN_IN_REASONS.passwordChanged) {
-    return { error: '', status: LOGIN_PAGE.passwordChanged };
+function noticeFor(reason: string | null): {
+  error: string;
+  status: string;
+  finishSignUp: boolean;
+} {
+  if (reason === SIGN_IN_REASONS.inactive) {
+    return { error: PORTAL_ERRORS.notActive, status: '', finishSignUp: false };
   }
-  return { error: '', status: '' };
+  if (reason === SIGN_IN_REASONS.passwordChanged) {
+    return { error: '', status: LOGIN_PAGE.passwordChanged, finishSignUp: false };
+  }
+  // Signed in by password before finishing sign-up: only the e-mailed link can finish (AC-20).
+  if (reason === SIGN_IN_REASONS.finishSignUp) return { error: '', status: '', finishSignUp: true };
+  return { error: '', status: '', finishSignUp: false };
 }
 
 export default function LoginPage() {
+  const loaded = useLoaderData<typeof clientLoader>();
+  const signUpOpen = loaded?.signUp.status === 'open' || loaded?.signUp.status === 'busy';
   const appearance = useAppearance();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -93,6 +112,11 @@ export default function LoginPage() {
   return (
     <AuthCard heading={LOGIN_PAGE.heading} intro={LOGIN_PAGE.intro}>
       <FormStatus message={notice.status} />
+      {notice.finishSignUp && (
+        <div role="status">
+          <FinishSignUpHint />
+        </div>
+      )}
       <form className={formStyles.form} onSubmit={handleSubmit} noValidate>
         <TextInput
           id={FIELD_IDS.email}
@@ -128,6 +152,18 @@ export default function LoginPage() {
           <Link to={PORTAL_ROUTES.forgotPassword}>{LOGIN_PAGE.forgotPassword}</Link>
         </div>
       </form>
+      {loaded?.signUp.google && (
+        <>
+          <p className={formStyles.hint}>{LOGIN_PAGE.or}</p>
+          <GoogleButton onStart={startGoogleSignIn} />
+        </>
+      )}
+      {signUpOpen && (
+        <p>
+          {LOGIN_PAGE.signUpPrompt}
+          <Link to={PORTAL_ROUTES.signUp}>{LOGIN_PAGE.signUpLink}</Link>
+        </p>
+      )}
     </AuthCard>
   );
 }

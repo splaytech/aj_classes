@@ -2,6 +2,7 @@
 
 import { BUSINESS } from './business.constants';
 import { AUTH_LIMITS, FORM_LIMITS, PHOTO_LIMITS, PROFILE_LIMITS } from './app.constants';
+import { SIGN_UP_PAGE } from './sign-up.constants';
 
 export const VALIDATION = {
   nameRequired: 'Please enter your name.',
@@ -98,6 +99,21 @@ export const PORTAL_ERRORS = {
   // The switch's own message for assignment_published (published in another tab).
   holdLocked: 'This can’t change once the assignment is published.',
   notConfigured: "Sign-in isn't available right now.",
+  // Open sign-up (ADR-0011)
+  signUpBusy: SIGN_UP_PAGE.busy,
+  signUpClosed: SIGN_UP_PAGE.closed.text,
+  // Message M (AC-54): a Google sign-in can't attach to an existing account.
+  googleAccountExists:
+    'This e-mail already has an AJ Classes account. Sign in with your e-mail and password, use Forgot password, or use the link we e-mailed you.',
+  googleEmailUnverified:
+    "We couldn't get a verified e-mail address from Google. Please sign up with your e-mail instead.",
+  finishSignUp: 'To finish signing up, use the link we e-mailed you, or Forgot password.',
+  signUpLinkNeeded: 'To finish signing up, use the link we e-mailed you, or Forgot password.',
+  alreadyExistsUser:
+    "This e-mail already has an account. Signed-up accounts are for parents and guardians. Use a different e-mail for the student's account.",
+  promotionChanged: "This e-mail's account changed while you were deciding. Please try again.",
+  roleSyncFailed:
+    "They're linked as a parent, but their sign-in details didn't update. Please press Invite or link again.",
   unknown: 'Something went wrong. Please try again.',
 } as const;
 
@@ -108,11 +124,14 @@ export const PORTAL_VALIDATION = {
   passwordTooShort: `Please use at least ${AUTH_LIMITS.passwordMin} characters.`,
   passwordsDiffer: "The two passwords don't match.",
   codeInvalid: `Please enter the ${AUTH_LIMITS.codeLength}-digit code.`,
+  emailCodeInvalid: `Please enter the ${AUTH_LIMITS.emailCodeLength}-digit code from the email.`,
   nameRequired: 'Please enter a name.',
   phoneInvalid: 'Please enter an Australian phone number, like 0412 345 678.',
   yearLevelRequired: 'Please choose your year level.',
   termsRequired: 'Please agree to the Terms & Conditions and Privacy Policy to continue.',
   captchaRequired: 'Please complete the "I am human" check.',
+  // Open sign-up: the same rule as the database (no line breaks or text-direction characters).
+  nameCharacters: 'Please type your name on one line, without special formatting characters.',
 } as const;
 
 export const AUTH_LINK_ERRORS = {

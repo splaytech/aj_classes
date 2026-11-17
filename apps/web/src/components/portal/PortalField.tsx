@@ -203,10 +203,22 @@ type CodeInputProps = {
   value: string;
   onChange: (value: string) => void;
   error?: string;
+  /** How many digits; the authenticator code length unless given. */
+  length?: number;
 };
 
-/** A 6-digit code from an authenticator app or an email. Phones offer the number keypad. */
-export function CodeInput({ id, label, value, onChange, error }: CodeInputProps) {
+/**
+ * A code from an authenticator app (6 digits) or an email (`length` = AUTH_LIMITS.emailCodeLength).
+ * Phones offer the number keypad.
+ */
+export function CodeInput({
+  id,
+  label,
+  value,
+  onChange,
+  error,
+  length = AUTH_LIMITS.codeLength,
+}: CodeInputProps) {
   return (
     <PortalField id={id} label={label} error={error}>
       <input
@@ -214,7 +226,7 @@ export function CodeInput({ id, label, value, onChange, error }: CodeInputProps)
         className={`${styles.input} ${styles.code}`}
         inputMode="numeric"
         autoComplete="one-time-code"
-        maxLength={AUTH_LIMITS.codeLength}
+        maxLength={length}
         value={value}
         onChange={(event) => onChange(event.target.value.replace(/\D/g, ''))}
         {...describedBy(id, error)}

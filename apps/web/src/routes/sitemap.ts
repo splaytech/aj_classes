@@ -12,6 +12,7 @@ const ALWAYS_LISTED = [
   ...AREA_PATHS,
   ...CENTRE_PATHS,
   ROUTES.privacy,
+  ROUTES.terms,
   ROUTES.careers,
 ];
 

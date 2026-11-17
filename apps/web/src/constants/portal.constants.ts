@@ -47,6 +47,11 @@ export const PORTAL_SEO = {
   parent: 'My children',
   parentChild: 'Child',
   parentChildAssignment: 'Assignment',
+  signUp: 'Create an account',
+  signUpResend: 'Send the link again',
+  authCallback: 'Signing in',
+  user: 'Latest news',
+  adminUsers: 'Users',
 } as const;
 
 export const ROLE_LABELS: Record<AppRole, string> = {
@@ -54,6 +59,7 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   admin: 'Admin',
   student: 'Student',
   parent: 'Parent',
+  user: 'User',
 };
 
 export const PORTAL_COMMON = {
@@ -84,6 +90,7 @@ export const PORTAL_COMMON = {
     admin: 'Staff',
     student: 'Student',
     parent: 'Parent',
+    user: 'User',
   } satisfies Record<AppRole, string>,
   navLabel: 'Portal',
   nav: {
@@ -97,6 +104,7 @@ export const PORTAL_COMMON = {
     studentHome: 'My work',
     studentTimetable: 'Timetable',
     parentHome: 'My children',
+    userHome: 'Latest news',
   },
   themeToggle: {
     toDark: 'Switch to dark mode',
@@ -138,6 +146,9 @@ export const LOGIN_PAGE = {
   submitting: 'Signing in…',
   forgotPassword: 'Forgot your password?',
   passwordChanged: 'Your password has been changed. Please sign in.',
+  signUpPrompt: 'New to AJ Classes? ',
+  signUpLink: 'Create an account',
+  or: 'or',
 } as const;
 
 export const LOGIN_VERIFY_PAGE = {
@@ -165,11 +176,14 @@ export const AUTH_CONFIRM_PAGE = {
   heading: {
     invite: 'Welcome to AJ Classes',
     recovery: 'Reset your password',
+    email: 'Confirm your e-mail',
   },
   intro: {
     invite: "You've been invited to the AJ Classes portal. Continue to set up your account.",
     recovery: 'Continue to choose a new password.',
+    email: 'Continue to finish creating your account.',
   },
+  sendAgain: 'Send the link again',
   continue: 'Continue',
   checking: 'Checking your link…',
   invalidLink: 'This link is incomplete. Please use the button in the email.',
@@ -275,8 +289,7 @@ export const ACCOUNT_PAGE = {
   password: {
     heading: 'Change password',
     intro: `Use at least ${AUTH_LIMITS.passwordMin} characters. Other devices will be signed out.`,
-    codeSent:
-      'You signed in more than a day ago, so we emailed you a 6-digit code to confirm it’s you.',
+    codeSent: `You signed in more than a day ago, so we emailed you an ${AUTH_LIMITS.emailCodeLength}-digit code to confirm it’s you.`,
     resendCode: 'Email me a new code',
     codeResent: 'We sent a new code.',
     labels: {
@@ -390,6 +403,7 @@ export const ADMIN_DASHBOARD = {
     posts: 'Posts',
     emails: 'Emails',
     activity: 'Activity',
+    users: 'Users',
   },
   recent: {
     heading: 'Recent activity',
@@ -552,6 +566,58 @@ export const STAFF_PAGE = {
   invited: (email: string) => `Invite sent to ${email}.`,
 } as const;
 
+// Admin → Users (open sign-up, 03 §7.8): people who signed up on the website, and the switch.
+export const USERS_PAGE = {
+  heading: 'Users',
+  intro:
+    'People who signed up on the website. They see only the latest news until you link them to a student.',
+  switch: {
+    heading: 'Sign-up',
+    open: 'Sign-up is open',
+    closed: 'Sign-up is closed',
+    close: 'Close sign-up',
+    reopen: 'Open sign-up',
+    closeDialog: {
+      title: 'Close sign-up?',
+      text: "New people won't be able to create an account, by e-mail or with Google. Everyone who already has an account can still sign in.",
+    },
+    openDialog: {
+      title: 'Open sign-up?',
+      text: 'Parents and guardians will be able to create an account again.',
+    },
+    unknown: "We couldn't load whether sign-up is open.",
+    retry: 'Try again',
+    closedNotice: 'Sign-up closed.',
+    openedNotice: 'Sign-up opened.',
+  },
+  columns: {
+    name: 'Name',
+    email: 'E-mail',
+    signedUp: 'Signed up',
+    how: 'How',
+    finished: 'Finished',
+    status: 'Status',
+    action: 'Action',
+  },
+  signedUpOn: (date: string) => `Signed up ${date}`,
+  how: { email: 'E-mail', google: 'Google' },
+  finished: { yes: 'Finished', no: 'Not finished' },
+  deactivate: 'Deactivate',
+  reactivate: 'Reactivate',
+  deactivateDialog: {
+    title: (name: string) => `Deactivate ${name}?`,
+    text: "They'll be signed out and can't sign in until you reactivate them.",
+  },
+  reactivateDialog: {
+    title: (name: string) => `Reactivate ${name}?`,
+    text: "They'll be able to sign in again.",
+  },
+  deactivated: (name: string) => `${name} was deactivated.`,
+  reactivated: (name: string) => `${name} was reactivated.`,
+  empty: 'No one has signed up yet.',
+  hint: "To link a user to their child, use Invite or link a parent on the student's page.",
+} as const;
+
 export const INVITE_DIALOG = {
   heading: 'Invite staff',
   intro: `They'll get an e-mail to set their password. The link works for ${INVITE_LIMITS.linkLifetimeDays} days; you can resend it.`,
@@ -640,6 +706,8 @@ export const ACTIVITY_LABELS = {
   consent_recorded: 'Recorded consent for',
   consent_changed: 'Changed their permissions',
   account_activated: 'Finished account setup',
+  sign_up_opened: 'Opened sign-up',
+  sign_up_closed: 'Closed sign-up',
 } as const;
 
 export const ACTIVITY_PAGE = {

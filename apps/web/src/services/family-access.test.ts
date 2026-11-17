@@ -35,6 +35,7 @@ function signedInAs(role: AppRole | null): AccessState {
     email: '',
     profile: role ? { fullName: 'Someone', role } : null,
     onboarding: null,
+    signUp: null,
     aal: 'aal1',
     hasVerifiedFactor: false,
   };

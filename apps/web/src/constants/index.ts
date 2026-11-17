@@ -16,5 +16,6 @@ export * from './programmes.constants';
 export * from './resources.constants';
 export * from './routes.constants';
 export * from './seo.constants';
+export * from './sign-up.constants';
 export * from './subjects.constants';
 export * from './areas.constants';

@@ -43,6 +43,7 @@ const NAV_BY_ROLE: Record<AppRole, NavItem[]> = {
     ACCOUNT_LINK,
   ],
   parent: [{ to: PORTAL_ROUTES.parent, label: nav.parentHome }, ACCOUNT_LINK],
+  user: [{ to: PORTAL_ROUTES.user, label: nav.userHome }, ACCOUNT_LINK], // AC-22
 };
 
 export function PortalLayout({ fullName, role, children }: PortalLayoutProps) {

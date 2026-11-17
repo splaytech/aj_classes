@@ -27,25 +27,28 @@ import {
   PORTAL_SEO,
   ROLE_LABELS,
   THEME_MODES,
+  AUTH_LIMITS,
 } from '@/constants';
 import type { ThemeMode } from '@/constants';
 import { NO_CONSENTS, asksForConsents } from '@/lib/consents';
-import { isStaffRole } from '@/lib/portal-access';
-import { checkCode, checkNewPassword, checkPasswordsMatch } from '@/lib/portal-validation';
+import { isFamilyRole, isStaffRole } from '@/lib/portal-access';
+import { checkEmailCode, checkNewPassword, checkPasswordsMatch } from '@/lib/portal-validation';
 import { useAppearance } from '@/lib/appearance-context';
 import { buildPortalMeta } from '@/lib/seo';
 import {
   canAddAuthenticator,
   changePassword,
+  getAccessState,
   getMyConsents,
   getMyNotificationSettings,
+  hasPassword,
   listAuthenticators,
   removeAuthenticator,
   saveMyNotificationSettings,
   sendReauthCode,
   setMyConsents,
 } from '@/services';
-import type { Authenticator, Consents, NotificationSettings } from '@/services';
+import type { Authenticator, Consents, NotificationSettings, Result } from '@/services';
 
 import { usePortalAccess } from './member-layout';
 import styles from './account.module.css';
@@ -66,21 +69,35 @@ export function meta() {
   return buildPortalMeta(PORTAL_SEO.account);
 }
 
+// A signed-up user has no permissions or e-mail switches (AC-23): these stand in, never shown.
+const NOT_ASKED_CONSENTS: Result<Consents> = { ok: true, data: NO_CONSENTS };
+const NOT_ASKED_NOTIFICATIONS: Result<NotificationSettings> = {
+  ok: true,
+  data: { workReturned: true, newAssignment: true, dueTomorrow: true },
+};
+
 // Access is checked by the member layout. Loads the authenticator list (staff), the optional
-// permissions (parents; invite-onboarding.md, "Consents") and the email switches (students and
-// parents; a staff member just gets the default, never shown).
+// permissions (parents; invite-onboarding.md, "Consents"), the email switches (students and
+// parents; a staff member just gets the default, never shown), and whether the account has a
+// password (a Google-only signed-up user has none, so Change password is hidden).
 export async function clientLoader() {
-  const [authenticators, consents, notifications] = await Promise.all([
+  const access = await getAccessState(); // shared with the member layout's read (BUG-9)
+  const isUser = access.profile?.role === 'user';
+  const [authenticators, consents, notifications, password] = await Promise.all([
     listAuthenticators(),
-    getMyConsents(),
-    getMyNotificationSettings(),
+    isUser ? NOT_ASKED_CONSENTS : getMyConsents(),
+    isUser ? NOT_ASKED_NOTIFICATIONS : getMyNotificationSettings(),
+    hasPassword(),
   ]);
-  return { authenticators, consents, notifications };
+  // If the check itself fails, show Change password as before (it explains any problem).
+  const canChangePassword = !password.ok || password.data;
+  return { authenticators, consents, notifications, canChangePassword };
 }
 
 export default function AccountPage() {
   const access = usePortalAccess();
   const role = access.profile?.role ?? 'tutor';
+  const { canChangePassword } = useLoaderData<typeof clientLoader>();
 
   return (
     <div className={styles.page}>
@@ -91,10 +108,10 @@ export default function AccountPage() {
         <dt>{ACCOUNT_PAGE.role}</dt>
         <dd>{ROLE_LABELS[role]}</dd>
       </dl>
-      <ChangePasswordSection />
+      {canChangePassword && <ChangePasswordSection />}
       <AppearanceSection />
       {asksForConsents(role) && <ChoicesSection />}
-      {!isStaffRole(role) && <NotificationsSection />}
+      {isFamilyRole(role) && <NotificationsSection />}
       {isStaffRole(role) && <TwoStepSection isAdmin={role === 'admin'} />}
     </div>
   );
@@ -151,7 +168,7 @@ function ChangePasswordSection() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const errors = {
-      code: needsCode ? checkCode(code) : '',
+      code: needsCode ? checkEmailCode(code) : '',
       password: checkNewPassword(password),
       confirm: checkPasswordsMatch(password, confirmation),
     };
@@ -209,6 +226,7 @@ function ChangePasswordSection() {
             <FormStatus message={codeMessage} />
             <CodeInput
               id={FIELD_IDS.code}
+              length={AUTH_LIMITS.emailCodeLength}
               label={ACCOUNT_PAGE.password.labels.code}
               value={code}
               onChange={setCode}

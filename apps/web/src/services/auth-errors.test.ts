@@ -8,6 +8,29 @@ describe('toErrorKey', () => {
     expect(toErrorKey({ code: 'user_banned', status: 400 })).toBe('invalidCredentials');
   });
 
+  it('maps the open sign-up refusals (ADR-0011)', () => {
+    expect(toErrorKey({ status: 429, code: 'unknown', message: 'sign_up_busy' })).toBe(
+      'signUpBusy',
+    );
+    expect(toErrorKey({ status: 429, code: 'unknown', message: 'sign_up_closed' })).toBe(
+      'signUpClosed',
+    );
+    expect(toErrorKey({ status: 429, code: 'unknown', message: 'sign_up_refused' })).toBe(
+      'signUpClosed',
+    );
+    expect(toErrorKey({ message: 'google_email_unverified' })).toBe('googleEmailUnverified');
+    expect(toErrorKey({ message: 'identity_link_refused' })).toBe('googleAccountExists');
+    expect(toErrorKey({ code: '42501', message: 'sign_up_link_needed' })).toBe('signUpLinkNeeded');
+    expect(toErrorKey({ code: 'already_exists_user' })).toBe('alreadyExistsUser');
+    expect(toErrorKey({ code: 'promotion_changed' })).toBe('promotionChanged');
+    expect(toErrorKey({ code: 'role_sync_failed' })).toBe('roleSyncFailed');
+    expect(toErrorKey({ message: 'not_a_signed_up_user' })).toBe('promotionChanged');
+  });
+
+  it('gives an unconfirmed sign-up the wrong-password message too (open sign-up S4)', () => {
+    expect(toErrorKey({ code: 'email_not_confirmed', status: 400 })).toBe('invalidCredentials');
+  });
+
   it('maps codes, not wording', () => {
     expect(toErrorKey({ code: 'weak_password' })).toBe('weakPassword');
     expect(toErrorKey({ code: 'mfa_verification_failed' })).toBe('wrongCode');

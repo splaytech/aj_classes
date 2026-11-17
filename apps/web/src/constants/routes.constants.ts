@@ -4,6 +4,7 @@
 export const ROUTES = {
   home: '/',
   privacy: '/privacy',
+  terms: '/terms', // Terms & Conditions for every portal account (open sign-up AC-50)
   programmes: '/programmes', // one page per programme under here (programme-pages.md)
   resources: '/resources', // parent guides (completion-todo §5.3)
   areas: '/tutoring', // one page for Melbourne's west and one for the north (local-seo.md)
@@ -44,6 +45,12 @@ export const PORTAL_ROUTES = {
   student: '/portal/student',
   studentTimetable: '/portal/student/timetable',
   parent: '/portal/parent',
+  // Open sign-up (ADR-0011)
+  signUp: '/portal/sign-up',
+  signUpResend: '/portal/sign-up/resend',
+  authCallback: '/portal/auth/callback', // where Google sends people back (Supabase redirect URL)
+  user: '/portal/user', // a signed-up user's home: the latest news
+  adminUsers: '/portal/admin/users',
 } as const;
 
 // Portal pages with an id in the address (React Router patterns).
@@ -90,11 +97,10 @@ export function parentChildAssignmentPath(studentId: string, assignmentId: strin
   return `${parentChildPath(studentId)}/assignments/${assignmentId}`;
 }
 
-// Legal pages linked from the setup form's terms checkbox. The Terms & Conditions page doesn't
-// exist yet: until the owner provides one (set its URL here), the words show without a link.
-export const LEGAL_LINKS: { privacy: string; terms: string | null } = {
+// Legal pages linked from the tick boxes on the invite setup form and the sign-up finish step.
+export const LEGAL_LINKS: { privacy: string; terms: string } = {
   privacy: ROUTES.privacy,
-  terms: null,
+  terms: ROUTES.terms,
 };
 
 // Query-string names used by portal pages and email links.
@@ -103,6 +109,11 @@ export const PORTAL_QUERY = {
   reason: 'reason', // why the person was sent to the sign-in page
   tokenHash: 'token_hash', // from reset emails (supabase/templates/recovery.html) and old invite links
   linkType: 'type',
+  // Sent back by Supabase after "Continue with Google" (in the query, and repeated in the fragment)
+  oauthCode: 'code',
+  oauthError: 'error',
+  oauthErrorCode: 'error_code',
+  oauthErrorDescription: 'error_description',
 } as const;
 
 // Names read from the address fragment (`#name=value`), which never reaches a server, its logs or
@@ -115,6 +126,7 @@ export const PORTAL_FRAGMENT = {
 export const SIGN_IN_REASONS = {
   inactive: 'inactive',
   passwordChanged: 'password-changed',
+  finishSignUp: 'finish-sign-up', // signed in by password before finishing sign-up (AC-20)
 } as const;
 
 export const SECTION_IDS = {

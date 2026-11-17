@@ -98,15 +98,15 @@ insert into auth.users (id, aud, role, email, raw_user_meta_data)
 values ('00000000-0000-0000-0000-0000000007a1', 'authenticated', 'authenticated', 'sneaky@test.local',
         '{"account_role": "parent"}');
 select is(
-  (select role::text from public.profiles where id = '00000000-0000-0000-0000-0000000007a1'), 'tutor',
-  'A role in user metadata is ignored (people can edit their own)');
+  (select role::text from public.profiles where id = '00000000-0000-0000-0000-0000000007a1'), 'user',
+  'A role in user metadata is ignored (people can edit their own): they become a signed-up user');
 
 insert into auth.users (id, aud, role, email, raw_app_meta_data)
 values ('00000000-0000-0000-0000-0000000007a2', 'authenticated', 'authenticated', 'admin-try@test.local',
         '{"account_role": "admin"}');
 select is(
-  (select role::text from public.profiles where id = '00000000-0000-0000-0000-0000000007a2'), 'tutor',
-  'app_metadata can''t create admins');
+  (select role::text from public.profiles where id = '00000000-0000-0000-0000-0000000007a2'), 'user',
+  'app_metadata can''t create admins: they become a signed-up user');
 
 update auth.users set raw_app_meta_data = coalesce(raw_app_meta_data, '{}') || '{"account_role": "student"}'
 where id = '00000000-0000-0000-0000-0000000007a1';

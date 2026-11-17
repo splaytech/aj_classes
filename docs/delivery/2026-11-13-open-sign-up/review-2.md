@@ -1,0 +1,61 @@
+CHANGES_REQUESTED
+
+# Review — stage 2 (02-architecture.md + ADR-0011), round 1
+
+Reviewed against 01-requirement.md (approved round 3), develop @ 090c766 and aj_classes_mobile/lib/core/domain. Read-only, no hosted access.
+
+**Holds up (checked in code):** invite-token reuse is sound (`invite_token_claim` checks only `status='invited'`, `is_active`, row `expires_at`; `invite-redeem` is role-blind); enum value in its own file matches `20261007090319_family_roles.sql`; every role check a `user` could hit is a closed list (`is_active_staff` in ('tutor','admin') and everything built on it; `my_active_role()='parent'`; `my_student_id`; `notification_settings`; `is_admin`; `email_outbox` no policies; `notify_*` service role only; only "read your own profile" is open, per AC-27); tutor→user default is safe for `tests.create_staff`, `seed.sql` (with marker), README SQL, mobile (`role.dart` reads `profiles.role` first); Forgot password outside the cap is consistent with the enumeration argument.
+
+1. [blocking] **Switching sign-up on via `supabase secrets set` copies local `[edge_runtime.secrets]` to production** (deploy.sh:155-156): always-pass `TURNSTILE_SECRET`, `EMAIL_TRANSPORT=mailpit`, localhost `SITE_URL`, `local-notify-secret`, Zoho fakes. The digest check only notices after the fact. Fix: open only via `.env.deploy` + `deploy.sh`; close via `supabase secrets unset SIGN_UP`; `SIGN_UP` in `local_only` unless open; deploy.sh and `_shared/turnstile.ts` refuse Cloudflare test secrets on a non-local `SUPABASE_URL`; fix rollback line.
+2. [blocking] **Cap and 60-second rule overrun by parallel requests (AC-46, AC-19).** Advisory lock key unspecified; 60-s rule reads `invite_tokens.sent_at`, written only after send. Fix: one global `pg_advisory_xact_lock(<constant>)`; `private.sign_up_emails (profile_id, sent_at)` under the same lock; pgTAP for 16th reserve refused and 60-s rule with two reserves before any store.
+3. [non-blocking] **Cap still allows ~15 enumeration checks/day** (only sends use a slot). Count every request that passes Turnstile + gate, or record as accepted residual risk.
+4. [non-blocking] **`profiles.role` still `default 'tutor'`** (staff_accounts.sql:65). Add `alter column role set default 'user'` + pgTAP.
+5. [non-blocking] **`sign_up_kind` check underspecified.** State `sign_up_kind is null or role in ('user','student','parent')` (same for `age_statement_at`); test promotion.
+6. [non-blocking] **Neutral replies:** parallel `createUser` → `email_exists` must be 200; cap/60-s refusal → 200 and skip name/kind update; cover in `test-sign-up.mjs`.
+7. [non-blocking] **Student promotion retry unreachable** (`invite-student.ts` returns `already_has_account` before lookup). Call `syncAccountRole` first, or a distinct `role_sync_failed` + Retry; test.
+8. [non-blocking] **New public functions callable by PUBLIC unless revoked.** Name grants: gate/reserve/store `service_role` only; `complete_sign_up`, `my_sign_up`, `admin_promote_user` `authenticated`; add to AC-26 sweep.
+9. [non-blocking] **Write deviations back into 01** (AC-20, AC-48, AC-32/D6, AC-2, AC-11, AC-42) so the Tester's source doesn't contradict 02.
+10. [non-blocking] **Release-window notes:** old `account-admin` between deploy steps 4–5 creates a role-less staff account → `user` → mismatch → deleted, `server_error` (safe, note it); `templates/invite.html` words a `tutor` marker as "Parents" — match only student/parent or note.
+11. [non-blocking] **Decisions:** 6 right to ask; fold 7 into 6 (unused enum value is harmless); Decision 1 table doesn't separate "switch off" from "don't build".
+
+## Superseded (lead note, 2026-11-14)
+Saurabh's answers (00-decisions.md) replace the own-function design with Supabase public sign-up + Google/Facebook/Apple. Findings 1, 2, 3, 6, 7 are tied to the old design; 4, 5 (adapted), 8, 9, 10 carry into the redesign. Round 2 reviews the rewritten 02.
+
+## Round 2 (rewritten 02 + ADR-0011 for Supabase public sign-up + OAuth)
+
+CHANGES_REQUESTED
+
+GoTrue source in the session scratchpad matched to the local `gotrue:v2.197.0` image (three strings grepped in the binary). Confirmed in source: repeat `signUp` for an unconfirmed e-mail never changes the password and resends (`signup.go:194-197`); confirmed e-mail gets a fake user with `identities: []` (`:293-300`); `before-user-created` fires only for a brand-new user incl. OAuth new accounts, not for OAuth linking, never for admin `createUser`; automatic linking goes to any existing user with a verified e-mail, confirmed or not (`linking.go:149-158`); Facebook e-mails always `Verified: true` (`facebook.go:93-96`); banned users refused; `RemoveUnconfirmedIdentities` clears the password (`user.go:1020`); `amr` values as described. Round-1 findings 4, 8, 10 resolved; 1 no longer arises; 9 still open (item 4). Deploy order (gate → db push → migration check → config push last) fails closed.
+
+1. [blocking] **AC-14 broken: a stranger's password still works after the owner confirms.** Stranger `signUp(victim, P1)` first → victim signs up on the form (GoTrue keeps P1) → victim confirms → P1 signs in with a password session. Stranger can loop `updateUser({password: P3})` (`secure_password_change` only asks for a code after 24 h) and race the owner's `updateUser(P2)` / `complete_sign_up`; deleting sessions doesn't help (they know P3). Or enrol TOTP. Fix: `before update` trigger on `auth.users`: when `email_confirmed_at` goes null → set on an invited `user`, set `encrypted_password = ''` and delete `auth.mfa_factors` (mirrors `RemoveUnconfirmedIdentities`; `Confirm()` updates only `confirmation_token`/`email_confirmed_at`, `user.go:524-531`; `on_auth_password_set` won't fire). `complete_sign_up` also deletes factors. Tests: both AC-14 orders + a factor enrolled before finish.
+2. [blocking] **Linking trigger tests identities, not the account.** Promotion deletes the Facebook identity → Facebook-only parent has no identities → impostor's next Facebook sign-in is `LinkAccount` and the trigger allows it. Fix: allow a google/facebook/apple identity insert only when `profiles.role='user'`, `status='invited'` and `email_confirmed_at is null`; refuse everything else (a brand-new OAuth user still passes — identity inserted before `Confirm`). pgTAP for every Q3 row + promoted Facebook-only parent.
+3. [blocking] **Promotion leaves a Facebook impostor two ways back in.** Password set via `updateUser` within 24 h (no code), still works after the identity is stripped; or TOTP enrolled. Fix: when the account has/had a Facebook identity, `admin_promote_user` clears `encrypted_password` and deletes `auth.mfa_factors`; real parent sets a password via Forgot password; confirm message and Decision 1 say so; test.
+4. [blocking] **01 and 02 disagree** (AC-2/6 form password; AC-12 raw reply; AC-19/20/46 cap scope; AC-39 rate limit; AC-53; AC-54 b1 linking — 02 also contradicts itself: Q3 table "Finished user | linked" vs DEC-OS-5 "refuses every existing account"; AC-32 reactivate; AC-48 Dashboard fallback). Fix: PO writes 02's "Changes to 01" (with the fixes above) into 01; 02 states one linking rule (item 2's).
+5. [non-blocking] **AC-53 not met for an unverified provider e-mail:** `CreateAccount` still commits and sends a confirmation outside the cap; matching existing e-mail → user with empty e-mail → clash with unique `profiles.email`. Fix: hook refuses non-email providers unless `user_metadata.email_verified` and e-mail non-empty; confirm in spike.
+6. [non-blocking] **Finish-step `amr` depends on flow:** under PKCE e-mail links give `email/signup` or `recovery`, not `otp`. List accepted values (`otp`, `recovery`, `email/signup`, `oauth`) or pin links to `token_hash` + `verifyOtp`; test the chosen flow. `auth.jwt()` carries `amr` and `session_id`.
+7. [non-blocking] **Stage-5 spikes, each with a test:** (a) `before-user-created` on the hosted plan (Saurabh can check read-only in Dashboard → Auth → Hooks); error format `{"error":{"http_code":429}}`; hook `security definer`. (b) Native captcha covers `/signup` and `/resend`. (c) OAuth callback error when the identities trigger raises; `postgres` can create that trigger and delete from `auth.identities`, `auth.sessions`, `auth.mfa_factors` on hosted. (d) Sign-in to unconfirmed returns `email_not_confirmed`; page shows the invalid-credentials message.
+8. [non-blocking] **Cap edge:** hook runs outside GoTrue's transaction, so a failed sign-up still uses a slot (say so). Cap filling between `sign_up_status` and `signUp` → new e-mail 429 vs existing 200; one message or list as residual.
+9. [non-blocking] **deploy.sh:** check behaviour (`role_from_app_metadata('{}') = 'user'`, `profiles.role` default) not migration history. Enabling a provider is a `config.toml` change; refuse an enabled provider with missing `env()` values.
+10. [non-blocking] **Decisions:** 1 (Facebook), 2 (Apple fee), 3 (custom domain), 5 (linking) are Saurabh's; 4 (cap strictness) and 6 (enum) are the Architect's — record, don't ask. Decision 1 must describe item 3's stronger removal.
+
+## Lead note (2026-11-14)
+Third round of account-takeover edge cases in the same area (stage 1 rounds 1, 4, 5; stage 2 round 2). Per team-lead rule 3, stopped patching and offered Saurabh simpler alternatives before revising.
+
+## Round 3
+
+APPROVED
+
+Reviewed round-3 02 and `docs/decisions/0011-open-sign-up-supabase-public-and-google.md` (only one ADR-0011 left) against 00-decisions.md Round 2 and the GoTrue v2.197.0 source (matched to the local image in round 2). 01 not reviewed. Read-only.
+
+Round-2 blocking findings all closed:
+1. **Confirm-time wipe (02 Q4):** `User.Confirm()` writes only `confirmation_token`, `email_confirmed_at` (`user.go:524-531`), so a `before update of email_confirmed_at` trigger can null `encrypted_password`. Nothing writes the old password back: `signupVerify` (`verify.go:316-336`) writes a password only when `invited_at` is set, before `Confirm`; `recoverVerify` (`:372-395`) writes only `recovery_token` then `Confirm` (so the wipe also fires on Forgot password); later writes are named columns only. No session before confirmation: password sign-in → `email_not_confirmed` (`token.go:181`); `signUp` returns no session; magic link/OTP need the mailbox; anonymous and manual linking off; Google on an existing e-mail refused by the linking trigger. `on_auth_password_set` (update of `encrypted_password`) doesn't fire; column nullable (`user.go:1023`).
+2. **One account-state linking rule (Q3, DEC-OS-5):** new Google account order — `signupNewUser` inserts `auth.users` (profile `user`/`invited` same statement) → `createNewIdentity` (unconfirmed, no identity → allowed) → `Confirm`. Every `LinkAccount` (`linking.go:149-158`) refused, incl. unconfirmed sign-ups and identity-less accounts; refusal rolls back the callback transaction; returning Google user matches `AccountExists`, inserts nothing.
+3. **Promotion without clearing:** closed for v1 (only mailbox owner or Google holder can hold credentials). Facebook caveat correct. See note 1.
+4. **01 vs 02:** closed on the 02 side; a few ACs missing from the list (note 2).
+
+Non-blocking (Solution Designer):
+1. Google `email_verified` = "verified once" (recycled ISP address, lapsed domain; Workspace admins mint verified addresses on their own domain — no weaker than our link). Q8 step 4 overstates. Fix: show "Signed up with Google" in the AC-33 confirm message; record R3 "promoting a Google-only account rests on Google's past verification"; or require one e-mail-link proof before promoting a Google-only account.
+2. ACs missing from "Changes to 01": AC-12 (same reply on the page only, R1); AC-19/20/46 (resends and Forgot password neither counted nor stopped by the cap, R2; drop AC-44's "resend gets busy at the cap"); AC-39 (Auth's `sign_in_sign_ups` 30/5 min/IP shared with sign-in); AC-32 (reactivate in v1).
+3. Spike S1: does `grant_type=id_token` (`signInWithIdToken`) for Google run the before-user-created hook (`token_oidc.go` unread)? If not, add a test or switch that path off.
+4. Spike S6: cover the hash upgrade at sign-in (`token.go:140`) in "the wipe survives".
+5. Hook and trigger functions `security definer`, `search_path = ''` (`supabase_auth_admin` has no usage on `private`); cap row written outside GoTrue's transaction (stated).

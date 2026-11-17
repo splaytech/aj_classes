@@ -1,4 +1,5 @@
-// The setup form after an invite link (invite-onboarding design). Only an invited account gets
+// The setup form after an invite link (invite-onboarding design), and the finish step for a
+// website sign-up (open sign-up, 03 §7.6). Only an invited account or an unfinished sign-up gets
 // here (portal-access 'join'); until it's submitted, the account can't see anything else.
 // Fields depend on the role the server reports: staff give a phone number, students their year
 // level, everyone a name, a password and agreement to the terms.
@@ -12,7 +13,9 @@ import {
   ConsentChoices,
   AuthCard,
   CodeInput,
+  FinishSignUpForm,
   FormAlert,
+  LegalLink,
   FormStatus,
   PasswordInput,
   PortalField,
@@ -25,6 +28,7 @@ import { Button } from '@/components/ui';
 import {
   JOIN_PAGE,
   CONSENT_CHOICES,
+  FINISH_SIGN_UP,
   LEGAL_LINKS,
   PORTAL_ERRORS,
   PORTAL_ROUTES,
@@ -32,6 +36,7 @@ import {
   PROFILE_LIMITS,
   YEAR_LEVEL_TEXT,
   YEAR_LEVELS,
+  AUTH_LIMITS,
 } from '@/constants';
 import {
   asksForPhone,
@@ -44,7 +49,7 @@ import {
 import type { OnboardingErrors, OnboardingValues } from '@/lib/onboarding-validation';
 import { NO_CONSENTS, asksForConsents } from '@/lib/consents';
 import { guardPortalPage } from '@/lib/portal-guard';
-import { checkCode } from '@/lib/portal-validation';
+import { checkEmailCode } from '@/lib/portal-validation';
 import { buildPortalMeta } from '@/lib/seo';
 import { completeOnboarding, sendReauthCode, signOut } from '@/services';
 import type { OnboardingInfo } from '@/services';
@@ -66,11 +71,22 @@ export function meta() {
 
 export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
   const page = await guardPortalPage(request, 'join');
-  return { onboarding: page?.access.onboarding ?? null };
+  return { onboarding: page?.access.onboarding ?? null, signUp: page?.access.signUp ?? null };
 }
 
 export default function JoinPage() {
-  const { onboarding } = useLoaderData<typeof clientLoader>();
+  const navigate = useNavigate();
+  const { onboarding, signUp } = useLoaderData<typeof clientLoader>();
+  if (signUp) {
+    return (
+      <AuthCard heading={FINISH_SIGN_UP.heading} intro={FINISH_SIGN_UP.intro(signUp.email)}>
+        <FinishSignUpForm
+          signUp={signUp}
+          onDone={() => navigate(PORTAL_ROUTES.root, { replace: true })}
+        />
+      </AuthCard>
+    );
+  }
   if (!onboarding) return <PortalUnavailable />;
 
   return (
@@ -109,7 +125,7 @@ function JoinForm({ onboarding }: { onboarding: OnboardingInfo }) {
 
     const found = validateOnboarding(values, role);
     setErrors(found);
-    const badCode = needsCode ? checkCode(code) : '';
+    const badCode = needsCode ? checkEmailCode(code) : '';
     setCodeError(badCode);
     if (Object.keys(found).length > 0 || badCode) return;
 
@@ -260,6 +276,7 @@ function JoinForm({ onboarding }: { onboarding: OnboardingInfo }) {
           <FormStatus message={JOIN_PAGE.codeSent} />
           <CodeInput
             id={FIELD_IDS.code}
+            length={AUTH_LIMITS.emailCodeLength}
             label={JOIN_PAGE.labels.code}
             value={code}
             onChange={setCode}
@@ -276,15 +293,5 @@ function JoinForm({ onboarding }: { onboarding: OnboardingInfo }) {
         {JOIN_PAGE.signOut}
       </button>
     </form>
-  );
-}
-
-/** Opens in a new tab so the half-filled form isn't lost. Plain text until the page exists. */
-function LegalLink({ href, children }: { href: string | null; children: string }) {
-  if (!href) return <>{children}</>;
-  return (
-    <a href={href} target="_blank" rel="noopener noreferrer">
-      {children}
-    </a>
   );
 }

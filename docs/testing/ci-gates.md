@@ -8,7 +8,7 @@ the same commands CI runs, from the repo root. The design is in
 
 | Check on GitHub | What it proves | Local time (M-series laptop) |
 | --- | --- | --- |
-| `web` | format, lint, typecheck, unit tests, production build | about 1 min |
+| `web` | format, lint, typecheck, unit tests (with `supabase/scripts/test-deploy-order.mjs`), production build | about 1 min |
 | `database` | pgTAP tests on a fresh local database | about 30 s |
 | `E2E smoke` | the Playwright suite in `e2e/` on the dev server | about 2 min (plus the stack) |
 | `Lighthouse` | mobile Lighthouse budget, no `supabase.co` requests, CSP sweep | about 4 min |
@@ -44,6 +44,28 @@ Staging and prod share one hosted Supabase project, so no gate, locally or in CI
   defaults on a throwaway runner. Setting `signing_keys_path` or `jwt_secret`, or feeding real
   values through CI `env(...)`, would publish them: don't, without redoing this review. CI also
   drops `supabase start`'s stdout, the status table with the keys.
+
+## Counts (open sign-up, Nov 2026)
+
+What a green run looks like locally, so a missing test shows:
+
+- **E2E smoke:** 13 tests (10 before open sign-up, plus `e2e/tests/open-sign-up.spec.ts`: the
+  e-mail sign-up to Latest news, the Google button and the refusal message, and Forgot password
+  with the PKCE client).
+- **CSP sweep:** 23 tests (21 before; `/terms` runs at 375 px and 1280 px).
+- **`pnpm test`** also runs `node supabase/scripts/test-deploy-order.mjs`: `deploy.sh` against
+  fake `supabase`, `curl` and `jq` on a PATH that can't reach the real CLI (no network, no stack).
+- **`pnpm test:functions`** (local only, not a CI gate) ends with
+  `supabase/scripts/test-open-sign-up.mjs`, the sign-up integration tests against the local
+  stack. They empty the daily-cap table (`private.sign_up_emails`) and reopen the sign-up switch
+  when they finish.
+- **Rate limit (AC-39), opt-in and by hand:**
+  `node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/scripts/test-open-sign-up.mjs --rate-limit`.
+  It sends 31 sign-in attempts from this machine in a row and expects Auth to refuse one with
+  `over_request_rate_limit` (`[auth.rate_limit] sign_in_sign_ups = 30` per 5 minutes per IP).
+  Run it last: if Auth enforces it, this IP can't sign in for 5 minutes. The local Auth only
+  rate-limits by a forwarded-address header that the local stack doesn't set, so locally it
+  reports "not enforced here" (see the open sign-up dev notes); the hosted check is by hand.
 
 ## E2E smoke
 
@@ -124,7 +146,7 @@ pnpm --filter aj-classes-e2e test:csp
 - The build placeholders turn the enquiry form and the footer sign-up on, so the CSP sweep can
   use them. Web3Forms, Kit and `leads` are mocked; nothing is sent.
 - `lighthouse` (`lhci autorun`) starts the mirror (`scripts/serve-mirror.ts --stub-analytics`) on
-  `http://127.0.0.1:4173` and runs 3 mobile runs on each of six pages. The thresholds are in
+  `http://127.0.0.1:4173` and runs 3 mobile runs on each of eight pages (the URL list in `apps/web/lighthouserc.json`; `/terms` since open sign-up). The thresholds are in
   `apps/web/lighthouserc.json` and only there: Performance, Accessibility and Best Practices
   0.9, SEO 1, as medians (AC-6.6, AC-6.7). **Never lower them to pass.** Fix a small miss, or
   write it up for the Product Owner.

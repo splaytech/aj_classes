@@ -23,6 +23,22 @@ describe('Privacy Policy content', () => {
     expect(collect?.text).toContain('(see Job applications)');
   });
 
+  it('says parents and guardians can sign up, and what a signed-up account gets (open sign-up AC-43)', () => {
+    const all = JSON.stringify(PRIVACY);
+    expect(all).not.toContain('only by invitation');
+    const portal = PRIVACY.sections.find((item) => item.heading === PORTAL_HEADING);
+    expect(portal?.text).toContain(
+      'or by parents and guardians signing up themselves when sign-up is open',
+    );
+    expect(portal?.text).toContain('whether you signed up with your e-mail or with Google');
+    expect(portal?.text).toContain('sees only our latest news');
+    const collect = PRIVACY.sections.find((item) => item.heading === 'What we collect');
+    expect(collect?.text).toContain('or sign up for a portal account');
+    const choices = PRIVACY.sections.find((item) => item.heading === 'Optional permissions');
+    expect(choices?.text).toContain('Parents linked to a student can choose');
+    expect(PRIVACY.lastUpdated).toBe('Last updated: November 2026');
+  });
+
   it('has each section once (merges have duplicated sections before)', () => {
     const headings = PRIVACY.sections.map((section) => section.heading);
     expect(new Set(headings).size).toBe(headings.length);

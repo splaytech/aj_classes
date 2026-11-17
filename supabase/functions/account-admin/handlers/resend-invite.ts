@@ -19,6 +19,7 @@ export async function resendInvite(
 
   const target = await findAccount(input.userId);
   if (!target) return fail('not_found');
+  if (target.role === 'user') return fail('not_allowed'); // a website sign-up has no invite
   if (target.status !== 'invited') return fail('already_joined');
 
   if (!(await sendAccountInvite(target))) return fail('email_failed');
