@@ -500,6 +500,11 @@ function staticConfigChecks() {
   check('Apple stays off', tomlValue('auth.external.apple', 'enabled') === 'false');
   check('Google is off locally', tomlValue('auth.external.google', 'enabled') === 'false');
   check(
+    'Production pushes [auth.sms] enable_confirmations = false (CLI 2.120 writes it as sms_autoconfirm)',
+    tomlValue('remotes.production.auth.sms', 'enable_confirmations') === 'false' &&
+      tomlValue('auth.sms', 'enable_confirmations') === 'true',
+  );
+  check(
     'Google is on in production (Google-only release)',
     tomlValue('remotes.production.auth.external.google', 'enabled') === 'true',
   );

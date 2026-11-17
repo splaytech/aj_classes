@@ -534,6 +534,15 @@ pass = "env(RESEND_API_KEY)"
 admin_email = "hello@ajclasses.com.au"
 sender_name = "AJ Classes"
 
+# Supabase CLI 2.120 pushes [auth.sms] enable_confirmations to the hosted project as
+# sms_autoconfirm with the SAME value (not inverted), so `true` above becomes sms_autoconfirm =
+# true there (found on the first release, 2026-11-17). The hosted value we need is
+# sms_autoconfirm = false (security 06 finding 10), so production says false here. deploy.sh checks
+# sms_autoconfirm == false after the push and closes sign-up if not, so a CLI that fixes the
+# mapping fails closed rather than open.
+[remotes.production.auth.sms]
+enable_confirmations = false
+
 # Google sign-in on the hosted project. ON for the first release: sign-up is Google-only (the
 # e-mail form is off in the database, 20261117100000). Needs the Google Cloud OAuth client
 # (release-notes.md): GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in supabase/.env.deploy.
