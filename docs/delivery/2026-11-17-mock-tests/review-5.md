@@ -32,3 +32,13 @@ Pinned to 893bba1.
 6. Closed. Sign-up AC numbers consistent; supersede notes in 01 and 00.
 7. Closed. Out-of-plan files listed in 05-dev-notes.md.
 Round-1 #2 (assignment copy): disclosed in release notes; non-blocking.
+
+## Round 3
+
+APPROVED
+
+Pinned to 3e20c19. Lock order, every function, test row first then attempts: mock_start (test FOR SHARE → attempt insert); mock_save_answer and mock_submit (test FOR SHARE → attempt FOR UPDATE); mock_withdraw (test FOR UPDATE → exists-check and delete); mock_release, mock_move_question (test FOR UPDATE only); check_mock_question (test FOR UPDATE, never an attempt). No cycle; share locks don't serialise takers. Withdraw and submit serialise both ways (waiting submit → not_found on released recheck; submit first → withdraw mock_has_attempts). `submitted_at is null` guard correct.
+
+UI: post-take-back not_found → notFound (Start: not-found panel; Save: "Not saved", keeps the choice; Submit: neutral notFound). Acceptable. Nit (deferred): an in-progress taker whose attempt was removed sees generic "couldn't find that" rather than "your attempt was removed".
+
+LoadError retry: useNavigate isolated in RetryButton, rendered only when retry is set. No regression. pgTAP pin on the four admin policies is sound.
