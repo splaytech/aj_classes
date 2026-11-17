@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import * as constants from '@/constants';
 import {
   MOCK_CLOSING,
+  MOCK_PASS_LABELS,
+  MOCK_RESULTS_PAGE,
   MOCK_TAG_ANY,
   MOCK_TAGS,
   MOCK_TEST_STREAMS,
@@ -34,7 +36,12 @@ import {
   setMockTagFields,
   mockClosingState,
   mockClosingText,
+  mockPassLabel,
+  mockResultName,
+  mockResultsTruncated,
   mockScoreText,
+  passMarkFromText,
+  validatePassMarkText,
   mockTestAreaFromPath,
   unansweredCount,
   validateMockQuestion,
@@ -159,8 +166,79 @@ describe('unansweredCount', () => {
 });
 
 describe('mockScoreText', () => {
-  it('reads "N of M correct"', () => {
-    expect(mockScoreText(3, 5)).toBe('3 of 5 correct');
+  it('reads "N of M marks (P%)" with a percentage', () => {
+    expect(mockScoreText(3, 5, 60)).toBe('3 of 5 marks (60%)');
+    expect(mockScoreText(2, 3, 66)).toBe('2 of 3 marks (66%)');
+  });
+
+  it('reads "N of M marks" without one', () => {
+    expect(mockScoreText(3, 5)).toBe('3 of 5 marks');
+  });
+});
+
+describe('validatePassMarkText', () => {
+  it.each(['0', '-1', '60.5', '101', 'abc'])('refuses %s', (text) => {
+    expect(validatePassMarkText(text)).toBe(MOCK_VALIDATION.passMark);
+  });
+
+  it.each(['1', '100', '60', '', '   '])('accepts %j', (text) => {
+    expect(validatePassMarkText(text)).toBeUndefined();
+  });
+});
+
+describe('passMarkFromText', () => {
+  it('gives null for blank and the number otherwise', () => {
+    expect(passMarkFromText('')).toBeNull();
+    expect(passMarkFromText('  ')).toBeNull();
+    expect(passMarkFromText(' 60 ')).toBe(60);
+  });
+});
+
+describe('validateMockTest pass mark', () => {
+  const base = { title: 'Maths', instructions: '' };
+
+  it('checks the pass mark text when present', () => {
+    expect(validateMockTest({ ...base, passMarkText: '101' }).passMark).toBe(
+      MOCK_VALIDATION.passMark,
+    );
+    expect(validateMockTest({ ...base, passMarkText: '60' })).toEqual({});
+    expect(validateMockTest({ ...base, passMarkText: '' })).toEqual({});
+  });
+
+  it('skips the check when the text is absent', () => {
+    expect(validateMockTest(base)).toEqual({});
+  });
+});
+
+describe('validateMockQuestion marks', () => {
+  it.each([0, -1, 2.5, 101, Number.NaN])('refuses %s', (marks) => {
+    expect(validateMockQuestion({ ...GOOD_QUESTION, marks }).marks).toBe(MOCK_VALIDATION.marks);
+  });
+
+  it('accepts the limits and skips an absent value', () => {
+    expect(validateMockQuestion({ ...GOOD_QUESTION, marks: QUESTION_LIMITS.marksMin })).toEqual({});
+    expect(validateMockQuestion({ ...GOOD_QUESTION, marks: QUESTION_LIMITS.marksMax })).toEqual({});
+    expect(validateMockQuestion({ ...GOOD_QUESTION, marks: undefined })).toEqual({});
+  });
+});
+
+describe('mockResultName, mockPassLabel and mockResultsTruncated', () => {
+  it('falls back to the not-set text for a null name', () => {
+    expect(mockResultName(null)).toBe(MOCK_RESULTS_PAGE.nameNotSet);
+    expect(mockResultName('Ana')).toBe('Ana');
+  });
+
+  it('labels a pass mark result and gives nothing without one', () => {
+    expect(mockPassLabel(null)).toBe('');
+    expect(mockPassLabel(true)).toBe(MOCK_PASS_LABELS.pass);
+    expect(mockPassLabel(false)).toBe(MOCK_PASS_LABELS.notYet);
+  });
+
+  it('is truncated only when fewer rows came back than exist', () => {
+    expect(mockResultsTruncated({ rows: [], totalRows: 0 })).toBe(false);
+    const rows = [{}, {}] as never[];
+    expect(mockResultsTruncated({ rows, totalRows: 1500 })).toBe(true);
+    expect(mockResultsTruncated({ rows, totalRows: 2 })).toBe(false);
   });
 });
 

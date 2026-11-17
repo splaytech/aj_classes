@@ -587,7 +587,7 @@ export type MockAdminQuestion = {
   options: string[];
   correctOption: number;
   explanation: string;
-  marks?: number;
+  marks: number;
 };
 
 /** The admin edit page: the test and every question, with the correct options. */
@@ -597,7 +597,7 @@ export type MockTestDraftView = {
   instructions: string;
   status: MockTestStatus;
   closesAt: string | null;
-  passMark?: number | null;
+  passMark: number | null;
   tags: MockTags;
   questions: MockAdminQuestion[];
 };
@@ -614,9 +614,9 @@ export type MockTestListItem = {
   /** Past means closed: the list keeps it only for someone who submitted (ruling S-1). */
   closesAt: string | null;
   /** Worked out by the database; null until submitted. */
-  percentage?: number | null;
+  percentage: number | null;
   /** Null until submitted, and always null when the test has no pass mark. */
-  passed?: boolean | null;
+  passed: boolean | null;
   tags: MockTags;
 };
 
@@ -629,7 +629,7 @@ export type MockTakeQuestion = {
   selectedOption: number | null;
   correctOption?: number;
   explanation?: string;
-  marks?: number;
+  marks: number;
   /** Only once submitted. */
   marksEarned?: number;
 };
@@ -642,10 +642,10 @@ export type MockTestView = {
   questionCount: number;
   score: number | null;
   total: number | null;
-  totalMarks?: number;
-  passMark?: number | null;
-  percentage?: number | null;
-  passed?: boolean | null;
+  totalMarks: number;
+  passMark: number | null;
+  percentage: number | null;
+  passed: boolean | null;
   tags: MockTags;
   questions: MockTakeQuestion[];
 };
@@ -653,8 +653,8 @@ export type MockTestView = {
 export type MockResult = {
   score: number;
   total: number;
-  percentage?: number;
-  passed?: boolean | null;
+  percentage: number;
+  passed: boolean | null;
 };
 
 /** One row of the admin Results page (mock_test_results). No e-mail, profile id or answers. */

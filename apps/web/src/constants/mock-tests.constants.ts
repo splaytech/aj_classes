@@ -281,7 +281,8 @@ export const MOCK_TAKE_PAGE = {
 
 export const MOCK_RESULT = {
   heading: 'Your result',
-  score: (score: number, total: number) => `${score} of ${total} correct`,
+  score: (score: number, total: number, percentage: number) =>
+    `${score} of ${total} marks (${percentage}%)`,
   // Without a percentage, until every caller passes one (plan slice 5).
   scoreOnly: (score: number, total: number) => `${score} of ${total} marks`,
   questionMarks: (earned: number, marks: number) => `${earned} of ${marks} marks`,

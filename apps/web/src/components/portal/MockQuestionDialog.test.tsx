@@ -79,6 +79,7 @@ describe('MockQuestionDialog', () => {
       position: 1,
       prompt: 'What?',
       options: ['Yes', 'No'],
+      marks: 1,
       correctOption: 0,
       explanation: '',
     });

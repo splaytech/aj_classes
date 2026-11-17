@@ -47,6 +47,7 @@ function question(id: string, position: number): MockAdminQuestion {
     position,
     prompt: `Prompt ${id}`,
     options: ['Yes', 'No'],
+    marks: 1,
     correctOption: 1,
     explanation: id === 'q1' ? 'Because.' : '',
   };
@@ -59,6 +60,7 @@ function testView(overrides: Partial<MockTestDraftView> = {}): MockTestDraftView
     instructions: 'Read carefully.',
     status: 'draft',
     closesAt: null,
+    passMark: null,
     tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
     questions: [question('q1', 1), question('q2', 3)],
     ...overrides,

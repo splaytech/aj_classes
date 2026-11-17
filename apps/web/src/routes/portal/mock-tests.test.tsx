@@ -30,6 +30,8 @@ const ITEMS: MockTestListItem[] = [
     total: null,
     submittedAt: null,
     closesAt: null,
+    percentage: null,
+    passed: null,
     tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
   },
   {
@@ -41,6 +43,8 @@ const ITEMS: MockTestListItem[] = [
     total: null,
     submittedAt: null,
     closesAt: null,
+    percentage: null,
+    passed: null,
     tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
   },
   {
@@ -52,6 +56,8 @@ const ITEMS: MockTestListItem[] = [
     total: 5,
     submittedAt: '2026-11-18T01:00:00Z',
     closesAt: null,
+    percentage: 80,
+    passed: null,
     tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
   },
 ];
@@ -117,7 +123,7 @@ describe('mock tests list for takers', () => {
     expect(screen.getByText(MOCK_TESTS_LIST.questions(1))).toBeInTheDocument();
     expect(screen.getByText(MOCK_TAKE_STATUS_LABELS.not_started)).toBeInTheDocument();
     expect(screen.getByText(MOCK_TAKE_STATUS_LABELS.in_progress)).toBeInTheDocument();
-    expect(screen.getByText('4 of 5 correct')).toBeInTheDocument();
+    expect(screen.getByText('4 of 5 marks')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: MOCK_TESTS_LIST.actions.not_started })).toBeVisible();
     expect(screen.getByRole('link', { name: MOCK_TESTS_LIST.actions.in_progress })).toBeVisible();
     expect(screen.getByRole('link', { name: MOCK_TESTS_LIST.actions.submitted })).toBeVisible();
@@ -132,7 +138,7 @@ describe('mock tests list for takers', () => {
   it('shows a score only for the submitted mock test', async () => {
     renderList('parent', ITEMS);
     await screen.findByRole('heading', { level: 1 });
-    expect(screen.getAllByText(/of \d+ correct/)).toHaveLength(1);
+    expect(screen.getAllByText(/of \d+ marks/)).toHaveLength(1);
   });
 
   it('marks a closed test the person submitted as Closed, and still offers the result (ruling S-1)', async () => {
@@ -143,7 +149,7 @@ describe('mock tests list for takers', () => {
 
     expect(screen.getAllByText(MOCK_CLOSING.closedChip)).toHaveLength(1);
     expect(screen.getByRole('link', { name: MOCK_TESTS_LIST.actions.submitted })).toBeVisible();
-    expect(screen.getByText('4 of 5 correct')).toBeInTheDocument();
+    expect(screen.getByText('4 of 5 marks')).toBeInTheDocument();
   });
 
   it('shows the empty state, with no filters (AC 22a)', async () => {

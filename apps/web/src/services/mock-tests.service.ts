@@ -6,13 +6,20 @@ import { toErrorKey } from './auth-errors';
 import {
   MOCK_QUESTION_COLUMNS,
   toMockAdminQuestion,
+  toMockResultRow,
   toMockTagColumns,
   toMockTags,
   toMockTestListItem,
   toMockTestSummary,
   toMockTestView,
 } from './mock-tests-data';
-import type { MockListRow, MockOpenJson, MockQuestionRow, MockSummaryRow } from './mock-tests-data';
+import type {
+  MockListRow,
+  MockOpenJson,
+  MockQuestionRow,
+  MockResultRowJson,
+  MockSummaryRow,
+} from './mock-tests-data';
 import { attempt, fail, succeed } from './result';
 import { getAdminClient, getTakerClient } from './staff-client';
 import { getSupabase } from './supabase.client';
@@ -23,6 +30,7 @@ import type {
   MockTestDraftView,
   MockTestInput,
   MockTestListItem,
+  MockTestResultsView,
   MockTestStatus,
   MockTestSummary,
   MockTestView,
@@ -41,6 +49,38 @@ export async function listMockTestsAdmin(): Promise<Result<MockTestSummary[]>> {
   });
 }
 
+/**
+ * Who submitted a test and what they scored (admin only). The header read tells an unknown test
+ * from an empty one; the function refuses anyone but an admin at aal2.
+ */
+export async function getMockTestResults(testId: string): Promise<Result<MockTestResultsView>> {
+  return attempt(async () => {
+    const supabase = await getAdminClient();
+    if (!supabase) return fail('notAllowed'); // the layout shows the refusal; no request goes out
+    const test = await supabase
+      .from('mock_tests')
+      .select('id, title, status, closes_at, pass_mark')
+      .eq('id', testId)
+      .maybeSingle();
+    if (test.error) return fail(toErrorKey(test.error));
+    if (!test.data) return fail('notFound');
+
+    const { data, error } = await supabase.rpc('mock_test_results', { target: testId });
+    if (error) return fail(toErrorKey(error));
+    const rows = data as MockResultRowJson[];
+
+    return succeed({
+      testId: test.data.id,
+      title: test.data.title,
+      status: test.data.status as MockTestStatus,
+      closesAt: test.data.closes_at,
+      passMark: test.data.pass_mark,
+      rows: rows.map(toMockResultRow),
+      totalRows: rows[0]?.total_rows ?? 0,
+    });
+  });
+}
+
 /** The test and its questions, with the correct options. Only admins get rows (RLS). */
 export async function getMockTestForEdit(testId: string): Promise<Result<MockTestDraftView>> {
   return attempt(async () => {
@@ -48,7 +88,9 @@ export async function getMockTestForEdit(testId: string): Promise<Result<MockTes
     if (!supabase) return fail('notAllowed'); // the layout shows the refusal; no request goes out
     const test = await supabase
       .from('mock_tests')
-      .select('id, title, instructions, status, closes_at, subject, stream, year_levels, any_year')
+      .select(
+        'id, title, instructions, status, closes_at, pass_mark, subject, stream, year_levels, any_year',
+      )
       .eq('id', testId)
       .maybeSingle();
     if (test.error) return fail(toErrorKey(test.error));
@@ -68,6 +110,7 @@ export async function getMockTestForEdit(testId: string): Promise<Result<MockTes
       instructions: test.data.instructions,
       status: test.data.status as MockTestStatus,
       closesAt: test.data.closes_at,
+      passMark: test.data.pass_mark,
       tags: toMockTags(test.data),
       questions: (questions.data as MockQuestionRow[]).map(toMockAdminQuestion),
     });
@@ -82,6 +125,7 @@ export async function createMockTest(input: MockTestInput): Promise<Result<{ id:
       .insert({
         title: input.title.trim(),
         instructions: input.instructions.trim(),
+        pass_mark: input.passMark ?? null,
         ...toMockTagColumns(input.tags),
       })
       .select('id')
@@ -99,6 +143,7 @@ export async function updateMockTest(testId: string, input: MockTestInput): Prom
       .update({
         title: input.title.trim(),
         instructions: input.instructions.trim(),
+        pass_mark: input.passMark ?? null,
         ...toMockTagColumns(input.tags),
       })
       .eq('id', testId)
@@ -194,6 +239,9 @@ export async function saveMockQuestion(input: MockQuestionInput): Promise<Result
     options: input.options.map((option) => option.trim()),
     correct_option: input.correctOption,
     explanation: input.explanation.trim(),
+    // Left out when undefined (until slice 6 sends it), so an update keeps the stored marks and
+    // an insert gets the database default of 1.
+    ...(input.marks === undefined ? {} : { marks: input.marks }),
   };
 
   return attempt(async () => {

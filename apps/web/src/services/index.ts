@@ -63,6 +63,7 @@ export {
   deleteMockQuestion,
   deleteMockTest,
   getMockTestForEdit,
+  getMockTestResults,
   getMyMockTest,
   listMockTestsAdmin,
   listMyMockTests,

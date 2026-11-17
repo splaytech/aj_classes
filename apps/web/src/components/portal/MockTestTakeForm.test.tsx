@@ -17,13 +17,38 @@ const TEST: MockTestView = {
   instructions: '',
   status: 'in_progress',
   questionCount: 3,
+  totalMarks: 3,
+  passMark: null,
   score: null,
   total: null,
+  percentage: null,
+  passed: null,
   tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
   questions: [
-    { id: 'q1', position: 1, prompt: 'First?', options: ['Yes', 'No'], selectedOption: null },
-    { id: 'q2', position: 3, prompt: 'Second?', options: ['Red', 'Blue'], selectedOption: 1 },
-    { id: 'q3', position: 4, prompt: 'Third?', options: ['Up', 'Down'], selectedOption: null },
+    {
+      id: 'q1',
+      position: 1,
+      prompt: 'First?',
+      options: ['Yes', 'No'],
+      marks: 1,
+      selectedOption: null,
+    },
+    {
+      id: 'q2',
+      position: 3,
+      prompt: 'Second?',
+      options: ['Red', 'Blue'],
+      marks: 1,
+      selectedOption: 1,
+    },
+    {
+      id: 'q3',
+      position: 4,
+      prompt: 'Third?',
+      options: ['Up', 'Down'],
+      marks: 1,
+      selectedOption: null,
+    },
   ],
 };
 
@@ -137,8 +162,22 @@ describe('MockTestTakeForm', () => {
     renderForm({
       ...TEST,
       questions: [
-        { id: 'q1', position: 1, prompt: 'First?', options: ['Yes', 'No'], selectedOption: null },
-        { id: 'q2', position: 2, prompt: 'Second?', options: ['Red', 'Blue'], selectedOption: 1 },
+        {
+          id: 'q1',
+          position: 1,
+          prompt: 'First?',
+          options: ['Yes', 'No'],
+          marks: 1,
+          selectedOption: null,
+        },
+        {
+          id: 'q2',
+          position: 2,
+          prompt: 'Second?',
+          options: ['Red', 'Blue'],
+          marks: 1,
+          selectedOption: 1,
+        },
       ],
     });
 
@@ -175,7 +214,10 @@ describe('MockTestTakeForm', () => {
   });
 
   it('submits after the confirmation and tells the page', async () => {
-    vi.mocked(submitMockTest).mockResolvedValue({ ok: true, data: { score: 1, total: 3 } });
+    vi.mocked(submitMockTest).mockResolvedValue({
+      ok: true,
+      data: { score: 1, total: 3, percentage: 33, passed: null },
+    });
     const user = setupUser();
     const onSubmitted = renderForm();
 

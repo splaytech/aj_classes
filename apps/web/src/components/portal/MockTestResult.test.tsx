@@ -14,6 +14,10 @@ const TEST: MockTestView = {
   questionCount: 2,
   score: 1,
   total: 2,
+  totalMarks: 2,
+  passMark: null,
+  percentage: 50,
+  passed: null,
   tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
   questions: [
     {
@@ -21,6 +25,7 @@ const TEST: MockTestView = {
       position: 1,
       prompt: 'First?',
       options: ['Yes', 'No'],
+      marks: 1,
       selectedOption: 0,
       correctOption: 0,
       explanation: 'Because.',
@@ -30,6 +35,7 @@ const TEST: MockTestView = {
       position: 5,
       prompt: 'Second?',
       options: ['Red', 'Blue'],
+      marks: 1,
       selectedOption: null,
       correctOption: 1,
       explanation: '',
@@ -38,9 +44,9 @@ const TEST: MockTestView = {
 };
 
 describe('MockTestResult', () => {
-  it('shows "N of M correct"', () => {
+  it('shows "N of M marks"', () => {
     render(<MockTestResult test={TEST} />);
-    expect(screen.getByText('1 of 2 correct')).toBeInTheDocument();
+    expect(screen.getByText('1 of 2 marks')).toBeInTheDocument();
   });
 
   it('moves focus to the result heading only when asked, as right after Submit (BUG-4)', () => {
