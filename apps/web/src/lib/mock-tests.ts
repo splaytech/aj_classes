@@ -45,9 +45,8 @@ export function passMarkFromText(text: string): number | null {
   return trimmed === '' ? null : Number(trimmed);
 }
 
-/** `passMarkText` is optional until the dialog sends it (plan slice 6); absent is not checked. */
 export function validateMockTest(
-  input: Pick<MockTestInput, 'title' | 'instructions'> & { passMarkText?: string },
+  input: Pick<MockTestInput, 'title' | 'instructions'> & { passMarkText: string },
 ): MockTestErrors {
   const errors: MockTestErrors = {};
   const title = input.title.trim();
@@ -57,10 +56,8 @@ export function validateMockTest(
   if (input.instructions.length > MOCK_TEST_LIMITS.instructionsMax) {
     errors.instructions = MOCK_VALIDATION.instructions;
   }
-  if (input.passMarkText !== undefined) {
-    const passMarkError = validatePassMarkText(input.passMarkText);
-    if (passMarkError) errors.passMark = passMarkError;
-  }
+  const passMarkError = validatePassMarkText(input.passMarkText);
+  if (passMarkError) errors.passMark = passMarkError;
   return errors;
 }
 
@@ -88,13 +85,12 @@ export function validateMockQuestion(
   if (input.explanation.length > QUESTION_LIMITS.explanationMax) {
     errors.explanation = MOCK_VALIDATION.explanation;
   }
-  // Optional until the dialog sends marks (plan slice 6); the same rule as lib/questions.ts.
+  // The same rule as lib/questions.ts.
   const marks = input.marks;
   if (
-    marks !== undefined &&
-    (!Number.isInteger(marks) ||
-      marks < QUESTION_LIMITS.marksMin ||
-      marks > QUESTION_LIMITS.marksMax)
+    !Number.isInteger(marks) ||
+    marks < QUESTION_LIMITS.marksMin ||
+    marks > QUESTION_LIMITS.marksMax
   ) {
     errors.marks = MOCK_VALIDATION.marks;
   }
@@ -121,9 +117,7 @@ export function unansweredCount(
   return questions.filter((question) => answers[question.id] == null).length;
 }
 
-/** The percentage is optional until every caller has one (plan slice 7). */
-export function mockScoreText(score: number, total: number, percentage?: number): string {
-  if (percentage === undefined) return MOCK_RESULT.scoreOnly(score, total);
+export function mockScoreText(score: number, total: number, percentage: number): string {
   return MOCK_RESULT.score(score, total, percentage);
 }
 

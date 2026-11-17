@@ -566,7 +566,7 @@ export type MockTestInput = {
   title: string;
   instructions: string;
   /** A whole percentage from 1 to 100; null means no pass mark. */
-  passMark?: number | null;
+  passMark: number | null;
   tags: MockTags;
 };
 
@@ -577,7 +577,7 @@ export type MockQuestionInput = {
   options: string[];
   correctOption: number | null;
   explanation: string;
-  marks?: number;
+  marks: number;
 };
 
 export type MockAdminQuestion = {
@@ -661,7 +661,7 @@ export type MockResult = {
 export type MockResultRow = {
   /** A React key only; it opens nothing. */
   attemptId: string;
-  /** Null: the page shows MOCK_RESULTS_PAGE.nameNotSet. */
+  /** Null: the page shows the "Name not set" fallback. */
   takerName: string | null;
   submittedAt: string;
   score: number;

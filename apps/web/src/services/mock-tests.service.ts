@@ -125,7 +125,7 @@ export async function createMockTest(input: MockTestInput): Promise<Result<{ id:
       .insert({
         title: input.title.trim(),
         instructions: input.instructions.trim(),
-        pass_mark: input.passMark ?? null,
+        pass_mark: input.passMark,
         ...toMockTagColumns(input.tags),
       })
       .select('id')
@@ -143,7 +143,7 @@ export async function updateMockTest(testId: string, input: MockTestInput): Prom
       .update({
         title: input.title.trim(),
         instructions: input.instructions.trim(),
-        pass_mark: input.passMark ?? null,
+        pass_mark: input.passMark,
         ...toMockTagColumns(input.tags),
       })
       .eq('id', testId)
@@ -239,9 +239,7 @@ export async function saveMockQuestion(input: MockQuestionInput): Promise<Result
     options: input.options.map((option) => option.trim()),
     correct_option: input.correctOption,
     explanation: input.explanation.trim(),
-    // Left out when undefined (until slice 6 sends it), so an update keeps the stored marks and
-    // an insert gets the database default of 1.
-    ...(input.marks === undefined ? {} : { marks: input.marks }),
+    marks: input.marks,
   };
 
   return attempt(async () => {

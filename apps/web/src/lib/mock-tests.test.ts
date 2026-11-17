@@ -53,23 +53,31 @@ const GOOD_QUESTION = {
   options: ['3', '4'],
   correctOption: 1,
   explanation: '',
+  marks: 1,
 };
 
 describe('validateMockTest', () => {
   it('accepts a title of 2 to 150 characters', () => {
-    expect(validateMockTest({ title: 'ab', instructions: '' })).toEqual({});
-    expect(validateMockTest({ title: 'a'.repeat(150), instructions: '' })).toEqual({});
+    expect(validateMockTest({ title: 'ab', instructions: '', passMarkText: '' })).toEqual({});
+    expect(
+      validateMockTest({ title: 'a'.repeat(150), instructions: '', passMarkText: '' }),
+    ).toEqual({});
   });
 
   it.each(['', ' ', 'a', '  a  ', 'a'.repeat(151)])('refuses the title %j', (title) => {
-    expect(validateMockTest({ title, instructions: '' }).title).toBe(MOCK_VALIDATION.title);
+    expect(validateMockTest({ title, instructions: '', passMarkText: '' }).title).toBe(
+      MOCK_VALIDATION.title,
+    );
   });
 
   it('refuses instructions over 4000 characters, and accepts 4000', () => {
     const limit = MOCK_TEST_LIMITS.instructionsMax;
-    expect(validateMockTest({ title: 'Maths', instructions: 'a'.repeat(limit) })).toEqual({});
     expect(
-      validateMockTest({ title: 'Maths', instructions: 'a'.repeat(limit + 1) }).instructions,
+      validateMockTest({ title: 'Maths', instructions: 'a'.repeat(limit), passMarkText: '' }),
+    ).toEqual({});
+    expect(
+      validateMockTest({ title: 'Maths', instructions: 'a'.repeat(limit + 1), passMarkText: '' })
+        .instructions,
     ).toBe(MOCK_VALIDATION.instructions);
   });
 });
@@ -170,10 +178,6 @@ describe('mockScoreText', () => {
     expect(mockScoreText(3, 5, 60)).toBe('3 of 5 marks (60%)');
     expect(mockScoreText(2, 3, 66)).toBe('2 of 3 marks (66%)');
   });
-
-  it('reads "N of M marks" without one', () => {
-    expect(mockScoreText(3, 5)).toBe('3 of 5 marks');
-  });
 });
 
 describe('validatePassMarkText', () => {
@@ -197,16 +201,12 @@ describe('passMarkFromText', () => {
 describe('validateMockTest pass mark', () => {
   const base = { title: 'Maths', instructions: '' };
 
-  it('checks the pass mark text when present', () => {
+  it('checks the pass mark text', () => {
     expect(validateMockTest({ ...base, passMarkText: '101' }).passMark).toBe(
       MOCK_VALIDATION.passMark,
     );
     expect(validateMockTest({ ...base, passMarkText: '60' })).toEqual({});
     expect(validateMockTest({ ...base, passMarkText: '' })).toEqual({});
-  });
-
-  it('skips the check when the text is absent', () => {
-    expect(validateMockTest(base)).toEqual({});
   });
 });
 
@@ -215,10 +215,9 @@ describe('validateMockQuestion marks', () => {
     expect(validateMockQuestion({ ...GOOD_QUESTION, marks }).marks).toBe(MOCK_VALIDATION.marks);
   });
 
-  it('accepts the limits and skips an absent value', () => {
+  it('accepts the limits', () => {
     expect(validateMockQuestion({ ...GOOD_QUESTION, marks: QUESTION_LIMITS.marksMin })).toEqual({});
     expect(validateMockQuestion({ ...GOOD_QUESTION, marks: QUESTION_LIMITS.marksMax })).toEqual({});
-    expect(validateMockQuestion({ ...GOOD_QUESTION, marks: undefined })).toEqual({});
   });
 });
 

@@ -216,7 +216,12 @@ describe('createMockTest and updateMockTest', () => {
   it('inserts the trimmed title and instructions and the tag columns, never an id', async () => {
     reply({ id: 'new' });
     expect(
-      await createMockTest({ title: '  Maths  ', instructions: ' Go ', tags: NO_TAGS }),
+      await createMockTest({
+        title: '  Maths  ',
+        instructions: ' Go ',
+        passMark: null,
+        tags: NO_TAGS,
+      }),
     ).toEqual({
       ok: true,
       data: { id: 'new' },
@@ -237,7 +242,9 @@ describe('createMockTest and updateMockTest', () => {
   it('sends the tags of a draft edit, years ascending', async () => {
     reply({ id: 't1' });
     const tags = { subject: 'maths', stream: 'icas', yearLevels: [8, 5], anyYear: false };
-    expect(await updateMockTest('t1', { title: 'Maths', instructions: '', tags })).toEqual({
+    expect(
+      await updateMockTest('t1', { title: 'Maths', instructions: '', passMark: null, tags }),
+    ).toEqual({
       ok: true,
       data: undefined,
     });
@@ -256,7 +263,9 @@ describe('createMockTest and updateMockTest', () => {
 
   it('maps a check-constraint refusal to invalidInput', async () => {
     reply(null, { code: '23514', message: 'violates check constraint' });
-    expect(await createMockTest({ title: 'x', instructions: '', tags: NO_TAGS })).toEqual({
+    expect(
+      await createMockTest({ title: 'x', instructions: '', passMark: null, tags: NO_TAGS }),
+    ).toEqual({
       ok: false,
       error: 'invalidInput',
     });
@@ -264,22 +273,32 @@ describe('createMockTest and updateMockTest', () => {
 
   it('says mockReleased when a released test is edited', async () => {
     reply(null, { code: 'P0001', message: 'mock_released' });
-    expect(await updateMockTest('t1', { title: 'Maths', instructions: '', tags: NO_TAGS })).toEqual(
-      {
-        ok: false,
-        error: 'mockReleased',
-      },
-    );
+    expect(
+      await updateMockTest('t1', {
+        title: 'Maths',
+        instructions: '',
+        passMark: null,
+        tags: NO_TAGS,
+      }),
+    ).toEqual({
+      ok: false,
+      error: 'mockReleased',
+    });
   });
 
   it('says notAllowed when the update matched no row', async () => {
     reply(null);
-    expect(await updateMockTest('t1', { title: 'Maths', instructions: '', tags: NO_TAGS })).toEqual(
-      {
-        ok: false,
-        error: 'notAllowed',
-      },
-    );
+    expect(
+      await updateMockTest('t1', {
+        title: 'Maths',
+        instructions: '',
+        passMark: null,
+        tags: NO_TAGS,
+      }),
+    ).toEqual({
+      ok: false,
+      error: 'notAllowed',
+    });
   });
 });
 
@@ -423,6 +442,7 @@ describe('saveMockQuestion', () => {
     options: [' a ', 'b'],
     correctOption: 1,
     explanation: ' ',
+    marks: 1,
   };
 
   it('inserts a trimmed question without an id or position', async () => {
@@ -435,6 +455,7 @@ describe('saveMockQuestion', () => {
         options: ['a', 'b'],
         correct_option: 1,
         explanation: '',
+        marks: 1,
       }),
     ).toBe(true);
   });
@@ -448,12 +469,13 @@ describe('saveMockQuestion', () => {
         options: ['a', 'b'],
         correct_option: 1,
         explanation: '',
+        marks: 1,
       }),
     ).toBe(true);
     expect(called('eq', 'id', 'q1')).toBe(true);
   });
 
-  it('sends marks on insert and on update when given', async () => {
+  it('sends marks on insert and on update', async () => {
     reply({ id: 'q1' });
     await saveMockQuestion({ ...input, marks: 3 });
     expect(calls.find(([name]) => name === 'insert')?.[1][0]).toMatchObject({ marks: 3 });
@@ -462,12 +484,6 @@ describe('saveMockQuestion', () => {
     reply({ id: 'q1' });
     await saveMockQuestion({ ...input, id: 'q1', marks: 5 });
     expect(calls.find(([name]) => name === 'update')?.[1][0]).toMatchObject({ marks: 5 });
-  });
-
-  it('leaves marks out when not given, so an update keeps the stored marks', async () => {
-    reply({ id: 'q1' });
-    await saveMockQuestion({ ...input, id: 'q1' });
-    expect(calls.find(([name]) => name === 'update')?.[1][0]).not.toHaveProperty('marks');
   });
 
   it('refuses a missing correct option without calling the database', async () => {
