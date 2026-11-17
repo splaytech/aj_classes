@@ -20,3 +20,11 @@ Checked about 30 rows against the code and migration (SC-1 all 14 pass and 11 % 
 12. [NON-BLOCKING] Stale comment above MOCK_CLOSING (mock-tests.constants.ts:220-221) says "results included".
 
 Lead: #3: S-1's expected value is "exit 1, listing only actionItems.md and supabase/.temp/*" (the accepted 2026-11-17 L-4 rule), which is an exact expected value, so PASS when it matches. #8: the team lead commits at freeze. #11: written into 03 and the ADR by the team lead. #12: Dev Lead comment fix; the plan re-pins to that commit.
+
+## Round 2
+
+APPROVED
+
+Round-1 #1 and #2 fixed. 031e552 changes a comment only. R-14's count of 12 was verified from the fixtures (8 FX cards, bp1b, r4, r5, r13). The Sitting-2 clean-up leaves mock_tests and attempts at 0 and profiles at 7, as pgTAP expects. Ruling #3 accepted.
+
+Non-blocking, fixed in place by the team lead: (1) line 7 now cites L-1 to L-13; (2) the mid-sitting clean-up also checks `private.sign_up_emails` → 0. (3) The freeze commit adds the plan; the TSR cites it.
