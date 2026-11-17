@@ -47,11 +47,17 @@ test.describe('Mock tests', () => {
       await db.query('DELETE FROM public.mock_tests WHERE title = $1', [title]);
     });
 
-    // --- The admin creates a draft and adds two questions. ---
+    // --- The admin creates a draft, tagged with a subject and Any year but no stream yet, and
+    // adds two questions. ---
     const admin = authedAdminPage;
     await admin.goto('/portal/admin/mock-tests');
     await adminMockTestSelectors.newButton(admin).click();
     await adminMockTestSelectors.titleField(admin).fill(title);
+    await adminMockTestSelectors.tagSelect(admin, 'Subject').click();
+    await adminMockTestSelectors.tagOption(admin, 'Maths').click();
+    await adminMockTestSelectors.tagSelect(admin, 'Year level').click();
+    await adminMockTestSelectors.tagOption(admin, 'Any year').click();
+    await admin.keyboard.press('Escape'); // closes the multi-select menu, not the dialog
     await adminMockTestSelectors.createButton(admin).click();
     await expect(admin).toHaveURL(/\/portal\/admin\/mock-tests\/[0-9a-f-]{36}$/);
     await expect(admin.getByRole('heading', { level: 1, name: title })).toBeVisible();
@@ -78,13 +84,26 @@ test.describe('Mock tests', () => {
     );
     expect(draft?.status).toBe('draft');
 
-    // Release needs subject, stream and year level (categories AC 14). Tagged by SQL here, so the
-    // release dialog opens with saved tags.
-    await db.query(
-      'UPDATE public.mock_tests SET subject = $2, stream = $3, any_year = true WHERE id = $1',
-      [draft?.id, 'maths', 'naplan'],
+    // --- Release needs all three tags (categories AC 14): the page and the dialog say so. ---
+    await expect(adminMockTestSelectors.missingTagsHint(admin, 'stream')).toBeVisible();
+    await adminMockTestSelectors.releaseButton(admin).click();
+    await adminMockTestSelectors.confirmReleaseButton(admin).click();
+    await expect(admin.getByRole('dialog').getByText('Please choose a stream.')).toBeVisible();
+    await adminMockTestSelectors.cancelDialogButton(admin).click();
+    await expect(admin.getByRole('dialog')).toBeHidden();
+    const [stillDraft] = await db.query<{ status: string }>(
+      'SELECT status FROM public.mock_tests WHERE id = $1',
+      [draft?.id],
     );
-    await admin.reload();
+    expect(stillDraft?.status).toBe('draft');
+
+    // --- The admin edits the draft and sets the stream. ---
+    await adminMockTestSelectors.editDetailsButton(admin).click();
+    await adminMockTestSelectors.tagSelect(admin, 'Stream').click();
+    await adminMockTestSelectors.tagOption(admin, 'NAPLAN').click();
+    await adminMockTestSelectors.saveDetailsButton(admin).click();
+    await expect(admin.getByRole('dialog')).toBeHidden();
+    await expect(adminMockTestSelectors.missingTagsHint(admin, 'stream')).toHaveCount(0);
 
     // --- The admin releases it. ---
     await adminMockTestSelectors.releaseButton(admin).click();
@@ -97,6 +116,22 @@ test.describe('Mock tests', () => {
         ]),
       (rows) => rows[0]?.status === 'released',
       { description: `mock test ${title} released` },
+    );
+
+    // --- Edit tags on the released test (categories AC 15). ---
+    await adminMockTestSelectors.editTagsButton(admin).click();
+    await adminMockTestSelectors.tagSelect(admin, 'Subject').click();
+    await adminMockTestSelectors.tagOption(admin, 'English').click();
+    await adminMockTestSelectors.saveDetailsButton(admin).click();
+    await expect(adminMockTestSelectors.tagsSavedNotice(admin)).toBeVisible();
+    await pollForRow(
+      () =>
+        db.query<{ subject: string; stream: string; any_year: boolean }>(
+          'SELECT subject, stream, any_year FROM public.mock_tests WHERE title = $1',
+          [title],
+        ),
+      (rows) => rows[0]?.subject === 'english' && rows[0]?.stream === 'naplan' && rows[0]?.any_year,
+      { description: `mock test ${title} retagged` },
     );
 
     // --- A student, in their own browser, opens the list, starts, answers and submits. ---
@@ -177,6 +212,19 @@ test.describe('Mock tests', () => {
     await student.goto('/portal/student/mock-tests');
     await expect(takeMockTestSelectors.cardByTitle(student, title)).toContainText('1 of 2 correct');
 
+    // --- The filters narrow the list; no match says so, and Clear filters restores it (AC 20, 22b).
+    const card = takeMockTestSelectors.cardByTitle(student, title);
+    await expect(card).toContainText('Subject: English');
+    await takeMockTestSelectors.filter(student, 'Subject').click();
+    await takeMockTestSelectors.filterOption(student, 'English').click();
+    await expect(card).toBeVisible();
+    await takeMockTestSelectors.filter(student, 'Stream').click();
+    await takeMockTestSelectors.filterOption(student, 'VCE Tutoring').click();
+    await expect(card).toHaveCount(0);
+    await expect(takeMockTestSelectors.noMatch(student)).toBeVisible();
+    await takeMockTestSelectors.clearFilters(student).click();
+    await expect(card).toBeVisible();
+
     // --- The admin closes it now; the student submitted, so they still see it, marked Closed. ---
     await admin.reload();
     await adminMockTestSelectors.closeNowButton(admin).click();
@@ -194,7 +242,6 @@ test.describe('Mock tests', () => {
     );
 
     await student.goto('/portal/student/mock-tests');
-    const card = takeMockTestSelectors.cardByTitle(student, title);
     await expect(card).toContainText('Closed');
     await expect(card).toContainText('1 of 2 correct');
   });

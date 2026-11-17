@@ -238,7 +238,7 @@ Read the failing file list. The `Files=` count is not a pass criterion.
 
 ## Slice 9: e2e smoke additions
 
-- [ ] **9.1** `e2e/tests/mock-tests.spec.ts` and `e2e/tests/mock-tests.selectors.ts`:
+- [x] **9.1** `e2e/tests/mock-tests.spec.ts` and `e2e/tests/mock-tests.selectors.ts`:
   - create a draft, tag it in the UI, edit it, and release it;
   - release is refused with the missing-tag message on an untagged draft;
   - edit tags on a released test;
