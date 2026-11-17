@@ -10,3 +10,13 @@ CHANGES_REQUESTED
 4. Severities sensible. Coverage notes: no rate limit on mock_start / mock_save_answer (bounded; accept in writing); no audit row for release/withdraw beyond released_by.
 
 Verified at source: :318, :458-460, :152-154, :522-541, :613-623, :187-188, :229, is_admin aal2, no package.json change, no key patterns. DB behaviour not reproduced.
+
+## Round 2
+
+CHANGES_REQUESTED
+
+1. Commit gap (blocking for the pin): revised 06-security.md was only in the working tree; 3e20c19 carries round 1. Commit it. — *Lead: committed with this section.*
+2. Round-1 items all closed in content: :280, :310, :150, :360, :500, :526, :574 take the test row as stated; :327 carries `submitted_at is null`; threat model no longer says "No table grant"; 13 mock functions, 12 definer, check_mock_test invoker; notes 7 and 8 accepted.
+3. ADR-0012 decision 3 at 3e20c19 states the real grant and RLS-only key protection; matches pgTAP mock_tests_admin.test.sql:379-388.
+4. Nit: ADR-0012 decision 5 (line 16) still said "refused if any attempt exists". — *Lead: amended in place to the L-5 rule and the lock order.*
+5. Process: review-6b.md was written by the team lead from the reviewer's returned text (the reviewer is read-only), as for every review file in this folder.
