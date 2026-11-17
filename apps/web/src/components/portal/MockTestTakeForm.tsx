@@ -15,7 +15,8 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useCallback, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import type { Ref } from 'react';
 
 import { MOCK_TAKE_PAGE, PORTAL_ERRORS } from '@/constants';
 import { unansweredCount } from '@/lib/mock-tests';
@@ -35,9 +36,15 @@ type MockTestTakeFormProps = {
   test: MockTestView;
   /** Called once the submit worked, so the page can load the result. */
   onSubmitted: () => void;
+  /** Move focus to the question heading when the form appears (right after Start). */
+  focusOnShow?: boolean;
 };
 
-export function MockTestTakeForm({ test, onSubmitted }: MockTestTakeFormProps) {
+export function MockTestTakeForm({
+  test,
+  onSubmitted,
+  focusOnShow = false,
+}: MockTestTakeFormProps) {
   const [answers, setAnswers] = useState<Record<string, number | null>>(() =>
     Object.fromEntries(test.questions.map((question) => [question.id, question.selectedOption])),
   );
@@ -49,6 +56,22 @@ export function MockTestTakeForm({ test, onSubmitted }: MockTestTakeFormProps) {
   const [index, setIndex] = useState(0);
   const [confirming, setConfirming] = useState(false);
   const submitAction = usePortalAction();
+  const questionHeadingRef = useRef<HTMLHeadingElement>(null);
+  const previousRef = useRef<HTMLButtonElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
+  // Reaching the first or last question disables the button just pressed; focus goes to the other
+  // one once it is enabled (after the render), so it never falls to the page body.
+  const focusAfterMove = useRef<'previous' | 'next' | null>(null);
+
+  useEffect(() => {
+    if (focusOnShow) questionHeadingRef.current?.focus();
+  }, [focusOnShow]);
+
+  useEffect(() => {
+    const target = focusAfterMove.current === 'previous' ? previousRef : nextRef;
+    if (focusAfterMove.current) target.current?.focus();
+    focusAfterMove.current = null;
+  }, [index]);
 
   const save = useCallback(
     async (questionId: string, change: AnswerChange): Promise<Result> => {
@@ -69,6 +92,12 @@ export function MockTestTakeForm({ test, onSubmitted }: MockTestTakeFormProps) {
   function chooseOption(option: number) {
     setAnswers((current) => ({ ...current, [question.id]: option }));
     autosave.saveOption(question.id, option);
+  }
+
+  function goTo(newIndex: number) {
+    if (newIndex === 0) focusAfterMove.current = 'next';
+    if (newIndex === test.questions.length - 1) focusAfterMove.current = 'previous';
+    setIndex(newIndex);
   }
 
   async function submit() {
@@ -102,16 +131,23 @@ export function MockTestTakeForm({ test, onSubmitted }: MockTestTakeFormProps) {
         selected={answers[question.id] ?? null}
         saveState={autosave.states[question.id]}
         onOption={chooseOption}
+        headingRef={questionHeadingRef}
       />
 
       <Stack direction="row" spacing={2}>
-        <Button variant="outlined" disabled={index === 0} onClick={() => setIndex(index - 1)}>
+        <Button
+          ref={previousRef}
+          variant="outlined"
+          disabled={index === 0}
+          onClick={() => goTo(index - 1)}
+        >
           {MOCK_TAKE_PAGE.previous}
         </Button>
         <Button
+          ref={nextRef}
           variant="outlined"
           disabled={index === total - 1}
-          onClick={() => setIndex(index + 1)}
+          onClick={() => goTo(index + 1)}
         >
           {MOCK_TAKE_PAGE.next}
         </Button>
@@ -149,6 +185,7 @@ type TakeQuestionProps = {
   selected: number | null;
   saveState: SaveState | undefined;
   onOption: (option: number) => void;
+  headingRef: Ref<HTMLHeadingElement>;
 };
 
 function TakeQuestion({
@@ -158,6 +195,7 @@ function TakeQuestion({
   selected,
   saveState,
   onOption,
+  headingRef,
 }: TakeQuestionProps) {
   const headingId = useId();
   const legendId = useId();
@@ -175,7 +213,13 @@ function TakeQuestion({
           spacing={2}
           sx={{ justifyContent: 'space-between', alignItems: 'center' }}
         >
-          <Typography id={headingId} component="h2" sx={{ fontWeight: 700 }}>
+          <Typography
+            id={headingId}
+            ref={headingRef}
+            tabIndex={-1}
+            component="h2"
+            sx={{ fontWeight: 700 }}
+          >
             {MOCK_TAKE_PAGE.questionOf(number, total)}
           </Typography>
           <SaveStatus state={saveState} />
@@ -186,7 +230,13 @@ function TakeQuestion({
           <FormLabel
             component="legend"
             id={legendId}
-            sx={{ whiteSpace: 'pre-line', fontSize: '1.125rem', color: 'text.primary', mb: 2 }}
+            sx={{
+              whiteSpace: 'pre-line',
+              overflowWrap: 'anywhere',
+              fontSize: '1.125rem',
+              color: 'text.primary',
+              mb: 2,
+            }}
           >
             {question.prompt}
           </FormLabel>
@@ -204,11 +254,13 @@ function TakeQuestion({
                     value={String(optionIndex)}
                     control={<Radio />}
                     label={
-                      <Stack direction="row" spacing={1}>
+                      <Stack direction="row" spacing={1} sx={{ minWidth: 0 }}>
                         <Typography component="span" sx={{ fontWeight: 700 }}>
                           {optionLetter(optionIndex)}
                         </Typography>
-                        <Typography component="span">{option}</Typography>
+                        <Typography component="span" sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+                          {option}
+                        </Typography>
                       </Stack>
                     }
                     sx={{

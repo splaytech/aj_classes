@@ -5,6 +5,7 @@
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { useEffect, useRef } from 'react';
 
 import { MOCK_RESULT } from '@/constants';
 import { mockScoreText } from '@/lib/mock-tests';
@@ -13,10 +14,21 @@ import type { MockTakeQuestion, MockTestView } from '@/services';
 
 import { SectionCard } from './Panels';
 
-export function MockTestResult({ test }: { test: MockTestView }) {
+type MockTestResultProps = {
+  test: MockTestView;
+  /** Move focus to the result heading when it appears (right after Submit). */
+  focusOnShow?: boolean;
+};
+
+export function MockTestResult({ test, focusOnShow = false }: MockTestResultProps) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (focusOnShow) headingRef.current?.focus();
+  }, [focusOnShow]);
+
   return (
     <Stack spacing={4}>
-      <SectionCard title={MOCK_RESULT.heading}>
+      <SectionCard title={MOCK_RESULT.heading} headingRef={headingRef}>
         {test.score !== null && test.total !== null && (
           <Typography variant="h5" component="p" sx={{ fontWeight: 700 }}>
             {mockScoreText(test.score, test.total)}
@@ -51,18 +63,24 @@ function ResultQuestion({ number, question }: { number: number; question: MockTa
           {MOCK_RESULT.question(number)}
         </Typography>
         {/* Plain text only: React escapes it; line breaks are kept. */}
-        <Typography sx={{ whiteSpace: 'pre-line' }}>{question.prompt}</Typography>
-        <Typography>
+        <Typography sx={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
+          {question.prompt}
+        </Typography>
+        <Typography sx={{ overflowWrap: 'anywhere' }}>
           {MOCK_RESULT.line(MOCK_RESULT.yourAnswer, chosenText(question, question.selectedOption))}
         </Typography>
-        <Typography>
+        <Typography sx={{ overflowWrap: 'anywhere' }}>
           {MOCK_RESULT.line(
             MOCK_RESULT.correctAnswer,
             chosenText(question, question.correctOption),
           )}
         </Typography>
         {question.explanation && (
-          <Typography variant="body2" color="textSecondary" sx={{ whiteSpace: 'pre-line' }}>
+          <Typography
+            variant="body2"
+            color="textSecondary"
+            sx={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}
+          >
             {MOCK_RESULT.line(MOCK_RESULT.explanation, question.explanation)}
           </Typography>
         )}

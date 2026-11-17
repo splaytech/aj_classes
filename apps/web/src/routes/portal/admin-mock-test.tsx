@@ -7,7 +7,7 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLoaderData, useNavigate, useRevalidator } from 'react-router';
 import type { ClientLoaderFunctionArgs } from 'react-router';
 
@@ -49,6 +49,16 @@ export default function AdminMockTestPage() {
   const action = usePortalAction();
   const [editingDetails, setEditingDetails] = useState(false);
   const [confirming, setConfirming] = useState<Confirming>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const focusHeadingOnLoad = useRef(false);
+
+  // The Release button is gone once released, so focus would fall to the page body: move it to
+  // the heading when the reloaded page arrives.
+  useEffect(() => {
+    if (!focusHeadingOnLoad.current) return;
+    focusHeadingOnLoad.current = false;
+    headingRef.current?.focus();
+  }, [loaded]);
 
   if (!loaded.ok) {
     return loaded.error === 'notFound' ? (
@@ -68,7 +78,9 @@ export default function AdminMockTestPage() {
   async function confirmRelease() {
     const worked = await action.run(() => releaseMockTest(test.id), MOCK_TEST_EDIT_PAGE.released);
     setConfirming(null);
-    if (worked) reload();
+    if (!worked) return;
+    focusHeadingOnLoad.current = true;
+    reload();
   }
 
   async function confirmTakeBack() {
@@ -87,6 +99,7 @@ export default function AdminMockTestPage() {
     <>
       <PageHeader
         title={test.title}
+        headingRef={headingRef}
         back={{ to: PORTAL_ROUTES.adminMockTests, label: MOCK_TEST_EDIT_PAGE.back }}
         meta={<MockTestStatusChip status={test.status} />}
         actions={
@@ -135,7 +148,7 @@ export default function AdminMockTestPage() {
 
         <SectionCard title={MOCK_TEST_EDIT_PAGE.instructionsHeading}>
           {/* Plain text only: React escapes it; line breaks are kept. */}
-          <Typography sx={{ whiteSpace: 'pre-line' }}>
+          <Typography sx={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
             {test.instructions || MOCK_TEST_EDIT_PAGE.noInstructions}
           </Typography>
         </SectionCard>

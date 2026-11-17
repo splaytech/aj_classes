@@ -38,7 +38,7 @@ export function ConfirmDialog({
     <Dialog open={open} onClose={busy ? undefined : onClose} aria-labelledby={titleId}>
       <DialogTitle id={titleId}>{title}</DialogTitle>
       <DialogContent>
-        <DialogContentText>{text}</DialogContentText>
+        <DialogContentText sx={{ overflowWrap: 'anywhere' }}>{text}</DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={busy}>

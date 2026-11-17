@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -9,7 +9,7 @@ import {
   PORTAL_ERRORS,
   PORTAL_ROUTES,
 } from '@/constants';
-import { releaseMockTest, withdrawMockTest } from '@/services';
+import { deleteMockQuestion, releaseMockTest, withdrawMockTest } from '@/services';
 import type { MockAdminQuestion, MockTestDraftView } from '@/services';
 import { setupUser } from '@/test/user';
 
@@ -47,12 +47,14 @@ function testView(overrides: Partial<MockTestDraftView> = {}): MockTestDraftView
   };
 }
 
-async function renderPage(view: MockTestDraftView) {
+/** `afterChange` is what the page loads again once an action has worked (a reload). */
+async function renderPage(view: MockTestDraftView, afterChange: MockTestDraftView = view) {
+  let loads = 0;
   const Stub = createRoutesStub([
     {
       path: '/portal/admin/mock-tests/:testId',
       Component: AdminMockTestPage,
-      loader: () => ({ ok: true, data: view }),
+      loader: () => ({ ok: true, data: loads++ === 0 ? view : afterChange }),
     },
     { path: PORTAL_ROUTES.adminMockTests, Component: () => <p>list page</p> },
   ]);
@@ -62,6 +64,7 @@ async function renderPage(view: MockTestDraftView) {
 
 beforeEach(() => {
   vi.mocked(releaseMockTest).mockReset();
+  vi.mocked(deleteMockQuestion).mockReset();
   vi.mocked(withdrawMockTest).mockReset();
 });
 
@@ -122,6 +125,55 @@ describe('admin mock test, a draft', () => {
 
     await user.click(within(dialog).getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
     expect(releaseMockTest).toHaveBeenCalledWith('t1');
+  });
+
+  it('moves focus to the page heading after a confirmed release, not the page body (BUG-4)', async () => {
+    vi.mocked(releaseMockTest).mockResolvedValue({ ok: true, data: undefined });
+    const user = setupUser();
+    await renderPage(testView(), testView({ status: 'released' }));
+
+    await user.click(screen.getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1, name: 'Year 7 Maths' })).toHaveFocus(),
+    );
+  });
+
+  it('moves focus to the questions heading after a confirmed question delete (BUG-4)', async () => {
+    vi.mocked(deleteMockQuestion).mockResolvedValue({ ok: true, data: undefined });
+    const user = setupUser();
+    await renderPage(testView(), testView({ questions: [question('q2', 3)] }));
+
+    await user.click(screen.getAllByRole('button', { name: MOCK_QUESTION_LIST.delete })[0]!);
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: MOCK_QUESTION_LIST.delete }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: MOCK_QUESTION_LIST.heading })).toHaveFocus(),
+    );
+    expect(deleteMockQuestion).toHaveBeenCalledWith('q1');
+  });
+
+  it('wraps long unbroken text so it cannot widen the page (BUG-5)', async () => {
+    const long = 'w'.repeat(150);
+    await renderPage(
+      testView({
+        title: long,
+        instructions: long,
+        questions: [
+          { ...question('q1', 1), prompt: long, options: [long, 'No'], explanation: long },
+        ],
+      }),
+    );
+
+    expect(screen.getByRole('heading', { level: 1 }).parentElement).toHaveStyle({
+      overflowWrap: 'anywhere',
+    });
+    for (const element of screen.getAllByText(new RegExp(long))) {
+      expect(element).toHaveStyle({ overflowWrap: 'anywhere' });
+    }
   });
 
   it('shows the plain reason when the release is refused', async () => {

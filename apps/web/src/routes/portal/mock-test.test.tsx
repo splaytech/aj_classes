@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -11,7 +11,7 @@ import {
   mockTestsPath,
 } from '@/constants';
 import type { MockTakerArea } from '@/constants';
-import { startMockTest } from '@/services';
+import { startMockTest, submitMockTest } from '@/services';
 import type { MockTestView, Result } from '@/services';
 import { setupUser } from '@/test/user';
 
@@ -80,7 +80,10 @@ function renderTest(replies: Result<MockTestView>[], area: MockTakerArea = 'stud
   return loader;
 }
 
-beforeEach(() => vi.mocked(startMockTest).mockReset());
+beforeEach(() => {
+  vi.mocked(startMockTest).mockReset();
+  vi.mocked(submitMockTest).mockReset();
+});
 
 describe('mock test page, not started', () => {
   it('shows the title, instructions, question count and Start', async () => {
@@ -106,6 +109,43 @@ describe('mock test page, not started', () => {
     expect(await screen.findByRole('radiogroup', { name: 'First?' })).toBeVisible();
     expect(startMockTest).toHaveBeenCalledWith('t1');
     expect(loader).toHaveBeenCalledTimes(2);
+  });
+
+  it('moves focus to the first question heading after Start, not the page body (BUG-4)', async () => {
+    vi.mocked(startMockTest).mockResolvedValue({ ok: true, data: undefined });
+    const user = setupUser();
+    renderTest([
+      { ok: true, data: BASE },
+      { ok: true, data: IN_PROGRESS },
+    ]);
+
+    await user.click(await screen.findByRole('button', { name: MOCK_TAKE_PAGE.start }));
+
+    const heading = await screen.findByRole('heading', { name: MOCK_TAKE_PAGE.questionOf(1, 2) });
+    await waitFor(() => expect(heading).toHaveFocus());
+  });
+
+  it('does not move focus when the page first opens in progress (skip link first)', async () => {
+    renderTest([{ ok: true, data: IN_PROGRESS }]);
+
+    await screen.findByRole('radiogroup', { name: 'First?' });
+    expect(document.body).toHaveFocus();
+  });
+
+  it('moves focus to the result heading after a confirmed Submit (BUG-4)', async () => {
+    vi.mocked(submitMockTest).mockResolvedValue({ ok: true, data: { score: 1, total: 2 } });
+    const user = setupUser();
+    renderTest([
+      { ok: true, data: IN_PROGRESS },
+      { ok: true, data: SUBMITTED },
+    ]);
+
+    await user.click(await screen.findByRole('button', { name: MOCK_TAKE_PAGE.submit }));
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: MOCK_TAKE_PAGE.submit }));
+
+    const heading = await screen.findByRole('heading', { name: MOCK_RESULT.heading });
+    await waitFor(() => expect(heading).toHaveFocus());
   });
 
   it('shows the reason when Start is refused', async () => {

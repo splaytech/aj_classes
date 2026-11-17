@@ -6,7 +6,7 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 import { useNavigate } from 'react-router';
 
 import { LOAD_ERROR, NOT_FOUND_PANEL, PORTAL_ERRORS } from '@/constants';
@@ -52,9 +52,11 @@ type SectionCardProps = {
   title: string;
   action?: ReactNode;
   children: ReactNode;
+  /** Lets a caller move focus to the heading after an action that removes the button used. */
+  headingRef?: Ref<HTMLHeadingElement>;
 };
 
-export function SectionCard({ title, action, children }: SectionCardProps) {
+export function SectionCard({ title, action, children, headingRef }: SectionCardProps) {
   return (
     <Card variant="outlined">
       <CardContent>
@@ -63,7 +65,13 @@ export function SectionCard({ title, action, children }: SectionCardProps) {
           spacing={2}
           sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 3 }}
         >
-          <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>
+          <Typography
+            ref={headingRef}
+            tabIndex={headingRef ? -1 : undefined}
+            variant="h6"
+            component="h2"
+            sx={{ fontWeight: 700 }}
+          >
             {title}
           </Typography>
           {action}

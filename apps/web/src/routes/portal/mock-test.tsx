@@ -7,6 +7,7 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { useState } from 'react';
 import { useLoaderData, useLocation, useRevalidator } from 'react-router';
 import type { ClientLoaderFunctionArgs } from 'react-router';
 
@@ -44,6 +45,14 @@ export default function MockTestPage() {
   const loaded = useLoaderData<typeof clientLoader>();
   const revalidator = useRevalidator();
   const area = mockTestAreaFromPath(useLocation().pathname);
+  // Start and Submit replace the button just used, so the view that appears takes focus (never on
+  // first load: that would skip the skip link).
+  const [focusNewView, setFocusNewView] = useState(false);
+
+  function showNewView() {
+    setFocusNewView(true);
+    void revalidator.revalidate();
+  }
 
   if (!loaded.ok) {
     return loaded.error === 'notFound' ? (
@@ -61,13 +70,11 @@ export default function MockTestPage() {
         back={{ to: mockTestsPath(area), label: MOCK_TAKE_PAGE.back }}
         meta={<MockTakeStatusChip status={test.status} />}
       />
-      {test.status === 'not_started' && (
-        <Intro test={test} onStarted={() => void revalidator.revalidate()} />
-      )}
+      {test.status === 'not_started' && <Intro test={test} onStarted={showNewView} />}
       {test.status === 'in_progress' && (
-        <MockTestTakeForm test={test} onSubmitted={() => void revalidator.revalidate()} />
+        <MockTestTakeForm test={test} onSubmitted={showNewView} focusOnShow={focusNewView} />
       )}
-      {test.status === 'submitted' && <MockTestResult test={test} />}
+      {test.status === 'submitted' && <MockTestResult test={test} focusOnShow={focusNewView} />}
     </>
   );
 }
@@ -84,7 +91,7 @@ function Intro({ test, onStarted }: { test: MockTestView; onStarted: () => void 
       <SectionCard title={MOCK_TAKE_PAGE.instructionsHeading}>
         <Stack spacing={2}>
           {/* Plain text only: React escapes it; line breaks are kept. */}
-          <Typography sx={{ whiteSpace: 'pre-line' }}>
+          <Typography sx={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
             {test.instructions || MOCK_TAKE_PAGE.noInstructions}
           </Typography>
           <Typography color="textSecondary">

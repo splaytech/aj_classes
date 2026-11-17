@@ -68,6 +68,35 @@ describe('MockTestTakeForm', () => {
     expect(screen.getByRole('radiogroup', { name: 'Second?' })).toBeVisible();
   });
 
+  it('keeps focus on a button when Next or Previous reaches an end (BUG-4)', async () => {
+    const user = setupUser();
+    renderForm();
+    const previous = () => screen.getByRole('button', { name: MOCK_TAKE_PAGE.previous });
+
+    await user.click(nextButton());
+    await user.click(nextButton()); // the last question: Next is now disabled
+    expect(nextButton()).toBeDisabled();
+    expect(previous()).toHaveFocus();
+
+    await user.click(previous());
+    await user.click(previous()); // the first question: Previous is now disabled
+    expect(previous()).toBeDisabled();
+    expect(nextButton()).toHaveFocus();
+  });
+
+  it('wraps a long unbroken option and prompt so they cannot widen the page (BUG-5)', () => {
+    const long = 'w'.repeat(300);
+    renderForm({
+      ...TEST,
+      questions: [{ ...TEST.questions[0]!, prompt: long, options: [long, 'No'] }],
+    });
+
+    expect(screen.getByText(long, { selector: 'legend' })).toHaveStyle({
+      overflowWrap: 'anywhere',
+    });
+    expect(screen.getByText(long, { selector: 'span' })).toHaveStyle({ overflowWrap: 'anywhere' });
+  });
+
   it('shows an option saved earlier as chosen, and counts it as answered (AC 27)', async () => {
     const user = setupUser();
     renderForm();

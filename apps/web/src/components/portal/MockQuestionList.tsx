@@ -14,7 +14,7 @@ import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
 import { MOCK_QUESTION_LIST, MOCK_TEST_LIMITS } from '@/constants';
@@ -43,6 +43,16 @@ export function MockQuestionList({
   const [editing, setEditing] = useState<MockAdminQuestion | 'new' | null>(null);
   const [deleting, setDeleting] = useState<MockAdminQuestion | null>(null);
   const action = usePortalAction();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const focusHeadingOnChange = useRef(false);
+
+  // The Delete button of the removed question is gone, so focus would fall to the page body: move
+  // it to the heading when the shorter list arrives.
+  useEffect(() => {
+    if (!focusHeadingOnChange.current) return;
+    focusHeadingOnChange.current = false;
+    headingRef.current?.focus();
+  }, [questions]);
   const atLimit = questions.length >= MOCK_TEST_LIMITS.questionsMax;
 
   async function move(question: MockAdminQuestion, step: -1 | 1) {
@@ -53,12 +63,15 @@ export function MockQuestionList({
     if (!deleting) return;
     const deleted = await action.run(() => deleteMockQuestion(deleting.id));
     setDeleting(null);
-    if (deleted) onChanged();
+    if (!deleted) return;
+    focusHeadingOnChange.current = true;
+    onChanged();
   }
 
   return (
     <SectionCard
       title={MOCK_QUESTION_LIST.heading}
+      headingRef={headingRef}
       action={
         <Typography color="textSecondary">{MOCK_QUESTION_LIST.count(questions.length)}</Typography>
       }
@@ -174,7 +187,9 @@ function MockQuestionCard({ question, number, actions }: MockQuestionCardProps) 
         </Stack>
 
         {/* Plain text only: React escapes it; line breaks are kept. */}
-        <Typography sx={{ whiteSpace: 'pre-line' }}>{question.prompt}</Typography>
+        <Typography sx={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
+          {question.prompt}
+        </Typography>
 
         <Stack component="ol" spacing={1} sx={{ listStyle: 'none', m: 0, p: 0 }}>
           {question.options.map((option, index) => {
@@ -185,12 +200,15 @@ function MockQuestionCard({ question, number, actions }: MockQuestionCardProps) 
                 key={optionLetter(index)}
                 direction="row"
                 spacing={1}
-                sx={{ alignItems: 'center', fontWeight: isCorrect ? 700 : 400 }}
+                sx={{ alignItems: 'center', fontWeight: isCorrect ? 700 : 400, minWidth: 0 }}
               >
                 <Typography component="span" sx={{ minWidth: 24, fontWeight: 'inherit' }}>
                   {optionLetter(index)}
                 </Typography>
-                <Typography component="span" sx={{ fontWeight: 'inherit' }}>
+                <Typography
+                  component="span"
+                  sx={{ fontWeight: 'inherit', minWidth: 0, overflowWrap: 'anywhere' }}
+                >
                   {option}
                 </Typography>
                 {isCorrect && (
@@ -208,7 +226,11 @@ function MockQuestionCard({ question, number, actions }: MockQuestionCardProps) 
         </Stack>
 
         {question.explanation && (
-          <Typography variant="body2" color="textSecondary" sx={{ whiteSpace: 'pre-line' }}>
+          <Typography
+            variant="body2"
+            color="textSecondary"
+            sx={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}
+          >
             {MOCK_QUESTION_LIST.explanation(question.explanation)}
           </Typography>
         )}

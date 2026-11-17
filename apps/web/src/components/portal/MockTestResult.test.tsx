@@ -42,6 +42,33 @@ describe('MockTestResult', () => {
     expect(screen.getByText('1 of 2 correct')).toBeInTheDocument();
   });
 
+  it('moves focus to the result heading only when asked, as right after Submit (BUG-4)', () => {
+    const { unmount } = render(<MockTestResult test={TEST} />);
+    expect(document.body).toHaveFocus();
+    unmount();
+
+    render(<MockTestResult test={TEST} focusOnShow />);
+    expect(screen.getByRole('heading', { name: MOCK_RESULT.heading })).toHaveFocus();
+  });
+
+  it('wraps long unbroken answers and explanations (BUG-5)', () => {
+    const long = 'w'.repeat(300);
+    render(
+      <MockTestResult
+        test={{
+          ...TEST,
+          questions: [
+            { ...TEST.questions[0]!, prompt: long, options: [long, 'No'], explanation: long },
+          ],
+        }}
+      />,
+    );
+
+    for (const element of screen.getAllByText(new RegExp(long))) {
+      expect(element).toHaveStyle({ overflowWrap: 'anywhere' });
+    }
+  });
+
   it('shows each choice, the correct option and the explanation, numbered by order', () => {
     render(<MockTestResult test={TEST} />);
 
