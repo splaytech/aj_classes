@@ -250,7 +250,7 @@ select throws_ok($$ select public.mock_move_question('00000000-0000-0000-0000-00
 select throws_ok($$ select public.mock_move_question('00000000-0000-0000-0000-0000000b0001', null) $$,
   '22023', 'invalid_input', 'A null step is refused');
 select throws_ok($$ select public.mock_move_question('00000000-0000-0000-0000-0000000bffff', 1) $$,
-  'P0002', 'not_found', 'An unknown question is not found');
+  'PGRST', '{"code":"P0002","message":"not_found","details":null,"hint":null}', 'An unknown question is not found');
 reset role;
 
 -- ---------------------------------------------------------------------------
@@ -263,7 +263,7 @@ select tests.authenticate_as('00000000-0000-0000-0000-0000000000a2', 'aal2');
 select throws_ok($$ select public.mock_release('00000000-0000-0000-0000-00000000f004') $$,
   'P0001', 'mock_no_questions', 'A test with no questions can''t be released');
 select throws_ok($$ select public.mock_release('00000000-0000-0000-0000-00000000f0ff') $$,
-  'P0002', 'not_found', 'An unknown test is not found');
+  'PGRST', '{"code":"P0002","message":"not_found","details":null,"hint":null}', 'An unknown test is not found');
 select lives_ok($$ select public.mock_release('00000000-0000-0000-0000-00000000f001') $$,
   'Any admin (not just the creator) can release a draft with questions');
 select results_eq(
@@ -309,7 +309,7 @@ select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
 select throws_ok($$ select public.mock_withdraw('00000000-0000-0000-0000-00000000f004') $$,
   'P0001', 'invalid_status', 'A draft can''t be taken back');
 select throws_ok($$ select public.mock_withdraw('00000000-0000-0000-0000-00000000f0ff') $$,
-  'P0002', 'not_found', 'An unknown test is not found');
+  'PGRST', '{"code":"P0002","message":"not_found","details":null,"hint":null}', 'An unknown test is not found');
 select lives_ok($$ select public.mock_withdraw('00000000-0000-0000-0000-00000000f001') $$,
   'A released test with no attempt goes back to draft');
 select results_eq(
@@ -343,12 +343,12 @@ select is((select count(*)::int from public.mock_test_answers
 -- two can't both win. (True two-session timing is the S8 check; this is the outcome once serialised.)
 select tests.authenticate_as('00000000-0000-0000-0000-0000000000e1');
 select throws_ok($$ select public.mock_start('00000000-0000-0000-0000-00000000f001') $$,
-  'P0002', 'not_found', 'A start after the take-back finds no released test');
+  'PGRST', '{"code":"P0002","message":"not_found","details":null,"hint":null}', 'A start after the take-back finds no released test');
 select throws_ok(
   $$ select public.mock_save_answer('00000000-0000-0000-0000-00000000f001', '00000000-0000-0000-0000-0000000a0001', 0) $$,
-  'P0002', 'not_found', 'A save after the take-back is refused');
+  'PGRST', '{"code":"P0002","message":"not_found","details":null,"hint":null}', 'A save after the take-back is refused');
 select throws_ok($$ select public.mock_submit('00000000-0000-0000-0000-00000000f001') $$,
-  'P0002', 'not_found', 'A submit after the take-back is refused');
+  'PGRST', '{"code":"P0002","message":"not_found","details":null,"hint":null}', 'A submit after the take-back is refused');
 reset role;
 select is((select count(*)::int from public.mock_test_attempts
            where test_id = '00000000-0000-0000-0000-00000000f001'), 0,
@@ -373,7 +373,7 @@ select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
 select throws_ok(
   $$ insert into public.mock_test_questions (test_id, prompt, options, correct_option)
      values ('00000000-0000-0000-0000-00000000fbad', 'Orphan', array['a','b'], 0) $$,
-  'P0002', 'not_found', 'A question for a missing test raises not_found');
+  'PGRST', '{"code":"P0002","message":"not_found","details":null,"hint":null}', 'A question for a missing test raises not_found');
 reset role;
 
 -- The answer key on mock_test_questions is protected by the admin-only RLS policies alone
@@ -389,6 +389,21 @@ select is((select count(*)::int from pg_policies
            where schemaname = 'public' and tablename = 'mock_test_questions'
              and coalesce(qual, with_check) not like '%is_admin()%'), 0,
   'and every one of them is gated on is_admin()');
+
+-- not_found reaches the browser as HTTP 404, not 500 (BUG-1): PostgREST reads the status from the
+-- PGRST error's detail, and the body keeps code P0002 and message not_found for the web mapping.
+create function pg_temp.mock_not_found_detail() returns text language plpgsql as $f$
+declare
+  found_detail text;
+begin
+  perform private.raise_mock_not_found();
+  return null;
+exception when sqlstate 'PGRST' then
+  get stacked diagnostics found_detail = pg_exception_detail;
+  return found_detail;
+end;
+$f$;
+select is(pg_temp.mock_not_found_detail()::jsonb ->> 'status', '404', 'not_found is sent as HTTP 404');
 
 -- ---------------------------------------------------------------------------
 -- Deleting a draft takes its questions with it (AC 16)

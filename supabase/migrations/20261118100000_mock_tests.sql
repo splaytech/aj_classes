@@ -103,6 +103,24 @@ create trigger mock_test_questions_set_updated_at
 -- Freeze and lock triggers
 -- ---------------------------------------------------------------------------
 
+-- "Not found" for the mock test functions and triggers, as HTTP 404 (BUG-1). A plain
+-- `errcode = 'P0002'` reaches the browser as a 500, because PostgREST sends SQLSTATE class P0
+-- (other than P0001) as a server error. The PGRST form sets the status and keeps the body the web
+-- already maps: code P0002, message not_found.
+create function private.raise_mock_not_found()
+returns void
+language plpgsql
+set search_path = ''
+as $$
+begin
+  raise sqlstate 'PGRST'
+    using message = '{"code":"P0002","message":"not_found","details":null,"hint":null}',
+          detail = '{"status":404,"headers":{}}';
+end;
+$$;
+
+revoke execute on function private.raise_mock_not_found() from public, anon, authenticated;
+
 -- A released test can't be deleted or have its title or instructions changed. The status moves
 -- only inside mock_release / mock_withdraw, which leave both columns alone.
 create function private.check_mock_test()
@@ -155,7 +173,7 @@ begin
       return old;
     end if;
     -- Without this, an insert for a missing test was silently dropped and the API said 201.
-    raise exception 'not_found' using errcode = 'P0002';
+    perform private.raise_mock_not_found();
   end if;
   if test_status <> 'draft' then
     raise exception 'mock_released';
@@ -279,7 +297,7 @@ begin
 
   select t.status into test_status from public.mock_tests t where t.id = target for update;
   if not found then
-    raise exception 'not_found' using errcode = 'P0002';
+    perform private.raise_mock_not_found();
   end if;
   if test_status <> 'draft' then
     raise exception 'invalid_status';
@@ -309,7 +327,7 @@ begin
 
   select t.status into test_status from public.mock_tests t where t.id = target for update;
   if not found then
-    raise exception 'not_found' using errcode = 'P0002';
+    perform private.raise_mock_not_found();
   end if;
   if test_status <> 'released' then
     raise exception 'invalid_status';
@@ -353,7 +371,7 @@ begin
 
   select q.test_id into owning_test from public.mock_test_questions q where q.id = target;
   if not found then
-    raise exception 'not_found' using errcode = 'P0002';
+    perform private.raise_mock_not_found();
   end if;
 
   -- Lock the test, then read positions, so a concurrent add or delete can't change them under us.
@@ -361,7 +379,7 @@ begin
 
   select q.id, q.position into moving from public.mock_test_questions q where q.id = target;
   if not found then
-    raise exception 'not_found' using errcode = 'P0002';
+    perform private.raise_mock_not_found();
   end if;
 
   select q.id, q.position into neighbour
@@ -440,7 +458,7 @@ begin
   from public.mock_tests t
   where t.id = target and t.status = 'released';
   if not found then
-    raise exception 'not_found' using errcode = 'P0002';
+    perform private.raise_mock_not_found();
   end if;
 
   select a.id, a.submitted_at, a.score, a.total into attempt
@@ -499,7 +517,7 @@ begin
   -- Held for share through the insert, so a concurrent mock_withdraw (for update) waits for us.
   perform 1 from public.mock_tests t where t.id = target and t.status = 'released' for share;
   if not found then
-    raise exception 'not_found' using errcode = 'P0002';
+    perform private.raise_mock_not_found();
   end if;
 
   -- Idempotent: a double tap or a person who already submitted changes nothing.
@@ -525,7 +543,7 @@ begin
   -- that waited for a withdraw sees the test is no longer released.
   perform 1 from public.mock_tests t where t.id = target_test and t.status = 'released' for share;
   if not found then
-    raise exception 'not_found' using errcode = 'P0002';
+    perform private.raise_mock_not_found();
   end if;
 
   -- Same lock as mock_submit, so a save can't land after a submit.
@@ -573,7 +591,7 @@ begin
   -- submit can't commit in that gap; a submit that waited for a withdraw is refused here.
   perform 1 from public.mock_tests t where t.id = target and t.status = 'released' for share;
   if not found then
-    raise exception 'not_found' using errcode = 'P0002';
+    perform private.raise_mock_not_found();
   end if;
 
   select a.id, a.submitted_at, a.score, a.total into attempt

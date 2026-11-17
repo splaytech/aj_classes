@@ -91,11 +91,11 @@ begin
   return next is((j->>'question_count')::int, 3, p_label || ': but the count is there');
   return next is(j->>'instructions', 'Read each question.', p_label || ': and the instructions');
   return next ok(j::text !~ 'correct_option|explanation|@', p_label || ': not_started has no key, explanation or e-mail');
-  return next throws_ok(format('select public.mock_test_open(%L)', t2), 'P0002', 'not_found',
+  return next throws_ok(format('select public.mock_test_open(%L)', t2), 'PGRST', '{"code":"P0002","message":"not_found","details":null,"hint":null}',
     p_label || ': a draft is not found');
-  return next throws_ok(format('select public.mock_start(%L)', t2), 'P0002', 'not_found',
+  return next throws_ok(format('select public.mock_start(%L)', t2), 'PGRST', '{"code":"P0002","message":"not_found","details":null,"hint":null}',
     p_label || ': a draft can''t be started');
-  return next throws_ok(format('select public.mock_test_open(%L)', gen_random_uuid()), 'P0002', 'not_found',
+  return next throws_ok(format('select public.mock_test_open(%L)', gen_random_uuid()), 'PGRST', '{"code":"P0002","message":"not_found","details":null,"hint":null}',
     p_label || ': an unknown test is not found');
   return next throws_ok(format('select public.mock_save_answer(%L, %L, 1)', t1, questions[1]),
     'P0001', 'mock_not_started', p_label || ': saving before starting is refused');
@@ -131,7 +131,7 @@ begin
   return next throws_ok(format('select public.mock_save_answer(%L, %L, null)', t1, questions[1]),
     'P0001', 'invalid_option', p_label || ': a null option is refused');
   return next throws_ok(format('select public.mock_save_answer(%L, %L, 0)', t2, '00000000-0000-0000-0000-0000000a0004'),
-    'P0002', 'not_found', p_label || ': saving into a draft is not found');
+    'PGRST', '{"code":"P0002","message":"not_found","details":null,"hint":null}', p_label || ': saving into a draft is not found');
 
   for n in 1..3 loop
     if p_choices[n] is not null then
