@@ -218,7 +218,8 @@ export const MOCK_TEST_EDIT_PAGE = {
 } as const;
 
 // Closing date and Close now (docs/delivery/2026-11-18-mock-test-closing). Closed means hidden from
-// every taker, results included; times show in the viewer's local time.
+// takers who haven't submitted; people who submitted still see it and their result (ruling S-1).
+// Times show in the viewer's local time.
 export const MOCK_CLOSING = {
   fieldLabel: 'Closes (optional)',
   fieldHint: 'Leave empty and it never closes. Times are in your local time.',
