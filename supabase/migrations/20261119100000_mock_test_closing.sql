@@ -1,8 +1,11 @@
 -- Mock tests: closing date and close now (docs/delivery/2026-11-18-mock-test-closing/01-requirement.md).
 --
 -- One nullable column, mock_tests.closes_at. A released test is open while closes_at is null or
--- in the future, and closed from closes_at on: "Close now" sets it to now(), so expiry and
--- deactivation are the same state. Closing is decided on every read (AC 8): no scheduled job.
+-- in the future, and closed from closes_at on: "Close now" sets it to the current time, so expiry
+-- and deactivation are the same state. Closing is decided on every read (AC 8): no scheduled job.
+-- The closed checks use clock_timestamp(), not now() (the transaction start): a call that waited
+-- on Close now's row lock re-reads the row and must judge it by the real time, or a submit that
+-- began a moment before the close could still land after it (review-5 #2).
 --
 -- closes_at is written only by the functions below (never column-granted to authenticated). The
 -- taker functions are replaced with the same bodies plus the closed check (AC 5, ruling S-1): a
@@ -157,11 +160,11 @@ begin
   if test.status <> 'released' then
     raise exception 'invalid_status';
   end if;
-  if test.closes_at <= now() then
+  if test.closes_at <= clock_timestamp() then
     return;
   end if;
 
-  update public.mock_tests set closes_at = now() where id = target;
+  update public.mock_tests set closes_at = clock_timestamp() where id = target;
 end;
 $$;
 
@@ -206,7 +209,8 @@ $$;
 
 -- ---------------------------------------------------------------------------
 -- Taker functions (AC 5, 8). Start, save and submit: the previous body plus
--- "and (t.closes_at is null or t.closes_at > now())" wherever it checks status = 'released'.
+-- "and (t.closes_at is null or t.closes_at > clock_timestamp())" wherever it checks
+-- status = 'released'.
 -- List and open: a closed test stays visible only to a caller whose attempt is submitted.
 -- ---------------------------------------------------------------------------
 
@@ -244,7 +248,7 @@ begin
     from public.mock_tests t
     left join public.mock_test_attempts a on a.test_id = t.id and a.profile_id = me
     where t.status = 'released'
-      and (t.closes_at is null or t.closes_at > now() or a.submitted_at is not null)
+      and (t.closes_at is null or t.closes_at > clock_timestamp() or a.submitted_at is not null)
     order by t.released_at desc, t.id;
 end;
 $$;
@@ -265,7 +269,7 @@ declare
   questions jsonb;
 begin
   select t.id, t.title, t.instructions, t.closes_at,
-         (t.closes_at is not null and t.closes_at <= now()) as closed
+         (t.closes_at is not null and t.closes_at <= clock_timestamp()) as closed
   into test
   from public.mock_tests t
   where t.id = target and t.status = 'released';
@@ -336,7 +340,7 @@ begin
   -- Held for share through the insert, so a concurrent mock_withdraw or close (for update) waits
   -- for us; a start that waited for a close re-checks the row and is refused.
   perform 1 from public.mock_tests t
-  where t.id = target and t.status = 'released' and (t.closes_at is null or t.closes_at > now())
+  where t.id = target and t.status = 'released' and (t.closes_at is null or t.closes_at > clock_timestamp())
   for share;
   if not found then
     perform private.raise_mock_not_found();
@@ -364,7 +368,7 @@ begin
   -- the test for share keeps mock_withdraw (for update) out until this save commits, and a save
   -- that waited for a withdraw sees the test is no longer released.
   perform 1 from public.mock_tests t
-  where t.id = target_test and t.status = 'released' and (t.closes_at is null or t.closes_at > now())
+  where t.id = target_test and t.status = 'released' and (t.closes_at is null or t.closes_at > clock_timestamp())
   for share;
   if not found then
     perform private.raise_mock_not_found();
@@ -414,7 +418,7 @@ begin
   -- mock_withdraw holds the test for update between its submitted-check and its delete, so a
   -- submit can't commit in that gap; a submit that waited for a withdraw is refused here.
   perform 1 from public.mock_tests t
-  where t.id = target and t.status = 'released' and (t.closes_at is null or t.closes_at > now())
+  where t.id = target and t.status = 'released' and (t.closes_at is null or t.closes_at > clock_timestamp())
   for share;
   if not found then
     perform private.raise_mock_not_found();

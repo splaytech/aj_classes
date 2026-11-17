@@ -1,7 +1,8 @@
 -- Mock tests: closing date and close now (docs/delivery/2026-11-18-mock-test-closing/01-requirement.md,
 -- migration 20261119100000_mock_test_closing.sql). Release with a closing time, set, change and
 -- clear it, close now, reopen, take back, and that a closed test is "not found" to every taker.
--- now() is fixed for the whole transaction, so a closes_at of now() is exactly the boundary.
+-- now() is fixed for the whole transaction, while the closed checks use clock_timestamp() (review-5
+-- #2), so a closes_at of now() is already at or past the boundary and counts as closed.
 
 begin;
 select no_plan();
@@ -258,14 +259,14 @@ begin
   perform tests.authenticate_as(p_user);
   -- 5.1: the submitted test stays, marked closed, with the result
   return next results_eq(
-    $q$ select id, status, score, closes_at <= now() from public.mock_tests_for_me() $q$,
+    $q$ select id, status, score, closes_at <= clock_timestamp() from public.mock_tests_for_me() $q$,
     $q$ values ('00000000-0000-0000-0000-00000000f002'::uuid, 'submitted'::text, 1, true) $q$,
     p_label || ': only the submitted test is listed, with its score and closes_at (marked closed)');
   j := public.mock_test_open('00000000-0000-0000-0000-00000000f002');
   return next is(j->>'status', 'submitted', p_label || ': the submitted result still opens');
   return next is((j->>'score')::int, 1, p_label || ': with the score');
   return next is((j->'questions'->0->>'correct_option')::int, 0, p_label || ': and the correct answers');
-  return next ok((j->>'closes_at')::timestamptz <= now(), p_label || ': and the closing time, in the past');
+  return next ok((j->>'closes_at')::timestamptz <= clock_timestamp(), p_label || ': and the closing time, in the past');
   return next throws_ok($q$ select public.mock_start('00000000-0000-0000-0000-00000000f002') $q$,
     'PGRST', nf, p_label || ': a submitter can''t start a closed test again');
   return next throws_ok($q$ select public.mock_submit('00000000-0000-0000-0000-00000000f002') $q$,
@@ -327,15 +328,15 @@ select lives_ok($$ select public.mock_close_now('00000000-0000-0000-0000-0000000
 select lives_ok($$ select public.mock_close_now('00000000-0000-0000-0000-00000000f002') $$,
   'Close now works on a test with submitted attempts');
 select results_eq(
-  $$ select closes_at = now() from public.mock_tests where id in ('00000000-0000-0000-0000-00000000f001', '00000000-0000-0000-0000-00000000f002') $$,
+  $$ select closes_at between now() and clock_timestamp() from public.mock_tests where id in ('00000000-0000-0000-0000-00000000f001', '00000000-0000-0000-0000-00000000f002') $$,
   $$ values (true), (true) $$,
-  'Close now sets closes_at to now()');
+  'Close now sets closes_at to the current time (clock_timestamp)');
 select is((select status from public.mock_tests where id = '00000000-0000-0000-0000-00000000f002'), 'released',
   'and the test stays released');
 reset role;
 select is((select count(*)::int from public.mock_test_attempts), 6, 'Closing deletes no attempt');
 
--- closes_at = now() is the boundary and counts as closed
+-- A closes_at that has just passed counts as closed
 select * from pg_temp.sees_closed('00000000-0000-0000-0000-0000000000e1', 'Student, closed');
 reset role;
 select * from pg_temp.sees_closed('00000000-0000-0000-0000-0000000000c1', 'Parent, closed');

@@ -201,8 +201,9 @@ export const MOCK_CLOSING = {
   closedChip: 'Closed',
   setClosing: 'Set closing date',
   setClosingTitle: 'Set closing date',
+  // Ruling S-1: people who submitted keep their result; everyone else loses access (Test Manager F-1).
   setClosingText:
-    'From this time students, parents and signed-up users can’t see this mock test or their results. Clear the date or pick a later one to open it again.',
+    'From this time, people who haven’t submitted it can’t see or take this mock test, and anyone part-way through can’t finish. People who submitted it still see their result. Clear the date or pick a later one to open it again.',
   save: 'Save',
   saving: 'Saving…',
   saved: 'Closing date saved.',
@@ -211,8 +212,8 @@ export const MOCK_CLOSING = {
   closingNow: 'Closing…',
   confirmCloseNowTitle: 'Close this mock test now?',
   confirmCloseNowText:
-    'Students, parents and signed-up users won’t see it any more, including their results, and anyone part-way through can’t finish. You can open it again with Set closing date.',
-  closedNow: 'Closed. People can no longer see it.',
+    'People who haven’t submitted it won’t see it any more, and anyone part-way through can’t finish. People who submitted it still see their result. You can open it again with Set closing date.',
+  closedNow: 'Closed. Only people who submitted it can still see their result.',
 } as const;
 
 export const MOCK_TESTS_LIST = {

@@ -195,3 +195,69 @@ cleanup: 0 race rows left
 
 - **The tester-ui real-browser rows (DoD 12):** 375 and 1280 px, light and dark, a keyboard walk, AC 18, 23, 26, 27 and 28 by eye. Only vitest and the e2e smoke ran; no one has looked at the pages yet.
 - **ADR-0012 Amendment 1:** read against the build and it matches. Not edited.
+
+---
+
+# Fix batch 1 (review-5 items 1 to 8, Test Manager F-1)
+
+| Item | Commit | Change |
+|---|---|---|
+| 1, 3, 4, 5, 8 | `ffe68cc` | ADR-0012 Amendment 2 (closing); decision 5 points at the amendments; the Amendment 1 AC 15 reference is fixed. Focus goes to the heading after Clear filters and after Take back. A released test's years can change but not be emptied. `mockTagsMissing` is generic |
+| 2, 6, 7, F-1 | (this commit) | See below |
+
+- **Item 2: `clock_timestamp()`.** The closed checks now use `clock_timestamp()` instead of `now()`. This covers `mock_tests_for_me`, `mock_test_open`, `mock_start`, `mock_save_answer` and `mock_submit`, plus `mock_close_now`'s already-closed check and the value it sets.
+  - Both migrations are edited in place, since neither is on hosted yet. The bodies copied into `20261120100000` are kept in step.
+  - `mock_release` and `mock_set_closing` keep `now()` for their past-date check (lead ruling).
+  - The pgTAP comparisons that assumed `closes_at = now()` now use `clock_timestamp()`. The categories file keeps the stamped value in a temp table.
+- **Item 6: new pgTAP cases** in `mock_tests_categories.test.sql`:
+  - the question is unchanged after the tag edits, on both a released and a closed test;
+  - AC 25: a parent's visible set is the same before and after every released test is retagged.
+- **Item 7: types and casts.** `pnpm db:types` gives no diff. The `as unknown as` casts on the two list RPCs are now plain `as` casts. The JSON returns of `mock_test_open` and `mock_submit` keep `as unknown as`, because their generated type is `Json`.
+- **F-1: closing copy.** `setClosingText`, `confirmCloseNowText` and `closedNow` now say:
+  - people who haven't submitted lose access, and anyone part-way through can't finish;
+  - people who submitted still see their result.
+
+  A vitest case pins this. The e2e selector for the notice is updated.
+
+## Two-session check: a taker call that waits on Close now (review-5 #2)
+
+- **Setup:** local stack, seeded admin at aal2 and `student@local.test`. Script: `scratchpad/race-close.sh`, not committed.
+- **Order:** the taker's transaction (session 2) begins first, so its `now()` is earlier than the close. Session 1 then calls `mock_close_now` and holds its transaction for 4 s. Session 2 calls while the lock is held.
+- **Result:** session 2 blocked until session 1 committed, then got `not_found`. Under the old `now()` predicate it would have landed. The attempt stayed unsubmitted and the answer unchanged. The rows were removed afterwards.
+
+```
+=== Submit begun before Close now, waiting on its lock
+  S1: S1 closed, holding 4 s 19:28:24.021404
+  S1: S1 committed 19:28:28.036179
+  S2: S2 transaction begins 19:28:23.47308
+  S2: S2 calls 19:28:24.984038
+  S2: ERROR:  {"code":"P0002","message":"not_found","details":null,"hint":null}
+  S2: DETAIL:  {"status":404,"headers":{}}
+  S2: S2 returned 19:28:28.037618
+  after: closes_at set=true, attempt submitted=false, answer=0
+=== Save begun before Close now, waiting on its lock
+  S2: S2 transaction begins 19:28:28.242199
+  S2: S2 calls 19:28:29.744746
+  S2: ERROR:  {"code":"P0002","message":"not_found","details":null,"hint":null}
+  S2: DETAIL:  {"status":404,"headers":{}}
+  S2: S2 returned 19:28:32.788996
+  S1: S1 closed, holding 4 s 19:28:28.783512
+  S1: S1 committed 19:28:32.786078
+  after: closes_at set=true, attempt submitted=false, answer=0
+cleanup: 0 race rows left
+```
+
+The categories two-session checks (orders A, B, C and the C mirror) were re-run on the edited migrations. Results are as before: `mock_tag_kept`, `mock_tags_missing`, `mock_tags_missing`, `mock_tag_kept`, and 0 released tests without a tag.
+
+## Checks (lead, separate commands, after `db:reset`)
+
+| Command | Result |
+|---|---|
+| `pnpm format:check` | only the two allowed files fail |
+| `pnpm lint` and `pnpm typecheck` | exit 0 |
+| `pnpm test` | vitest 117 files / 1144 tests; e2e unit 6/6; deploy-order exit 0 |
+| `VITE_APP_ENV=production pnpm build` | exit 0 |
+| `pnpm db:test` | `Files=25, Tests=1951`, PASS |
+| `pnpm test:functions` | exit 0, 0 NOT OK |
+| `test:smoke` | 17 passed |
+| CI-style build, `check:hosted-ref`, `test:csp` | 0 of 186 files; 23 passed |

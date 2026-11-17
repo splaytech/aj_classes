@@ -39,7 +39,8 @@ export const adminMockTestSelectors = {
   closeNowButton: (page: Page) => page.getByRole('button', { name: 'Close now', exact: true }),
   confirmCloseNowButton: (page: Page) =>
     page.getByRole('dialog').getByRole('button', { name: 'Close now', exact: true }),
-  closedNotice: (page: Page) => page.getByText('Closed. People can no longer see it.'),
+  closedNotice: (page: Page) =>
+    page.getByText('Closed. Only people who submitted it can still see their result.'),
 };
 
 export const takeMockTestSelectors = {

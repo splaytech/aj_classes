@@ -352,3 +352,18 @@ describe('filterMockTests (ACs 18, 20, 21)', () => {
     expect(items).toEqual(copy);
   });
 });
+
+describe('closing copy follows ruling S-1 (Test Manager F-1)', () => {
+  it.each([MOCK_CLOSING.setClosingText, MOCK_CLOSING.confirmCloseNowText, MOCK_CLOSING.closedNow])(
+    'says submitters keep their result: %s',
+    (text) => {
+      expect(text).toMatch(/submitted it (still see|can still see) their result/);
+      expect(text).not.toMatch(/including their results|can’t see this mock test or their results/);
+    },
+  );
+
+  it('says people without a submitted attempt lose access', () => {
+    expect(MOCK_CLOSING.setClosingText).toMatch(/haven’t submitted it can’t see or take/);
+    expect(MOCK_CLOSING.confirmCloseNowText).toMatch(/haven’t submitted it won’t see it/);
+  });
+});

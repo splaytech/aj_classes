@@ -37,7 +37,7 @@ export async function listMockTestsAdmin(): Promise<Result<MockTestSummary[]>> {
     if (!supabase) return fail('notAllowed'); // the layout shows the refusal; no request goes out
     const { data, error } = await supabase.rpc('mock_tests_admin_list');
     if (error) return fail(toErrorKey(error));
-    return succeed((data as unknown as MockSummaryRow[]).map(toMockTestSummary));
+    return succeed((data as MockSummaryRow[]).map(toMockTestSummary));
   });
 }
 
@@ -246,7 +246,7 @@ export async function listMyMockTests(): Promise<Result<MockTestListItem[]>> {
     if (!supabase) return fail('notAllowed'); // the layout shows the refusal; no request goes out
     const { data, error } = await supabase.rpc('mock_tests_for_me');
     if (error) return fail(toErrorKey(error));
-    return succeed((data as unknown as MockListRow[]).map(toMockTestListItem));
+    return succeed((data as MockListRow[]).map(toMockTestListItem));
   });
 }
 

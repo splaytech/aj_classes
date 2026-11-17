@@ -320,7 +320,7 @@ begin
     from public.mock_tests t
     left join public.mock_test_attempts a on a.test_id = t.id and a.profile_id = me
     where t.status = 'released'
-      and (t.closes_at is null or t.closes_at > now() or a.submitted_at is not null)
+      and (t.closes_at is null or t.closes_at > clock_timestamp() or a.submitted_at is not null)
     order by t.released_at desc, t.id;
 end;
 $$;
@@ -342,7 +342,7 @@ declare
   questions jsonb;
 begin
   select t.id, t.title, t.instructions, t.closes_at,
-         (t.closes_at is not null and t.closes_at <= now()) as closed,
+         (t.closes_at is not null and t.closes_at <= clock_timestamp()) as closed,
          t.subject, t.stream, t.year_levels, t.any_year
   into test
   from public.mock_tests t

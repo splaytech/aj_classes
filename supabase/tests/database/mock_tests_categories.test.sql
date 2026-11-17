@@ -265,6 +265,10 @@ declare
 begin
   return next is(pg_temp.tags_of(r), 'english|vce|{}|true', p_label || ': the tags hold the last accepted values');
   return next is((select title from public.mock_tests where id = r), 'Released R', p_label || ': the title is unchanged');
+  return next results_eq(
+    format('select position, prompt, options, correct_option::int, explanation from public.mock_test_questions where test_id = %L', r),
+    $q$ values (1, 'Q?'::text, array['a','b']::text[], 0, ''::text) $q$,
+    p_label || ': the question is unchanged by the tag edits');
   return next is((select closes_at from public.mock_tests where id = r), p_closes, p_label || ': closes_at is unchanged');
   return next results_eq(
     $q$ select a.submitted_at is not null, a.score, ans.selected_option::int
@@ -284,9 +288,11 @@ reset role;
 select is(pg_temp.tags_of('00000000-0000-0000-0000-00000000f00e'), 'english|vce|{}|true', 'Close now leaves the tags (AC 17)');
 update public.mock_tests set subject = 'maths', stream = 'naplan', year_levels = '{5}', any_year = false
   where id = '00000000-0000-0000-0000-00000000f00e';
+-- Close now stamps clock_timestamp(), so keep the value to compare against after the tag edits.
+create temp table closed_r as select closes_at from public.mock_tests where id = '00000000-0000-0000-0000-00000000f00e';
 select * from pg_temp.released_rules('Closed');
 reset role;
-select * from pg_temp.released_unchanged('Closed', now());
+select * from pg_temp.released_unchanged('Closed', (select closes_at from pg_temp.closed_r));
 select tests.authenticate_as('00000000-0000-0000-0000-0000000000a1', 'aal2');
 select lives_ok($$ select public.mock_set_closing('00000000-0000-0000-0000-00000000f00e', null) $$, 'R is reopened');
 select lives_ok($$ select public.mock_set_closing('00000000-0000-0000-0000-00000000f00e', now() + interval '1 day') $$, 'and given a closing date');
@@ -342,6 +348,24 @@ select is(pg_temp.refusal($$ update public.mock_tests set subject = 'reading' wh
 reset role;
 select is(pg_temp.tags_of('00000000-0000-0000-0000-00000000f00f'), 'reading|icas|{3,5}|false', 'The removed subject stays on its test');
 update private.mock_test_options set active = true where kind = 'subject' and key = 'reading';
+
+-- ---------------------------------------------------------------------------
+-- AC 25: tags decide where a test is listed, never who sees it
+-- ---------------------------------------------------------------------------
+
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000c1');
+create temp table visible_before as select id from public.mock_tests_for_me();
+reset role;
+grant select on visible_before to authenticated;
+select ok((select count(*) from visible_before) >= 3, 'The parent sees the released tests (setup for AC 25)');
+-- Change every tag of every released test: other values, years, Any year.
+update public.mock_tests
+set subject = 'writing', stream = 'selective-entry', year_levels = '{12}', any_year = false
+where status = 'released'; -- not 'science': the no-tag-write sweep below counts that one
+select tests.authenticate_as('00000000-0000-0000-0000-0000000000c1');
+select set_eq($$ select id from public.mock_tests_for_me() $$, $$ select id from visible_before $$,
+  'The taker''s visible set is the same whatever the tags (AC 25)');
+reset role;
 
 -- ---------------------------------------------------------------------------
 -- Nobody else writes tags
