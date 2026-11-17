@@ -110,11 +110,11 @@ begin
   j := public.mock_test_open(t1);
   return next is(j->>'status', 'in_progress', p_label || ': after start the test is in_progress');
   return next is(jsonb_array_length(j->'questions'), 3, p_label || ': and the three questions come back');
-  return next ok(j::text !~ 'correct_option|explanation|@', p_label || ': in_progress has no key, explanation or e-mail');
+  return next ok(j::text !~ 'correct_option|explanation|marks_earned|@', p_label || ': in_progress has no key, explanation, marks earned or e-mail');
   return next is(
     (select array_agg(k order by k) from jsonb_object_keys(j->'questions'->0) k),
-    array['id','options','position','prompt','selected_option'],
-    p_label || ': each question has exactly id, options, position, prompt, selected_option');
+    array['id','marks','options','position','prompt','selected_option'],
+    p_label || ': each question has exactly id, marks, options, position, prompt, selected_option');
   return next is(j->'questions'->0->'selected_option', 'null'::jsonb, p_label || ': nothing is selected yet');
   return next is((select status from public.mock_tests_for_me() where id = t1), 'in_progress',
     p_label || ': the list says in_progress');
@@ -150,11 +150,11 @@ begin
 
   -- Submit
   j := public.mock_submit(t1);
-  return next is(j, jsonb_build_object('score', p_score, 'total', 3),
-    p_label || ': submit returns the score, blanks counted as wrong');
+  return next is(j, jsonb_build_object('score', p_score, 'total', 3, 'percentage', (p_score * 100) / 3, 'passed', null),
+    p_label || ': submit returns the marks and percentage, blanks counted as wrong, no label without a pass mark');
   return next is(
-    (select array_agg(k order by k) from jsonb_object_keys(j) k), array['score','total'],
-    p_label || ': and only score and total');
+    (select array_agg(k order by k) from jsonb_object_keys(j) k), array['passed','percentage','score','total'],
+    p_label || ': and only score, total, percentage and passed');
   return next is(public.mock_submit(t1), j, p_label || ': a second submit returns the same score');
   return next throws_ok(format('select public.mock_save_answer(%L, %L, 0)', t1, questions[1]),
     'P0001', 'already_submitted', p_label || ': saving after submit is refused');
@@ -173,13 +173,13 @@ begin
     array['Because b.', '', 'Because c.'], p_label || ': and explanations');
   return next is(
     (select array_agg(k order by k) from jsonb_object_keys(j->'questions'->0) k),
-    array['correct_option','explanation','id','options','position','prompt','selected_option'],
-    p_label || ': a submitted question has the two extra keys');
+    array['correct_option','explanation','id','marks','marks_earned','options','position','prompt','selected_option'],
+    p_label || ': a submitted question has the three extra keys');
   return next ok(j::text !~ '@', p_label || ': the open view carries no e-mail address');
   return next results_eq(
     format($q$ select status, score, total, submitted_at is not null from public.mock_tests_for_me() where id = %L $q$, t1),
     format($q$ values ('submitted'::text, %s, 3, true) $q$, p_score),
-    p_label || ': the list shows the score');
+    p_label || ': the list shows the marks');
   -- The other test is still untouched by this person
   return next is((select status from public.mock_tests_for_me() where id = '00000000-0000-0000-0000-00000000f003'),
     'not_started', p_label || ': the other test is still not started');

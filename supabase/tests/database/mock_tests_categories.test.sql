@@ -73,8 +73,8 @@ select is(
 select is(
   (select array_agg(column_name::text order by column_name) from information_schema.column_privileges
    where table_schema = 'public' and table_name = 'mock_tests' and grantee = 'authenticated' and privilege_type = 'UPDATE'),
-  array['any_year','instructions','stream','subject','title','year_levels'],
-  'authenticated may update only title, instructions and the four tags: no grant on status, released_* or closes_at');
+  array['any_year','instructions','pass_mark','stream','subject','title','year_levels'],
+  'authenticated may update only title, instructions, the four tags and the pass mark: no grant on status, released_* or closes_at');
 
 -- ---------------------------------------------------------------------------
 -- Insert: tagged and untagged (3.1b, AC 13)

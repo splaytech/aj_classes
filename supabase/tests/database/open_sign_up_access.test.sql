@@ -90,7 +90,7 @@ select unnest(array[
   'complete_onboarding(text,text,text,boolean,boolean,boolean,boolean)', 'complete_sign_up(text,boolean)',
   'mock_close_now(uuid)', 'mock_move_question(uuid,integer)', 'mock_release(uuid,timestamp with time zone)',
   'mock_save_answer(uuid,uuid,integer)', 'mock_set_closing(uuid,timestamp with time zone)',
-  'mock_start(uuid)', 'mock_submit(uuid)', 'mock_test_open(uuid)', 'mock_tests_admin_list()',
+  'mock_start(uuid)', 'mock_submit(uuid)', 'mock_test_open(uuid)', 'mock_test_results(uuid)', 'mock_tests_admin_list()',
   'mock_tests_for_me()', 'mock_withdraw(uuid)',
   'move_question(uuid,integer)', 'my_has_password()', 'my_onboarding()', 'my_sign_up()',
   'parent_child_assignment(uuid,uuid)', 'parent_child_assignments(uuid)', 'parent_child_timetable(uuid)',
