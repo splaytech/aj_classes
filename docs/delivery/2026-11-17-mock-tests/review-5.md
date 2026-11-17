@@ -16,3 +16,19 @@ Pinned to 4a402b4. Read-only (lead's test runs taken as given).
 7. Non-blocking. Files outside the plan's list: open_sign_up_access.test.sql, e2e/src/auth/login.ts, e2e/tests/open-sign-up.spec.ts (justified), plus undisclosed parent-home.test.tsx, student-home.test.tsx, MockTestStatusChips.tsx. Add to dev notes.
 
 Verified from source: no key before submit (only key path mock_test_open gated on revealed, 458-460; taker suite checks each stage 93/113/149/178); server-side marking in mock_submit (576-579; blanks wrong); all 13 definer functions set search_path=''; 9 public functions gate on is_admin or require_mock_taker; execute revoked from public/anon/authenticated then granted to authenticated; status changes only via mock_release/mock_withdraw (column grants 617-620); taker tables no grant/policy; freeze, lock, cap, reorder gap covered; role gate per role incl. inactive roster, invited, deactivated, tutor; services only Supabase callers; no inline style/console/TODO/DOM; stable keys; ErrorBoundary on all four routes; no secrets; price-word scan present. AC 13, 19, 21, 27 and real-browser AC 5, 6 need S8.
+
+## Round 2
+
+CHANGES_REQUESTED
+
+Pinned to 893bba1.
+
+1. BLOCKING. Withdraw delete races submit. mock_withdraw's `delete from public.mock_test_attempts a where a.test_id = target;` has no `submitted_at is null` predicate, and mock_submit locks only the attempt row, not the test row. Withdraw's exists-check sees no submitted attempt → a submit commits → the delete re-checks only test_id and removes the freshly submitted attempt and score; test goes to draft. Breaks L-5. Fix: `and a.submitted_at is null`, or lock attempt rows and re-verify. pgTAP only tests serial order; add to the S8 two-session list.
+   - **Lead check at source (confirmed) and ruling:** the predicate alone would still let the test flip to draft with a submitted attempt. Fix: mock_submit and mock_save_answer lock the parent test row `for share` (test before attempt, same order as mock_start) and refuse unless status = 'released'; keep `and a.submitted_at is null` on the delete as a second guard.
+2. Closed. check_mock_question stays definer with WHY comment (admins can't write updated_at; trigger functions not client-callable).
+3. Closed. Security #3 not_found on insert and update; P0002 → notFound.
+4. Closed. check_mock_test runs as invoker; unreachable branch removed.
+5. Closed. Neutral notFound text stands (comment only).
+6. Closed. Sign-up AC numbers consistent; supersede notes in 01 and 00.
+7. Closed. Out-of-plan files listed in 05-dev-notes.md.
+Round-1 #2 (assignment copy): disclosed in release notes; non-blocking.
