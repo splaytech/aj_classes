@@ -344,6 +344,11 @@ select is((select count(*)::int from public.mock_test_answers
 select tests.authenticate_as('00000000-0000-0000-0000-0000000000e1');
 select throws_ok($$ select public.mock_start('00000000-0000-0000-0000-00000000f001') $$,
   'P0002', 'not_found', 'A start after the take-back finds no released test');
+select throws_ok(
+  $$ select public.mock_save_answer('00000000-0000-0000-0000-00000000f001', '00000000-0000-0000-0000-0000000a0001', 0) $$,
+  'P0002', 'not_found', 'A save after the take-back is refused');
+select throws_ok($$ select public.mock_submit('00000000-0000-0000-0000-00000000f001') $$,
+  'P0002', 'not_found', 'A submit after the take-back is refused');
 reset role;
 select is((select count(*)::int from public.mock_test_attempts
            where test_id = '00000000-0000-0000-0000-00000000f001'), 0,
@@ -370,6 +375,20 @@ select throws_ok(
      values ('00000000-0000-0000-0000-00000000fbad', 'Orphan', array['a','b'], 0) $$,
   'P0002', 'not_found', 'A question for a missing test raises not_found');
 reset role;
+
+-- The answer key on mock_test_questions is protected by the admin-only RLS policies alone
+-- (authenticated has a select grant). A taker-facing policy would expose correct_option: pin
+-- that the table has exactly the four admin policies, each gated on is_admin().
+select set_eq(
+  $$ select policyname::text from pg_policies
+     where schemaname = 'public' and tablename = 'mock_test_questions' $$,
+  array['mock_test_questions_admin_select', 'mock_test_questions_admin_insert',
+        'mock_test_questions_admin_update', 'mock_test_questions_admin_delete'],
+  'mock_test_questions has only the four admin policies');
+select is((select count(*)::int from pg_policies
+           where schemaname = 'public' and tablename = 'mock_test_questions'
+             and coalesce(qual, with_check) not like '%is_admin()%'), 0,
+  'and every one of them is gated on is_admin()');
 
 -- ---------------------------------------------------------------------------
 -- Deleting a draft takes its questions with it (AC 16)

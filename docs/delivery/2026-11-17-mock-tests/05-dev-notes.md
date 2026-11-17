@@ -57,7 +57,8 @@ Notes on the runs:
 | `e2e/tests/open-sign-up.spec.ts` | Pinned the user nav without "Mock tests" (open sign-up AC-22); updated as a deliberate supersede. |
 | `apps/web/src/routes/portal/student-home.test.tsx`, `parent-home.test.tsx` | New co-located tests for the link card on those homes (the plan named only `user-home.test.tsx`). |
 | `apps/web/src/components/portal/MockTestStatusChips.tsx` | The Draft/Released and Not started/In progress/Submitted chips, shared by the admin and taker pages (not named in 03 §4.4). |
-| `docs/decisions/0012-…md` | Fix batch 1: consequences for rulings L-5 and L-6, added on the team lead's instruction. |
+| `docs/decisions/0012-…md` | Fix batch 1: consequences for rulings L-5 and L-6. Fix batch 2: decision 3 reworded (review-6b #2). Both on the team lead's instruction. |
+| `apps/web/src/components/portal/Panels.tsx`, `Panels.test.tsx`, `routes/portal/mock-tests-load-error.test.tsx` | Fix batch 2 F-1: optional Try again on `LoadError` (AC 39). Other pages unchanged. |
 
 ## For Saurabh's release notes (review-5 #2)
 
@@ -75,9 +76,31 @@ Notes on the runs:
 
 Fix batch 1 checks (lead, separate commands): `format:check` only the two allowed files; `lint` 0; `typecheck` 0; `pnpm test` vitest 106 files / 992 tests, e2e unit 6/6, deploy-order green; `VITE_APP_ENV=production pnpm build` 0; `db:reset` + `db:test` `Files=23, Tests=1693`, PASS; `test:functions` 0 NOT OK; `test:smoke` 17 passed; CI-style build + `test:csp` 23 passed.
 
+## Fix batch 2 (review-5 round 2, Test Manager F-1 and F-2, review-6b #2)
+
+- **Withdraw vs submit race (review-5 R2 #1, blocking):** `mock_submit` and `mock_save_answer` now take the test row `for share` first, then the attempt row, the same order as `mock_start`. If the test is no longer released, they refuse with `not_found` (P0002, already mapped to `notFound`). `mock_withdraw`'s delete keeps `and a.submitted_at is null` as a second guard. Lock-order audit: every function that touches an attempt row (`mock_start`, `mock_save_answer`, `mock_submit`, `mock_withdraw`) takes the test row first. `mock_test_open` and `mock_tests_for_me` take no locks. The question trigger, `mock_release` and `mock_move_question` lock only the test row. No function takes an attempt row before the test row. One edge: deleting a profile cascades to its attempts without the test lock; it could only conflict with a test that the same profile created, and Postgres would abort one side rather than corrupt data.
+- pgTAP: after a take-back, `mock_save_answer` and `mock_submit` both get `not_found`.
+- **Two-session runs** on the local DB (`race.sh`, psql as `authenticated` with JWT claims: the seeded admin at aal2, `student@local.test`; a released test with one in-progress attempt and one answer; session A holds its transaction 4 s; B starts 1 s later; test rows removed afterwards):
+
+  | Order | Session B result | Returned at | After |
+  |---|---|---|---|
+  | withdraw holds, submit waits | `ERROR: not_found` | +4.1 s (when A committed) | draft, 0 attempts |
+  | submit holds, withdraw waits | `ERROR: mock_has_attempts` | +4.2 s (when A committed) | released, 1 submitted attempt |
+  | withdraw holds, save waits | `ERROR: not_found` | +4.1 s | draft, 0 attempts |
+
+- **F-1 (AC 39):** `LoadError` gains an optional `retry` prop that adds a Try again button. It reloads the route with `navigate(0)`, as `MockTestsErrorBoundary` does. The text is `LOAD_ERROR.tryAgain` in `portal.constants.ts`. The prop is used only on the four mock test pages; other pages are unchanged. Vitest: `Panels.test.tsx` (default has no button; retry calls `navigate(0)`) and `mock-tests-load-error.test.tsx` (all four pages show the message and Try again).
+- **F-2 (wording after L-5):** strings changed from "started" to "submitted":
+  - `PORTAL_ERRORS.mockReleased`: "…Take it back to draft first, if no one has submitted it."
+  - Already changed in batch 1: `MOCK_TEST_EDIT_PAGE.releasedNote`, `confirmTakeBackText` and `PORTAL_ERRORS.mockHasAttempts`.
+  - Code comments: `withdrawMockTest` in `mock-tests.service.ts`, and the header of `admin-mock-test.tsx` (batch 1).
+  - No other user-facing "started" text about take-back remains. "Not started" is the taker status label.
+- **review-6b #2:** ADR-0012 decision 3 now says that `authenticated` has a select grant on tests and questions and that the answer key is protected by the admin-only RLS select policy alone. It warns that any taker-facing select policy on `mock_test_questions` would expose `correct_option`. The consequence line is reworded to match. pgTAP pins that `mock_test_questions` has exactly the four admin policies, each gated on `is_admin()`.
+
+Fix batch 2 checks (lead, separate commands): `format:check` only the two allowed files; `lint` 0; `typecheck` 0; `pnpm test` vitest 108 files / 998 tests, e2e unit 6/6, deploy-order green; `VITE_APP_ENV=production pnpm build` 0; `db:reset` (after the migration change) + `db:test` `Files=23, Tests=1697`, PASS (the last two cases are test-only, so they were run without a further reset); `test:functions` 0 NOT OK; `test:smoke` 17 passed; CI-style build + `test:csp` 23 passed.
+
 ## Known gaps (for S8 and later)
 
-1. Two-session concurrency for AC 13 (two adds at 99 questions) and AC 19 (an add during release) is not run: S8, Tester. Start against withdraw was run by the lead in fix batch 1.
+1. Two-session concurrency for AC 13 (two adds at 99 questions) and AC 19 (an add during release) is not run: S8, Tester. Start, save and submit against withdraw were run by the lead (fix batches 1 and 2).
 2. The e2e covers a seeded student only. The signed-up `user` and parent take flows are covered by pgTAP and vitest, and the lead's browser pass reached their list and intro pages, but not take and submit.
 3. The admin pages were not visually checked at 375 px or in dark mode by the lead (two-step sign-in). The admin flow is exercised by the smoke spec at the default size. S8, tester-ui.
 4. Keyboard walk (AC 43), forced failing load (AC 39), invited and deactivated accounts in the real browser (AC 5, 6): S8.

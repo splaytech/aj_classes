@@ -537,6 +537,11 @@ export const PROFILE_PAGE = {
   },
 } as const;
 
+// The optional Try again on a failed page load (mock test pages, AC 39).
+export const LOAD_ERROR = {
+  tryAgain: 'Try again',
+} as const;
+
 export const NOT_FOUND_PANEL = {
   heading: 'Not found',
   text: "This page doesn't exist, or you don't have access to it.",

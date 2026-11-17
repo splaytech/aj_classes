@@ -45,7 +45,7 @@ export default function AdminMockTestsPage() {
   const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
 
-  if (!loaded.ok) return <LoadError error={loaded.error} />;
+  if (!loaded.ok) return <LoadError error={loaded.error} retry />;
   const columns = MOCK_TESTS_ADMIN_PAGE.columns;
 
   return (

@@ -322,8 +322,9 @@ begin
     raise exception 'mock_has_attempts';
   end if;
 
-  -- In-progress attempts go with the release; their answers cascade.
-  delete from public.mock_test_attempts a where a.test_id = target;
+  -- In-progress attempts go with the release; their answers cascade. The submitted_at guard is a
+  -- second line of defence: the test-row lock already keeps submits out.
+  delete from public.mock_test_attempts a where a.test_id = target and a.submitted_at is null;
 
   update public.mock_tests
   set status = 'draft', released_at = null, released_by = null
@@ -519,7 +520,10 @@ declare
   attempt      record;
   option_count int;
 begin
-  perform 1 from public.mock_tests t where t.id = target_test and t.status = 'released';
+  -- Lock order everywhere: test row, then attempt row (as mock_start and mock_submit). Holding
+  -- the test for share keeps mock_withdraw (for update) out until this save commits, and a save
+  -- that waited for a withdraw sees the test is no longer released.
+  perform 1 from public.mock_tests t where t.id = target_test and t.status = 'released' for share;
   if not found then
     raise exception 'not_found' using errcode = 'P0002';
   end if;
@@ -564,6 +568,14 @@ declare
   new_total  int;
   new_score  int;
 begin
+  -- Test row first, for share, then the attempt (same order as mock_start and mock_save_answer).
+  -- mock_withdraw holds the test for update between its submitted-check and its delete, so a
+  -- submit can't commit in that gap; a submit that waited for a withdraw is refused here.
+  perform 1 from public.mock_tests t where t.id = target and t.status = 'released' for share;
+  if not found then
+    raise exception 'not_found' using errcode = 'P0002';
+  end if;
+
   select a.id, a.submitted_at, a.score, a.total into attempt
   from public.mock_test_attempts a
   where a.test_id = target and a.profile_id = me

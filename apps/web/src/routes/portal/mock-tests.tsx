@@ -37,7 +37,7 @@ export default function MockTestsPage() {
   const loaded = useLoaderData<typeof clientLoader>();
   const area = mockTestAreaFromPath(useLocation().pathname);
 
-  if (!loaded.ok) return <LoadError error={loaded.error} />;
+  if (!loaded.ok) return <LoadError error={loaded.error} retry />;
 
   return (
     <>

@@ -85,7 +85,7 @@ export const PORTAL_ERRORS = {
   alreadySubmitted: 'This has already been submitted, so answers can’t change.',
   // Mock tests
   mockReleased:
-    'A released mock test can’t be changed. Take it back to draft first, if no one has started it.',
+    'A released mock test can’t be changed. Take it back to draft first, if no one has submitted it.',
   mockNoQuestions: 'Add at least one question before releasing.',
   mockHasAttempts: 'Someone has already submitted this mock test, so it can’t go back to draft.',
   mockTooManyQuestions: `A mock test can have up to ${MOCK_TEST_LIMITS.questionsMax} questions.`,

@@ -46,7 +46,11 @@ export default function MockTestPage() {
   const area = mockTestAreaFromPath(useLocation().pathname);
 
   if (!loaded.ok) {
-    return loaded.error === 'notFound' ? <NotFoundPanel /> : <LoadError error={loaded.error} />;
+    return loaded.error === 'notFound' ? (
+      <NotFoundPanel />
+    ) : (
+      <LoadError error={loaded.error} retry />
+    );
   }
   const test = loaded.data;
 

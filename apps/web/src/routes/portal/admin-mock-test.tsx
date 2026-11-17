@@ -51,7 +51,11 @@ export default function AdminMockTestPage() {
   const [confirming, setConfirming] = useState<Confirming>(null);
 
   if (!loaded.ok) {
-    return loaded.error === 'notFound' ? <NotFoundPanel /> : <LoadError error={loaded.error} />;
+    return loaded.error === 'notFound' ? (
+      <NotFoundPanel />
+    ) : (
+      <LoadError error={loaded.error} retry />
+    );
   }
   const test = loaded.data;
   const isDraft = test.status === 'draft';

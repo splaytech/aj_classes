@@ -116,7 +116,7 @@ export async function releaseMockTest(testId: string): Promise<Result> {
   });
 }
 
-/** Back to draft; the database refuses once anyone has started. */
+/** Back to draft; the database refuses once anyone has submitted (in-progress attempts are deleted). */
 export async function withdrawMockTest(testId: string): Promise<Result> {
   return attempt(async () => {
     const supabase = await getSupabase();
