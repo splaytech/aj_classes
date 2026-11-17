@@ -10,9 +10,34 @@ const TWO_STEP_FALLBACK_GRACE_MS = 3000;
  * falls back to deriving the code in-harness if the field isn't auto-filled.
  */
 export async function loginAsAdmin(page: Page): Promise<void> {
+  await submitCredentials(page, config.auth.adminEmail, config.auth.adminPassword);
+
+  await handleTwoStepIfPresented(page);
+
+  // Note: `/portal/login` and `/portal/login/verify` are themselves prefixed by `/portal`, so a
+  // naive startsWith(expectedLandingPath) would match before 2FA actually completes. Require the
+  // landing path and explicitly rule out still being on a login/verify page.
+  await page.waitForURL(
+    (url) =>
+      url.pathname.startsWith(config.auth.expectedLandingPath) &&
+      !url.pathname.startsWith('/portal/login'),
+    { timeout: config.budgets.pollTimeoutMs },
+  );
+}
+
+/**
+ * Signs in a seeded local account that has no two-step step (tutor, student, parent, user) and
+ * waits for its home page. Every account in supabase/seed.sql shares the admin's local password.
+ */
+export async function loginAsSeededMember(page: Page, email: string, home: string): Promise<void> {
+  await submitCredentials(page, email, config.auth.adminPassword);
+  await page.waitForURL((url) => url.pathname === home, { timeout: config.budgets.pollTimeoutMs });
+}
+
+async function submitCredentials(page: Page, email: string, password: string): Promise<void> {
   await page.goto('/portal/login');
-  await page.locator('#login-email').fill(config.auth.adminEmail);
-  await page.locator('#login-password').fill(config.auth.adminPassword);
+  await page.locator('#login-email').fill(email);
+  await page.locator('#login-password').fill(password);
 
   // The Turnstile widget resolves its (always-pass, local-only) challenge asynchronously; clicking
   // Sign in before it settles is a silent no-op. Wait for its "Success!" state first.
@@ -26,18 +51,6 @@ export async function loginAsAdmin(page: Page): Promise<void> {
   await page
     .waitForURL((url) => url.pathname !== '/portal/login', { timeout: TWO_STEP_FALLBACK_GRACE_MS })
     .catch(() => signInButton.click());
-
-  await handleTwoStepIfPresented(page);
-
-  // Note: `/portal/login` and `/portal/login/verify` are themselves prefixed by `/portal`, so a
-  // naive startsWith(expectedLandingPath) would match before 2FA actually completes. Require the
-  // landing path and explicitly rule out still being on a login/verify page.
-  await page.waitForURL(
-    (url) =>
-      url.pathname.startsWith(config.auth.expectedLandingPath) &&
-      !url.pathname.startsWith('/portal/login'),
-    { timeout: config.budgets.pollTimeoutMs },
-  );
 }
 
 async function handleTwoStepIfPresented(page: Page): Promise<void> {

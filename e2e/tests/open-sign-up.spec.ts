@@ -80,7 +80,9 @@ test.describe('Open sign-up', () => {
     await expect(page).toHaveURL(/\/portal\/user$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Latest news' })).toBeVisible();
     const nav = page.getByRole('navigation', { name: 'Portal' });
-    await expect(nav.getByRole('link')).toHaveText(['Latest news', 'Account']);
+    // Mock tests (docs/delivery/2026-11-17-mock-tests AC 8) added a link for users; this
+    // supersedes the AC-21 "Latest news and Account only".
+    await expect(nav.getByRole('link')).toHaveText(['Latest news', 'Mock tests', 'Account']);
 
     // And the database agrees.
     const [row] = await db.query<{
