@@ -12,10 +12,12 @@ delete from public.mock_tests;
 select tests.create_staff('00000000-0000-0000-0000-0000000000a1', 'admin@test.local', 'admin');
 select tests.create_staff('00000000-0000-0000-0000-0000000000b1', 'tutor@test.local');
 select tests.create_family_account('00000000-0000-0000-0000-0000000000e1', 'kid@test.local', 'student');
+select tests.create_family_account('00000000-0000-0000-0000-0000000000e2', 'kid2@test.local', 'student');
 select tests.create_family_account('00000000-0000-0000-0000-0000000000c1', 'parent@test.local', 'parent');
 select tests.create_sign_up('00000000-0000-0000-0000-0000000000f1', 'user@test.local');
 insert into public.students (id, full_name, year_level, profile_id, consent_recorded_at, consent_source, is_active)
-values ('00000000-0000-0000-0000-00000000d001', 'Kid One', 8, '00000000-0000-0000-0000-0000000000e1', now(), 'admin', true);
+values ('00000000-0000-0000-0000-00000000d001', 'Kid One', 8, '00000000-0000-0000-0000-0000000000e1', now(), 'admin', true),
+       ('00000000-0000-0000-0000-00000000d002', 'Kid Two', 8, '00000000-0000-0000-0000-0000000000e2', now(), 'admin', true);
 
 -- T1 and T2 are drafts with one question each; T9 is a draft with none.
 insert into public.mock_tests (id, title) values
@@ -243,8 +245,46 @@ begin
 end;
 $$;
 
--- Every taker path on a closed test is "not found", like a draft or an unknown id.
+-- Closed, ruling S-1 (AC 5.1 to 5.3). The taker submitted T2 before closing and has T1 in progress.
 create function pg_temp.sees_closed(p_user uuid, p_label text)
+returns setof text
+language plpgsql
+set search_path = extensions
+as $$
+declare
+  nf constant text := '{"code":"P0002","message":"not_found","details":null,"hint":null}';
+  j jsonb;
+begin
+  perform tests.authenticate_as(p_user);
+  -- 5.1: the submitted test stays, marked closed, with the result
+  return next results_eq(
+    $q$ select id, status, score, closes_at <= now() from public.mock_tests_for_me() $q$,
+    $q$ values ('00000000-0000-0000-0000-00000000f002'::uuid, 'submitted'::text, 1, true) $q$,
+    p_label || ': only the submitted test is listed, with its score and closes_at (marked closed)');
+  j := public.mock_test_open('00000000-0000-0000-0000-00000000f002');
+  return next is(j->>'status', 'submitted', p_label || ': the submitted result still opens');
+  return next is((j->>'score')::int, 1, p_label || ': with the score');
+  return next is((j->'questions'->0->>'correct_option')::int, 0, p_label || ': and the correct answers');
+  return next ok((j->>'closes_at')::timestamptz <= now(), p_label || ': and the closing time, in the past');
+  return next throws_ok($q$ select public.mock_start('00000000-0000-0000-0000-00000000f002') $q$,
+    'PGRST', nf, p_label || ': a submitter can''t start a closed test again');
+  return next throws_ok($q$ select public.mock_submit('00000000-0000-0000-0000-00000000f002') $q$,
+    'PGRST', nf, p_label || ': submit on a closed test is refused, even for a submitter');
+  -- 5.2 and 5.3: the in-progress test is gone and can't be finished
+  return next throws_ok($q$ select public.mock_test_open('00000000-0000-0000-0000-00000000f001') $q$,
+    'PGRST', nf, p_label || ': a closed in-progress test does not open');
+  return next throws_ok($q$ select public.mock_start('00000000-0000-0000-0000-00000000f001') $q$,
+    'PGRST', nf, p_label || ': a closed test can''t be started');
+  return next throws_ok(
+    $q$ select public.mock_save_answer('00000000-0000-0000-0000-00000000f001', '00000000-0000-0000-0000-0000000a0001', 1) $q$,
+    'PGRST', nf, p_label || ': an in-progress attempt can''t save');
+  return next throws_ok($q$ select public.mock_submit('00000000-0000-0000-0000-00000000f001') $q$,
+    'PGRST', nf, p_label || ': an in-progress attempt can''t submit');
+end;
+$$;
+
+-- Closed, for a taker who never started either test (AC 5.2): nothing at all.
+create function pg_temp.sees_nothing(p_user uuid, p_label text)
 returns setof text
 language plpgsql
 set search_path = extensions
@@ -254,20 +294,13 @@ declare
 begin
   perform tests.authenticate_as(p_user);
   return next is((select count(*)::int from public.mock_tests_for_me()), 0,
-    p_label || ': closed tests are not in the list');
+    p_label || ': no closed test is in the list');
   return next throws_ok($q$ select public.mock_test_open('00000000-0000-0000-0000-00000000f001') $q$,
-    'PGRST', nf, p_label || ': a closed in-progress test does not open');
+    'PGRST', nf, p_label || ': T1 does not open');
   return next throws_ok($q$ select public.mock_test_open('00000000-0000-0000-0000-00000000f002') $q$,
-    'PGRST', nf, p_label || ': a closed submitted result does not open either');
-  return next throws_ok($q$ select public.mock_start('00000000-0000-0000-0000-00000000f001') $q$,
-    'PGRST', nf, p_label || ': a closed test can''t be started');
-  return next throws_ok(
-    $q$ select public.mock_save_answer('00000000-0000-0000-0000-00000000f001', '00000000-0000-0000-0000-0000000a0001', 1) $q$,
-    'PGRST', nf, p_label || ': an in-progress attempt can''t save');
-  return next throws_ok($q$ select public.mock_submit('00000000-0000-0000-0000-00000000f001') $q$,
-    'PGRST', nf, p_label || ': an in-progress attempt can''t submit');
-  return next throws_ok($q$ select public.mock_submit('00000000-0000-0000-0000-00000000f002') $q$,
-    'PGRST', nf, p_label || ': a submitted attempt gets no result back from submit');
+    'PGRST', nf, p_label || ': T2 does not open');
+  return next throws_ok($q$ select public.mock_start('00000000-0000-0000-0000-00000000f002') $q$,
+    'PGRST', nf, p_label || ': and can''t be started');
 end;
 $$;
 
@@ -308,6 +341,8 @@ reset role;
 select * from pg_temp.sees_closed('00000000-0000-0000-0000-0000000000c1', 'Parent, closed');
 reset role;
 select * from pg_temp.sees_closed('00000000-0000-0000-0000-0000000000f1', 'User, closed');
+reset role;
+select * from pg_temp.sees_nothing('00000000-0000-0000-0000-0000000000e2', 'Student who never started, closed');
 reset role;
 select is((select count(*)::int from public.mock_test_attempts where submitted_at is not null), 3,
   'No in-progress attempt got submitted after closing');

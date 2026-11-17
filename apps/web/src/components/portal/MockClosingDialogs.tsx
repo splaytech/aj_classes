@@ -1,0 +1,158 @@
+// The two dialogs that take a mock test's closing date and time
+// (docs/delivery/2026-11-18-mock-test-closing): Release, with an optional closing time, and Set
+// closing date on a released test, which can also clear it. The picker shows the viewer's local
+// time; the database gets an ISO timestamp and refuses one that isn't in the future.
+
+import Button from '@mui/material/Button';
+import DialogContentText from '@mui/material/DialogContentText';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
+import { useRef, useState } from 'react';
+import type { RefObject } from 'react';
+
+import { MOCK_CLOSING, MOCK_TEST_EDIT_PAGE, MOCK_VALIDATION } from '@/constants';
+import { closesAtError } from '@/lib/mock-tests';
+import { usePortalAction } from '@/lib/use-portal-action';
+import { releaseMockTest, setMockTestClosing } from '@/services';
+
+import { FormDialog } from './FormDialog';
+
+type ClosesFieldProps = {
+  value: Dayjs | null;
+  error: string | undefined;
+  onChange: (value: Dayjs | null) => void;
+  inputRef: RefObject<HTMLInputElement | null>;
+};
+
+function ClosesField({ value, error, onChange, inputRef }: ClosesFieldProps) {
+  return (
+    <DateTimePicker
+      label={MOCK_CLOSING.fieldLabel}
+      value={value}
+      onChange={onChange}
+      disablePast
+      slotProps={{
+        textField: {
+          inputRef,
+          fullWidth: true,
+          error: Boolean(error),
+          helperText: error ?? MOCK_CLOSING.fieldHint,
+        },
+      }}
+    />
+  );
+}
+
+/**
+ * The ISO timestamp to send, or the reason it can't be sent. A half-typed field reports no value
+ * at all (the picker only calls onChange once every part is filled), so the field's own text is
+ * checked too: any digit in it without a value means it isn't finished, and must not release a
+ * test that never closes.
+ */
+function readCloses(
+  value: Dayjs | null,
+  fieldText: string,
+): { closesAt: string | null; error?: string } {
+  if (!value && /\d/.test(fieldText))
+    return { closesAt: null, error: MOCK_VALIDATION.closesInvalid };
+  const asDate = value ? value.toDate() : null;
+  const error = closesAtError(asDate, new Date());
+  if (error) return { closesAt: null, error };
+  return { closesAt: asDate ? asDate.toISOString() : null };
+}
+
+type MockReleaseDialogProps = {
+  testId: string;
+  onReleased: () => void;
+  onClose: () => void;
+};
+
+export function MockReleaseDialog({ testId, onReleased, onClose }: MockReleaseDialogProps) {
+  const [closes, setCloses] = useState<Dayjs | null>(null);
+  const [error, setError] = useState<string>();
+  const fieldRef = useRef<HTMLInputElement>(null);
+  const action = usePortalAction();
+
+  async function handleSubmit() {
+    const read = readCloses(closes, fieldRef.current?.value ?? '');
+    setError(read.error);
+    if (read.error) return;
+    if (await action.run(() => releaseMockTest(testId, read.closesAt))) onReleased();
+  }
+
+  return (
+    <FormDialog
+      open
+      title={MOCK_TEST_EDIT_PAGE.confirmReleaseTitle}
+      submitLabel={MOCK_TEST_EDIT_PAGE.release}
+      busyLabel={MOCK_TEST_EDIT_PAGE.releasing}
+      busy={action.busy}
+      error={action.error}
+      onSubmit={handleSubmit}
+      onClose={onClose}
+    >
+      <DialogContentText sx={{ overflowWrap: 'anywhere' }}>
+        {MOCK_TEST_EDIT_PAGE.confirmReleaseText}
+      </DialogContentText>
+      <ClosesField value={closes} error={error} onChange={setCloses} inputRef={fieldRef} />
+    </FormDialog>
+  );
+}
+
+type MockClosingDialogProps = {
+  testId: string;
+  /** The closing time now set (ISO), or null. */
+  closesAt: string | null;
+  /** True when the closing time was cleared. */
+  onSaved: (cleared: boolean) => void;
+  onClose: () => void;
+};
+
+export function MockClosingDialog({ testId, closesAt, onSaved, onClose }: MockClosingDialogProps) {
+  const [closes, setCloses] = useState<Dayjs | null>(closesAt ? dayjs(closesAt) : null);
+  const [error, setError] = useState<string>();
+  const fieldRef = useRef<HTMLInputElement>(null);
+  const action = usePortalAction();
+
+  async function handleSubmit() {
+    const read = readCloses(closes, fieldRef.current?.value ?? '');
+    setError(read.error);
+    if (read.error) return;
+    if (await action.run(() => setMockTestClosing(testId, read.closesAt))) {
+      onSaved(read.closesAt === null);
+    }
+  }
+
+  function clear() {
+    setCloses(null);
+    setError(undefined);
+  }
+
+  return (
+    <FormDialog
+      open
+      title={MOCK_CLOSING.setClosingTitle}
+      submitLabel={MOCK_CLOSING.save}
+      busyLabel={MOCK_CLOSING.saving}
+      busy={action.busy}
+      error={action.error}
+      onSubmit={handleSubmit}
+      onClose={onClose}
+    >
+      <DialogContentText sx={{ overflowWrap: 'anywhere' }}>
+        {MOCK_CLOSING.setClosingText}
+      </DialogContentText>
+      <ClosesField value={closes} error={error} onChange={setCloses} inputRef={fieldRef} />
+      {/* Always shown, so focus never falls to the page when the date is cleared (BUG-4). */}
+      <Button
+        variant="text"
+        onClick={clear}
+        disabled={action.busy}
+        sx={{ alignSelf: 'flex-start' }}
+      >
+        {MOCK_CLOSING.clear}
+      </Button>
+    </FormDialog>
+  );
+}

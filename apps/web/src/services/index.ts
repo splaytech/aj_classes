@@ -58,6 +58,7 @@ export {
 } from './assignments.service';
 export { deleteQuestion, moveQuestion, saveQuestion } from './questions.service';
 export {
+  closeMockTestNow,
   createMockTest,
   deleteMockQuestion,
   deleteMockTest,
@@ -69,6 +70,7 @@ export {
   releaseMockTest,
   saveMockAnswer,
   saveMockQuestion,
+  setMockTestClosing,
   startMockTest,
   submitMockTest,
   updateMockTest,

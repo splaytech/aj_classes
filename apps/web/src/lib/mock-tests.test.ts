@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import * as constants from '@/constants';
 import {
+  MOCK_CLOSING,
   MOCK_TEST_LIMITS,
   MOCK_VALIDATION,
   PORTAL_ROUTES,
@@ -11,8 +12,12 @@ import {
   mockTestsPath,
 } from '@/constants';
 
+import { formatDateTime } from './format';
 import {
+  closesAtError,
   hasMockErrors,
+  mockClosingState,
+  mockClosingText,
   mockScoreText,
   mockTestAreaFromPath,
   unansweredCount,
@@ -168,5 +173,34 @@ describe('mock test wording', () => {
       .flatMap(textsOf)
       .filter((text) => PRICE_WORDS.test(text.replace('free of cost', '')));
     expect(offending).toEqual([]);
+  });
+});
+
+describe('closing (docs/delivery/2026-11-18-mock-test-closing)', () => {
+  const now = new Date('2026-11-18T10:00:00.000Z');
+
+  it('is never, open or closed, with the closing time itself counting as closed (AC 8)', () => {
+    expect(mockClosingState(null, now)).toBe('never');
+    expect(mockClosingState('2026-11-18T10:00:01.000Z', now)).toBe('open');
+    expect(mockClosingState('2026-11-18T10:00:00.000Z', now)).toBe('closed');
+    expect(mockClosingState('2026-11-17T10:00:00.000Z', now)).toBe('closed');
+  });
+
+  it('says Closes or Closed with the date and time, or nothing (AC 6, 9)', () => {
+    const later = '2026-11-20T01:30:00.000Z';
+    const earlier = '2026-11-01T01:30:00.000Z';
+    expect(mockClosingText(null, now)).toBe('');
+    expect(mockClosingText(later, now)).toBe(MOCK_CLOSING.closes(formatDateTime(later)));
+    expect(mockClosingText(earlier, now)).toBe(MOCK_CLOSING.closed(formatDateTime(earlier)));
+  });
+
+  it('accepts empty or a future time, and refuses now, the past and an invalid date', () => {
+    expect(closesAtError(null, now)).toBeUndefined();
+    expect(closesAtError(new Date('2026-11-18T10:01:00.000Z'), now)).toBeUndefined();
+    expect(closesAtError(new Date(now), now)).toBe(MOCK_VALIDATION.closesInPast);
+    expect(closesAtError(new Date('2026-01-01T00:00:00.000Z'), now)).toBe(
+      MOCK_VALIDATION.closesInPast,
+    );
+    expect(closesAtError(new Date('nonsense'), now)).toBe(MOCK_VALIDATION.closesInvalid);
   });
 });

@@ -5,9 +5,11 @@
 -- deactivation are the same state. Closing is decided on every read (AC 8): no scheduled job.
 --
 -- closes_at is written only by the functions below (never column-granted to authenticated). The
--- taker functions are replaced with the same bodies plus the closed check, and a closed test is
--- "not found" to every taker, including their submitted result (AC 5). Lock order is unchanged:
--- test row first, then the attempt row.
+-- taker functions are replaced with the same bodies plus the closed check (AC 5, ruling S-1): a
+-- taker who submitted before closing still lists and opens the test and their result; for everyone
+-- else a closed test is "not found". Start, save and submit refuse a closed test for everyone, and
+-- an in-progress attempt is never auto-submitted. Lock order is unchanged: test row first, then
+-- the attempt row.
 --
 -- 20261118100000_mock_tests.sql is already applied to the hosted database and is not edited.
 
@@ -203,11 +205,15 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- Taker functions: a closed test is not found (AC 5, 8). Each body is the previous one plus
+-- Taker functions (AC 5, 8). Start, save and submit: the previous body plus
 -- "and (t.closes_at is null or t.closes_at > now())" wherever it checks status = 'released'.
+-- List and open: a closed test stays visible only to a caller whose attempt is submitted.
 -- ---------------------------------------------------------------------------
 
-create or replace function public.mock_tests_for_me()
+-- The list gains closes_at, so the UI can mark a submitted, closed test: drop and create.
+drop function public.mock_tests_for_me();
+
+create function public.mock_tests_for_me()
 returns table (
   id             uuid,
   title          text,
@@ -216,7 +222,8 @@ returns table (
   score          int,
   total          int,
   submitted_at   timestamptz,
-  released_at    timestamptz
+  released_at    timestamptz,
+  closes_at      timestamptz
 )
 language plpgsql
 stable
@@ -233,10 +240,11 @@ begin
            case when a.id is null then 'not_started'
                 when a.submitted_at is null then 'in_progress'
                 else 'submitted' end,
-           a.score::int, a.total::int, a.submitted_at, t.released_at
+           a.score::int, a.total::int, a.submitted_at, t.released_at, t.closes_at
     from public.mock_tests t
     left join public.mock_test_attempts a on a.test_id = t.id and a.profile_id = me
-    where t.status = 'released' and (t.closes_at is null or t.closes_at > now())
+    where t.status = 'released'
+      and (t.closes_at is null or t.closes_at > now() or a.submitted_at is not null)
     order by t.released_at desc, t.id;
 end;
 $$;
@@ -256,9 +264,11 @@ declare
   revealed  boolean;
   questions jsonb;
 begin
-  select t.id, t.title, t.instructions into test
+  select t.id, t.title, t.instructions, t.closes_at,
+         (t.closes_at is not null and t.closes_at <= now()) as closed
+  into test
   from public.mock_tests t
-  where t.id = target and t.status = 'released' and (t.closes_at is null or t.closes_at > now());
+  where t.id = target and t.status = 'released';
   if not found then
     perform private.raise_mock_not_found();
   end if;
@@ -266,6 +276,12 @@ begin
   select a.id, a.submitted_at, a.score, a.total into attempt
   from public.mock_test_attempts a
   where a.test_id = target and a.profile_id = me;
+
+  -- Closed: only a caller who submitted before closing still sees it (ruling S-1). Same reply as
+  -- a draft or an unknown id, so nobody learns the test exists.
+  if test.closed and attempt.submitted_at is null then
+    perform private.raise_mock_not_found();
+  end if;
 
   state := case when attempt.id is null then 'not_started'
                 when attempt.submitted_at is null then 'in_progress'
@@ -302,6 +318,7 @@ begin
     'score', case when revealed then attempt.score end,
     'total', case when revealed then attempt.total end,
     'submitted_at', case when revealed then attempt.submitted_at end,
+    'closes_at', test.closes_at,
     'questions', questions
   );
 end;

@@ -1,7 +1,9 @@
 // Mock test rules (docs/delivery/2026-11-17-mock-tests, design §6): form checks, which area a page
-// is in, and the counts the take form shows. The database enforces the same limits.
+// is in, the counts the take form shows, and whether a released test has closed
+// (docs/delivery/2026-11-18-mock-test-closing). The database enforces the same rules.
 
 import {
+  MOCK_CLOSING,
   MOCK_RESULT,
   MOCK_TAKER_AREAS,
   MOCK_TEST_LIMITS,
@@ -9,7 +11,11 @@ import {
   QUESTION_LIMITS,
 } from '@/constants';
 import type { MockTakerArea } from '@/constants';
+import { formatDateTime } from '@/lib/format';
 import type { MockQuestionInput, MockTestInput } from '@/services';
+
+/** A released test with no closing time never closes; from its closing time on it is closed. */
+export type MockClosingState = 'never' | 'open' | 'closed';
 
 export type MockTestErrors = Partial<Record<'title' | 'instructions', string>>;
 
@@ -76,4 +82,26 @@ export function unansweredCount(
 
 export function mockScoreText(score: number, total: number): string {
   return MOCK_RESULT.score(score, total);
+}
+
+/** The same rule as the database: closes_at at or before now counts as closed (AC 8). */
+export function mockClosingState(closesAt: string | null, now: Date): MockClosingState {
+  if (!closesAt) return 'never';
+  return new Date(closesAt).getTime() <= now.getTime() ? 'closed' : 'open';
+}
+
+/** The reason a closing time can't be saved, or undefined. Empty is fine: it never closes. */
+export function closesAtError(value: Date | null, now: Date): string | undefined {
+  if (value === null) return undefined;
+  if (Number.isNaN(value.getTime())) return MOCK_VALIDATION.closesInvalid;
+  if (value.getTime() <= now.getTime()) return MOCK_VALIDATION.closesInPast;
+  return undefined;
+}
+
+/** "Closes 8 Oct 2026, 4:05 pm", "Closed …", or empty when it never closes (AC 6, 9). */
+export function mockClosingText(closesAt: string | null, now: Date): string {
+  const state = mockClosingState(closesAt, now);
+  if (state === 'never') return '';
+  const when = formatDateTime(closesAt);
+  return state === 'closed' ? MOCK_CLOSING.closed(when) : MOCK_CLOSING.closes(when);
 }

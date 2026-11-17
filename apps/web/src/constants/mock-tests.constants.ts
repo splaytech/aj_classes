@@ -129,6 +129,31 @@ export const MOCK_TEST_EDIT_PAGE = {
   confirmDeleteText: (title: string) => `“${title}” and its questions will be removed.`,
 } as const;
 
+// Closing date and Close now (docs/delivery/2026-11-18-mock-test-closing). Closed means hidden from
+// every taker, results included; times show in the viewer's local time.
+export const MOCK_CLOSING = {
+  fieldLabel: 'Closes (optional)',
+  fieldHint: 'Leave empty and it never closes. Times are in your local time.',
+  clear: 'Clear closing date',
+  closes: (when: string) => `Closes ${when}`,
+  closed: (when: string) => `Closed ${when}`,
+  closedChip: 'Closed',
+  setClosing: 'Set closing date',
+  setClosingTitle: 'Set closing date',
+  setClosingText:
+    'From this time students, parents and signed-up users can’t see this mock test or their results. Clear the date or pick a later one to open it again.',
+  save: 'Save',
+  saving: 'Saving…',
+  saved: 'Closing date saved.',
+  cleared: 'Closing date cleared. It never closes.',
+  closeNow: 'Close now',
+  closingNow: 'Closing…',
+  confirmCloseNowTitle: 'Close this mock test now?',
+  confirmCloseNowText:
+    'Students, parents and signed-up users won’t see it any more, including their results, and anyone part-way through can’t finish. You can open it again with Set closing date.',
+  closedNow: 'Closed. People can no longer see it.',
+} as const;
+
 export const MOCK_TESTS_LIST = {
   heading: 'Mock tests',
   intro: 'Free practice. You get one go at each mock test.',
@@ -198,4 +223,6 @@ export const MOCK_VALIDATION = {
   optionLength: QUESTION_VALIDATION.optionLength,
   correctOption: QUESTION_VALIDATION.correctOption,
   explanation: QUESTION_VALIDATION.explanationLength,
+  closesInvalid: 'Enter a full date and time, or leave it empty.',
+  closesInPast: 'The closing date and time must be in the future.',
 } as const;

@@ -2,7 +2,13 @@ import { render, screen } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
-import { MOCK_TAKE_STATUS_LABELS, MOCK_TESTS_LIST, mockTestPath, mockTestsPath } from '@/constants';
+import {
+  MOCK_CLOSING,
+  MOCK_TAKE_STATUS_LABELS,
+  MOCK_TESTS_LIST,
+  mockTestPath,
+  mockTestsPath,
+} from '@/constants';
 import type { MockTakerArea } from '@/constants';
 import type { MockTestListItem } from '@/services';
 
@@ -19,6 +25,7 @@ const ITEMS: MockTestListItem[] = [
     score: null,
     total: null,
     submittedAt: null,
+    closesAt: null,
   },
   {
     id: 't2',
@@ -28,6 +35,7 @@ const ITEMS: MockTestListItem[] = [
     score: null,
     total: null,
     submittedAt: null,
+    closesAt: null,
   },
   {
     id: 't3',
@@ -37,6 +45,7 @@ const ITEMS: MockTestListItem[] = [
     score: 4,
     total: 5,
     submittedAt: '2026-11-18T01:00:00Z',
+    closesAt: null,
   },
 ];
 
@@ -77,6 +86,17 @@ describe('mock tests list for takers', () => {
     renderList('parent', ITEMS);
     await screen.findByRole('heading', { level: 1 });
     expect(screen.getAllByText(/of \d+ correct/)).toHaveLength(1);
+  });
+
+  it('marks a closed test the person submitted as Closed, and still offers the result (ruling S-1)', async () => {
+    const closed = { ...(ITEMS[2] as MockTestListItem), closesAt: '2020-01-01T00:00:00Z' };
+    const closesLater = { ...(ITEMS[0] as MockTestListItem), closesAt: '2999-01-01T00:00:00Z' };
+    renderList('user', [closesLater, closed]);
+    await screen.findByRole('heading', { level: 1 });
+
+    expect(screen.getAllByText(MOCK_CLOSING.closedChip)).toHaveLength(1);
+    expect(screen.getByRole('link', { name: MOCK_TESTS_LIST.actions.submitted })).toBeVisible();
+    expect(screen.getByText('4 of 5 correct')).toBeInTheDocument();
   });
 
   it('shows the empty state', async () => {

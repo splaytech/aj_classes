@@ -1,7 +1,9 @@
 // Admin → one mock test (design §4.3). A draft: edit the details, add, change, delete and move
-// questions, release it, or delete it. A released test is read-only, and can go back to draft only
-// while nobody has submitted it (in-progress attempts are deleted). The database enforces every one of these rules; this page just
-// shows the controls that can work and the plain reason when one is refused.
+// questions, release it (optionally with a closing time), or delete it. A released test is
+// read-only: its closing time can be set, changed or cleared, it can be closed now, and it can go
+// back to draft only while nobody has submitted it (in-progress attempts are deleted;
+// docs/delivery/2026-11-18-mock-test-closing). The database enforces every one of these rules;
+// this page just shows the controls that can work and the plain reason when one is refused.
 
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -14,7 +16,10 @@ import type { ClientLoaderFunctionArgs } from 'react-router';
 import {
   ConfirmDialog,
   LoadError,
+  MockClosedChip,
+  MockClosingDialog,
   MockQuestionList,
+  MockReleaseDialog,
   MockTestDialog,
   MockTestStatusChip,
   MockTestsErrorBoundary,
@@ -22,10 +27,11 @@ import {
   PageHeader,
   SectionCard,
 } from '@/components/portal';
-import { MOCK_TEST_EDIT_PAGE, PORTAL_ROUTES, PORTAL_SEO } from '@/constants';
+import { MOCK_CLOSING, MOCK_TEST_EDIT_PAGE, PORTAL_ROUTES, PORTAL_SEO } from '@/constants';
+import { mockClosingState, mockClosingText } from '@/lib/mock-tests';
 import { buildPortalMeta } from '@/lib/seo';
 import { usePortalAction } from '@/lib/use-portal-action';
-import { deleteMockTest, getMockTestForEdit, releaseMockTest, withdrawMockTest } from '@/services';
+import { closeMockTestNow, deleteMockTest, getMockTestForEdit, withdrawMockTest } from '@/services';
 
 export function meta() {
   return buildPortalMeta(PORTAL_SEO.adminMockTest);
@@ -40,7 +46,7 @@ export function ErrorBoundary() {
   return <MockTestsErrorBoundary />;
 }
 
-type Confirming = 'release' | 'takeBack' | 'delete' | null;
+type Confirming = 'release' | 'closing' | 'closeNow' | 'takeBack' | 'delete' | null;
 
 export default function AdminMockTestPage() {
   const loaded = useLoaderData<typeof clientLoader>();
@@ -52,8 +58,8 @@ export default function AdminMockTestPage() {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const focusHeadingOnLoad = useRef(false);
 
-  // The Release button is gone once released, so focus would fall to the page body: move it to
-  // the heading when the reloaded page arrives.
+  // The Release and Close now buttons are gone after they work, so focus would fall to the page
+  // body: move it to the heading when the reloaded page arrives.
   useEffect(() => {
     if (!focusHeadingOnLoad.current) return;
     focusHeadingOnLoad.current = false;
@@ -70,13 +76,30 @@ export default function AdminMockTestPage() {
   const test = loaded.data;
   const isDraft = test.status === 'draft';
   const canRelease = test.questions.length > 0;
+  const now = new Date();
+  const isClosed = mockClosingState(test.closesAt, now) === 'closed';
+  const closingText = isDraft ? '' : mockClosingText(test.closesAt, now);
 
   function reload() {
     void revalidator.revalidate();
   }
 
-  async function confirmRelease() {
-    const worked = await action.run(() => releaseMockTest(test.id), MOCK_TEST_EDIT_PAGE.released);
+  function released() {
+    setConfirming(null);
+    action.announce(MOCK_TEST_EDIT_PAGE.released);
+    focusHeadingOnLoad.current = true;
+    reload();
+  }
+
+  // The dialog hands focus back to Set closing date, which stays on the page.
+  function closingSaved(cleared: boolean) {
+    setConfirming(null);
+    action.announce(cleared ? MOCK_CLOSING.cleared : MOCK_CLOSING.saved);
+    reload();
+  }
+
+  async function confirmCloseNow() {
+    const worked = await action.run(() => closeMockTestNow(test.id), MOCK_CLOSING.closedNow);
     setConfirming(null);
     if (!worked) return;
     focusHeadingOnLoad.current = true;
@@ -101,7 +124,12 @@ export default function AdminMockTestPage() {
         title={test.title}
         headingRef={headingRef}
         back={{ to: PORTAL_ROUTES.adminMockTests, label: MOCK_TEST_EDIT_PAGE.back }}
-        meta={<MockTestStatusChip status={test.status} />}
+        meta={
+          <Stack direction="row" spacing={1}>
+            <MockTestStatusChip status={test.status} />
+            {!isDraft && isClosed && <MockClosedChip />}
+          </Stack>
+        }
         actions={
           isDraft ? (
             <>
@@ -125,13 +153,31 @@ export default function AdminMockTestPage() {
               </Button>
             </>
           ) : (
-            <Button
-              variant="outlined"
-              disabled={action.busy}
-              onClick={() => setConfirming('takeBack')}
-            >
-              {MOCK_TEST_EDIT_PAGE.takeBack}
-            </Button>
+            <>
+              <Button
+                variant="outlined"
+                disabled={action.busy}
+                onClick={() => setConfirming('closing')}
+              >
+                {MOCK_CLOSING.setClosing}
+              </Button>
+              {!isClosed && (
+                <Button
+                  variant="outlined"
+                  disabled={action.busy}
+                  onClick={() => setConfirming('closeNow')}
+                >
+                  {MOCK_CLOSING.closeNow}
+                </Button>
+              )}
+              <Button
+                variant="outlined"
+                disabled={action.busy}
+                onClick={() => setConfirming('takeBack')}
+              >
+                {MOCK_TEST_EDIT_PAGE.takeBack}
+              </Button>
+            </>
           )
         }
       />
@@ -142,6 +188,7 @@ export default function AdminMockTestPage() {
         <Alert severity="info">
           {isDraft ? MOCK_TEST_EDIT_PAGE.draftNote : MOCK_TEST_EDIT_PAGE.releasedNote}
         </Alert>
+        {closingText && <Typography sx={{ fontWeight: 700 }}>{closingText}</Typography>}
         {isDraft && !canRelease && (
           <Typography color="textSecondary">{MOCK_TEST_EDIT_PAGE.releaseNeedsQuestions}</Typography>
         )}
@@ -173,13 +220,28 @@ export default function AdminMockTestPage() {
           onClose={() => setEditingDetails(false)}
         />
       )}
+      {confirming === 'release' && (
+        <MockReleaseDialog
+          testId={test.id}
+          onReleased={released}
+          onClose={() => setConfirming(null)}
+        />
+      )}
+      {confirming === 'closing' && (
+        <MockClosingDialog
+          testId={test.id}
+          closesAt={test.closesAt}
+          onSaved={closingSaved}
+          onClose={() => setConfirming(null)}
+        />
+      )}
       <ConfirmDialog
-        open={confirming === 'release'}
-        title={MOCK_TEST_EDIT_PAGE.confirmReleaseTitle}
-        text={MOCK_TEST_EDIT_PAGE.confirmReleaseText}
-        confirmLabel={MOCK_TEST_EDIT_PAGE.release}
+        open={confirming === 'closeNow'}
+        title={MOCK_CLOSING.confirmCloseNowTitle}
+        text={MOCK_CLOSING.confirmCloseNowText}
+        confirmLabel={MOCK_CLOSING.closeNow}
         busy={action.busy}
-        onConfirm={confirmRelease}
+        onConfirm={confirmCloseNow}
         onClose={() => setConfirming(null)}
       />
       <ConfirmDialog

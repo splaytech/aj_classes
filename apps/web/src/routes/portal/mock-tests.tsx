@@ -1,6 +1,7 @@
 // Mock tests for a student, parent or signed-up user (design §4.3): the released ones, with how
 // far this person has got. One page mounted under all three areas; the path says which. It loads
-// once per visit, so a mock test released while it is open shows up after a refresh.
+// once per visit, so a mock test released while it is open shows up after a refresh. A closed test
+// is listed only for someone who submitted it, marked Closed (ruling S-1).
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -11,12 +12,13 @@ import { Link as RouterLink, useLoaderData, useLocation } from 'react-router';
 
 import {
   LoadError,
+  MockClosedChip,
   MockTakeStatusChip,
   MockTestsErrorBoundary,
   PageHeader,
 } from '@/components/portal';
 import { MOCK_TESTS_LIST, PORTAL_SEO, mockTestPath } from '@/constants';
-import { mockScoreText, mockTestAreaFromPath } from '@/lib/mock-tests';
+import { mockClosingState, mockScoreText, mockTestAreaFromPath } from '@/lib/mock-tests';
 import { buildPortalMeta } from '@/lib/seo';
 import { listMyMockTests } from '@/services';
 
@@ -36,6 +38,7 @@ export function ErrorBoundary() {
 export default function MockTestsPage() {
   const loaded = useLoaderData<typeof clientLoader>();
   const area = mockTestAreaFromPath(useLocation().pathname);
+  const now = new Date();
 
   if (!loaded.ok) return <LoadError error={loaded.error} retry />;
 
@@ -59,6 +62,7 @@ export default function MockTestsPage() {
                 </Typography>
                 <Stack direction="row" spacing={1} useFlexGap sx={{ mt: 1, flexWrap: 'wrap' }}>
                   <MockTakeStatusChip status={item.status} />
+                  {mockClosingState(item.closesAt, now) === 'closed' && <MockClosedChip />}
                 </Stack>
                 {item.status === 'submitted' && item.score !== null && item.total !== null && (
                   <Typography sx={{ mt: 1, fontWeight: 700 }}>

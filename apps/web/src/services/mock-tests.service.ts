@@ -45,7 +45,7 @@ export async function getMockTestForEdit(testId: string): Promise<Result<MockTes
     if (!supabase) return fail('notAllowed'); // the layout shows the refusal; no request goes out
     const test = await supabase
       .from('mock_tests')
-      .select('id, title, instructions, status')
+      .select('id, title, instructions, status, closes_at')
       .eq('id', testId)
       .maybeSingle();
     if (test.error) return fail(toErrorKey(test.error));
@@ -64,6 +64,7 @@ export async function getMockTestForEdit(testId: string): Promise<Result<MockTes
       title: test.data.title,
       instructions: test.data.instructions,
       status: test.data.status as MockTestStatus,
+      closesAt: test.data.closes_at,
       questions: (questions.data as MockQuestionRow[]).map(toMockAdminQuestion),
     });
   });
@@ -111,10 +112,36 @@ export async function deleteMockTest(testId: string): Promise<Result> {
   });
 }
 
-export async function releaseMockTest(testId: string): Promise<Result> {
+/** `closesAt` (ISO) is when it closes for takers; null never closes. It must be in the future. */
+export async function releaseMockTest(testId: string, closesAt: string | null): Promise<Result> {
   return attempt(async () => {
     const supabase = await getSupabase();
-    const { error } = await supabase.rpc('mock_release', { target: testId });
+    const { error } = await supabase.rpc('mock_release', {
+      target: testId,
+      closes: closesAt ?? undefined, // left out: the database default, never closes
+    });
+    return error ? fail(toErrorKey(error)) : succeed();
+  });
+}
+
+/** Sets, changes or (with null) clears the closing time of a released test, open or closed. */
+export async function setMockTestClosing(testId: string, closesAt: string | null): Promise<Result> {
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { error } = await supabase.rpc('mock_set_closing', {
+      target: testId,
+      // The generated types can't say that a timestamptz argument accepts null; null clears it.
+      closes: closesAt as string,
+    });
+    return error ? fail(toErrorKey(error)) : succeed();
+  });
+}
+
+/** Closes a released test for takers straight away, even when people have submitted it. */
+export async function closeMockTestNow(testId: string): Promise<Result> {
+  return attempt(async () => {
+    const supabase = await getSupabase();
+    const { error } = await supabase.rpc('mock_close_now', { target: testId });
     return error ? fail(toErrorKey(error)) : succeed();
   });
 }

@@ -2,7 +2,7 @@
 
 import Chip from '@mui/material/Chip';
 
-import { MOCK_TAKE_STATUS_LABELS, MOCK_TEST_STATUS_LABELS } from '@/constants';
+import { MOCK_CLOSING, MOCK_TAKE_STATUS_LABELS, MOCK_TEST_STATUS_LABELS } from '@/constants';
 import type { MockTakeStatus, MockTestStatus } from '@/services';
 
 const TEST_STATUS_COLOURS = { draft: 'default', released: 'success' } as const;
@@ -35,4 +35,9 @@ export function MockTakeStatusChip({ status }: { status: MockTakeStatus }) {
       label={MOCK_TAKE_STATUS_LABELS[status]}
     />
   );
+}
+
+/** A released mock test that takers can no longer see (its closing time has passed). */
+export function MockClosedChip() {
+  return <Chip size="small" variant="outlined" color="warning" label={MOCK_CLOSING.closedChip} />;
 }

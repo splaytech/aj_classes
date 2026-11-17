@@ -134,6 +134,7 @@ const ERROR_KEYS_BY_OWN_KEY: Record<string, ErrorKey> = {
   mock_has_attempts: 'mockHasAttempts',
   mock_too_many_questions: 'mockTooManyQuestions',
   mock_not_started: 'mockNotStarted',
+  mock_closes_in_past: 'mockClosesInPast',
 };
 
 /** The portal error to show for anything a Supabase call returned or threw. */

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  closeMockTestNow,
   createMockTest,
   deleteMockQuestion,
   deleteMockTest,
@@ -12,6 +13,7 @@ import {
   releaseMockTest,
   saveMockAnswer,
   saveMockQuestion,
+  setMockTestClosing,
   startMockTest,
   submitMockTest,
   updateMockTest,
@@ -95,6 +97,7 @@ describe('listMockTestsAdmin', () => {
         created_at: 'c',
         updated_at: 'u',
         released_at: null,
+        closes_at: '2026-12-01T00:00:00Z',
       },
     ]);
     expect(await listMockTestsAdmin()).toEqual({
@@ -110,6 +113,7 @@ describe('listMockTestsAdmin', () => {
           createdAt: 'c',
           updatedAt: 'u',
           releasedAt: null,
+          closesAt: '2026-12-01T00:00:00Z',
         },
       ],
     });
@@ -124,7 +128,7 @@ describe('listMockTestsAdmin', () => {
 
 describe('getMockTestForEdit', () => {
   it('reads the test, then its questions in order', async () => {
-    reply({ id: 't1', title: 'Maths', instructions: 'Go', status: 'draft' });
+    reply({ id: 't1', title: 'Maths', instructions: 'Go', status: 'draft', closes_at: null });
     reply([
       {
         id: 'q1',
@@ -143,6 +147,7 @@ describe('getMockTestForEdit', () => {
         title: 'Maths',
         instructions: 'Go',
         status: 'draft',
+        closesAt: null,
         questions: [
           {
             id: 'q1',
@@ -223,11 +228,23 @@ describe('deleteMockTest and deleteMockQuestion', () => {
 describe('release and take back', () => {
   it('call the functions with the test id', async () => {
     reply(null);
-    expect(await releaseMockTest('t1')).toEqual({ ok: true, data: undefined });
+    expect(await releaseMockTest('t1', null)).toEqual({ ok: true, data: undefined });
     reply(null);
     expect(await withdrawMockTest('t1')).toEqual({ ok: true, data: undefined });
+    // No closing time: the argument is left out, so the database default (never closes) applies.
     expect(called('rpc', 'mock_release', { target: 't1' })).toBe(true);
     expect(called('rpc', 'mock_withdraw', { target: 't1' })).toBe(true);
+  });
+
+  it('release sends the closing time when there is one', async () => {
+    reply(null);
+    expect(await releaseMockTest('t1', '2026-12-01T09:00:00.000Z')).toEqual({
+      ok: true,
+      data: undefined,
+    });
+    expect(
+      called('rpc', 'mock_release', { target: 't1', closes: '2026-12-01T09:00:00.000Z' }),
+    ).toBe(true);
   });
 
   it.each([
@@ -238,7 +255,43 @@ describe('release and take back', () => {
     ['not_admin', 'notAllowed'],
   ])('maps %s to %s', async (raised, key) => {
     reply(null, { message: raised });
-    expect(await releaseMockTest('t1')).toEqual({ ok: false, error: key });
+    expect(await releaseMockTest('t1', null)).toEqual({ ok: false, error: key });
+  });
+});
+
+describe('closing date and close now', () => {
+  it('sets, clears and closes through the functions', async () => {
+    reply(null);
+    expect(await setMockTestClosing('t1', '2026-12-01T09:00:00.000Z')).toEqual({
+      ok: true,
+      data: undefined,
+    });
+    reply(null);
+    expect(await setMockTestClosing('t1', null)).toEqual({ ok: true, data: undefined });
+    reply(null);
+    expect(await closeMockTestNow('t1')).toEqual({ ok: true, data: undefined });
+    expect(
+      called('rpc', 'mock_set_closing', { target: 't1', closes: '2026-12-01T09:00:00.000Z' }),
+    ).toBe(true);
+    // Null is sent, not left out: the function has no default, and null clears the date.
+    expect(called('rpc', 'mock_set_closing', { target: 't1', closes: null })).toBe(true);
+    expect(called('rpc', 'mock_close_now', { target: 't1' })).toBe(true);
+  });
+
+  it.each([
+    ['mock_closes_in_past', 'mockClosesInPast'],
+    ['invalid_status', 'invalidStatus'],
+    ['not_admin', 'notAllowed'],
+  ])('maps %s to %s', async (raised, key) => {
+    reply(null, { message: raised });
+    expect(await setMockTestClosing('t1', null)).toEqual({ ok: false, error: key });
+    reply(null, { message: raised });
+    expect(await closeMockTestNow('t1')).toEqual({ ok: false, error: key });
+  });
+
+  it('maps the 404 not_found body to notFound', async () => {
+    reply(null, { code: 'P0002', message: 'not_found' });
+    expect(await closeMockTestNow('t1')).toEqual({ ok: false, error: 'notFound' });
   });
 });
 
@@ -321,6 +374,7 @@ describe('listMyMockTests', () => {
         total: 3,
         submitted_at: 's',
         released_at: 'r',
+        closes_at: 'x',
       },
     ]);
     expect(await listMyMockTests()).toEqual({
@@ -334,6 +388,7 @@ describe('listMyMockTests', () => {
           score: 2,
           total: 3,
           submittedAt: 's',
+          closesAt: 'x',
         },
       ],
     });

@@ -1067,6 +1067,7 @@ export type Database = {
       mock_tests_for_me: {
         Args: Record<PropertyKey, never>;
         Returns: {
+          closes_at: string;
           id: string;
           question_count: number;
           released_at: string;

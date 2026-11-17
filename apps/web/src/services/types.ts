@@ -548,6 +548,8 @@ export type MockTestSummary = {
   createdAt: string;
   updatedAt: string;
   releasedAt: string | null;
+  /** When a released test closes for takers; null never closes. */
+  closesAt: string | null;
 };
 
 /** Trimmed by the service before it is saved. */
@@ -577,6 +579,7 @@ export type MockTestDraftView = {
   title: string;
   instructions: string;
   status: MockTestStatus;
+  closesAt: string | null;
   questions: MockAdminQuestion[];
 };
 
@@ -589,6 +592,8 @@ export type MockTestListItem = {
   score: number | null;
   total: number | null;
   submittedAt: string | null;
+  /** Past means closed: the list keeps it only for someone who submitted (ruling S-1). */
+  closesAt: string | null;
 };
 
 /** `correctOption` and `explanation` are only there once the person has submitted. */

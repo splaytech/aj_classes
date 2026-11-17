@@ -1,26 +1,39 @@
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  MOCK_CLOSING,
   MOCK_QUESTION_LIST,
   MOCK_TEST_EDIT_PAGE,
   MOCK_TEST_LIMITS,
+  MOCK_VALIDATION,
   PORTAL_ERRORS,
   PORTAL_ROUTES,
 } from '@/constants';
-import { deleteMockQuestion, releaseMockTest, withdrawMockTest } from '@/services';
+import { formatDateTime } from '@/lib/format';
+import {
+  closeMockTestNow,
+  deleteMockQuestion,
+  releaseMockTest,
+  setMockTestClosing,
+  withdrawMockTest,
+} from '@/services';
 import type { MockAdminQuestion, MockTestDraftView } from '@/services';
 import { setupUser } from '@/test/user';
 
 import AdminMockTestPage, * as adminMockTestRoute from './admin-mock-test';
 
 vi.mock('@/services', () => ({
+  closeMockTestNow: vi.fn(),
   deleteMockQuestion: vi.fn(),
   deleteMockTest: vi.fn(),
   moveMockQuestion: vi.fn(),
   releaseMockTest: vi.fn(),
   saveMockQuestion: vi.fn(),
+  setMockTestClosing: vi.fn(),
   updateMockTest: vi.fn(),
   withdrawMockTest: vi.fn(),
 }));
@@ -42,6 +55,7 @@ function testView(overrides: Partial<MockTestDraftView> = {}): MockTestDraftView
     title: 'Year 7 Maths',
     instructions: 'Read carefully.',
     status: 'draft',
+    closesAt: null,
     questions: [question('q1', 1), question('q2', 3)],
     ...overrides,
   };
@@ -58,12 +72,19 @@ async function renderPage(view: MockTestDraftView, afterChange: MockTestDraftVie
     },
     { path: PORTAL_ROUTES.adminMockTests, Component: () => <p>list page</p> },
   ]);
-  render(<Stub initialEntries={['/portal/admin/mock-tests/t1']} />);
+  // The closing dialogs have a date-time picker, which needs the provider the portal wraps pages in.
+  render(
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <Stub initialEntries={['/portal/admin/mock-tests/t1']} />
+    </LocalizationProvider>,
+  );
   await screen.findByRole('heading', { level: 1, name: view.title });
 }
 
 beforeEach(() => {
   vi.mocked(releaseMockTest).mockReset();
+  vi.mocked(closeMockTestNow).mockReset();
+  vi.mocked(setMockTestClosing).mockReset();
   vi.mocked(deleteMockQuestion).mockReset();
   vi.mocked(withdrawMockTest).mockReset();
 });
@@ -124,7 +145,8 @@ describe('admin mock test, a draft', () => {
     expect(releaseMockTest).not.toHaveBeenCalled();
 
     await user.click(within(dialog).getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
-    expect(releaseMockTest).toHaveBeenCalledWith('t1');
+    // The closing field was left empty: it never closes.
+    expect(releaseMockTest).toHaveBeenCalledWith('t1', null);
   });
 
   it('moves focus to the page heading after a confirmed release, not the page body (BUG-4)', async () => {
@@ -221,6 +243,139 @@ describe('admin mock test, released', () => {
 
     expect(await screen.findByText(PORTAL_ERRORS.mockHasAttempts)).toBeInTheDocument();
     expect(withdrawMockTest).toHaveBeenCalledWith('t1');
+  });
+});
+
+describe('admin mock test, closing date and close now', () => {
+  const FUTURE = '2999-01-01T09:00:00.000Z';
+  const PAST = '2020-01-01T09:00:00.000Z';
+  const released = (closesAt: string | null) => testView({ status: 'released', closesAt });
+
+  it('shows nothing about closing, with Set closing date and Close now, when it never closes', async () => {
+    await renderPage(released(null));
+
+    expect(screen.queryByText(/^Closes |^Closed /)).not.toBeInTheDocument();
+    expect(screen.queryByText(MOCK_CLOSING.closedChip)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: MOCK_CLOSING.setClosing })).toBeVisible();
+    expect(screen.getByRole('button', { name: MOCK_CLOSING.closeNow })).toBeVisible();
+  });
+
+  it('shows Closes <date time> for an open test with a date (AC 6, 9)', async () => {
+    await renderPage(released(FUTURE));
+
+    expect(screen.getByText(MOCK_CLOSING.closes(formatDateTime(FUTURE)))).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: MOCK_CLOSING.closeNow })).toBeVisible();
+  });
+
+  it('shows Closed <date time> and a Closed chip, and no Close now, once closed', async () => {
+    await renderPage(released(PAST));
+
+    expect(screen.getByText(MOCK_CLOSING.closed(formatDateTime(PAST)))).toBeInTheDocument();
+    expect(screen.getByText(MOCK_CLOSING.closedChip)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: MOCK_CLOSING.closeNow })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: MOCK_CLOSING.setClosing })).toBeVisible();
+  });
+
+  it('shows no closing state on a draft', async () => {
+    await renderPage(testView());
+    expect(screen.queryByRole('button', { name: MOCK_CLOSING.setClosing })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: MOCK_CLOSING.closeNow })).not.toBeInTheDocument();
+  });
+
+  it('confirms Close now, closes, and moves focus to the heading (BUG-4)', async () => {
+    vi.mocked(closeMockTestNow).mockResolvedValue({ ok: true, data: undefined });
+    const user = setupUser();
+    await renderPage(released(null), released(PAST));
+
+    await user.click(screen.getByRole('button', { name: MOCK_CLOSING.closeNow }));
+    const dialog = await screen.findByRole('dialog', { name: MOCK_CLOSING.confirmCloseNowTitle });
+    expect(dialog).toHaveTextContent(MOCK_CLOSING.confirmCloseNowText);
+    expect(closeMockTestNow).not.toHaveBeenCalled();
+    await user.click(within(dialog).getByRole('button', { name: MOCK_CLOSING.closeNow }));
+
+    expect(closeMockTestNow).toHaveBeenCalledWith('t1');
+    expect(await screen.findByText(MOCK_CLOSING.closedNow)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1, name: 'Year 7 Maths' })).toHaveFocus(),
+    );
+  });
+
+  it('shows the plain reason when Close now is refused', async () => {
+    vi.mocked(closeMockTestNow).mockResolvedValue({ ok: false, error: 'invalidStatus' });
+    const user = setupUser();
+    await renderPage(released(null));
+
+    await user.click(screen.getByRole('button', { name: MOCK_CLOSING.closeNow }));
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: MOCK_CLOSING.closeNow }));
+
+    expect(await screen.findByText(PORTAL_ERRORS.invalidStatus)).toBeInTheDocument();
+  });
+
+  it('keeps a future date on Save (AC 2)', async () => {
+    vi.mocked(setMockTestClosing).mockResolvedValue({ ok: true, data: undefined });
+    const user = setupUser();
+    await renderPage(released(FUTURE));
+
+    await user.click(screen.getByRole('button', { name: MOCK_CLOSING.setClosing }));
+    const dialog = await screen.findByRole('dialog', { name: MOCK_CLOSING.setClosingTitle });
+    await user.click(within(dialog).getByRole('button', { name: MOCK_CLOSING.save }));
+
+    expect(setMockTestClosing).toHaveBeenCalledWith('t1', FUTURE);
+    expect(await screen.findByText(MOCK_CLOSING.saved)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('clears the date with Clear, which reopens a closed test (AC 4)', async () => {
+    vi.mocked(setMockTestClosing).mockResolvedValue({ ok: true, data: undefined });
+    const user = setupUser();
+    await renderPage(released(PAST), released(null));
+
+    await user.click(screen.getByRole('button', { name: MOCK_CLOSING.setClosing }));
+    const dialog = await screen.findByRole('dialog', { name: MOCK_CLOSING.setClosingTitle });
+    const clear = within(dialog).getByRole('button', { name: MOCK_CLOSING.clear });
+    await user.click(clear);
+    expect(clear).toHaveFocus(); // still on the page after clearing (BUG-4)
+    await user.click(within(dialog).getByRole('button', { name: MOCK_CLOSING.save }));
+
+    expect(setMockTestClosing).toHaveBeenCalledWith('t1', null);
+    expect(await screen.findByText(MOCK_CLOSING.cleared)).toBeInTheDocument();
+  });
+
+  it('refuses a past date inline and sends nothing', async () => {
+    const user = setupUser();
+    await renderPage(released(PAST));
+
+    await user.click(screen.getByRole('button', { name: MOCK_CLOSING.setClosing }));
+    const dialog = await screen.findByRole('dialog', { name: MOCK_CLOSING.setClosingTitle });
+    await user.click(within(dialog).getByRole('button', { name: MOCK_CLOSING.save }));
+
+    expect(await within(dialog).findByText(MOCK_VALIDATION.closesInPast)).toBeInTheDocument();
+    expect(setMockTestClosing).not.toHaveBeenCalled();
+  });
+
+  it('shows the database refusal inside the dialog', async () => {
+    vi.mocked(setMockTestClosing).mockResolvedValue({ ok: false, error: 'mockClosesInPast' });
+    const user = setupUser();
+    await renderPage(released(FUTURE));
+
+    await user.click(screen.getByRole('button', { name: MOCK_CLOSING.setClosing }));
+    const dialog = await screen.findByRole('dialog', { name: MOCK_CLOSING.setClosingTitle });
+    await user.click(within(dialog).getByRole('button', { name: MOCK_CLOSING.save }));
+
+    expect(await within(dialog).findByText(PORTAL_ERRORS.mockClosesInPast)).toBeInTheDocument();
+  });
+
+  it('offers an optional Closes field when releasing', async () => {
+    const user = setupUser();
+    await renderPage(testView());
+
+    await user.click(screen.getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
+    const dialog = await screen.findByRole('dialog', {
+      name: MOCK_TEST_EDIT_PAGE.confirmReleaseTitle,
+    });
+    expect(within(dialog).getByText(MOCK_CLOSING.fieldHint)).toBeInTheDocument();
+    expect(within(dialog).getAllByText(MOCK_CLOSING.fieldLabel).length).toBeGreaterThan(0);
   });
 });
 

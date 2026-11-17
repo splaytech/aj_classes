@@ -22,6 +22,7 @@ export type MockSummaryRow = {
   created_at: string;
   updated_at: string;
   released_at: string | null;
+  closes_at: string | null;
 };
 
 export type MockListRow = {
@@ -32,6 +33,7 @@ export type MockListRow = {
   score: number | null;
   total: number | null;
   submitted_at: string | null;
+  closes_at: string | null;
 };
 
 export type MockQuestionRow = {
@@ -76,6 +78,7 @@ export function toMockTestSummary(row: MockSummaryRow): MockTestSummary {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     releasedAt: row.released_at,
+    closesAt: row.closes_at,
   };
 }
 
@@ -88,6 +91,7 @@ export function toMockTestListItem(row: MockListRow): MockTestListItem {
     score: row.score,
     total: row.total,
     submittedAt: row.submitted_at,
+    closesAt: row.closes_at,
   };
 }
 
