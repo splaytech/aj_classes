@@ -18,7 +18,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
 import { MOCK_QUESTION_LIST, MOCK_SCORING, MOCK_TEST_LIMITS } from '@/constants';
-import { optionLetter, totalMarks } from '@/lib/questions';
+import { optionLetter } from '@/lib/questions';
 import { usePortalAction } from '@/lib/use-portal-action';
 import { deleteMockQuestion, moveMockQuestion } from '@/services';
 import type { MockAdminQuestion } from '@/services';
@@ -73,14 +73,7 @@ export function MockQuestionList({
       title={MOCK_QUESTION_LIST.heading}
       headingRef={headingRef}
       action={
-        <Stack direction="row" spacing={2}>
-          <Typography color="textSecondary">
-            {MOCK_QUESTION_LIST.count(questions.length)}
-          </Typography>
-          <Typography color="textSecondary">
-            {MOCK_SCORING.totalMarks(totalMarks(questions))}
-          </Typography>
-        </Stack>
+        <Typography color="textSecondary">{MOCK_QUESTION_LIST.count(questions.length)}</Typography>
       }
     >
       <Stack spacing={3}>

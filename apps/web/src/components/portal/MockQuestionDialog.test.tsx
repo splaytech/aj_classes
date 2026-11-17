@@ -105,19 +105,22 @@ describe('MockQuestionDialog marks (AC 1, 2)', () => {
     expect(screen.getByLabelText(MOCK_SCORING.marksLabel)).toHaveValue(1);
   });
 
-  it.each(['', '0', '-1', '2.5', '101'])('refuses %j marks and saves nothing', async (text) => {
-    const user = setupUser();
-    renderDialog();
-    await fillValid(user);
+  it.each(['', '0', '-1', '2.5', '101', '1e2'])(
+    'refuses %j marks and saves nothing',
+    async (text) => {
+      const user = setupUser();
+      renderDialog();
+      await fillValid(user);
 
-    const field = screen.getByLabelText(MOCK_SCORING.marksLabel);
-    await user.clear(field);
-    if (text) await user.type(field, text);
-    await user.click(saveButton());
+      const field = screen.getByLabelText(MOCK_SCORING.marksLabel);
+      await user.clear(field);
+      if (text) await user.type(field, text);
+      await user.click(saveButton());
 
-    expect(screen.getByText(MOCK_VALIDATION.marks)).toBeInTheDocument();
-    expect(saveMockQuestion).not.toHaveBeenCalled();
-  });
+      expect(screen.getByText(MOCK_VALIDATION.marks)).toBeInTheDocument();
+      expect(saveMockQuestion).not.toHaveBeenCalled();
+    },
+  );
 
   it.each([1, 100])('saves %i marks', async (marks) => {
     vi.mocked(saveMockQuestion).mockResolvedValue({ ok: true, data: undefined });

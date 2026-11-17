@@ -30,11 +30,20 @@ export type MockQuestionErrors = Partial<
   Record<'prompt' | 'options' | 'correctOption' | 'explanation' | 'marks', string>
 >;
 
+/**
+ * Digits only, so "1e2", "0x3C", "60.5" and "-1" are not read as numbers (Number() accepts the
+ * first two). Anything else gives NaN, which every range check refuses.
+ */
+export function wholeNumberFromText(text: string): number {
+  const trimmed = text.trim();
+  return /^\d+$/.test(trimmed) ? Number(trimmed) : Number.NaN;
+}
+
 /** A blank pass mark is fine (no pass mark); otherwise a whole number in the database's range. */
 export function validatePassMarkText(text: string): string | undefined {
   const trimmed = text.trim();
   if (trimmed === '') return undefined;
-  const value = Number(trimmed);
+  const value = wholeNumberFromText(trimmed);
   const inRange = value >= MOCK_TEST_LIMITS.passMarkMin && value <= MOCK_TEST_LIMITS.passMarkMax;
   return Number.isInteger(value) && inRange ? undefined : MOCK_VALIDATION.passMark;
 }
@@ -42,7 +51,7 @@ export function validatePassMarkText(text: string): string | undefined {
 /** Blank gives null (no pass mark). Call it only after validatePassMarkText accepted the text. */
 export function passMarkFromText(text: string): number | null {
   const trimmed = text.trim();
-  return trimmed === '' ? null : Number(trimmed);
+  return trimmed === '' ? null : wholeNumberFromText(trimmed);
 }
 
 export function validateMockTest(

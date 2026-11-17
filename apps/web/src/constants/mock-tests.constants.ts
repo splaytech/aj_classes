@@ -108,6 +108,9 @@ export const MOCK_SCORING = {
   marksLabel: QUESTION_DIALOG.marksLabel,
   marks: QUESTION_BUILDER.marks,
   totalMarks: QUESTION_BUILDER.total,
+  // Singular on a total of 1, like QUESTION_BUILDER.marks (ruling L-12): "1 of 1 mark", "3 of 5 marks".
+  outOf: (earned: number, total: number) =>
+    total === 1 ? `${earned} of 1 mark` : `${earned} of ${total} marks`,
   passMarkLabel: 'Pass mark (%, optional)',
   passMarkHint:
     'A whole number from 1 to 100. Leave it empty for no pass mark. It can’t be changed after release.',
@@ -282,8 +285,8 @@ export const MOCK_TAKE_PAGE = {
 export const MOCK_RESULT = {
   heading: 'Your result',
   score: (score: number, total: number, percentage: number) =>
-    `${score} of ${total} marks (${percentage}%)`,
-  questionMarks: (earned: number, marks: number) => `${earned} of ${marks} marks`,
+    `${MOCK_SCORING.outOf(score, total)} (${percentage}%)`,
+  questionMarks: MOCK_SCORING.outOf,
   answersHeading: 'Your answers',
   question: (position: number) => `Question ${position}`,
   yourAnswer: 'Your answer',
@@ -311,7 +314,7 @@ export const MOCK_RESULTS_PAGE = {
     result: 'Result',
   },
   nameNotSet: 'Name not set',
-  score: (score: number, total: number) => `${score} of ${total} marks`,
+  score: MOCK_SCORING.outOf,
   percent: (percentage: number) => `${percentage}%`,
   empty: 'No one has submitted this test yet.',
   showing: (shown: number, total: number) =>

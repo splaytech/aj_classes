@@ -4,6 +4,7 @@ import * as constants from '@/constants';
 import {
   MOCK_CLOSING,
   MOCK_PASS_LABELS,
+  MOCK_RESULT,
   MOCK_RESULTS_PAGE,
   MOCK_TAG_ANY,
   MOCK_TAGS,
@@ -42,6 +43,7 @@ import {
   mockScoreText,
   passMarkFromText,
   validatePassMarkText,
+  wholeNumberFromText,
   mockTestAreaFromPath,
   unansweredCount,
   validateMockQuestion,
@@ -178,15 +180,35 @@ describe('mockScoreText', () => {
     expect(mockScoreText(3, 5, 60)).toBe('3 of 5 marks (60%)');
     expect(mockScoreText(2, 3, 66)).toBe('2 of 3 marks (66%)');
   });
+
+  it('says "mark" on a total of 1 (ruling L-12)', () => {
+    expect(mockScoreText(1, 1, 100)).toBe('1 of 1 mark (100%)');
+    expect(mockScoreText(0, 1, 0)).toBe('0 of 1 mark (0%)');
+    expect(MOCK_RESULT.questionMarks(1, 1)).toBe('1 of 1 mark');
+    expect(MOCK_RESULT.questionMarks(0, 2)).toBe('0 of 2 marks');
+    expect(MOCK_RESULTS_PAGE.score(1, 1)).toBe('1 of 1 mark');
+    expect(MOCK_RESULTS_PAGE.score(3, 5)).toBe('3 of 5 marks');
+  });
 });
 
 describe('validatePassMarkText', () => {
-  it.each(['0', '-1', '60.5', '101', 'abc'])('refuses %s', (text) => {
+  it.each(['0', '-1', '60.5', '101', 'abc', '1e2', '0x3C', '+60'])('refuses %s', (text) => {
     expect(validatePassMarkText(text)).toBe(MOCK_VALIDATION.passMark);
   });
 
   it.each(['1', '100', '60', '', '   '])('accepts %j', (text) => {
     expect(validatePassMarkText(text)).toBeUndefined();
+  });
+});
+
+describe('wholeNumberFromText', () => {
+  it('reads digits only', () => {
+    expect(wholeNumberFromText(' 60 ')).toBe(60);
+    expect(wholeNumberFromText('100')).toBe(100);
+  });
+
+  it.each(['1e2', '0x3C', '60.5', '-1', '', 'abc'])('gives NaN for %j', (text) => {
+    expect(wholeNumberFromText(text)).toBeNaN();
   });
 });
 

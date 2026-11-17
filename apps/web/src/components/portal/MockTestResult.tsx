@@ -1,5 +1,5 @@
-// The result of a submitted mock test (design §4.4): marks earned out of marks available, then each question with
-// the person's choice, the correct option and the explanation. Only a submitted test has these
+// The result of a submitted mock test (design §4.4): marks earned out of marks available, then
+// each question with the person's choice, the correct option and the explanation. Only a submitted test has these
 // keys, so this component is only shown for `submitted`.
 
 import Paper from '@mui/material/Paper';

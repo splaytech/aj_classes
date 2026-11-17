@@ -230,13 +230,13 @@ describe('admin mock test, scoring (AC 3, 4, 9, 28)', () => {
 
     expect(screen.getByText(MOCK_SCORING.marks(2))).toBeInTheDocument();
     expect(screen.getByText(MOCK_SCORING.marks(3))).toBeInTheDocument();
-    // The section header and the Scoring card both show the total.
-    expect(screen.getAllByText('Total 5 marks')).toHaveLength(2);
+    // The total shows once, in the Scoring card (ruling L-12).
+    expect(screen.getAllByText('Total 5 marks')).toHaveLength(1);
   });
 
   it('says "Total 1 mark" for one one-mark question', async () => {
     await renderPage(testView({ questions: [question('q1', 1)] }));
-    expect(screen.getAllByText('Total 1 mark')).toHaveLength(2);
+    expect(screen.getAllByText('Total 1 mark')).toHaveLength(1);
   });
 
   it('shows the pass mark in a Scoring card', async () => {

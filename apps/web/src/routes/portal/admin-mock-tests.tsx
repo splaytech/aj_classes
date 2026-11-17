@@ -1,6 +1,6 @@
 // Admin → Mock tests (design §4.3): every mock test, draft or released, with its counts, and a
-// button to start a new one. Counts and the creator's name only: taker names and scores live only on the Results page,
-// reached by the last column (AC 39).
+// button to start a new one. Counts and the creator's name only: taker names and scores live
+// only on the Results page, reached by the last column (AC 39).
 // A released test with a closing time shows "Closes …", or a Closed chip and when it closed.
 // Each row shows its tags, with "Not set" for a missing one; no filter in v1 (categories AC 28).
 

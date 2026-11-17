@@ -2,8 +2,8 @@
 
 import Chip from '@mui/material/Chip';
 
-import { mockPassLabel } from '@/lib/mock-tests';
 import { MOCK_CLOSING, MOCK_TAKE_STATUS_LABELS, MOCK_TEST_STATUS_LABELS } from '@/constants';
+import { mockPassLabel } from '@/lib/mock-tests';
 import type { MockTakeStatus, MockTestStatus } from '@/services';
 
 const TEST_STATUS_COLOURS = { draft: 'default', released: 'success' } as const;

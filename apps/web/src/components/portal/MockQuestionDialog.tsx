@@ -15,7 +15,7 @@ import TextField from '@mui/material/TextField';
 import { useRef, useState } from 'react';
 
 import { MOCK_QUESTION_DIALOG, MOCK_SCORING, QUESTION_LIMITS } from '@/constants';
-import { hasMockErrors, validateMockQuestion } from '@/lib/mock-tests';
+import { hasMockErrors, validateMockQuestion, wholeNumberFromText } from '@/lib/mock-tests';
 import type { MockQuestionErrors } from '@/lib/mock-tests';
 import { optionLetter } from '@/lib/questions';
 import { usePortalAction } from '@/lib/use-portal-action';
@@ -83,7 +83,7 @@ export function MockQuestionDialog({
       options: options.map((option) => option.text),
       correctOption,
       explanation,
-      marks: Number(marksText),
+      marks: wholeNumberFromText(marksText),
     };
     const found = validateMockQuestion(input);
     setErrors(found);
