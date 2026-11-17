@@ -104,6 +104,21 @@ Fix batch 2 checks (lead, separate commands): `format:check` only the two allowe
 - **F-7:** removed the unused `MOCK_TAKE_PAGE.optionsLabel`. The assignments `SOLVE_PAGE.optionsLabel` is a different constant and stays.
 - Checks: `lint` 0, `typecheck` 0, `pnpm test` vitest 108 files / 999 tests, e2e unit 6/6, deploy-order green, `VITE_APP_ENV=production pnpm build` 0, `format:check` only the two allowed files. No SQL touched, so pgTAP was not re-run.
 
+## Fix batch 4 (TSR round 1, BUG-1 to BUG-5, ruling L-10)
+
+| Bug | Commit | Fix |
+|---|---|---|
+| BUG-1 | `2d84344` (lead) | `not_found` now comes back as **HTTP 404**. The mock functions and the question trigger call `private.raise_mock_not_found()`, which uses `raise sqlstate 'PGRST'` with status 404 in the detail and body `{"code":"P0002","message":"not_found"}`. **Why PGRST:** it is the only way to get a 404 while keeping the body the web already maps (code `P0002`, message `not_found`), so no web change was needed. A different SQLSTATE would give a 400 or a misleading 404 class (42P01, 42883) and change the code the web reads. The 11 pgTAP pins move to `PGRST` plus the JSON message. A new case checks the detail says 404. Older migrations are unchanged (deferred, L-10). Checked over HTTP (local PostgREST 14.18, parent@ token): `rpc/mock_test_open` on a draft and on an unknown id → `HTTP 404 {"code":"P0002","details":null,"hint":null,"message":"not_found"}`. |
+| BUG-2 | `d7645f7` (dev-web) | Admin loaders use `getAdminClient()`. Taker loaders use the new `getTakerClient()` (`staff-client.ts`: any non-staff role with a profile). Both return `notAllowed` without a request. Lead browser check (dev server): tutor on both admin pages and a user test page, parent on the admin list, admin on a user test page, signed out on both: 0 mock requests and 0 console errors on all 7 loads, and each shows the refusal or the sign-in page. |
+| BUG-3 | `1b76b22` (dev-web) | Shared portal MUI theme (`portal-theme.ts`): `MuiButtonBase` `.Mui-focusVisible` gets a 3 px outline in `--color-focus` (falls back to primary), offset 2 px. Applies app-wide (L-10 [ASSUMPTION]). dev-web measured outlined, text, icon and contained buttons in light and dark: 3 px outline. |
+| BUG-4, BUG-5 | `b47fc0f` (dev-web) | One commit (same files). Focus: delete question → "Questions" heading; release → page h1; Start → "Question 1" heading; submit → result heading; Next or Previous reaching an end → the other button, so the visible ring stays on a control. Headings get `tabIndex={-1}` only when a ref is passed (`PageHeader`, `SectionCard`). Wrap: `overflow-wrap: anywhere` via `sx` on titles, prompts, options, explanations, instructions, the result and `ConfirmDialog` text. dev-web measured 0 horizontal overflow at 375 and 1280, light and dark, with a 150-character title and a 300-character option (incl. the release and submit dialogs). |
+
+Shared components touched (additive, behaviour unchanged when the new props are absent): `PageHeader.tsx`, `Panels.tsx` (`SectionCard`), `ConfirmDialog.tsx` (wrap), `portal-theme.ts`, `staff-client.ts`.
+
+Fix batch 4 checks (lead, separate commands): `format:check` only the two allowed files; `lint` 0; `typecheck` 0; `pnpm test` vitest 109 files / 1048 tests, e2e unit 6/6, deploy-order green; `VITE_APP_ENV=production pnpm build` 0; `db:reset` + `db:test` `Files=23, Tests=1698`, PASS; `test:functions` 0 NOT OK; `test:smoke` 17 passed; CI-style build + `test:csp` 23 passed.
+
+Not verified by anyone yet: the New question dialog over a long title (BR-1 row), and the result page wrap and focus after a real submit in the browser (vitest only).
+
 ## Known gaps (for S8 and later)
 
 1. Two-session concurrency for AC 13 (two adds at 99 questions) and AC 19 (an add during release) is not run: S8, Tester. Start, save and submit against withdraw were run by the lead (fix batches 1 and 2).
