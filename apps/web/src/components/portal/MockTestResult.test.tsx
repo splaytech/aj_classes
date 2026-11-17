@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { MOCK_RESULT } from '@/constants';
+import { MOCK_PASS_LABELS, MOCK_RESULT } from '@/constants';
 import type { MockTestView } from '@/services';
 
 import { MockTestResult } from './MockTestResult';
@@ -44,9 +44,35 @@ const TEST: MockTestView = {
 };
 
 describe('MockTestResult', () => {
-  it('shows "N of M marks"', () => {
+  it('shows marks and percentage, with no label when there is no pass mark (AC 15, 20)', () => {
     render(<MockTestResult test={TEST} />);
-    expect(screen.getByText('1 of 2 marks')).toBeInTheDocument();
+    expect(screen.getByText('1 of 2 marks (50%)')).toBeInTheDocument();
+    expect(screen.queryByText(MOCK_PASS_LABELS.pass)).toBeNull();
+    expect(screen.queryByText(MOCK_PASS_LABELS.notYet)).toBeNull();
+  });
+
+  it.each([
+    [true, MOCK_PASS_LABELS.pass],
+    [false, MOCK_PASS_LABELS.notYet],
+  ])('shows the label next to the score when passed is %s (AC 19)', (passed, label) => {
+    render(<MockTestResult test={{ ...TEST, passMark: 50, passed }} />);
+    expect(screen.getByText('1 of 2 marks (50%)')).toBeInTheDocument();
+    expect(screen.getByText(label)).toBeInTheDocument();
+  });
+
+  it('shows marks earned under each question only when the number is there (AC 22)', () => {
+    const questions = [
+      { ...TEST.questions[0]!, marks: 3, marksEarned: 3 },
+      { ...TEST.questions[1]!, marks: 2, marksEarned: 0 },
+    ];
+    render(<MockTestResult test={{ ...TEST, questions }} />);
+    expect(screen.getByText(MOCK_RESULT.questionMarks(3, 3))).toBeInTheDocument();
+    expect(screen.getByText(MOCK_RESULT.questionMarks(0, 2))).toBeInTheDocument();
+  });
+
+  it('shows no per-question marks when marksEarned is absent', () => {
+    render(<MockTestResult test={TEST} />);
+    expect(screen.queryByText(/ of \d+ marks$/, { selector: 'p' })).toBeNull();
   });
 
   it('moves focus to the result heading only when asked, as right after Submit (BUG-4)', () => {

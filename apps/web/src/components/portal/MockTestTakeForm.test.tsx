@@ -67,6 +67,23 @@ beforeEach(() => {
   vi.mocked(submitMockTest).mockReset();
 });
 
+describe('MockTestTakeForm marks (AC 10, 12)', () => {
+  it('says "1 mark" or "N marks" under the question heading, and nothing about a score', async () => {
+    const user = setupUser();
+    const questions = [
+      { ...TEST.questions[0]!, marks: 1 },
+      { ...TEST.questions[1]!, marks: 3 },
+    ];
+    renderForm({ ...TEST, questions });
+
+    expect(screen.getByText('1 mark')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: MOCK_TAKE_PAGE.next }));
+    expect(screen.getByText('3 marks')).toBeInTheDocument();
+    expect(screen.queryByText(/of \d+ marks/)).toBeNull();
+    expect(screen.queryByText(/Pass|Not yet/)).toBeNull();
+  });
+});
+
 describe('MockTestTakeForm', () => {
   it('shows one question at a time, numbered by order, as a labelled radio group (AC 43)', async () => {
     const user = setupUser();
