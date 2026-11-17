@@ -103,6 +103,12 @@ function Intro({ test, onStarted }: { test: MockTestView; onStarted: () => void 
           <Typography color="textSecondary">
             {MOCK_TAKE_PAGE.questions(test.questionCount)}
           </Typography>
+          <Typography color="textSecondary">
+            {MOCK_TAKE_PAGE.totalMarks(test.totalMarks)}
+          </Typography>
+          {test.passMark !== null && (
+            <Typography color="textSecondary">{MOCK_TAKE_PAGE.passMark(test.passMark)}</Typography>
+          )}
         </Stack>
       </SectionCard>
       {action.error && <Alert severity="error">{action.error}</Alert>}

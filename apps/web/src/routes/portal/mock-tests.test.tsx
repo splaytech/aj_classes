@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   MOCK_CLOSING,
+  MOCK_PASS_LABELS,
   MOCK_TAGS,
   MOCK_TEST_FILTERS,
   MOCK_TAKE_STATUS_LABELS,
@@ -123,7 +124,7 @@ describe('mock tests list for takers', () => {
     expect(screen.getByText(MOCK_TESTS_LIST.questions(1))).toBeInTheDocument();
     expect(screen.getByText(MOCK_TAKE_STATUS_LABELS.not_started)).toBeInTheDocument();
     expect(screen.getByText(MOCK_TAKE_STATUS_LABELS.in_progress)).toBeInTheDocument();
-    expect(screen.getByText('4 of 5 marks')).toBeInTheDocument();
+    expect(screen.getByText('4 of 5 marks (80%)')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: MOCK_TESTS_LIST.actions.not_started })).toBeVisible();
     expect(screen.getByRole('link', { name: MOCK_TESTS_LIST.actions.in_progress })).toBeVisible();
     expect(screen.getByRole('link', { name: MOCK_TESTS_LIST.actions.submitted })).toBeVisible();
@@ -149,7 +150,35 @@ describe('mock tests list for takers', () => {
 
     expect(screen.getAllByText(MOCK_CLOSING.closedChip)).toHaveLength(1);
     expect(screen.getByRole('link', { name: MOCK_TESTS_LIST.actions.submitted })).toBeVisible();
-    expect(screen.getByText('4 of 5 marks')).toBeInTheDocument();
+    expect(screen.getByText('4 of 5 marks (80%)')).toBeInTheDocument();
+  });
+
+  it('shows Pass or Not yet next to the score, and none without a pass mark (AC 19, 20)', async () => {
+    const submitted = ITEMS[2] as MockTestListItem;
+    renderList('student', [
+      { ...submitted, id: 'a', title: 'A', passed: true },
+      { ...submitted, id: 'b', title: 'B', passed: false },
+      { ...submitted, id: 'c', title: 'C', passed: null },
+      ITEMS[0] as MockTestListItem,
+    ]);
+    await screen.findByRole('heading', { level: 1 });
+
+    expect(screen.getAllByText('4 of 5 marks (80%)')).toHaveLength(3);
+    expect(screen.getAllByText(MOCK_PASS_LABELS.pass)).toHaveLength(1);
+    expect(screen.getAllByText(MOCK_PASS_LABELS.notYet)).toHaveLength(1);
+  });
+
+  it('shows the score, percentage and label on a closed test that was submitted (AC 25)', async () => {
+    const closed = {
+      ...(ITEMS[2] as MockTestListItem),
+      closesAt: '2020-01-01T00:00:00Z',
+      passed: true,
+    };
+    renderList('user', [closed]);
+    await screen.findByRole('heading', { level: 1 });
+    expect(screen.getByText(MOCK_CLOSING.closedChip)).toBeInTheDocument();
+    expect(screen.getByText('4 of 5 marks (80%)')).toBeInTheDocument();
+    expect(screen.getByText(MOCK_PASS_LABELS.pass)).toBeInTheDocument();
   });
 
   it('shows the empty state, with no filters (AC 22a)', async () => {
