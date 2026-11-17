@@ -1350,3 +1350,16 @@ No row depends on unmerged work any more.
 | **Total** | **140** |
 
 S-0 is a start-state gate, not a row. FS-1 to FS-4 are Saurabh's and sit outside the pass/fail set.
+
+
+## 11. Lead rulings after round 1 (appended; frozen rows above unchanged)
+
+Ruled by the team lead on 18 Nov 2026 (L-10 in `00-decisions.md`). Every check each row had is kept.
+
+1. **AZ-4, plan error.** `profiles_status_matches_joined` requires `joined_at is null` when status isn't active, so the fixture is `update public.profiles set status='invited', joined_at=null where email='user@local.test'`. The expected values are unchanged.
+2. **AD-10(b), plan error.** The admin has no grant on attempts (GR-1), so the admin can't run the count. Run `mock_withdraw` as admin and the count as postgres in the same rolled-back transaction, or straight after in the same sitting. Expected stays `0|0|draft`.
+3. **BA-3 to BA-7, app bug (BUG-2).** A refused page must not send the request, so the rows stand as written. §0.1's "deliberate refusal" exclusion covers only probes the row itself makes.
+4. **BK-1, app bug (BUG-3), fixed theme-wide.** The measure stays "outline or ring with non-zero width". The fix goes in the shared MUI theme, so the header's toggle passes too.
+5. **BR-2, reading confirmed.** An unbroken 300-character option is a valid case, and it is also run with spaces.
+6. **CL-1, plan gap.** Before `rm_t7`, delete BR-1's long title by its own pattern: `delete from public.mock_tests where title like 'w%-<RUN>'`, after removing that test's attempts the same way. Expected: 0 left.
+7. **AD-16:** printing `true` for `t` is the same value, so it is a PASS.
