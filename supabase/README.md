@@ -44,6 +44,8 @@ Local addresses use the **553xx** ports, so this project can run next to other l
 docker exec supabase_db_aj_classes psql -U postgres -c "delete from private.sign_up_emails"
 ```
 
+E-mail sign-up has its own switch, `private.sign_up_settings.email_open` (migration `20261117100000`): **off on the hosted project** (Google-only release, and `deploy.sh` stops if it reads on), **on locally** via `seed.sql` so the e-mail path stays tested. To see the hosted Google-only page locally: `update private.sign_up_settings set email_open = false` (with Google off locally, sign-up then reads as closed).
+
 The switch is in `private.sign_up_settings` (Admin → Users locally too). A daily `pg_cron` job (`delete-stale-sign-ups`) deletes sign-ups nobody confirmed within 7 days; to pause it: `select cron.unschedule('delete-stale-sign-ups');`. `pnpm test:functions` (`test-open-sign-up.mjs`) empties the count and reopens the switch when it finishes.
 
 ## Rules

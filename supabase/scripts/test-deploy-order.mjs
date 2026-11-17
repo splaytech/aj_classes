@@ -80,6 +80,8 @@ case "$method $url" in
     n=$(($(cat "$FAKE_DIR/guard-calls" 2>/dev/null || echo 0) + 1)); echo "$n" > "$FAKE_DIR/guard-calls"
     answer=$(echo "$FAKE_GUARD" | cut -d, -f"$n"); [[ -z "$answer" ]] && answer=$(echo "$FAKE_GUARD" | awk -F, '{print $NF}')
     [[ "$answer" == "true" ]] && echo true || exit 22 ;;
+  "POST "*/rpc/sign_up_email_open)
+    echo "\${FAKE_EMAIL_OPEN:-false}" ;;
   "GET "*/config/auth)
     if [[ "$FAKE_HOOK_ON" != "true" ]]; then echo '{"hook_before_user_created_enabled":false}'; exit 0; fi
     printf '{"hook_before_user_created_enabled":true,"hook_before_user_created_uri":"pg-functions://postgres/public/hook_before_user_created","mailer_autoconfirm":%s,"disable_signup":%s,"security_captcha_enabled":%s,"security_captcha_provider":"%s","rate_limit_email_sent":%s,"external_google_enabled":%s,"security_manual_linking_enabled":%s,"external_anonymous_users_enabled":%s,"mailer_otp_length":%s,"sms_autoconfirm":%s}\\n' \\
@@ -238,6 +240,26 @@ function failClosedChecks() {
   check(
     'It says sign-up is off',
     stepFour.out.includes("the sign-up guard isn't ready. Sign-up is off"),
+  );
+
+  // Google-only: e-mail sign-up on in the hosted database stops the deploy before config push.
+  const emailOn = realRun({
+    FAKE_SIGNUPS_OFF: 'false',
+    FAKE_GUARD: 'true',
+    FAKE_HOOK_ON: 'true',
+    FAKE_EMAIL_OPEN: 'true',
+  });
+  check(
+    'E-mail sign-up on in hosted (re-deploy): non-zero exit, one PATCH closes sign-up, no config push',
+    emailOn.status !== 0 &&
+      patches(emailOn.calls).length === 1 &&
+      !emailOn.calls.some((call) => call.startsWith('supabase config push')) &&
+      emailOn.out.includes('this release is Google-only'),
+    emailOn.out.slice(-300),
+  );
+  check(
+    'Happy path reads rpc/sign_up_email_open once',
+    happy.calls.filter((call) => call.includes('rpc/sign_up_email_open')).length === 1,
   );
 
   const stepFourClosed = realRun({ FAKE_SIGNUPS_OFF: 'true', FAKE_GUARD: 'false' });

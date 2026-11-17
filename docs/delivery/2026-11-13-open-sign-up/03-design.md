@@ -2,6 +2,8 @@
 
 Stage 3 of `/deliver` (Solution Designer). Branch `feature/open-sign-up` @ `0993e7f`. Date 2026-11-14.
 
+> **2026-11-17, Google-only at release ([00-decisions.md](00-decisions.md)).** Where this design says Google ships off (items 8, §4 table rows for `[remotes.production.auth.external.google]`), the release now has Google **on** and e-mail sign-up **off** via `private.sign_up_settings.email_open` (migration `20261117100000`, `public.sign_up_email_open()`); `deploy.sh` step 4 also checks that hosted e-mail sign-up reads off. The rest of the design is unchanged.
+
 Inputs:
 - [01-requirement.md](01-requirement.md) (approved; the PO is applying the AC-12/19/20/32/39/46 corrections and R3);
 - [02-architecture.md](02-architecture.md) and [ADR-0011](../../decisions/0011-open-sign-up-supabase-public-and-google.md) (approved round 3);

@@ -154,6 +154,8 @@ One residual is finding 12. The round 1 text follows.
 
 ### 9. Low: Google sign-ups skip the name rule, and a stranger's name is pre-filled for the real owner
 
+- **Status (2026-11-17, `8574452`):** fixed. A Google name that fails the rule is stored empty (`handle_new_auth_user`, migration `20261117100000`) and typed on the finish step. The pre-fill half can't occur while e-mail sign-up is off. Re-review of the Google-only change: PASS, see 00-decisions.md (Google-only).
+
 - **Where:**
   - `20261114100100_open_sign_up.sql:138-145`: the Google branch returns before the `is_valid_full_name` check at `:151`, so `handle_new_auth_user` (`20261023100000_invite_onboarding.sql:49`ff) stores whatever Google sends. Probe 2 confirmed that a name containing U+202E is let through.
   - `:140`: the e-mail check isn't trimmed, so `" "` passes. That is harmless in practice, because Google always sends a real address.

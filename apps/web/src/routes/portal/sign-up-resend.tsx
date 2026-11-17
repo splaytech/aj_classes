@@ -1,10 +1,11 @@
 // Send the sign-up link again (open sign-up AC-19). Always answers "sent", so it can't reveal who
 // has signed up; only the captcha, the IP limit and the network are reported. Not stopped by the
-// daily cap (R2).
+// daily cap (R2). Closed while the e-mail form is off (Google-only release): there is no e-mail
+// sign-up to resend.
 
 import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link } from 'react-router';
+import { Link, useLoaderData } from 'react-router';
 import type { ClientLoaderFunctionArgs } from 'react-router';
 
 import { AuthCard, FinishSignUpHint, FormAlert, TextInput } from '@/components/portal';
@@ -24,7 +25,7 @@ import { useAppearance } from '@/lib/appearance-context';
 import { guardPortalPage } from '@/lib/portal-guard';
 import { checkEmail } from '@/lib/portal-validation';
 import { buildPortalMeta } from '@/lib/seo';
-import { resendSignUpLink } from '@/services';
+import { getSignUpOptions, resendSignUpLink } from '@/services';
 
 const EMAIL_FIELD_ID = 'sign-up-resend-email';
 
@@ -34,10 +35,22 @@ export function meta() {
 
 export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
   await guardPortalPage(request, 'signedOutOnly');
-  return null;
+  return { emailOn: (await getSignUpOptions()).email };
 }
 
 export default function SignUpResendPage() {
+  const { emailOn } = useLoaderData<typeof clientLoader>();
+  if (!emailOn) {
+    return (
+      <AuthCard heading={SIGN_UP_PAGE.closed.heading} intro={SIGN_UP_PAGE.closed.text}>
+        <Link to={PORTAL_ROUTES.login}>{SIGN_UP_PAGE.signIn}</Link>
+      </AuthCard>
+    );
+  }
+  return <ResendForm />;
+}
+
+function ResendForm() {
   const appearance = useAppearance();
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');

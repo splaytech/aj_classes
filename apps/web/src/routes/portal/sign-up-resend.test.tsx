@@ -15,15 +15,15 @@ import { setupUser } from '@/test/user';
 
 import SignUpResendPage from './sign-up-resend';
 
-vi.mock('@/services', () => ({ resendSignUpLink: vi.fn() }));
+vi.mock('@/services', () => ({ getSignUpOptions: vi.fn(), resendSignUpLink: vi.fn() }));
 vi.mock('@/components/ui', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/components/ui')>()),
   TurnstileField: TurnstileStub,
 }));
 
-function renderPage() {
+function renderPage(emailOn = true) {
   const Stub = createRoutesStub([
-    { path: PORTAL_ROUTES.signUpResend, Component: SignUpResendPage },
+    { path: PORTAL_ROUTES.signUpResend, Component: SignUpResendPage, loader: () => ({ emailOn }) },
   ]);
   render(<Stub initialEntries={[PORTAL_ROUTES.signUpResend]} />);
 }
@@ -38,6 +38,15 @@ async function send(email = 'priya@example.com') {
 beforeEach(() => vi.mocked(resendSignUpLink).mockReset());
 
 describe('/portal/sign-up/resend (AC-19)', () => {
+  it('Google-only: shows the closed card, with no form, while the e-mail form is off', async () => {
+    renderPage(false);
+    expect(
+      await screen.findByRole('heading', { level: 1, name: SIGN_UP_PAGE.closed.heading }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(SIGN_UP_PAGE.labels.email)).not.toBeInTheDocument();
+    expect(resendSignUpLink).not.toHaveBeenCalled();
+  });
+
   it('always answers with the sent card and the finish hint', async () => {
     vi.mocked(resendSignUpLink).mockResolvedValue({ ok: true, data: undefined });
     renderPage();

@@ -8,8 +8,8 @@
 alter table private.sign_up_settings
   add column email_open boolean not null default false; -- off: Google-only at release
 
--- Same hook as 20261114100100 §3.5, with two changes: e-mail sign-ups are refused while
--- email_open is off, and the Google e-mail check trims first (security 06 finding 9).
+-- Same hook as 20261114100100 §3.5, with one change: e-mail sign-ups are refused while
+-- email_open is off.
 create or replace function public.hook_before_user_created(event jsonb)
 returns jsonb
 language plpgsql

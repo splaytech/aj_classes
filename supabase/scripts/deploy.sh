@@ -134,6 +134,14 @@ sign_up_guard_ready() {
     grep -qx 'true'
 }
 
+# Google-only release (20261117100000): e-mail sign-up must be off on the hosted project, or the
+# public form could mail made-up addresses (security 06 finding 1). Local seed turns it on.
+email_sign_up_off() {
+  curl -fsS --max-time 20 -X POST "${PROJECT_URL}/rest/v1/rpc/sign_up_email_open" \
+    -H "apikey: ${PUBLISHABLE_KEY}" -H 'Content-Type: application/json' -d '{}' |
+    grep -qx 'false'
+}
+
 # PostgREST reloads its schema cache after `db push`, so a fresh function may 404 for a moment.
 sign_up_guard_ready_with_retries() {
   local attempt
@@ -272,12 +280,15 @@ run supabase db push
 
 say "4/7 Checking the sign-up guard works (rpc/sign_up_guard_ready)"
 if $DRY_RUN; then
-  printf '  (dry run) would check %s/rest/v1/rpc/sign_up_guard_ready = true, up to 5 tries\n' "$PROJECT_URL"
+  printf '  (dry run) would check %s/rest/v1/rpc/sign_up_guard_ready = true, up to 5 tries, then rpc/sign_up_email_open = false\n' "$PROJECT_URL"
 elif ! sign_up_guard_ready_with_retries; then
   $SIGNUPS_WERE_ON && close_sign_up
   fail "The migrations ran but the sign-up guard isn't ready. Sign-up is off. Nothing else was changed."
+elif ! email_sign_up_off; then
+  $SIGNUPS_WERE_ON && close_sign_up
+  fail "E-mail sign-up is on (or unreadable) on the hosted project; this release is Google-only. Sign-up is off. Nothing else was changed."
 else
-  printf '  The sign-up guard is ready.\n'
+  printf '  The sign-up guard is ready, and e-mail sign-up is off (Google-only).\n'
 fi
 
 say "5/7 Edge functions: ${FUNCTIONS[*]}"
