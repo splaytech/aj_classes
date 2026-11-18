@@ -17,7 +17,7 @@ import Typography from '@mui/material/Typography';
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
-import { MOCK_QUESTION_LIST, MOCK_TEST_LIMITS } from '@/constants';
+import { MOCK_QUESTION_LIST, MOCK_SCORING, MOCK_TEST_LIMITS } from '@/constants';
 import { optionLetter } from '@/lib/questions';
 import { usePortalAction } from '@/lib/use-portal-action';
 import { deleteMockQuestion, moveMockQuestion } from '@/services';
@@ -180,9 +180,14 @@ function MockQuestionCard({ question, number, actions }: MockQuestionCardProps) 
           spacing={2}
           sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' } }}
         >
-          <Typography component="h3" sx={{ fontWeight: 700 }}>
-            {MOCK_QUESTION_LIST.number(number)}
-          </Typography>
+          <Stack direction="row" spacing={2} sx={{ alignItems: 'baseline' }}>
+            <Typography component="h3" sx={{ fontWeight: 700 }}>
+              {MOCK_QUESTION_LIST.number(number)}
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              {MOCK_SCORING.marks(question.marks)}
+            </Typography>
+          </Stack>
           {actions}
         </Stack>
 

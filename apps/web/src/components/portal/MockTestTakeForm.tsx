@@ -224,6 +224,9 @@ function TakeQuestion({
           </Typography>
           <SaveStatus state={saveState} />
         </Stack>
+        <Typography variant="body2" color="textSecondary">
+          {MOCK_TAKE_PAGE.marks(question.marks)}
+        </Typography>
 
         <FormControl component="fieldset">
           {/* Plain text only: React escapes it; line breaks are kept. */}

@@ -16,6 +16,7 @@ import { Link as RouterLink, useLoaderData, useLocation } from 'react-router';
 import {
   LoadError,
   MockClosedChip,
+  MockPassChip,
   MockTagLine,
   MockTakeStatusChip,
   MockTestFilters,
@@ -104,11 +105,22 @@ export default function MockTestsPage() {
                   <MockTakeStatusChip status={item.status} />
                   {mockClosingState(item.closesAt, now) === 'closed' && <MockClosedChip />}
                 </Stack>
-                {item.status === 'submitted' && item.score !== null && item.total !== null && (
-                  <Typography sx={{ mt: 1, fontWeight: 700 }}>
-                    {mockScoreText(item.score, item.total)}
-                  </Typography>
-                )}
+                {item.status === 'submitted' &&
+                  item.score !== null &&
+                  item.total !== null &&
+                  item.percentage !== null && (
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      useFlexGap
+                      sx={{ mt: 1, alignItems: 'center', flexWrap: 'wrap' }}
+                    >
+                      <Typography sx={{ fontWeight: 700 }}>
+                        {mockScoreText(item.score, item.total, item.percentage)}
+                      </Typography>
+                      <MockPassChip passed={item.passed} />
+                    </Stack>
+                  )}
               </Box>
               <Button
                 variant={item.status === 'submitted' ? 'outlined' : 'contained'}

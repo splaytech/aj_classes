@@ -3,6 +3,7 @@ import { createRoutesStub } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  MOCK_PASS_LABELS,
   MOCK_RESULT,
   MOCK_TAGS,
   MOCK_TAKE_PAGE,
@@ -30,8 +31,12 @@ const BASE: MockTestView = {
   instructions: 'Read each question.',
   status: 'not_started',
   questionCount: 2,
+  totalMarks: 2,
+  passMark: null,
   score: null,
   total: null,
+  percentage: null,
+  passed: null,
   tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
   questions: [],
 };
@@ -40,8 +45,22 @@ const IN_PROGRESS: MockTestView = {
   ...BASE,
   status: 'in_progress',
   questions: [
-    { id: 'q1', position: 1, prompt: 'First?', options: ['Yes', 'No'], selectedOption: null },
-    { id: 'q2', position: 2, prompt: 'Second?', options: ['Red', 'Blue'], selectedOption: null },
+    {
+      id: 'q1',
+      position: 1,
+      prompt: 'First?',
+      options: ['Yes', 'No'],
+      marks: 1,
+      selectedOption: null,
+    },
+    {
+      id: 'q2',
+      position: 2,
+      prompt: 'Second?',
+      options: ['Red', 'Blue'],
+      marks: 1,
+      selectedOption: null,
+    },
   ],
 };
 
@@ -50,12 +69,14 @@ const SUBMITTED: MockTestView = {
   status: 'submitted',
   score: 1,
   total: 2,
+  percentage: 50,
   questions: [
     {
       id: 'q1',
       position: 1,
       prompt: 'First?',
       options: ['Yes', 'No'],
+      marks: 1,
       selectedOption: 0,
       correctOption: 0,
       explanation: 'Because.',
@@ -65,6 +86,7 @@ const SUBMITTED: MockTestView = {
       position: 2,
       prompt: 'Second?',
       options: ['Red', 'Blue'],
+      marks: 1,
       selectedOption: null,
       correctOption: 1,
       explanation: '',
@@ -144,7 +166,10 @@ describe('mock test page, not started', () => {
   });
 
   it('moves focus to the result heading after a confirmed Submit (BUG-4)', async () => {
-    vi.mocked(submitMockTest).mockResolvedValue({ ok: true, data: { score: 1, total: 2 } });
+    vi.mocked(submitMockTest).mockResolvedValue({
+      ok: true,
+      data: { score: 1, total: 2, percentage: 50, passed: null },
+    });
     const user = setupUser();
     renderTest([
       { ok: true, data: IN_PROGRESS },
@@ -180,6 +205,27 @@ describe('mock test page, not started', () => {
   );
 });
 
+describe('mock test page, start page marks (AC 11, 12)', () => {
+  it('shows the total marks and no pass mark line without one', async () => {
+    renderTest([{ ok: true, data: BASE }]);
+    expect(await screen.findByText('Total 2 marks')).toBeInTheDocument();
+    expect(screen.queryByText(/Pass mark/)).toBeNull();
+  });
+
+  it('shows the pass mark when there is one', async () => {
+    renderTest([{ ok: true, data: { ...BASE, passMark: 60 } }]);
+    expect(await screen.findByText('Pass mark: 60%')).toBeInTheDocument();
+  });
+
+  it('shows no score or label before submit', async () => {
+    renderTest([{ ok: true, data: { ...BASE, passMark: 60 } }]);
+    await screen.findByText('Total 2 marks');
+    expect(screen.queryByText(/of \d+ marks/)).toBeNull();
+    expect(screen.queryByText(MOCK_PASS_LABELS.pass)).toBeNull();
+    expect(screen.queryByText(MOCK_PASS_LABELS.notYet)).toBeNull();
+  });
+});
+
 describe('mock test page, in progress and submitted', () => {
   it('shows the take form while in progress, with no answer key anywhere', async () => {
     renderTest([{ ok: true, data: IN_PROGRESS }]);
@@ -192,7 +238,7 @@ describe('mock test page, in progress and submitted', () => {
   it('shows the result once submitted, and a second look shows the same score', async () => {
     renderTest([{ ok: true, data: SUBMITTED }]);
 
-    expect(await screen.findByText('1 of 2 correct')).toBeInTheDocument();
+    expect(await screen.findByText('1 of 2 marks (50%)')).toBeInTheDocument();
     expect(screen.getByText(MOCK_RESULT.line(MOCK_RESULT.explanation, 'Because.'))).toBeVisible();
     expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: MOCK_TAKE_PAGE.start })).not.toBeInTheDocument();

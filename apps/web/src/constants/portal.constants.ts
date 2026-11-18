@@ -54,6 +54,7 @@ export const PORTAL_SEO = {
   adminUsers: 'Users',
   adminMockTests: 'Mock tests',
   adminMockTest: 'Mock test',
+  adminMockTestResults: 'Mock test results',
   mockTests: 'Mock tests',
   mockTest: 'Mock test',
 } as const;

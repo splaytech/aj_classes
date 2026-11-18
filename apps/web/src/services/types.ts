@@ -562,7 +562,13 @@ export type MockTestSummary = {
 };
 
 /** Trimmed by the service before it is saved. A draft may have no tags (AC 13). */
-export type MockTestInput = { title: string; instructions: string; tags: MockTags };
+export type MockTestInput = {
+  title: string;
+  instructions: string;
+  /** A whole percentage from 1 to 100; null means no pass mark. */
+  passMark: number | null;
+  tags: MockTags;
+};
 
 export type MockQuestionInput = {
   id?: string;
@@ -571,6 +577,7 @@ export type MockQuestionInput = {
   options: string[];
   correctOption: number | null;
   explanation: string;
+  marks: number;
 };
 
 export type MockAdminQuestion = {
@@ -580,6 +587,7 @@ export type MockAdminQuestion = {
   options: string[];
   correctOption: number;
   explanation: string;
+  marks: number;
 };
 
 /** The admin edit page: the test and every question, with the correct options. */
@@ -589,6 +597,7 @@ export type MockTestDraftView = {
   instructions: string;
   status: MockTestStatus;
   closesAt: string | null;
+  passMark: number | null;
   tags: MockTags;
   questions: MockAdminQuestion[];
 };
@@ -604,6 +613,10 @@ export type MockTestListItem = {
   submittedAt: string | null;
   /** Past means closed: the list keeps it only for someone who submitted (ruling S-1). */
   closesAt: string | null;
+  /** Worked out by the database; null until submitted. */
+  percentage: number | null;
+  /** Null until submitted, and always null when the test has no pass mark. */
+  passed: boolean | null;
   tags: MockTags;
 };
 
@@ -616,6 +629,9 @@ export type MockTakeQuestion = {
   selectedOption: number | null;
   correctOption?: number;
   explanation?: string;
+  marks: number;
+  /** Only once submitted. */
+  marksEarned?: number;
 };
 
 export type MockTestView = {
@@ -626,8 +642,42 @@ export type MockTestView = {
   questionCount: number;
   score: number | null;
   total: number | null;
+  totalMarks: number;
+  passMark: number | null;
+  percentage: number | null;
+  passed: boolean | null;
   tags: MockTags;
   questions: MockTakeQuestion[];
 };
 
-export type MockResult = { score: number; total: number };
+export type MockResult = {
+  score: number;
+  total: number;
+  percentage: number;
+  passed: boolean | null;
+};
+
+/** One row of the admin Results page (mock_test_results). No e-mail, profile id or answers. */
+export type MockResultRow = {
+  /** A React key only; it opens nothing. */
+  attemptId: string;
+  /** Null: the page shows the "Name not set" fallback. */
+  takerName: string | null;
+  submittedAt: string;
+  score: number;
+  total: number;
+  percentage: number;
+  /** Null: no pass mark, no label. */
+  passed: boolean | null;
+};
+
+export type MockTestResultsView = {
+  testId: string;
+  title: string;
+  status: MockTestStatus;
+  closesAt: string | null;
+  passMark: number | null;
+  rows: MockResultRow[];
+  /** Rows before the 1000-row limit: fewer rows than this means the list is cut short. */
+  totalRows: number;
+};

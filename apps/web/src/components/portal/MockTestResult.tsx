@@ -1,5 +1,5 @@
-// The result of a submitted mock test (design §4.4): "N of M correct", then each question with
-// the person's choice, the correct option and the explanation. Only a submitted test has these
+// The result of a submitted mock test (design §4.4): marks earned out of marks available, then
+// each question with the person's choice, the correct option and the explanation. Only a submitted test has these
 // keys, so this component is only shown for `submitted`.
 
 import Paper from '@mui/material/Paper';
@@ -13,6 +13,7 @@ import { optionLetter } from '@/lib/questions';
 import type { MockTakeQuestion, MockTestView } from '@/services';
 
 import { SectionCard } from './Panels';
+import { MockPassChip } from './MockTestStatusChips';
 
 type MockTestResultProps = {
   test: MockTestView;
@@ -29,10 +30,18 @@ export function MockTestResult({ test, focusOnShow = false }: MockTestResultProp
   return (
     <Stack spacing={4}>
       <SectionCard title={MOCK_RESULT.heading} headingRef={headingRef}>
-        {test.score !== null && test.total !== null && (
-          <Typography variant="h5" component="p" sx={{ fontWeight: 700 }}>
-            {mockScoreText(test.score, test.total)}
-          </Typography>
+        {test.score !== null && test.total !== null && test.percentage !== null && (
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+            useFlexGap
+          >
+            <Typography variant="h5" component="p" sx={{ fontWeight: 700 }}>
+              {mockScoreText(test.score, test.total, test.percentage)}
+            </Typography>
+            <MockPassChip passed={test.passed} />
+          </Stack>
         )}
       </SectionCard>
 
@@ -66,6 +75,11 @@ function ResultQuestion({ number, question }: { number: number; question: MockTa
         <Typography sx={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
           {question.prompt}
         </Typography>
+        {typeof question.marksEarned === 'number' && (
+          <Typography variant="body2" color="textSecondary">
+            {MOCK_RESULT.questionMarks(question.marksEarned, question.marks)}
+          </Typography>
+        )}
         <Typography sx={{ overflowWrap: 'anywhere' }}>
           {MOCK_RESULT.line(MOCK_RESULT.yourAnswer, chosenText(question, question.selectedOption))}
         </Typography>

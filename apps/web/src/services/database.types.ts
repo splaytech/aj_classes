@@ -624,6 +624,7 @@ export type Database = {
           created_at: string;
           explanation: string;
           id: string;
+          marks: number;
           options: string[];
           position: number;
           prompt: string;
@@ -636,6 +637,7 @@ export type Database = {
           created_at?: string;
           explanation?: string;
           id?: string;
+          marks?: number;
           options: string[];
           position?: number;
           prompt: string;
@@ -647,6 +649,7 @@ export type Database = {
           created_at?: string;
           explanation?: string;
           id?: string;
+          marks?: number;
           options?: string[];
           position?: number;
           prompt?: string;
@@ -671,6 +674,7 @@ export type Database = {
           created_by: string | null;
           id: string;
           instructions: string;
+          pass_mark: number | null;
           released_at: string | null;
           released_by: string | null;
           status: string;
@@ -688,6 +692,7 @@ export type Database = {
           created_by?: string | null;
           id?: string;
           instructions?: string;
+          pass_mark?: number | null;
           released_at?: string | null;
           released_by?: string | null;
           status?: string;
@@ -704,6 +709,7 @@ export type Database = {
           created_by?: string | null;
           id?: string;
           instructions?: string;
+          pass_mark?: number | null;
           released_at?: string | null;
           released_by?: string | null;
           status?: string;
@@ -1061,6 +1067,19 @@ export type Database = {
       mock_start: { Args: { target: string }; Returns: undefined };
       mock_submit: { Args: { target: string }; Returns: Json };
       mock_test_open: { Args: { target: string }; Returns: Json };
+      mock_test_results: {
+        Args: { target: string };
+        Returns: {
+          attempt_id: string;
+          passed: boolean;
+          percentage: number;
+          score: number;
+          submitted_at: string;
+          taker_name: string;
+          total: number;
+          total_rows: number;
+        }[];
+      };
       mock_tests_admin_list: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -1086,6 +1105,8 @@ export type Database = {
           any_year: boolean;
           closes_at: string;
           id: string;
+          passed: boolean;
+          percentage: number;
           question_count: number;
           released_at: string;
           score: number;

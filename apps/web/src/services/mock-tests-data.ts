@@ -4,6 +4,7 @@
 
 import type {
   MockAdminQuestion,
+  MockResultRow,
   MockTags,
   MockTakeQuestion,
   MockTakeStatus,
@@ -43,6 +44,8 @@ export type MockListRow = MockTagRow & {
   total: number | null;
   submitted_at: string | null;
   closes_at: string | null;
+  percentage: number | null;
+  passed: boolean | null;
 };
 
 export type MockQuestionRow = {
@@ -50,6 +53,7 @@ export type MockQuestionRow = {
   position: number;
   prompt: string;
   options: string[];
+  marks: number;
   correct_option: number;
   explanation: string;
 };
@@ -61,21 +65,40 @@ export type MockOpenJson = {
   instructions: string;
   status: MockTakeStatus;
   question_count: number;
+  total_marks: number;
+  pass_mark: number | null;
   score: number | null;
   total: number | null;
+  percentage: number | null;
+  passed: boolean | null;
   tags: MockTagRow;
   questions: {
     id: string;
     position: number;
     prompt: string;
     options: string[];
+    marks: number;
     selected_option: number | null;
     correct_option?: number;
     explanation?: string;
+    marks_earned?: number;
   }[];
 };
 
-export const MOCK_QUESTION_COLUMNS = 'id, position, prompt, options, correct_option, explanation';
+/** One row from mock_test_results. total_rows repeats on every row (rows before the limit). */
+export type MockResultRowJson = {
+  attempt_id: string;
+  taker_name: string | null;
+  submitted_at: string;
+  score: number;
+  total: number;
+  percentage: number;
+  passed: boolean | null;
+  total_rows: number;
+};
+
+export const MOCK_QUESTION_COLUMNS =
+  'id, position, prompt, options, marks, correct_option, explanation';
 
 export function toMockTags(row: MockTagRow): MockTags {
   return {
@@ -122,6 +145,8 @@ export function toMockTestListItem(row: MockListRow): MockTestListItem {
     total: row.total,
     submittedAt: row.submitted_at,
     closesAt: row.closes_at,
+    percentage: row.percentage,
+    passed: row.passed,
     tags: toMockTags(row),
   };
 }
@@ -132,6 +157,7 @@ export function toMockAdminQuestion(row: MockQuestionRow): MockAdminQuestion {
     position: row.position,
     prompt: row.prompt,
     options: row.options,
+    marks: row.marks,
     correctOption: row.correct_option,
     explanation: row.explanation,
   };
@@ -144,9 +170,11 @@ function toMockTakeQuestion(json: MockOpenJson['questions'][number]): MockTakeQu
     prompt: json.prompt,
     options: json.options,
     selectedOption: json.selected_option,
+    marks: json.marks,
   };
   if (json.correct_option !== undefined) question.correctOption = json.correct_option;
   if (json.explanation !== undefined) question.explanation = json.explanation;
+  if (json.marks_earned !== undefined) question.marksEarned = json.marks_earned;
   return question;
 }
 
@@ -159,7 +187,23 @@ export function toMockTestView(json: MockOpenJson): MockTestView {
     questionCount: json.question_count,
     score: json.score,
     total: json.total,
+    totalMarks: json.total_marks,
+    passMark: json.pass_mark,
+    percentage: json.percentage,
+    passed: json.passed,
     tags: toMockTags(json.tags),
     questions: json.questions.map(toMockTakeQuestion),
+  };
+}
+
+export function toMockResultRow(json: MockResultRowJson): MockResultRow {
+  return {
+    attemptId: json.attempt_id,
+    takerName: json.taker_name,
+    submittedAt: json.submitted_at,
+    score: json.score,
+    total: json.total,
+    percentage: json.percentage,
+    passed: json.passed,
   };
 }

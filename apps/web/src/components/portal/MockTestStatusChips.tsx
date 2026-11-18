@@ -3,6 +3,7 @@
 import Chip from '@mui/material/Chip';
 
 import { MOCK_CLOSING, MOCK_TAKE_STATUS_LABELS, MOCK_TEST_STATUS_LABELS } from '@/constants';
+import { mockPassLabel } from '@/lib/mock-tests';
 import type { MockTakeStatus, MockTestStatus } from '@/services';
 
 const TEST_STATUS_COLOURS = { draft: 'default', released: 'success' } as const;
@@ -40,4 +41,10 @@ export function MockTakeStatusChip({ status }: { status: MockTakeStatus }) {
 /** A released mock test that takers can no longer see (its closing time has passed). */
 export function MockClosedChip() {
   return <Chip size="small" variant="outlined" color="warning" label={MOCK_CLOSING.closedChip} />;
+}
+
+/** Pass or Not yet, in neutral words and no colour (AC 16). Nothing at all without a pass mark (AC 8). */
+export function MockPassChip({ passed }: { passed: boolean | null }) {
+  if (passed === null) return null;
+  return <Chip size="small" variant="outlined" label={mockPassLabel(passed)} />;
 }

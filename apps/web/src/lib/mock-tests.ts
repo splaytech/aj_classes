@@ -4,7 +4,9 @@
 
 import {
   MOCK_CLOSING,
+  MOCK_PASS_LABELS,
   MOCK_RESULT,
+  MOCK_RESULTS_PAGE,
   MOCK_TAG_ANY,
   MOCK_TAGS,
   PROGRAMMES,
@@ -17,19 +19,43 @@ import {
 import type { MockTakerArea } from '@/constants';
 import { formatDateTime } from '@/lib/format';
 import { classYearLabel, subjectLabel } from '@/lib/labels';
-import type { MockQuestionInput, MockTags, MockTestInput } from '@/services';
+import type { MockQuestionInput, MockTags, MockTestInput, MockTestResultsView } from '@/services';
 
 /** A released test with no closing time never closes; from its closing time on it is closed. */
 export type MockClosingState = 'never' | 'open' | 'closed';
 
-export type MockTestErrors = Partial<Record<'title' | 'instructions', string>>;
+export type MockTestErrors = Partial<Record<'title' | 'instructions' | 'passMark', string>>;
 
 export type MockQuestionErrors = Partial<
-  Record<'prompt' | 'options' | 'correctOption' | 'explanation', string>
+  Record<'prompt' | 'options' | 'correctOption' | 'explanation' | 'marks', string>
 >;
 
+/**
+ * Digits only, so "1e2", "0x3C", "60.5" and "-1" are not read as numbers (Number() accepts the
+ * first two). Anything else gives NaN, which every range check refuses.
+ */
+export function wholeNumberFromText(text: string): number {
+  const trimmed = text.trim();
+  return /^\d+$/.test(trimmed) ? Number(trimmed) : Number.NaN;
+}
+
+/** A blank pass mark is fine (no pass mark); otherwise a whole number in the database's range. */
+export function validatePassMarkText(text: string): string | undefined {
+  const trimmed = text.trim();
+  if (trimmed === '') return undefined;
+  const value = wholeNumberFromText(trimmed);
+  const inRange = value >= MOCK_TEST_LIMITS.passMarkMin && value <= MOCK_TEST_LIMITS.passMarkMax;
+  return Number.isInteger(value) && inRange ? undefined : MOCK_VALIDATION.passMark;
+}
+
+/** Blank gives null (no pass mark). Call it only after validatePassMarkText accepted the text. */
+export function passMarkFromText(text: string): number | null {
+  const trimmed = text.trim();
+  return trimmed === '' ? null : wholeNumberFromText(trimmed);
+}
+
 export function validateMockTest(
-  input: Pick<MockTestInput, 'title' | 'instructions'>,
+  input: Pick<MockTestInput, 'title' | 'instructions'> & { passMarkText: string },
 ): MockTestErrors {
   const errors: MockTestErrors = {};
   const title = input.title.trim();
@@ -39,12 +65,14 @@ export function validateMockTest(
   if (input.instructions.length > MOCK_TEST_LIMITS.instructionsMax) {
     errors.instructions = MOCK_VALIDATION.instructions;
   }
+  const passMarkError = validatePassMarkText(input.passMarkText);
+  if (passMarkError) errors.passMark = passMarkError;
   return errors;
 }
 
 /** `trim()` also removes tabs and line breaks, so a prompt of only those counts as empty. */
 export function validateMockQuestion(
-  input: Pick<MockQuestionInput, 'prompt' | 'options' | 'correctOption' | 'explanation'>,
+  input: Pick<MockQuestionInput, 'prompt' | 'options' | 'correctOption' | 'explanation' | 'marks'>,
 ): MockQuestionErrors {
   const errors: MockQuestionErrors = {};
   const prompt = input.prompt.trim();
@@ -65,6 +93,15 @@ export function validateMockQuestion(
   }
   if (input.explanation.length > QUESTION_LIMITS.explanationMax) {
     errors.explanation = MOCK_VALIDATION.explanation;
+  }
+  // The same rule as lib/questions.ts.
+  const marks = input.marks;
+  if (
+    !Number.isInteger(marks) ||
+    marks < QUESTION_LIMITS.marksMin ||
+    marks > QUESTION_LIMITS.marksMax
+  ) {
+    errors.marks = MOCK_VALIDATION.marks;
   }
   return errors;
 }
@@ -89,8 +126,25 @@ export function unansweredCount(
   return questions.filter((question) => answers[question.id] == null).length;
 }
 
-export function mockScoreText(score: number, total: number): string {
-  return MOCK_RESULT.score(score, total);
+export function mockScoreText(score: number, total: number, percentage: number): string {
+  return MOCK_RESULT.score(score, total, percentage);
+}
+
+export function mockResultName(name: string | null): string {
+  return name ?? MOCK_RESULTS_PAGE.nameNotSet;
+}
+
+/** Null (no pass mark) gives no label at all. */
+export function mockPassLabel(passed: boolean | null): string {
+  if (passed === null) return '';
+  return passed ? MOCK_PASS_LABELS.pass : MOCK_PASS_LABELS.notYet;
+}
+
+/** True when the 1000-row limit cut the list short. */
+export function mockResultsTruncated(
+  view: Pick<MockTestResultsView, 'rows' | 'totalRows'>,
+): boolean {
+  return view.rows.length < view.totalRows;
 }
 
 /** The same rule as the database: closes_at at or before now counts as closed (AC 8). */

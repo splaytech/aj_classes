@@ -69,6 +69,7 @@ export const PORTAL_ROUTE_PATTERNS = {
   parentChild: '/portal/parent/children/:studentId',
   parentChildAssignment: '/portal/parent/children/:studentId/assignments/:assignmentId',
   adminMockTest: '/portal/admin/mock-tests/:testId',
+  adminMockTestResults: '/portal/admin/mock-tests/:testId/results',
   studentMockTest: '/portal/student/mock-tests/:testId',
   parentMockTest: '/portal/parent/mock-tests/:testId',
   userMockTest: '/portal/user/mock-tests/:testId',
@@ -80,6 +81,11 @@ export type MockTakerArea = (typeof MOCK_TAKER_AREAS)[number];
 
 export function adminMockTestPath(testId: string): string {
   return `${PORTAL_ROUTES.adminMockTests}/${testId}`;
+}
+
+/** The admin Results page of one mock test: who submitted it and their scores. */
+export function adminMockTestResultsPath(testId: string): string {
+  return `${adminMockTestPath(testId)}/results`;
 }
 
 /** The mock test list of one area, such as "/portal/parent/mock-tests". */

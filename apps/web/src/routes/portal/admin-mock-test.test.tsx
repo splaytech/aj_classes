@@ -7,12 +7,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   MOCK_CLOSING,
   MOCK_QUESTION_LIST,
+  MOCK_RESULTS_PAGE,
+  MOCK_SCORING,
   MOCK_TAGS,
   MOCK_TEST_EDIT_PAGE,
   MOCK_TEST_LIMITS,
   MOCK_VALIDATION,
   PORTAL_ERRORS,
   PORTAL_ROUTES,
+  adminMockTestResultsPath,
 } from '@/constants';
 import { formatDateTime } from '@/lib/format';
 import {
@@ -47,6 +50,7 @@ function question(id: string, position: number): MockAdminQuestion {
     position,
     prompt: `Prompt ${id}`,
     options: ['Yes', 'No'],
+    marks: 1,
     correctOption: 1,
     explanation: id === 'q1' ? 'Because.' : '',
   };
@@ -59,6 +63,7 @@ function testView(overrides: Partial<MockTestDraftView> = {}): MockTestDraftView
     instructions: 'Read carefully.',
     status: 'draft',
     closesAt: null,
+    passMark: null,
     tags: { subject: 'maths', stream: 'naplan', yearLevels: [], anyYear: true },
     questions: [question('q1', 1), question('q2', 3)],
     ...overrides,
@@ -212,6 +217,70 @@ describe('admin mock test, a draft', () => {
     await user.click(within(dialog).getByRole('button', { name: MOCK_TEST_EDIT_PAGE.release }));
 
     expect(await screen.findByText(PORTAL_ERRORS.mockNoQuestions)).toBeInTheDocument();
+  });
+});
+
+describe('admin mock test, scoring (AC 3, 4, 9, 28)', () => {
+  it('shows each question’s marks and the total on a draft (AC 4)', async () => {
+    const questions = [
+      { ...question('q1', 1), marks: 2 },
+      { ...question('q2', 2), marks: 3 },
+    ];
+    await renderPage(testView({ questions }));
+
+    expect(screen.getByText(MOCK_SCORING.marks(2))).toBeInTheDocument();
+    expect(screen.getByText(MOCK_SCORING.marks(3))).toBeInTheDocument();
+    // The total shows once, in the Scoring card (ruling L-12).
+    expect(screen.getAllByText('Total 5 marks')).toHaveLength(1);
+  });
+
+  it('says "Total 1 mark" for one one-mark question', async () => {
+    await renderPage(testView({ questions: [question('q1', 1)] }));
+    expect(screen.getAllByText('Total 1 mark')).toHaveLength(1);
+  });
+
+  it('shows the pass mark in a Scoring card', async () => {
+    await renderPage(testView({ passMark: 60 }));
+    expect(screen.getByRole('heading', { name: MOCK_SCORING.scoringHeading })).toBeVisible();
+    expect(screen.getByText('Pass mark: 60%')).toBeVisible();
+  });
+
+  it('says No pass mark when none is set', async () => {
+    await renderPage(testView({ passMark: null }));
+    expect(screen.getByText(MOCK_SCORING.noPassMark)).toBeVisible();
+  });
+
+  it('has a Marks control in the question dialog and a pass mark control in Edit details on a draft', async () => {
+    const user = setupUser();
+    await renderPage(testView({ passMark: 60 }));
+
+    await user.click(screen.getAllByRole('button', { name: MOCK_QUESTION_LIST.edit })[0]!);
+    expect(screen.getByLabelText(MOCK_SCORING.marksLabel)).toBeVisible();
+    await user.keyboard('{Escape}');
+    await user.click(screen.getByRole('button', { name: MOCK_TEST_EDIT_PAGE.editDetails }));
+    expect(screen.getByLabelText(MOCK_SCORING.passMarkLabel)).toHaveValue(60);
+  });
+
+  it('links to Results from a draft', async () => {
+    await renderPage(testView());
+    expect(screen.getByRole('link', { name: MOCK_RESULTS_PAGE.viewResults })).toHaveAttribute(
+      'href',
+      adminMockTestResultsPath('t1'),
+    );
+  });
+
+  it('links to Results from a released test, which has no Marks or pass mark control (AC 3, 9)', async () => {
+    await renderPage(testView({ status: 'released', passMark: 60 }));
+
+    expect(screen.getByRole('link', { name: MOCK_RESULTS_PAGE.viewResults })).toHaveAttribute(
+      'href',
+      adminMockTestResultsPath('t1'),
+    );
+    expect(screen.getByText('Pass mark: 60%')).toBeVisible();
+    expect(screen.queryByLabelText(MOCK_SCORING.marksLabel)).toBeNull();
+    expect(screen.queryByLabelText(MOCK_SCORING.passMarkLabel)).toBeNull();
+    expect(screen.queryByRole('button', { name: MOCK_QUESTION_LIST.edit })).toBeNull();
+    expect(screen.queryByRole('button', { name: MOCK_TEST_EDIT_PAGE.editDetails })).toBeNull();
   });
 });
 

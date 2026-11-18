@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest';
 import * as constants from '@/constants';
 import {
   MOCK_CLOSING,
+  MOCK_PASS_LABELS,
+  MOCK_RESULT,
+  MOCK_RESULTS_PAGE,
   MOCK_TAG_ANY,
   MOCK_TAGS,
   MOCK_TEST_STREAMS,
@@ -34,7 +37,13 @@ import {
   setMockTagFields,
   mockClosingState,
   mockClosingText,
+  mockPassLabel,
+  mockResultName,
+  mockResultsTruncated,
   mockScoreText,
+  passMarkFromText,
+  validatePassMarkText,
+  wholeNumberFromText,
   mockTestAreaFromPath,
   unansweredCount,
   validateMockQuestion,
@@ -46,23 +55,31 @@ const GOOD_QUESTION = {
   options: ['3', '4'],
   correctOption: 1,
   explanation: '',
+  marks: 1,
 };
 
 describe('validateMockTest', () => {
   it('accepts a title of 2 to 150 characters', () => {
-    expect(validateMockTest({ title: 'ab', instructions: '' })).toEqual({});
-    expect(validateMockTest({ title: 'a'.repeat(150), instructions: '' })).toEqual({});
+    expect(validateMockTest({ title: 'ab', instructions: '', passMarkText: '' })).toEqual({});
+    expect(
+      validateMockTest({ title: 'a'.repeat(150), instructions: '', passMarkText: '' }),
+    ).toEqual({});
   });
 
   it.each(['', ' ', 'a', '  a  ', 'a'.repeat(151)])('refuses the title %j', (title) => {
-    expect(validateMockTest({ title, instructions: '' }).title).toBe(MOCK_VALIDATION.title);
+    expect(validateMockTest({ title, instructions: '', passMarkText: '' }).title).toBe(
+      MOCK_VALIDATION.title,
+    );
   });
 
   it('refuses instructions over 4000 characters, and accepts 4000', () => {
     const limit = MOCK_TEST_LIMITS.instructionsMax;
-    expect(validateMockTest({ title: 'Maths', instructions: 'a'.repeat(limit) })).toEqual({});
     expect(
-      validateMockTest({ title: 'Maths', instructions: 'a'.repeat(limit + 1) }).instructions,
+      validateMockTest({ title: 'Maths', instructions: 'a'.repeat(limit), passMarkText: '' }),
+    ).toEqual({});
+    expect(
+      validateMockTest({ title: 'Maths', instructions: 'a'.repeat(limit + 1), passMarkText: '' })
+        .instructions,
     ).toBe(MOCK_VALIDATION.instructions);
   });
 });
@@ -159,8 +176,90 @@ describe('unansweredCount', () => {
 });
 
 describe('mockScoreText', () => {
-  it('reads "N of M correct"', () => {
-    expect(mockScoreText(3, 5)).toBe('3 of 5 correct');
+  it('reads "N of M marks (P%)" with a percentage', () => {
+    expect(mockScoreText(3, 5, 60)).toBe('3 of 5 marks (60%)');
+    expect(mockScoreText(2, 3, 66)).toBe('2 of 3 marks (66%)');
+  });
+
+  it('says "mark" on a total of 1 (ruling L-12)', () => {
+    expect(mockScoreText(1, 1, 100)).toBe('1 of 1 mark (100%)');
+    expect(mockScoreText(0, 1, 0)).toBe('0 of 1 mark (0%)');
+    expect(MOCK_RESULT.questionMarks(1, 1)).toBe('1 of 1 mark');
+    expect(MOCK_RESULT.questionMarks(0, 2)).toBe('0 of 2 marks');
+    expect(MOCK_RESULTS_PAGE.score(1, 1)).toBe('1 of 1 mark');
+    expect(MOCK_RESULTS_PAGE.score(3, 5)).toBe('3 of 5 marks');
+  });
+});
+
+describe('validatePassMarkText', () => {
+  it.each(['0', '-1', '60.5', '101', 'abc', '1e2', '0x3C', '+60'])('refuses %s', (text) => {
+    expect(validatePassMarkText(text)).toBe(MOCK_VALIDATION.passMark);
+  });
+
+  it.each(['1', '100', '60', '', '   '])('accepts %j', (text) => {
+    expect(validatePassMarkText(text)).toBeUndefined();
+  });
+});
+
+describe('wholeNumberFromText', () => {
+  it('reads digits only', () => {
+    expect(wholeNumberFromText(' 60 ')).toBe(60);
+    expect(wholeNumberFromText('100')).toBe(100);
+  });
+
+  it.each(['1e2', '0x3C', '60.5', '-1', '', 'abc'])('gives NaN for %j', (text) => {
+    expect(wholeNumberFromText(text)).toBeNaN();
+  });
+});
+
+describe('passMarkFromText', () => {
+  it('gives null for blank and the number otherwise', () => {
+    expect(passMarkFromText('')).toBeNull();
+    expect(passMarkFromText('  ')).toBeNull();
+    expect(passMarkFromText(' 60 ')).toBe(60);
+  });
+});
+
+describe('validateMockTest pass mark', () => {
+  const base = { title: 'Maths', instructions: '' };
+
+  it('checks the pass mark text', () => {
+    expect(validateMockTest({ ...base, passMarkText: '101' }).passMark).toBe(
+      MOCK_VALIDATION.passMark,
+    );
+    expect(validateMockTest({ ...base, passMarkText: '60' })).toEqual({});
+    expect(validateMockTest({ ...base, passMarkText: '' })).toEqual({});
+  });
+});
+
+describe('validateMockQuestion marks', () => {
+  it.each([0, -1, 2.5, 101, Number.NaN])('refuses %s', (marks) => {
+    expect(validateMockQuestion({ ...GOOD_QUESTION, marks }).marks).toBe(MOCK_VALIDATION.marks);
+  });
+
+  it('accepts the limits', () => {
+    expect(validateMockQuestion({ ...GOOD_QUESTION, marks: QUESTION_LIMITS.marksMin })).toEqual({});
+    expect(validateMockQuestion({ ...GOOD_QUESTION, marks: QUESTION_LIMITS.marksMax })).toEqual({});
+  });
+});
+
+describe('mockResultName, mockPassLabel and mockResultsTruncated', () => {
+  it('falls back to the not-set text for a null name', () => {
+    expect(mockResultName(null)).toBe(MOCK_RESULTS_PAGE.nameNotSet);
+    expect(mockResultName('Ana')).toBe('Ana');
+  });
+
+  it('labels a pass mark result and gives nothing without one', () => {
+    expect(mockPassLabel(null)).toBe('');
+    expect(mockPassLabel(true)).toBe(MOCK_PASS_LABELS.pass);
+    expect(mockPassLabel(false)).toBe(MOCK_PASS_LABELS.notYet);
+  });
+
+  it('is truncated only when fewer rows came back than exist', () => {
+    expect(mockResultsTruncated({ rows: [], totalRows: 0 })).toBe(false);
+    const rows = [{}, {}] as never[];
+    expect(mockResultsTruncated({ rows, totalRows: 1500 })).toBe(true);
+    expect(mockResultsTruncated({ rows, totalRows: 2 })).toBe(false);
   });
 });
 

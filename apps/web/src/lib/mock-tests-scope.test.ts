@@ -1,6 +1,8 @@
 // AC 29 (docs/delivery/2026-11-18-mock-test-closing): tags and filters appear on no public page,
 // in no sitemap entry and in no e-mail. The tag components, MOCK_TAGS, MOCK_TEST_FILTERS and the
 // mock test helpers may be used only by portal routes and components (and their own files).
+// Scoring (docs/delivery/2026-11-18-mock-test-scoring AC 50): the same for the pass mark, the
+// Pass / Not yet words and the admin Results page.
 
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
@@ -14,7 +16,7 @@ const NOTIFICATIONS = path.join(
 );
 
 const TAG_NAMES =
-  /\b(MockTagLine|MockTagFields|MockTagsDialog|MockTestFilters|MOCK_TAGS|MOCK_TEST_FILTERS)\b/;
+  /\b(MockTagLine|MockTagFields|MockTagsDialog|MockTestFilters|MOCK_TAGS|MOCK_TEST_FILTERS|MOCK_SCORING|MOCK_RESULTS_PAGE|MOCK_PASS_LABELS|MockResultsTable|MockPassChip)\b/;
 const MOCK_HELPERS = /from '@\/lib\/mock-tests'/;
 
 // Where the names are defined or re-exported, besides the portal folders.

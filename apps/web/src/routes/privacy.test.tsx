@@ -23,6 +23,13 @@ describe('Privacy Policy content', () => {
     expect(collect?.text).toContain('(see Job applications)');
   });
 
+  it('says what a mock test keeps and that admins see the name and score (ruling S-2)', () => {
+    const portal = PRIVACY.sections.find((item) => item.heading === PORTAL_HEADING);
+    expect(portal?.text).toContain(
+      'If you take a mock test, we keep your answers and score until your account is deleted, and AJ Classes admins can see your name and score.',
+    );
+  });
+
   it('says parents and guardians can sign up, and what a signed-up account gets (open sign-up AC-43)', () => {
     const all = JSON.stringify(PRIVACY);
     expect(all).not.toContain('only by invitation');

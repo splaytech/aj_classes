@@ -3,6 +3,7 @@
 // and nothing here talks about price (AC 9, AC 41).
 
 import {
+  QUESTION_BUILDER,
   QUESTION_LIMITS,
   QUESTION_VALIDATION,
   QUESTION_DIALOG,
@@ -20,6 +21,9 @@ export const MOCK_TEST_LIMITS = {
   titleMax: 150,
   instructionsMax: 4000,
   questionsMax: 100,
+  // Pass mark, a whole percentage. The migration checks the same 1 to 100 (scoring parity test).
+  passMarkMin: 1,
+  passMarkMax: 100,
 } as const;
 
 export const MOCK_TEST_STATUSES = ['draft', 'released'] as const;
@@ -97,6 +101,26 @@ export const MOCK_TAKE_STATUS_LABELS = {
 function questionCountText(count: number): string {
   return count === 1 ? '1 question' : `${count} questions`;
 }
+
+// Scoring (docs/delivery/2026-11-18-mock-test-scoring): marks per question, an optional pass mark,
+// and the words for a result. The database works out the percentage and Pass; the web only prints them.
+export const MOCK_SCORING = {
+  marksLabel: QUESTION_DIALOG.marksLabel,
+  marks: QUESTION_BUILDER.marks,
+  totalMarks: QUESTION_BUILDER.total,
+  // Singular on a total of 1, like QUESTION_BUILDER.marks (ruling L-12): "1 of 1 mark", "3 of 5 marks".
+  outOf: (earned: number, total: number) =>
+    total === 1 ? `${earned} of 1 mark` : `${earned} of ${total} marks`,
+  passMarkLabel: 'Pass mark (%, optional)',
+  passMarkHint:
+    'A whole number from 1 to 100. Leave it empty for no pass mark. It can’t be changed after release.',
+  passMarkLine: (percent: number) => `Pass mark: ${percent}%`,
+  noPassMark: 'No pass mark',
+  scoringHeading: 'Scoring',
+} as const;
+
+/** Neutral words, no grade (AC 16). */
+export const MOCK_PASS_LABELS = { pass: 'Pass', notYet: 'Not yet' } as const;
 
 export const MOCK_TESTS_ADMIN_PAGE = {
   heading: 'Mock tests',
@@ -194,7 +218,8 @@ export const MOCK_TEST_EDIT_PAGE = {
 } as const;
 
 // Closing date and Close now (docs/delivery/2026-11-18-mock-test-closing). Closed means hidden from
-// every taker, results included; times show in the viewer's local time.
+// takers who haven't submitted; people who submitted still see it and their result (ruling S-1).
+// Times show in the viewer's local time.
 export const MOCK_CLOSING = {
   fieldLabel: 'Closes (optional)',
   fieldHint: 'Leave empty and it never closes. Times are in your local time.',
@@ -249,6 +274,9 @@ export const MOCK_TAKE_PAGE = {
   submit: 'Submit',
   submitting: 'Submitting…',
   confirmSubmitTitle: 'Submit this mock test?',
+  marks: MOCK_SCORING.marks,
+  totalMarks: MOCK_SCORING.totalMarks,
+  passMark: MOCK_SCORING.passMarkLine,
   confirmSubmitText: (unanswered: number) =>
     unanswered === 0
       ? 'You’ve answered every question. You can’t change your answers after this.'
@@ -257,7 +285,9 @@ export const MOCK_TAKE_PAGE = {
 
 export const MOCK_RESULT = {
   heading: 'Your result',
-  score: (score: number, total: number) => `${score} of ${total} correct`,
+  score: (score: number, total: number, percentage: number) =>
+    `${MOCK_SCORING.outOf(score, total)} (${percentage}%)`,
+  questionMarks: MOCK_SCORING.outOf,
   answersHeading: 'Your answers',
   question: (position: number) => `Question ${position}`,
   yourAnswer: 'Your answer',
@@ -266,6 +296,30 @@ export const MOCK_RESULT = {
   explanation: 'Explanation',
   line: (label: string, text: string) => `${label}: ${text}`,
   choice: (letter: string, text: string) => `${letter}. ${text}`,
+} as const;
+
+/** The admin Results page: names and scores only, never answers or e-mail (AC 29 to 35). */
+export const MOCK_RESULTS_PAGE = {
+  title: (testTitle: string) => `Results: ${testTitle}`,
+  intro:
+    'Everyone who has submitted this mock test, newest first. Names and scores only. Answers are not shown.',
+  back: '← Back to mock test',
+  viewResults: 'Results',
+  viewResultsFor: (testTitle: string) => `Results for ${testTitle}`,
+  tableLabel: 'Mock test results',
+  columns: {
+    name: 'Name',
+    submitted: 'Submitted',
+    score: 'Score',
+    percentage: 'Percentage',
+    result: 'Result',
+  },
+  nameNotSet: 'Name not set',
+  score: MOCK_SCORING.outOf,
+  percent: (percentage: number) => `${percentage}%`,
+  empty: 'No one has submitted this test yet.',
+  showing: (shown: number, total: number) =>
+    `Showing ${shown} of ${total} submissions. The oldest are not listed.`,
 } as const;
 
 export const MOCK_TESTS_ERROR_BOUNDARY = {
@@ -294,4 +348,6 @@ export const MOCK_VALIDATION = {
   tagStream: 'Please choose a stream.',
   tagYears: 'Please choose one or more years, or Any year.',
   tagKeep: 'A tag that is set can’t be cleared on a released mock test. Choose another value.',
+  marks: QUESTION_VALIDATION.marksRange,
+  passMark: `Please enter a whole number from ${MOCK_TEST_LIMITS.passMarkMin} to ${MOCK_TEST_LIMITS.passMarkMax}, or leave the pass mark empty.`,
 } as const;

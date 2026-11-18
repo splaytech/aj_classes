@@ -1,5 +1,6 @@
 // Admin → Mock tests (design §4.3): every mock test, draft or released, with its counts, and a
-// button to start a new one. Counts and the creator's name only: no taker names or scores (AC 24).
+// button to start a new one. Counts and the creator's name only: taker names and scores live
+// only on the Results page, reached by the last column (AC 39).
 // A released test with a closing time shows "Closes …", or a Closed chip and when it closed.
 // Each row shows its tags, with "Not set" for a missing one; no filter in v1 (categories AC 28).
 
@@ -27,7 +28,14 @@ import {
   MockTestsErrorBoundary,
   PageHeader,
 } from '@/components/portal';
-import { MOCK_TESTS_ADMIN_PAGE, PORTAL_COMMON, PORTAL_SEO, adminMockTestPath } from '@/constants';
+import {
+  MOCK_RESULTS_PAGE,
+  MOCK_TESTS_ADMIN_PAGE,
+  PORTAL_COMMON,
+  PORTAL_SEO,
+  adminMockTestPath,
+  adminMockTestResultsPath,
+} from '@/constants';
 import { formatDateTime } from '@/lib/format';
 import { mockClosingState, mockClosingText } from '@/lib/mock-tests';
 import { buildPortalMeta } from '@/lib/seo';
@@ -81,6 +89,7 @@ export default function AdminMockTestsPage() {
                 <TableCell align="right">{columns.submitted}</TableCell>
                 <TableCell>{columns.createdBy}</TableCell>
                 <TableCell>{columns.changed}</TableCell>
+                <TableCell>{MOCK_RESULTS_PAGE.viewResults}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -112,6 +121,15 @@ export default function AdminMockTestsPage() {
                     <Box component="span" sx={{ whiteSpace: 'nowrap' }}>
                       {formatDateTime(test.updatedAt)}
                     </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Link
+                      component={RouterLink}
+                      to={adminMockTestResultsPath(test.id)}
+                      aria-label={MOCK_RESULTS_PAGE.viewResultsFor(test.title)}
+                    >
+                      {MOCK_RESULTS_PAGE.viewResults}
+                    </Link>
                   </TableCell>
                 </TableRow>
               ))}

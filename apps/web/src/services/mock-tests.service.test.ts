@@ -6,6 +6,7 @@ import {
   deleteMockQuestion,
   deleteMockTest,
   getMockTestForEdit,
+  getMockTestResults,
   getMyMockTest,
   listMockTestsAdmin,
   listMyMockTests,
@@ -140,6 +141,7 @@ describe('getMockTestForEdit', () => {
       instructions: 'Go',
       status: 'draft',
       closes_at: null,
+      pass_mark: 60,
       subject: null,
       stream: null,
       year_levels: [],
@@ -151,6 +153,7 @@ describe('getMockTestForEdit', () => {
         position: 1,
         prompt: 'P',
         options: ['a', 'b'],
+        marks: 3,
         correct_option: 1,
         explanation: '',
       },
@@ -164,6 +167,7 @@ describe('getMockTestForEdit', () => {
         instructions: 'Go',
         status: 'draft',
         closesAt: null,
+        passMark: 60,
         tags: { subject: null, stream: null, yearLevels: [], anyYear: true },
         questions: [
           {
@@ -171,6 +175,7 @@ describe('getMockTestForEdit', () => {
             position: 1,
             prompt: 'P',
             options: ['a', 'b'],
+            marks: 3,
             correctOption: 1,
             explanation: '',
           },
@@ -188,11 +193,35 @@ describe('getMockTestForEdit', () => {
 
 const NO_TAGS = { subject: null, stream: null, yearLevels: [], anyYear: false };
 
+describe('pass mark in createMockTest and updateMockTest', () => {
+  it('sends the pass mark on create and on update', async () => {
+    reply({ id: 'new' });
+    await createMockTest({ title: 'Maths', instructions: '', passMark: 60, tags: NO_TAGS });
+    expect(calls.find(([name]) => name === 'insert')?.[1][0]).toMatchObject({ pass_mark: 60 });
+
+    calls.length = 0;
+    reply({ id: 't1' });
+    await updateMockTest('t1', { title: 'Maths', instructions: '', passMark: 75, tags: NO_TAGS });
+    expect(calls.find(([name]) => name === 'update')?.[1][0]).toMatchObject({ pass_mark: 75 });
+  });
+
+  it('sends null to clear the pass mark of a draft', async () => {
+    reply({ id: 't1' });
+    await updateMockTest('t1', { title: 'Maths', instructions: '', passMark: null, tags: NO_TAGS });
+    expect(calls.find(([name]) => name === 'update')?.[1][0]).toMatchObject({ pass_mark: null });
+  });
+});
+
 describe('createMockTest and updateMockTest', () => {
   it('inserts the trimmed title and instructions and the tag columns, never an id', async () => {
     reply({ id: 'new' });
     expect(
-      await createMockTest({ title: '  Maths  ', instructions: ' Go ', tags: NO_TAGS }),
+      await createMockTest({
+        title: '  Maths  ',
+        instructions: ' Go ',
+        passMark: null,
+        tags: NO_TAGS,
+      }),
     ).toEqual({
       ok: true,
       data: { id: 'new' },
@@ -201,6 +230,7 @@ describe('createMockTest and updateMockTest', () => {
       called('insert', {
         title: 'Maths',
         instructions: 'Go',
+        pass_mark: null,
         subject: null,
         stream: null,
         year_levels: [],
@@ -212,7 +242,9 @@ describe('createMockTest and updateMockTest', () => {
   it('sends the tags of a draft edit, years ascending', async () => {
     reply({ id: 't1' });
     const tags = { subject: 'maths', stream: 'icas', yearLevels: [8, 5], anyYear: false };
-    expect(await updateMockTest('t1', { title: 'Maths', instructions: '', tags })).toEqual({
+    expect(
+      await updateMockTest('t1', { title: 'Maths', instructions: '', passMark: null, tags }),
+    ).toEqual({
       ok: true,
       data: undefined,
     });
@@ -220,6 +252,7 @@ describe('createMockTest and updateMockTest', () => {
       called('update', {
         title: 'Maths',
         instructions: '',
+        pass_mark: null,
         subject: 'maths',
         stream: 'icas',
         year_levels: [5, 8],
@@ -230,7 +263,9 @@ describe('createMockTest and updateMockTest', () => {
 
   it('maps a check-constraint refusal to invalidInput', async () => {
     reply(null, { code: '23514', message: 'violates check constraint' });
-    expect(await createMockTest({ title: 'x', instructions: '', tags: NO_TAGS })).toEqual({
+    expect(
+      await createMockTest({ title: 'x', instructions: '', passMark: null, tags: NO_TAGS }),
+    ).toEqual({
       ok: false,
       error: 'invalidInput',
     });
@@ -238,22 +273,32 @@ describe('createMockTest and updateMockTest', () => {
 
   it('says mockReleased when a released test is edited', async () => {
     reply(null, { code: 'P0001', message: 'mock_released' });
-    expect(await updateMockTest('t1', { title: 'Maths', instructions: '', tags: NO_TAGS })).toEqual(
-      {
-        ok: false,
-        error: 'mockReleased',
-      },
-    );
+    expect(
+      await updateMockTest('t1', {
+        title: 'Maths',
+        instructions: '',
+        passMark: null,
+        tags: NO_TAGS,
+      }),
+    ).toEqual({
+      ok: false,
+      error: 'mockReleased',
+    });
   });
 
   it('says notAllowed when the update matched no row', async () => {
     reply(null);
-    expect(await updateMockTest('t1', { title: 'Maths', instructions: '', tags: NO_TAGS })).toEqual(
-      {
-        ok: false,
-        error: 'notAllowed',
-      },
-    );
+    expect(
+      await updateMockTest('t1', {
+        title: 'Maths',
+        instructions: '',
+        passMark: null,
+        tags: NO_TAGS,
+      }),
+    ).toEqual({
+      ok: false,
+      error: 'notAllowed',
+    });
   });
 });
 
@@ -397,6 +442,7 @@ describe('saveMockQuestion', () => {
     options: [' a ', 'b'],
     correctOption: 1,
     explanation: ' ',
+    marks: 1,
   };
 
   it('inserts a trimmed question without an id or position', async () => {
@@ -409,6 +455,7 @@ describe('saveMockQuestion', () => {
         options: ['a', 'b'],
         correct_option: 1,
         explanation: '',
+        marks: 1,
       }),
     ).toBe(true);
   });
@@ -422,9 +469,21 @@ describe('saveMockQuestion', () => {
         options: ['a', 'b'],
         correct_option: 1,
         explanation: '',
+        marks: 1,
       }),
     ).toBe(true);
     expect(called('eq', 'id', 'q1')).toBe(true);
+  });
+
+  it('sends marks on insert and on update', async () => {
+    reply({ id: 'q1' });
+    await saveMockQuestion({ ...input, marks: 3 });
+    expect(calls.find(([name]) => name === 'insert')?.[1][0]).toMatchObject({ marks: 3 });
+
+    calls.length = 0;
+    reply({ id: 'q1' });
+    await saveMockQuestion({ ...input, id: 'q1', marks: 5 });
+    expect(calls.find(([name]) => name === 'update')?.[1][0]).toMatchObject({ marks: 5 });
   });
 
   it('refuses a missing correct option without calling the database', async () => {
@@ -470,6 +529,8 @@ describe('listMyMockTests', () => {
         submitted_at: 's',
         released_at: 'r',
         closes_at: 'x',
+        percentage: 67,
+        passed: true,
         subject: 'maths',
         stream: 'vce',
         year_levels: [7, 8],
@@ -488,6 +549,8 @@ describe('listMyMockTests', () => {
           total: 3,
           submittedAt: 's',
           closesAt: 'x',
+          percentage: 67,
+          passed: true,
           tags: { subject: 'maths', stream: 'vce', yearLevels: [7, 8], anyYear: false },
         },
       ],
@@ -506,8 +569,12 @@ describe('getMyMockTest', () => {
     title: 'Maths',
     instructions: '',
     question_count: 1,
+    total_marks: 3,
+    pass_mark: 60,
     score: null,
     total: null,
+    percentage: null,
+    passed: null,
     submitted_at: null,
     tags: { subject: 'maths', stream: 'vce', year_levels: [7, 8], any_year: false },
   };
@@ -527,7 +594,9 @@ describe('getMyMockTest', () => {
     reply({
       ...base,
       status: 'in_progress',
-      questions: [{ id: 'q1', position: 4, prompt: 'P', options: ['a', 'b'], selected_option: 0 }],
+      questions: [
+        { id: 'q1', position: 4, prompt: 'P', options: ['a', 'b'], marks: 3, selected_option: 0 },
+      ],
     });
     const result = await getMyMockTest('t1');
     expect(result.ok && result.data.questions[0]).toEqual({
@@ -536,6 +605,7 @@ describe('getMyMockTest', () => {
       prompt: 'P',
       options: ['a', 'b'],
       selectedOption: 0,
+      marks: 3,
     });
     expect(result.ok && 'correctOption' in result.data.questions[0]!).toBe(false);
   });
@@ -552,9 +622,11 @@ describe('getMyMockTest', () => {
           position: 1,
           prompt: 'P',
           options: ['a', 'b'],
+          marks: 3,
           selected_option: 1,
           correct_option: 1,
           explanation: 'Because.',
+          marks_earned: 3,
         },
       ],
     });
@@ -562,8 +634,35 @@ describe('getMyMockTest', () => {
     expect(result.ok && result.data.questions[0]).toMatchObject({
       correctOption: 1,
       explanation: 'Because.',
+      marks: 3,
+      marksEarned: 3,
     });
     expect(result.ok && result.data.score).toBe(1);
+  });
+
+  it('carries the test facts before submit, and no marksEarned', async () => {
+    reply({
+      ...base,
+      status: 'in_progress',
+      questions: [
+        {
+          id: 'q1',
+          position: 1,
+          prompt: 'P',
+          options: ['a', 'b'],
+          marks: 3,
+          selected_option: null,
+        },
+      ],
+    });
+    const result = await getMyMockTest('t1');
+    expect(result.ok && result.data).toMatchObject({
+      totalMarks: 3,
+      passMark: 60,
+      percentage: null,
+      passed: null,
+    });
+    expect(result.ok && 'marksEarned' in result.data.questions[0]!).toBe(false);
   });
 
   it('says notFound for a draft or unknown test', async () => {
@@ -602,8 +701,11 @@ describe('start, save and submit', () => {
   });
 
   it('submit returns the score and total', async () => {
-    reply({ score: 2, total: 3 });
-    expect(await submitMockTest('t1')).toEqual({ ok: true, data: { score: 2, total: 3 } });
+    reply({ score: 2, total: 3, percentage: 67, passed: true });
+    expect(await submitMockTest('t1')).toEqual({
+      ok: true,
+      data: { score: 2, total: 3, percentage: 67, passed: true },
+    });
   });
 
   it('submit says mockNotStarted before a start', async () => {
@@ -623,10 +725,102 @@ describe('loaders for a viewer who may not use the page (BUG-2)', () => {
     ['getMockTestForEdit', () => getMockTestForEdit('t1')],
     ['listMyMockTests', () => listMyMockTests()],
     ['getMyMockTest', () => getMyMockTest('t1')],
+    ['getMockTestResults', () => getMockTestResults('t1')],
   ])('%s sends no request and says notAllowed', async (_name, load) => {
     viewer.allowed = false;
 
     expect(await load()).toEqual({ ok: false, error: 'notAllowed' });
     expect(calls).toEqual([]);
+  });
+});
+
+describe('getMockTestResults', () => {
+  const header = {
+    id: 't1',
+    title: 'Maths',
+    status: 'released',
+    closes_at: null,
+    pass_mark: 60,
+  };
+  const row = (id: string, total_rows: number) => ({
+    attempt_id: id,
+    taker_name: id === 'a2' ? null : 'Ana',
+    submitted_at: '2026-11-18T01:00:00Z',
+    score: 3,
+    total: 5,
+    percentage: 60,
+    passed: true,
+    total_rows,
+  });
+
+  it('reads the header, then the function, and maps the rows', async () => {
+    reply(header);
+    reply([row('a1', 2), row('a2', 2)]);
+    const result = await getMockTestResults('t1');
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        testId: 't1',
+        title: 'Maths',
+        status: 'released',
+        closesAt: null,
+        passMark: 60,
+        rows: [
+          {
+            attemptId: 'a1',
+            takerName: 'Ana',
+            submittedAt: '2026-11-18T01:00:00Z',
+            score: 3,
+            total: 5,
+            percentage: 60,
+            passed: true,
+          },
+          {
+            attemptId: 'a2',
+            takerName: null,
+            submittedAt: '2026-11-18T01:00:00Z',
+            score: 3,
+            total: 5,
+            percentage: 60,
+            passed: true,
+          },
+        ],
+        totalRows: 2,
+      },
+    });
+    expect(called('rpc', 'mock_test_results', { target: 't1' })).toBe(true);
+  });
+
+  it('takes totalRows from the first row, which can exceed the rows returned', async () => {
+    reply(header);
+    reply([row('a1', 1500)]);
+    const result = await getMockTestResults('t1');
+    expect(result.ok && result.data.totalRows).toBe(1500);
+  });
+
+  it('gives 0 totalRows for zero rows', async () => {
+    reply(header);
+    reply([]);
+    const result = await getMockTestResults('t1');
+    expect(result.ok && result.data.rows).toEqual([]);
+    expect(result.ok && result.data.totalRows).toBe(0);
+  });
+
+  it('says notFound when no header row comes back, without calling the function', async () => {
+    reply(null);
+    expect(await getMockTestResults('t1')).toEqual({ ok: false, error: 'notFound' });
+    expect(calls.some(([name]) => name === 'rpc')).toBe(false);
+  });
+
+  it('maps a not_admin refusal from the function to notAllowed', async () => {
+    reply(header);
+    reply(null, { code: '42501', message: 'not_admin' });
+    expect(await getMockTestResults('t1')).toEqual({ ok: false, error: 'notAllowed' });
+  });
+
+  it('maps a not_found refusal from the function to notFound', async () => {
+    reply(header);
+    reply(null, { code: 'P0002', message: 'not_found' });
+    expect(await getMockTestResults('t1')).toEqual({ ok: false, error: 'notFound' });
   });
 });
