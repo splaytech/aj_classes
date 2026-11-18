@@ -105,7 +105,9 @@ describe('MockQuestionDialog marks (AC 1, 2)', () => {
     expect(screen.getByLabelText(MOCK_SCORING.marksLabel)).toHaveValue(1);
   });
 
-  it.each(['', '0', '-1', '2.5', '101', '1e2'])(
+  // "1e2" is covered by the parser tests in lib/mock-tests.test.ts: typed into a number input,
+  // user-event 14.6.7 (the lockfile's version) hands jsdom 100, so this case can't test it here.
+  it.each(['', '0', '-1', '2.5', '101'])(
     'refuses %j marks and saves nothing',
     async (text) => {
       const user = setupUser();
