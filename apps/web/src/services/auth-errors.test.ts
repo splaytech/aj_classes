@@ -93,3 +93,43 @@ describe('toErrorKey', () => {
     expect(toErrorKey({ code: 'something_new' })).toBe('unknown');
   });
 });
+
+describe('mock test refusals', () => {
+  it.each([
+    ['mock_released', 'mockReleased'],
+    ['mock_no_questions', 'mockNoQuestions'],
+    ['mock_has_attempts', 'mockHasAttempts'],
+    ['mock_too_many_questions', 'mockTooManyQuestions'],
+    ['mock_not_started', 'mockNotStarted'],
+    ['not_taker', 'notAllowed'],
+    ['invalid_status', 'invalidStatus'],
+    ['already_submitted', 'alreadySubmitted'],
+    ['invalid_option', 'invalidInput'],
+    ['invalid_question', 'notFound'],
+  ])('maps the raised message %s to %s', (message, key) => {
+    expect(toErrorKey({ code: 'P0001', message })).toBe(key);
+  });
+
+  it('maps the database codes the mock functions raise', () => {
+    expect(toErrorKey({ code: 'P0002' })).toBe('notFound');
+    expect(toErrorKey({ code: '42501' })).toBe('notAllowed');
+    expect(toErrorKey({ code: '23514' })).toBe('invalidInput');
+    expect(toErrorKey({ code: '23505' })).toBe('duplicate');
+  });
+
+  it('maps mock test tag refusals by their field (categories design §2.4)', () => {
+    const tag = (hint?: string) => toErrorKey({ code: '23514', message: 'invalid_mock_tag', hint });
+    expect(tag('subject')).toBe('mockTagSubject');
+    expect(tag('stream')).toBe('mockTagStream');
+    expect(tag('year_levels')).toBe('mockTagYears');
+    expect(tag('something_else')).toBe('invalidInput');
+    expect(tag()).toBe('invalidInput');
+    expect(toErrorKey({ code: '23514', message: 'mock_tag_kept', hint: 'subject' })).toBe(
+      'mockTagKept',
+    );
+    expect(toErrorKey({ code: 'P0001', message: 'mock_tags_missing' })).toBe('mockTagsMissing');
+    expect(toErrorKey({ code: '23514', message: 'new row violates check constraint' })).toBe(
+      'invalidInput',
+    );
+  });
+});

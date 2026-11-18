@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { PORTAL_ROUTES, POSTS_PUBLIC_PAGE } from '@/constants';
+import { MOCK_TESTS_LINK_CARD, PORTAL_ROUTES, POSTS_PUBLIC_PAGE } from '@/constants';
 import { usePublicPosts } from '@/lib/use-public-posts';
 import { renderAt } from '@/test/render';
 
@@ -22,6 +22,16 @@ describe('/portal/user, a signed-up user’s home (AC-21)', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(POSTS_PUBLIC_PAGE.heading);
     expect(screen.getByText(POSTS_PUBLIC_PAGE.intro)).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Term 4' })).toBeInTheDocument();
+  });
+
+  it('links to the user mock tests (mock tests AC 8)', () => {
+    vi.mocked(usePublicPosts).mockReturnValue({ status: 'ready', posts: [] });
+    renderAt(<UserHome />, PORTAL_ROUTES.user);
+
+    expect(screen.getByRole('link', { name: MOCK_TESTS_LINK_CARD.link })).toHaveAttribute(
+      'href',
+      PORTAL_ROUTES.userMockTests,
+    );
   });
 
   it('shows the same empty and error lines as /posts', () => {

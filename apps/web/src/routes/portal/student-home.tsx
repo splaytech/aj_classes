@@ -13,6 +13,7 @@ import { Link as RouterLink, useLoaderData } from 'react-router';
 import {
   DueChip,
   LoadError,
+  MockTestsLinkCard,
   PageHeader,
   PastClassChip,
   ProgressSummary,
@@ -63,6 +64,7 @@ export default function StudentHomePage() {
         }
       />
       <Stack spacing={4}>
+        <MockTestsLinkCard area="student" />
         <ProgressSummary progress={familyProgress(loaded.data)} />
 
         <SectionCard title={STUDENT_HOME.toDo.heading}>

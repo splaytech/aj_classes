@@ -4,6 +4,12 @@ import type { AppRole } from '@/constants';
 
 import { listActivity } from './activity.service';
 import { getAssignment } from './assignments.service';
+import {
+  getMockTestForEdit,
+  getMyMockTest,
+  listMockTestsAdmin,
+  listMyMockTests,
+} from './mock-tests.service';
 import { listEmailProblems } from './notifications.service';
 import { getMyProfile, getProfile } from './profile.service';
 import { getStaffMember, listStaff } from './staff.service';
@@ -61,9 +67,11 @@ const ADMIN_READS = [
   ['getStaffMember', () => getStaffMember('someone-else')],
   ['listActivity', () => listActivity()],
   ['listEmailProblems', () => listEmailProblems()], // Admin → Emails (item 8 test plan P2)
+  ['listMockTestsAdmin', () => listMockTestsAdmin()], // mock tests, BUG-2
+  ['getMockTestForEdit', () => getMockTestForEdit('t1')],
 ] as const;
 
-const ROLES: AppRole[] = ['student', 'parent', 'tutor', 'admin'];
+const ROLES: AppRole[] = ['student', 'parent', 'user', 'tutor', 'admin'];
 
 function databaseCalls() {
   return fake.rpc.mock.calls.length + fake.from.mock.calls.length;
@@ -112,7 +120,7 @@ describe('admin reads ask the database only for an admin with two-step (E-60)', 
   it.each(ADMIN_READS)('%s as an admin with two-step → one call', async (_name, read) => {
     fake.access = signedInAs('admin', 'aal2');
     await read();
-    expect(fake.rpc).toHaveBeenCalledTimes(1);
+    expect(databaseCalls()).toBe(1);
   });
 });
 
@@ -175,5 +183,39 @@ describe('staff assignment reads ask the database only for a tutor or an admin',
     fake.access = signedInAs(role);
     await read();
     expect(fake.from).toHaveBeenCalledTimes(1); // the assignment row; not found stops there
+  });
+});
+
+// The mock test taker pages: students, parents and signed-up users only (BUG-2).
+const TAKER_READS = [
+  ['listMyMockTests', () => listMyMockTests()],
+  ['getMyMockTest', () => getMyMockTest('t1')],
+] as const;
+
+describe('mock test taker reads ask the database only for a student, parent or user', () => {
+  it.each(
+    TAKER_READS.flatMap(([name, read]) =>
+      (['tutor', 'admin'] as const).map((role) => [name, role, read] as const),
+    ),
+  )('%s as a %s → no call, "not allowed"', async (_name, role, read) => {
+    fake.access = signedInAs(role, 'aal2');
+    expect(await read()).toEqual({ ok: false, error: 'notAllowed' });
+    expect(databaseCalls()).toBe(0);
+  });
+
+  it.each(TAKER_READS)('%s: signed out → no call', async (_name, read) => {
+    fake.access = signedInAs(null);
+    expect(await read()).toEqual({ ok: false, error: 'notAllowed' });
+    expect(databaseCalls()).toBe(0);
+  });
+
+  it.each(
+    TAKER_READS.flatMap(([name, read]) =>
+      (['student', 'parent', 'user'] as const).map((role) => [name, role, read] as const),
+    ),
+  )('%s as a %s → one call', async (_name, role, read) => {
+    fake.access = signedInAs(role);
+    await read();
+    expect(fake.rpc).toHaveBeenCalledTimes(1);
   });
 });

@@ -64,6 +64,12 @@ export default [
           route(PORTAL_ROUTES.adminStudents, 'routes/portal/admin-students.tsx'),
           route(PORTAL_ROUTE_PATTERNS.adminStudent, 'routes/portal/admin-student.tsx'),
           route(PORTAL_ROUTES.adminUsers, 'routes/portal/admin-users.tsx'),
+          route(PORTAL_ROUTES.adminMockTests, 'routes/portal/admin-mock-tests.tsx'),
+          route(PORTAL_ROUTE_PATTERNS.adminMockTest, 'routes/portal/admin-mock-test.tsx'),
+          route(
+            PORTAL_ROUTE_PATTERNS.adminMockTestResults,
+            'routes/portal/admin-mock-test-results.tsx',
+          ),
         ]),
       ]),
 
@@ -71,9 +77,23 @@ export default [
         route(PORTAL_ROUTES.student, 'routes/portal/student-home.tsx'),
         route(PORTAL_ROUTE_PATTERNS.studentAssignment, 'routes/portal/student-assignment.tsx'),
         route(PORTAL_ROUTES.studentTimetable, 'routes/portal/student-timetable.tsx'),
+        // One page file, mounted three times (student, parent, user): each mount needs its own id.
+        route(PORTAL_ROUTES.studentMockTests, 'routes/portal/mock-tests.tsx', {
+          id: 'mock-tests-student',
+        }),
+        route(PORTAL_ROUTE_PATTERNS.studentMockTest, 'routes/portal/mock-test.tsx', {
+          id: 'mock-test-student',
+        }),
       ]),
       layout('routes/portal/user-layout.tsx', [
         route(PORTAL_ROUTES.user, 'routes/portal/user-home.tsx'),
+        // One page file, mounted three times (student, parent, user): each mount needs its own id.
+        route(PORTAL_ROUTES.userMockTests, 'routes/portal/mock-tests.tsx', {
+          id: 'mock-tests-user',
+        }),
+        route(PORTAL_ROUTE_PATTERNS.userMockTest, 'routes/portal/mock-test.tsx', {
+          id: 'mock-test-user',
+        }),
       ]),
       layout('routes/portal/parent-layout.tsx', [
         route(PORTAL_ROUTES.parent, 'routes/portal/parent-home.tsx'),
@@ -82,6 +102,13 @@ export default [
           PORTAL_ROUTE_PATTERNS.parentChildAssignment,
           'routes/portal/parent-child-assignment.tsx',
         ),
+        // One page file, mounted three times (student, parent, user): each mount needs its own id.
+        route(PORTAL_ROUTES.parentMockTests, 'routes/portal/mock-tests.tsx', {
+          id: 'mock-tests-parent',
+        }),
+        route(PORTAL_ROUTE_PATTERNS.parentMockTest, 'routes/portal/mock-test.tsx', {
+          id: 'mock-test-parent',
+        }),
       ]),
     ]),
 

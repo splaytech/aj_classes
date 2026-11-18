@@ -1,0 +1,50 @@
+// Small labelled chips for mock tests. Each always shows text, never colour alone.
+
+import Chip from '@mui/material/Chip';
+
+import { MOCK_CLOSING, MOCK_TAKE_STATUS_LABELS, MOCK_TEST_STATUS_LABELS } from '@/constants';
+import { mockPassLabel } from '@/lib/mock-tests';
+import type { MockTakeStatus, MockTestStatus } from '@/services';
+
+const TEST_STATUS_COLOURS = { draft: 'default', released: 'success' } as const;
+
+const TAKE_STATUS_COLOURS = {
+  not_started: 'default',
+  in_progress: 'info',
+  submitted: 'success',
+} as const;
+
+/** Whether an admin's mock test is still a draft or has been released. */
+export function MockTestStatusChip({ status }: { status: MockTestStatus }) {
+  return (
+    <Chip
+      size="small"
+      variant="outlined"
+      color={TEST_STATUS_COLOURS[status]}
+      label={MOCK_TEST_STATUS_LABELS[status]}
+    />
+  );
+}
+
+/** How far a person has got with a mock test. */
+export function MockTakeStatusChip({ status }: { status: MockTakeStatus }) {
+  return (
+    <Chip
+      size="small"
+      variant="outlined"
+      color={TAKE_STATUS_COLOURS[status]}
+      label={MOCK_TAKE_STATUS_LABELS[status]}
+    />
+  );
+}
+
+/** A released mock test that takers can no longer see (its closing time has passed). */
+export function MockClosedChip() {
+  return <Chip size="small" variant="outlined" color="warning" label={MOCK_CLOSING.closedChip} />;
+}
+
+/** Pass or Not yet, in neutral words and no colour (AC 16). Nothing at all without a pass mark (AC 8). */
+export function MockPassChip({ passed }: { passed: boolean | null }) {
+  if (passed === null) return null;
+  return <Chip size="small" variant="outlined" label={mockPassLabel(passed)} />;
+}

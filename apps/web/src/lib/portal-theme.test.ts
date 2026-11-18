@@ -16,6 +16,7 @@ const LIGHT: Record<string, string> = {
   '--color-bg': '#ffffff',
   '--color-surface': '#ffffff',
   '--color-border': '#d6deeb',
+  '--color-focus': '#2563eb',
   '--font-body': 'Inter, system-ui, sans-serif',
   '--radius-md': '8px',
 };
@@ -23,6 +24,7 @@ const LIGHT: Record<string, string> = {
 const DARK: Record<string, string> = {
   ...LIGHT,
   '--color-primary': '#60a5fa',
+  '--color-focus': '#93c5fd',
   '--color-on-primary': '#0b1220',
   '--color-bg': '#0b1220',
   '--color-surface': '#131c31',
@@ -56,5 +58,20 @@ describe('createPortalTheme', () => {
 
   it("falls back to MUI's defaults when theme.css isn't loaded", () => {
     expect(createPortalTheme('dark', reader({})).palette.mode).toBe('dark');
+  });
+});
+
+describe('keyboard focus ring on buttons (BUG-3)', () => {
+  it.each([
+    ['light', LIGHT, '#2563eb'],
+    ['dark', DARK, '#93c5fd'],
+  ] as const)('draws a visible theme-colour outline in %s', (mode, variables, colour) => {
+    const theme = createPortalTheme(mode, reader(variables));
+    const root = theme.components?.MuiButtonBase?.styleOverrides?.root as Record<string, unknown>;
+
+    expect(root['&.Mui-focusVisible']).toEqual({
+      outline: `3px solid ${colour}`,
+      outlineOffset: 2,
+    });
   });
 });
