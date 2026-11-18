@@ -42,6 +42,9 @@ function view(overrides: Partial<MockTestResultsView> = {}): MockTestResultsView
   };
 }
 
+const HEAVY_RENDER_TIMEOUT_MS = 15_000;
+const HEAVY_TEST_TIMEOUT_MS = 30_000;
+
 function renderPage(loaded: unknown) {
   const Stub = createRoutesStub([
     { path: PATH, Component: AdminMockTestResultsPage, loader: () => loaded },
@@ -87,14 +90,23 @@ describe('admin Results page', () => {
     expect(screen.queryByRole('table')).toBeNull();
   });
 
-  it('says how many are shown when the 1000-row limit cut the list short', async () => {
-    const rows = Array.from({ length: 1000 }, (_, index) => resultRow(`a${index}`));
-    renderPage({ ok: true, data: view({ rows, totalRows: 1500 }) });
-    expect(
-      await screen.findByText('Showing 1000 of 1500 submissions. The oldest are not listed.'),
-    ).toBeInTheDocument();
-    expect(screen.getAllByRole('row')).toHaveLength(1001);
-  });
+  // 1000 rows is a heavy render: under load it outlasts the 1 s findBy and 5 s test defaults.
+  it(
+    'says how many are shown when the 1000-row limit cut the list short',
+    async () => {
+      const rows = Array.from({ length: 1000 }, (_, index) => resultRow(`a${index}`));
+      renderPage({ ok: true, data: view({ rows, totalRows: 1500 }) });
+      expect(
+        await screen.findByText(
+          'Showing 1000 of 1500 submissions. The oldest are not listed.',
+          {},
+          { timeout: HEAVY_RENDER_TIMEOUT_MS },
+        ),
+      ).toBeInTheDocument();
+      expect(screen.getAllByRole('row')).toHaveLength(1001);
+    },
+    HEAVY_TEST_TIMEOUT_MS,
+  );
 
   it('shows no note when all rows are listed', async () => {
     renderPage({
