@@ -2317,3 +2317,11 @@ last.hdrs
 {"score": 1, "total": 1, "passed": null, "percentage": 100}
 tab name|<TAB>
 ```
+
+## 12. Lead rulings after TSR round 1 (appended; frozen rows above unchanged)
+
+1. **S-1 (BUG-1): environment error caused by the team lead.** `review-1.md` and `00-decisions.md` at the repo root were the lead's stray writes for the other pipeline (a command run from the wrong directory). Both have been removed. The build is unchanged (`git diff 399c8cf HEAD -- apps supabase e2e` is empty), so S-1 alone is re-run on the same build.
+2. **SC-2 (BUG-2): plan error.** `string_agg(… order by p.email)` ties student@'s two attempts. The expected value is the same four values in either order. PASS. A later plan orders by `p.email, a.total`.
+3. **BA-2 (BUG-3): plan error.** The portal layout's own-profile read (`auth.service.ts:168`, the caller's row: name, role, active) happens on every portal page. The page's own two requests match exactly, and no taker data is in the extra one. PASS.
+4. **BA-9 (BUG-4): plan error.** An admin with no authenticator is sent to `/portal/account/two-step/setup` (`ROUTES.twoStepSetup`; seed line 6). The point of the row holds: no aal2, no results, no RPC. PASS with that page.
+5. **BK-2 (BUG-5): plan error.** `Results` is a link (`Button component={RouterLink}`, admin-mock-test.tsx:157), which Enter activates. Space is the button pattern. It's consistent with the portal's other link-buttons. PASS on Enter. Space on link-buttons portal-wide is not this feature; noted, not deferred work.
