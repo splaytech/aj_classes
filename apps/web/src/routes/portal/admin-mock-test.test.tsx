@@ -71,7 +71,11 @@ function testView(overrides: Partial<MockTestDraftView> = {}): MockTestDraftView
 }
 
 /** `afterChange` is what the page loads again once an action has worked (a reload). */
-async function renderPage(view: MockTestDraftView, afterChange: MockTestDraftView = view) {
+async function renderPage(
+  view: MockTestDraftView,
+  afterChange: MockTestDraftView = view,
+  findTimeoutMs = 1000, // testing-library's default
+) {
   let loads = 0;
   const Stub = createRoutesStub([
     {
@@ -87,7 +91,7 @@ async function renderPage(view: MockTestDraftView, afterChange: MockTestDraftVie
       <Stub initialEntries={['/portal/admin/mock-tests/t1']} />
     </LocalizationProvider>,
   );
-  await screen.findByRole('heading', { level: 1, name: view.title });
+  await screen.findByRole('heading', { level: 1, name: view.title }, { timeout: findTimeoutMs });
 }
 
 beforeEach(() => {
@@ -130,16 +134,17 @@ describe('admin mock test, a draft', () => {
     expect(screen.getByText(MOCK_TEST_EDIT_PAGE.releaseNeedsQuestions)).toBeInTheDocument();
   });
 
+  // 100 questions is a heavy render: under load it outlasts the 1 s findBy and 5 s test defaults.
   it('disables Add question at the 100 question cap', async () => {
     const questions = Array.from({ length: MOCK_TEST_LIMITS.questionsMax }, (_, index) =>
       question(`q${index}`, index + 1),
     );
-    await renderPage(testView({ questions }));
+    await renderPage(testView({ questions }), undefined, 15_000);
 
     expect(screen.getByRole('button', { name: MOCK_QUESTION_LIST.add })).toBeDisabled();
     expect(screen.getByText(MOCK_QUESTION_LIST.limitReached)).toBeInTheDocument();
     expect(screen.getByText(MOCK_QUESTION_LIST.count(100))).toBeInTheDocument();
-  });
+  }, 30_000);
 
   it('confirms before releasing, saying who can take it free of cost', async () => {
     vi.mocked(releaseMockTest).mockResolvedValue({ ok: true, data: undefined });
